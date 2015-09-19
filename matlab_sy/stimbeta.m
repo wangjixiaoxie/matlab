@@ -1,0 +1,39 @@
+stimcomb=[]
+contourscomb=[]
+contoursctcomb=[];
+ptind=[ 10 11 12 44]
+for ii=1:length(ptind)
+    crindvl=ptind(ii);
+    if isfield(avls,'baspath')
+        cmd=['cd ' avls.baspath avls.pvls{crindvl}];
+    else
+        cmd=['cd ' avls.pvls{crindvl}];
+    end
+        eval(cmd);
+    
+    cmd=['load ' avls.cvl{crindvl} '.mat'];
+    eval(cmd);
+    clear stimtms
+    for jj=1:length(fvst)
+        stimtms(jj)=fvst(jj).STIMTIME;
+       
+    end
+      ind=find(stimtms~=-1);
+      fbind=intersect(ind,crfbind);
+      ctind=intersect(ind,crctind);
+      stimtms=stimtms/1000+avls.del{crindvl};
+      contourscomb=[contourscomb contours(:,fbind)];
+      contoursctcomb=[contoursctcomb contours(:,ctind)];
+      stimcomb=[stimcomb stimtms(fbind)];
+end
+
+clear crinds
+arraylist=[-0.005:.010:.075]
+
+for ii=1:length(arraylist)
+    crinds{ii}=find(abs(arraylist(ii)-stimcomb)<.008)
+end
+size(crinds)
+for jj=[1:7]
+    mncontource{jj}=mean(contourscomb(:,crinds{jj}),2)
+end

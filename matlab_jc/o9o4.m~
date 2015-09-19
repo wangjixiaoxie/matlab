@@ -1,0 +1,112 @@
+o9o4
+
+    % See also o9o4stim.m
+    % /cardinal3/o9o4
+
+% microstim candidate
+% 08.05 - began screening
+% 08.07 - wn on at 4:30pm to test
+
+% Doesn't sing much when wn on
+
+% TW surgery ~8.24.10
+% first time I put leads in, he didn't sing much
+
+% 9.01 - leads in
+% 9.02 - singing
+%      - sama made template - okay but not perfect
+% 9.03 - singing - ready for stim - start after Labor Day Weekend
+
+
+
+% Leads w/o epoxy were used - the lead going to the right side of the brain
+% has good connections on wires 2,3,4 but not 1.  The lead going to the
+% left side of the brain has good connections on 1,3,4 but not 2.
+
+% 9.07 
+    % - 8:30am to 10:30am - stim test with wrong stim wires on right side (R14,L14)
+        % - effect was increased noisiness but no deflection in FF
+    % - 10:30am to 5:20pm - stim test with correct stim wires (R23, L14)
+        % - effect was increased noisiness and a big upward deflection in FF
+
+% 9.08 
+    % made new template to increase hit rate
+    % changed delay to avoid hitting late in note
+    % 5:30pm - stim with new template - 50ms delay, 80ms duration, R23, L14
+        % Dramatic and consistent upward deflection and increased noisiness
+    % 8:40pm - stim off
+    % Goal: find a stim configuration without noisiness
+        % Try R24, L14 (other option is R34, L14 --> assumes right side
+        % increases the noisiness)
+        % Try reducing stim amplitude
+
+% 9.09
+
+% Left stimulator was off until 2:26pm
+    % 9:45am - R24, L14 stim
+        % caused disruption - the worst I've seen thus far
+        % also caused a huge upward deflect
+        % This is evidence that acute changes in LMAN activity can lead to the big changes in
+        % deafening.
+    % 12:20pm - L14 stim (no stim on right side)
+        % no effect
+    % 1:05pm - R34, L14 stim
+        % big effect but not as big at R24
+    % 2:00pm - R23, L14 stim
+        % test this again
+    % 2:26pm - L14 only (no stim on right side, but left stimulator turned on)
+        % sufficient to cause minor upward deflection
+    % 3:30pm - R23 only (note that we know R24 and R34 are sufficient for large effect)
+        % no distortion but 20Hz minor upward deflection
+ % SO...L14 and R23 are ideal
+    % 5:41pm - test this configuration again
+        % based on pvs runs, it looks like noisiness arises from left side
+    % 6:06pm - template test for WN
+    % 6:12pm - 50microamps L14 and R23
+        % 40Hz upward deflection but no noisiness! - perfect
+        % adjust to 40ms delay to ensure it is across the entire syllable
+    % 8:18pm - decrease stim %age to 20%
+    % WN to hit above 2500Hz
+  % WN on at 8:50pm
+% 9.10
+    % no singing with wn on
+    % turned stim off at 11am - wait for song to turn stim on
+    
+% 9.13
+    % still no singing - stuck another bird in his cage at 10:50am
+    % 12:21pm - wn off - no singing
+    % singing
+    % new template to hit the stack note on the first trigger
+        % template913wn.mat _ although not actually used for wn
+    % to do: test stim at 90mA with new template
+
+% 9.14
+    % 12:30pm - stim with new template
+      % hits too late
+    % try 100ms delay and 80ms duration
+      % not a great effect until late in C
+    % 2:50pm - try 70ms delay and 80ms duration with 70uA
+    % 3:38pm - chronic stim on
+    % 8:10pm - stim off, new template
+        % problem with new template - recognizes calls
+        % problem with other templates - occassionally triggers stim during
+            % one of the BTAF filters!
+% 9.15
+    % 1:21pm - stim test
+        % looks great - 40Hz upward offset
+    % 4:08pm - stim on 100%
+% 9.16
+    % hitting well (almost perfect)
+    % might need to raise non-BT threshold to 2.5
+% 9.17
+    % pulled out right side lead at some point between 8:30am and 10:10am
+    % put it back in at 10:10am
+    % still no effect
+% 9.18
+    % probes pulled out again
+    
+% 9.22 
+    % try stim exp again
+    % test effect starting in the late afternoon - 50% catch
+% 9.23
+    % 11am - 0% catch

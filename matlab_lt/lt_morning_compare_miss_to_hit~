@@ -1,0 +1,8 @@
+label songs
+change miss label
+look at template of miss and hit
+find most extreme syllables in missed ones, and use that to make a new template. 
+you want to be able to hit the ones that you would have missed before.  so change AND NOT to OR YES logic for the old targets.
+
+look at individual slices for:
+1) hits, misses.  divide the latter into those you wanted to miss, andt hos not.  make template from fringe of what you wanted, non-fringe, and those you wanted.  

@@ -1,0 +1,8 @@
+%labelscript
+%still to check out, make sure lengthcheck is good, what is the eval error
+%I'm getting on the test run?
+
+changelabel('batch03.keep.rand','','b','','b')
+changelabel('batch03.keep.rand','','bb','','a')
+changelabel('batch03.keep.rand','','a','','a',150)
+changelabel('batch03.keep.rand','','aa','','a',150)

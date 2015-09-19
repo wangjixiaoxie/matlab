@@ -1,0 +1,15 @@
+  function []=plotarrows(origarrow,shiftarrow,ps)
+%         axes(axhist);
+        arrow_col='r'
+        origlen=origarrow(3)-origarrow(1);
+        shiftlen=shiftarrow(3)-shiftarrow(1);
+        headwidth(1)=.01/abs(origlen);
+        headwidth(2)=.01/abs(shiftlen);
+        headht(1)=.01/abs(origlen)
+        headht(2)=.01/abs(shiftlen)
+        if(ps.plotshiftarrow)
+        arrow([origarrow(1) origarrow(2)],[origarrow(3) origarrow(4)]);
+        end
+        if(ps.plotrevarrow)
+        arrow([shiftarrow(1) shiftarrow(2)],[shiftarrow(3) shiftarrow(4)]'Linewidth',3,'headwidth',headwidth(2),'headheight',headht(2),'facecolor',arrow_col,'edgecolor',arrow_col)
+        end

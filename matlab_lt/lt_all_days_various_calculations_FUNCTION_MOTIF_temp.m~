@@ -1,0 +1,189 @@
+% clear all; close all
+
+% FIRST, COLLECT DATA ACROSS DAYS
+
+% GENERAL INPUTS
+phrase = 'SyntaxDepPitchShift';
+first_day= '21Jul2014';
+last_day= '21Jul2014';
+save_results=1;
+motif_counter=0;
+
+% functions to run (SAME FOR ALL MOTIFS)
+FcnAll={'check_HTF','calcdaypitch'};
+
+% ----------------------------------------------------
+% 1) INPUTS specifically for motif switches:
+% i.e. each entry is for a separate motif (if want to get both ab(b) and ab(c), then syl_targ_list would be {'b','c'}
+motif_pre_list={'dcc','dccb'};
+syl_targ_list={'b','b'};
+motif_post_list={'',''};
+syl_replace_list={'M','N'}; % important, labels will temporarily be changed to this. has to be unused (e.g. all caps).
+num_motifs=size(syl_targ_list,2);
+
+
+% 2) INPUTS for lt_all_days_various - enter as normally would, for each syl
+% target (each cell entry is for separate motif switch)
+% INPUTS FOR lt_calc_pitch
+freq_rangeDP_list={{[3050 3750]},{[3050 3750]}};
+pc_time_windowDP_list={{[140 230]},{[130 220]}};
+plot_resultDP=1;
+pc_windowDP=2000;
+
+% INPUTS FOR LT_CHECK...:
+freq_rangeHTF={{[2800 3800]},{[2800 3800]}};
+evtaf_verHTF='v4';
+get_WN_hitsHTF=1;
+get_offline_matchHTF=1;
+get_FFHTF=1;
+if get_offline_matchHTF==1; % template params if also doing offline check
+    template_name='pu11wh87ab_SyntaxDepPitchShift_v1_6';
+    cntrng_values{1}={[5 14 1] 'or' 'n' 'y'};
+    cntrng_values{2}={[5 14 0.1] 'or' 'n' 'y'};
+    cntrng_values{3}={[5 14 1.1] 'and' 'n' 'y'};
+    cntrng_values{4}={[1 4 1.5] 'or' 'n' 'n'};
+    cntrng_values{5}={[1 4 1.5] 'or' 'n' 'n'};
+    cntrng_values{6}={[1 4 1.5] 'or' 'n' 'n'};
+    col_logic='(a+b+c)*(d+e+f)';
+end
+
+
+% WITHIN FUNCTION VARIABLES SETTING (DIFFERENT FOR ALL MOTIFS)
+% lt_check...:
+for i=1:num_motifs;
+    if get_offline_matchHTF==1;
+        V1{i}={'sylHTF',syl_replace_list{i},'syl_preHTF',{''},'syl_postHTF',{''},'freq_rangeHTF',freq_rangeHTF{i},'evtaf_verHTF',evtaf_verHTF,'get_WN_hitsHTF',get_WN_hitsHTF,'get_offline_matchHTF',...
+            get_offline_matchHTF,'get_FFHTF',get_FFHTF,'template_name',template_name,'cntrng_values',cntrng_values,'col_logic',col_logic};
+    else
+        V1{i}={'sylHTF',syl_replace_list{i},'syl_preHTF',{''},'syl_postHTF',{''},'freq_rangeHTF',freq_rangeHTF{i},'evtaf_verHTF',evtaf_verHTF,'get_WN_hitsHTF',get_WN_hitsHTF,'get_offline_matchHTF',...
+            get_offline_matchHTF,'get_FFHTF',get_FFHTF};
+    end
+    % lt_calc...:
+    V2{i}={'syl_targetDP',syl_replace_list{i}, 'syl_preDP',{''},'phraseDP',phrase,'freq_rangeDP',freq_rangeDP_list{i},'pc_time_windowDP',pc_time_windowDP_list{i},'plot_resultDP',plot_resultDP,'pc_windowDP',pc_windowDP};
+    Vall{i}=[V1{i},V2{i}];
+end
+
+
+
+% RUN ANALYSIS
+% First summarize motifs, so mistakes won't lead to permanent changes to
+% batch files;
+for i=1:num_motifs;
+    disp([motif_pre_list{i} syl_targ_list{i} motif_post_list{i} ' will be temporarily changed to '...
+        motif_pre_list{i} syl_replace_list{i} motif_post_list{i} ' in the following analysis.']);
+    if strcmp(input('type y to continue, anything else to quit: ','s'),'y')==0;
+        forced2quit; % force quit
+    end
+end
+for i=1:num_motifs;
+    MOTIF_params={syl_targ_list{i},motif_pre_list{i},motif_post_list{i},syl_replace_list{i}};
+    % RUN
+    [filename_save, all_days_various(motif_counter+1)]=lt_all_days_various_calculations_FUNCTION_MOTIF(phrase,first_day,last_day,FcnAll, Vall{i},save_results,MOTIF_params);
+    motif_counter=motif_counter+1;
+    
+    % OUTPUT
+    motif_table{motif_counter,1}=[motif_pre_list{i} syl_targ_list{i} motif_post_list{i}];
+    motif_table{motif_counter,2}=[motif_pre_list{i} syl_replace_list{i} motif_post_list{i}];
+end
+
+
+%% RUN ANALYSIS that doesn't need motif change
+
+% INPUTS FOR LT_CHECK...:
+syl_preHTF={'a','b'};
+sylHTF={'b','b',};
+syl_postHTF={'',''};
+freq_rangeHTF={[2800 3800],[2800 3800]};
+evtaf_verHTF='v4';
+get_WN_hitsHTF=1;
+get_offline_matchHTF=1;
+get_FFHTF=1;
+
+if get_offline_matchHTF==1;
+template_name='pu11wh87ab_SyntaxDepPitchShift_v1_6';
+cntrng_values{1}={[5 14 1] 'or' 'n' 'y'};
+cntrng_values{2}={[5 14 0.1] 'or' 'n' 'y'};
+cntrng_values{3}={[5 14 1.1] 'and' 'n' 'y'};
+cntrng_values{4}={[1 4 1.5] 'or' 'n' 'n'};
+cntrng_values{5}={[1 4 1.5] 'or' 'n' 'n'};
+cntrng_values{6}={[1 4 1.5] 'or' 'n' 'n'};
+col_logic='(a+b+c)*(d+e+f)';
+end
+
+
+% INPUTS FOR CALC_PITCH
+syl_preDP={'a','c'};
+syl_targetDP='bb';
+freq_rangeDP={[3050 4200],[3050 3750]};
+pc_time_windowDP={[50 150],[60 160]};
+plot_resultDP=1;
+pc_windowDP=2000;
+
+
+% WITHIN FUNCTION VARIABLES SETTING:
+% lt_check...:
+if get_offline_matchHTF==1;
+    V1={'sylHTF',sylHTF,'syl_preHTF',syl_preHTF,'syl_postHTF',syl_postHTF,'freq_rangeHTF',freq_rangeHTF,'evtaf_verHTF',evtaf_verHTF,'get_WN_hitsHTF',get_WN_hitsHTF,'get_offline_matchHTF',get_offline_matchHTF,'get_FFHTF',get_FFHTF,'template_name',template_name,...
+        'cntrng_values',cntrng_values,'col_logic',col_logic};
+else
+    V1={'sylHTF',sylHTF,'syl_preHTF',syl_preHTF,'syl_postHTF',syl_postHTF,'freq_rangeHTF',freq_rangeHTF,'evtaf_verHTF',evtaf_verHTF,'get_WN_hitsHTF',get_WN_hitsHTF,'get_offline_matchHTF',get_offline_matchHTF,'get_FFHTF',get_FFHTF};
+end
+% lt_calc...:
+V2={'syl_targetDP',syl_targetDP, 'syl_preDP',syl_preDP,'phraseDP',phrase,'freq_rangeDP',freq_rangeDP,'pc_time_windowDP',pc_time_windowDP,'plot_resultDP',plot_resultDP,'pc_windowDP',pc_windowDP};
+Vall=[V1,V2];
+
+
+% RUN
+[filename_save, all_days_various(motif_counter+1)]=lt_all_days_various_calculations_FUNCTION_temp(phrase, first_day, last_day, FcnAll, Vall, save_results);
+
+for i=1:length(syl_targetDP);
+    motif_table{motif_counter+i-1,2}=[syl_preDP{i} syl_targetDP(i)];
+end
+
+
+
+
+% ----------------------------------------------------
+% COMBINE DATA STRUCTURES
+% INPUT
+bird_dir=['/bluejay3/lucas/birds/' all_days_various.parameters pu11wh87/'];
+ADV_dir=[bird_dir 'all_days_various_calculations/'];
+
+all_days_various_COMPILED.all_days_various=all_days_various;
+
+% get list of motifs and correspondence with structure #
+c=1;
+for i=1:size(all_days_various_COMPILED.all_days_various,2);
+    fields=fieldnames(all_days_various_COMPILED.all_days_various(i).lt_calc_day_pitch{1}.FF);
+    num_fields=length(fields);
+    for ii=1:num_fields;
+        syllables_COMPILED{c,1}=i;
+        syllables_COMPILED{c,2}=fields{ii};
+        c=c+1;
+    end
+end
+
+
+% OUTPUT
+% compiled data structure
+parameters.motif_table=motif_table;
+timestamp=lt_get_timestamp(0);
+parameters.syllables_COMPILED=syllables_COMPILED;
+parameters.first_day=first_day;
+parameters.last_day=last_day;
+parameters.time_of_analysis=timestamp;
+savename=[ADV_dir 'all_days_various_MOTIF_COMPILED_' timestamp];
+things_analyzed=all_days_various_COMPILED.all_days_various(1).parameters.things_analyzed;
+parameters.things_analyzed=things_analyzed;
+parameters.savename=savename;
+parameters.syllables_COMPILED=syllables_COMPILED;
+all_days_various_COMPILED.parameters_COMPILATION=parameters;
+
+save(savename,'all_days_various_COMPILED');
+
+% add to log.txt (assumes that all motifs underwent saem analyses)
+cd(ADV_dir);
+log_note=['MOTIF_COMPILED_' timestamp '__|' things_analyzed '|__' strjoin(parameters.motif_table(:,2)')  '|__' first_day '_to_' last_day];
+fid=fopen('log.txt','a');
+fprintf(fid,'%s \n \n',log_note);
+fclose(fid);

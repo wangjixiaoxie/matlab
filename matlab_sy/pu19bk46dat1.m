@@ -1,0 +1,221 @@
+%designed to call pitchsyntaxanal, and then inactivanal.m
+clear date
+clear avls
+clear ac
+clear graphvals
+sumpath='/oriole4/pu19bk46/'
+strcmd=['cd ' sumpath]
+eval(strcmd);
+if (~exist('datasum','dir'))
+    !mkdir datasum
+end
+matfilename='pathvals1'
+
+extractvals=1
+
+
+%white noise information
+wnon{1}=  '2008-03-09  07:00:00'
+minbnds{1}=6700
+maxbnds{1}=7320
+wnoff{1} ='2008-3-12 07:00:00'
+
+wnon{2}='2008-03-12 07:00:00'
+wnoff{2}='2008-03-14 07:00:00'
+minbnds{2}=6700
+maxbnds{2}=7450
+
+wnon{3}='2008-03-14 07:00:00'
+wnoff{3}='2008-03-17 07:00:00'
+minbnds{3}=6700
+maxbnds{3}=7630
+
+
+wnon{4}='2008-03-19 14:00:00'
+wnoff{4}='2008-03-22 07:00:00'
+minbnds{4}=7280 
+maxbnds{4}=8000
+
+wnon{5}='2008-03-22 7:00:00'
+wnoff{5}='2008-03-26 07:00:00'
+minbnds{5}=6980
+maxbnds{5}=8000
+
+
+
+
+clear pathvl vals
+
+
+
+
+pathvl{1}='/oriole4/pu19bk46/ac507/'
+catchvl{1}='batch.keep.rand'
+timon=[]
+timoff=[]
+date{1}=''
+% timon{1}='13:57:00'
+% timoff{1}='18:51:00'
+% date{1}='2008-01-26'
+
+pathvl{2}='/oriole4/pu19bk46/ac508amtmptst/'
+catchvl{2}='batch.keep.rand'
+
+pathvl{3}='/oriole4/pu19bk46/500mu508/'
+catchvl{3}='batchcomb'
+timon{3} = '11:18:00'
+timoff{3}= '14:22:00'
+date{3}='2007-05-08'
+
+
+pathvl{4}='/oriole4/pu19bk46/ac507/'
+catchvl{4}='batch.keep.rand'
+
+
+pathvl{5}='/oriole4/pu19bk46/ac508amtmptst/'
+catchvl{5}='batch.keep.rand'
+
+pathvl{6}='/oriole4/pu19bk46/lid507/'
+catchvl{6}='batch.keep.rand'
+timon{6} = '11:12:00'
+timoff{6}= '14:26:00'
+date{6}='2007-05-07'
+
+pathvl{7}='/oriole4/pu19bk46/probein/'
+catchvl{7}='batch07.keep.rand'
+
+pathvl{8}='/oriole4/pu19bk46/509wnon/'
+catchvl{8}='batch10.catch.keep'
+
+pathvl{9}='/oriole4/pu19bk46/lid510/'
+catchvl{9}='batch.keep'
+timon{9} = '14:15:00'
+timoff{9}= '18:17:00'
+date{9}='2007-05-10'
+
+pathvl{10}='/oriole4/pu19bk46/ac510/'
+catchvl{10}='batch10.keep'
+
+pathvl{11}='/oriole4/pu19bk46/ac510/'
+catchvl{11}='batchcomb'
+
+pathvl{12}='/oriole4/pu19bk46/dirfiles/'
+catchvl{12}='batch'
+
+pathvl{13}='/oriole4/pu19bk46/ac508/'
+catchvl{13}='batch08.keep.catch'
+
+pathvl{14}='/oriole4/pu19bk46/lid512/'
+catchvl{14}='batch'
+timon{14}= '11:30:00'
+timoff{14}= '15:08:00'
+date{14}='2007-05-12'
+
+pathvl{15}='/oriole4/pu19bk46/400mu51308/'
+catchvl{15}='batchcomb'
+pathvl{16}='/oriole4/pu19bk46/ac512/'
+catchvl{16}='batch13.keep.rand'
+
+pathvl{17}='/oriole4/pu19bk46/ac512/'
+catchvl{17}='batch12.keep.rand'
+
+pathvl{18}='/oriole4/pu19bk46/ac51308/'
+catchvl{18}='batch14.keep'
+
+pathvl{19}='/oriole4/pu19bk46/750mu51408/'
+catchvl{19}='batch'
+
+timon{19}= ''
+timoff{19}= ''
+date{19}=''
+
+
+
+usex(1:19)=0;
+ac(19)=[0];
+avls.analind=[1:19]
+
+numnotes=1
+notes='l'
+
+fbins={};
+tbinshft{1}=0.015;
+  
+
+NFFT(1)=512
+ 
+
+fbins{1}=[6000,7500];
+
+
+clear NT    
+NT{1}='l'
+ 
+% NT{3}='g'
+
+PRENT{1}='';PSTNT{1}='';
+
+  %%%plotvals
+acon=[ 1 2 4 5 7 8 10 11 13 16 17 18];  
+muon=[3 6 9 14 15 19]
+diron=[12]
+extraon=[]
+
+clear colvals
+colvals{1}=muon;
+colvals{2}=acon
+colvals{3}=diron;
+
+graphvals.numcol=3
+graphvals.col='rkc'
+graphvals.plttext=1
+graphvals.txtht=[3260 3200]
+graphvals.tickht=8000
+graphvals.edges{1}=[6700:80:7900]
+graphvals.edges{2}=[2000:40:2500]
+graphvals.edges{3}=[1300:40:1800]
+graphvals.colvals=colvals
+graphvals.pltpnts=1
+
+graphvals.timon=timon;
+graphvals.timoff=timoff;
+graphvals.acon=ac;
+graphvals.date=date;
+
+graphvals.wnon=wnon;
+graphvals.wnoff=wnoff;
+graphvals.minbnds=minbnds;
+graphvals.maxbnds=maxbnds;
+
+
+graphvals.colvals=colvals
+graphvals.chunkdata=1
+
+avls.pvls=pathvl
+avls.datfile=matfilename;
+avls.cvl=catchvl
+avls.sumpath=sumpath
+avls.mtflnm=matfilename  
+avls.supanal=0
+avls.NT=NT
+avls.NFFT=NFFT
+avls.fbins=fbins
+avls.tshft=tbinshft
+avls.usex=usex
+avls.numnotes=numnotes
+avls.mkfv=[19]
+avls.PRENT=PRENT
+avls.PSTNT=PSTNT
+avls.repeatanal=[0 0 0]
+avls.bnds{1}='2007-09-20 07:00:00'
+avvls.bnds{2}='2007-11-20 07:00:00'
+avls.offset=1.75;
+avls.acoffset=1;
+
+strcmd=['cd ' sumpath 'datasum']
+eval(strcmd)
+
+strcmd=['save ' matfilename '.mat avls graphvals'];
+eval(strcmd);
+
+

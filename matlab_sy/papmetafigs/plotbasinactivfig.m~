@@ -1,0 +1,202 @@
+
+function []=plotbasinactivfig(bs,sumbs);
+figure
+figstoplot=[1:2 3:4 6:7]
+
+  avlspath='/oriole6/bk61w42/datasum'
+  avlsmat='pathvals1-analdata.mat'
+    
+  cmd=['cd ' avlspath];
+  eval(cmd);
+  cmd=['load ' avlsmat];
+  eval(cmd);
+if(ismember(1,figstoplot))
+     
+    exsong(1).path=[ avls.pvls{4}]
+    exsong(1).cvl=avls.cvl{4}
+    exsong(1).fn='bk63w42_011208_0757.3471.cbin';
+    exsong(1).bnds=[4.1  5.7]
+    exsong(1).ax=subplot(331)
+    plotexspect(exsong);
+%     exsong(1).stim_path='/oriole/bk48w74/stimexample'
+%     exsong(1).stim_mat='stimexample.mat'
+end
+
+if(ismember(2,figstoplot))
+     
+    exsong(1).path=[ avls.pvls{11}]
+    exsong(1).cvl=avls.cvl{11}
+    exsong(1).fn='bk63w42_031208_0935.660.cbin';
+    exsong(1).bnds=[3.32 4.92]
+    exsong(1).ax=subplot(334)
+    plotexspect(exsong);
+%     exsong(1).stim_path='/oriole/bk48w74/stimexample'
+%     exsong(1).stim_mat='stimexample.mat'
+end
+
+
+if(ismember(3,figstoplot))
+    
+  avlsmat='pathvals1-analdata.mat'
+    
+  cmd=['cd ' avlspath];
+  eval(cmd);
+  cmd=['load ' avlsmat];
+  eval(cmd);
+    
+    
+    ax=subplot(337);
+    ps.ax=ax
+    path=[ avls.pvls{13}]
+    bt=avls.cvl{13}
+    cmd=['cd ' path]
+    eval(cmd);
+    cmd=['load ' bt '.mat']
+    eval(cmd);
+        
+    ps.contours=contours2;
+    ps.pitchtms=pitchtms;
+    ps.indtoplot=[17 91 46 39 82 37 33 74 58 3 47] 
+    % ps.axraw=subplot(212)
+    % ps.plotraw=1;
+    plotcontour(ps)
+end
+
+if(ismember(4,figstoplot))
+     avlsmat='pathvals1-analdata.mat'
+    
+    cmd=['cd ' avlspath];
+    eval(cmd);
+    cmd=['load ' avlsmat];
+    eval(cmd);
+    
+    ax=subplot(338);
+    ps.ax=ax
+    path=[avls.pvls{14}]
+    bt=avls.cvl{14}
+    cmd=['cd ' path]
+    eval(cmd);
+    cmd=['load ' bt '.mat']
+    eval(cmd);
+        
+    ps.contours=contours2;
+    ps.pitchtms=pitchtms;
+    ps.indtoplot=[42 51 40 52 36 43 39 33  48  44] 
+    % ps.axraw=subplot(212)
+    % ps.plotraw=1;
+    plotcontour(ps)
+end
+
+if(ismember(5,figstoplot))
+     ptsps.marksize=3.5
+    ptsps.rawvl='raw'
+    ptsps.ntvl=1;
+    indtoplot=[3 ]
+    sumbsvl=[5 ]
+    ptsps.STIM=0
+    ptsps.plotextra=0
+    plotpre=[0 ]
+    
+     ptsps.col{1}='k'
+    ptsps.col{2}='k'
+    ptsps.col{3}=[0.4 0.4 1]
+    ptsps.plotextra=1;
+    ptsps.initmean=sumbs(8).initmean;
+    sfact=3000;
+%     figure
+    for ii=1:length(indtoplot)
+        avls=getavls(bs,sumbsvl(ii))
+        ptsps.indtoplot=indtoplot(ii);
+        ptsps.plotpre=plotpre(ii);
+        axraw(ii)=subplot(3,3,2:3)
+        ptsps.ax=gca();
+        inactiv_rawpoints(avls,ptsps,sfact);
+%         axis square
+        box off
+    end
+    linkaxes(axraw);
+    axis([-1 9 2.25 2.5])
+
+end
+
+if (ismember(6,figstoplot))
+     clear ps
+    
+     ps.col{1}='k'
+     ps.col{2}=[0.4 0.4 1]
+     ps.col{3}=[0.6 0.6 0.6]
+     
+       ps.col{3}=[0.6 0.6 0.6]
+       
+       ps.shift_col=[0.6 0.6 0.6]
+       ps.rev_col=[1 .6 .6]
+     
+     ps.arrowht=[0.4 0.45]
+    ps.distht=0.35
+    ps.ntind=1;
+
+     indtoplot=[3]
+    sumbsvl=[5]
+    plotpre=[0 ]
+    plotshiftarrow=[0 ]
+    plotrevarrow=[0 ]
+    
+     for ii=1:length(indtoplot)
+         avls=getavls(bs,sumbsvl(ii))
+         ps.indtoplot=indtoplot(ii);
+         ps.plotshiftarrow=plotshiftarrow(ii);
+         ps.plotrevarrow=plotrevarrow(ii);
+         ps.plotpre=plotpre(ii);
+        subplot(3,3,5)
+         ps.initmean=sumbs(sumbsvl(ii)).initmean
+         axhist(ii)=gca();
+         ps.ax=gca();
+         ps.axbnds= [2.25 2.5 0 0.6]
+         
+       plotexhistinactiv(avls,ps )
+     end
+     linkaxes(axhist);
+     axis square
+    
+end
+if (ismember(7,figstoplot))
+    ps.ax=subplot(3,3,6);
+    ps.plotsum=1;
+    ps.plotind=1;
+    [sumstats]=plotscatterbas3(sumbs,ps)
+end
+
+if(ismember(8,figstoplot))
+    
+   %TKTK plot mean offset in terms of histograms 
+end
+
+
+
+function []=plotexspect(exsong)
+clear catchvl
+clear ax
+% 
+% figure;
+% ax1(1)=subplot(12,1,2:6)
+% exsong(1).ax=ax1(1);
+% ax1(2)=subplot(12,1,1);
+
+% exsong(2)=exsong(1)
+% ax2(1)=subplot(12,1,8:12);
+% exsong(2).ax=ax2(1);
+% ax2(2)=subplot(12,1,7);
+
+
+    [dat,fs]=plotcbin(exsong);
+    hold on;
+    plot([0 2.5],[6600 6600],'c--')
+    
+ function []=plotcontour(ps)
+     
+     ind=find(ps.pitchtms>.03&ps.pitchtms<.09);
+     plot(ps.pitchtms(ind),ps.contours(ind,ps.indtoplot),'k');
+     axis([.02 .12 2250 2400])
+     
+     
+        

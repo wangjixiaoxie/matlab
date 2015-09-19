@@ -1,0 +1,12 @@
+clear all;
+load make_temp.mat
+clear temp; 
+temp=squeeze(mean(make_temp.all_spectrograms{1},2));
+temp=mean(temp,2);
+
+
+figure(9); hold on;
+plot(temp,'k')
+
+%%
+figure(10); plot(make_temp.all_spectrograms{1}(:,69,7))

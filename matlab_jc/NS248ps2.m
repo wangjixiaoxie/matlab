@@ -1,0 +1,102 @@
+% Problem 1
+% E(X1+X2+...+Xn)=E(X1)+E(X2)+...+E(Xn)
+% By definition the Binomial distribution X is the sum of n Bernoullis
+% E(Bernoulli)=p
+% E(X)=n*E(Bernoulli)
+% E(X)=n*p
+
+% Var(X1+X2+...+Xn)=Var(X1)+Var(X2)+...+Var(Xn) if Xi's are independent
+% By definition the Binomial distribution X is the sum of n independent Bernoullis
+% Var(Bernoulli)=p(1-p)
+% Var(X)=n*Var(Bernoulli)
+% Var(X)=n*p(1-p)
+
+% Problem 2
+%%%%
+function g = jcgaussian(x,mn,stdev)
+g = (1/(stdev*sqrt(2*pi)))*exp(-0.5*((x-mn)/stdev).^2);
+%%%%
+x=-6:12/9999:6;
+g=jcgaussian(x,0,1);
+cdg=cumsum(g)/sum(g);
+figure;plot(x,cdg)
+1-[cdg(max(find(x<1)))-cdg(min(find(x>-1)))]; % 0.3177
+1-[cdg(max(find(x<2)))-cdg(min(find(x>-2)))]; % 0.0456
+1-[cdg(max(find(x<3)))-cdg(min(find(x>-3)))]; % 0.0027
+
+% Problem 3
+randnums=rand(1,1000);
+for i=1:1000
+    [b,index]=min(abs(cdg-randnums(i)));
+    randdraw(i)=x(index);
+end
+[sum(randdraw>1)+sum(randdraw<-1)]/1000 % 0.3100
+[sum(randdraw>2)+sum(randdraw<-2)]/1000 % 0.0530
+[sum(randdraw>3)+sum(randdraw<-3)]/1000 % 0.0040
+
+% Problem 4
+p0=0.5;
+p1=0.5;
+for n=1:50;
+    binom=zeros(1,n);
+    for k=0:n
+        binom(k+1)=nchoosek(n,k)*(p1^k)*((1-p1)^(n-k));
+    end
+    errorA(n)=sum(abs((cumsum(binom)-cumsum(jcgaussian([0:1:n],n*p1,sqrt(n*p1*(1-p1)))))));
+end
+% error decreases as n increases
+p0=0.9;
+p1=0.1;
+for n=1:50;
+    binom=zeros(1,n);
+    for k=0:n
+        binom(k+1)=nchoosek(n,k)*(p1^k)*((1-p1)^(n-k));
+    end
+    errorB(n)=sum(abs((cumsum(binom)-cumsum(jcgaussian([0:1:n],n*p1,sqrt(n*p1*(1-p1)))))));
+end
+figure;hold on;plot(errorA);plot(errorB,'r')
+% error is bigger than in A because Gaussian is more symmetric whereas
+    %    binomial distn is always skewed.
+    
+% Problem 5
+r=normrnd(10,5,100000,1);
+figure;hist(r,[-10:30])
+% A %%%
+for i=1:1000
+    samps(i,:)=r(round(rand(1,5)*100000));
+end
+% 1
+mnest=mean(samps');
+% 2
+denom=5-1;
+for i=1:1000
+    sdest(i)=sqrt(sum((samps(i,:)-mnest(i)).^2/denom));
+end
+   % mean(sdest)=4.74
+% 3
+denom2=5;
+for i=1:1000
+    sdest2(i)=sqrt(sum((samps(i,:)-mnest(i)).^2/denom2));
+end
+   % mean(sdest2)=4.24
+% 4
+sem=sdest/sqrt(denom);
+mean(sem)=2.36
+sem2=sdest2/sqrt(denom2)
+mean(sem2)=1.89
+
+% 2 is closer --- supports use of n-1 as denominator
+
+% B %%%
+std(mnest)=2.22
+% error from first measure is 0.14
+% error from second measure is 0.33
+% first measure is better
+
+% C %%%
+bins=[0:0.1:6]
+thecounts=hist(sem,bins);
+%pdf
+figure;bar(bins,thecounts)
+%cdf - 1000 is number of sets
+figure;plot(bins,cumsum(thecounts)/1000)

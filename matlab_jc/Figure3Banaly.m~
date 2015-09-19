@@ -1,0 +1,7 @@
+function BaselineSlopes=Figure3Banaly(Alldata)
+% This does sensitivity analysis for Figure 3 - beginning/middle/end and
+% at different contingencies.
+
+
+for i=1:
+[slopes1]=Figure3analy(targregion,Alldata,cont)

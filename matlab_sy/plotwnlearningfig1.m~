@@ -1,0 +1,67 @@
+function [combvls]=plotwnlearningfig1();
+figure
+figstoplot=[3 ]
+
+  avlspath='/oriole6/bk61w42/datasum'
+  avlsmat='pathvals1-analdata.mat'
+    
+  cmd=['cd ' avlspath];
+  eval(cmd);
+  cmd=['load ' avlsmat];
+  eval(cmd);
+if(ismember(figstoplot,1))
+     
+    exsong(1).path=[ avls.pvls{4}]
+    exsong(1).cvl=avls.cvl{4}
+    exsong(1).fn='bk63w42_011208_0757.3471.cbin';
+    exsong(1).bnds=[5 7.1]
+    exsong(1).ax=subplot(421)
+    plotexspect(exsong);
+%     exsong(1).stim_path='/oriole/bk48w74/stimexample'
+%     exsong(1).stim_mat='stimexample.mat'
+end
+
+if(ismember(figstoplot,1))
+     
+    exsong(1).path=[ avls.pvls{4}]
+    exsong(1).cvl=avls.cvl{4}
+    exsong(1).fn='bk63w42_011208_0757.3471.cbin';
+    exsong(1).bnds=[5 7.1]
+    exsong(1).ax=subplot(423)
+    plotexspect(exsong);
+%     exsong(1).stim_path='/oriole/bk48w74/stimexample'
+%     exsong(1).stim_mat='stimexample.mat'
+end
+
+
+if(ismember(figstoplot,4))
+    
+    ax=subplot(427);
+    ps.ax=ax
+    % ps.axraw=subplot(212)
+    % ps.plotraw=1;
+    ps.wnax=ax;
+    ps.wnind=[0 0 1 1 1 1 1 1 1 ]
+    ps.wnbnds=[2.37 2.45 2.47 2.47 2.47 2.47 2.47]
+    ps.wnbot=[2.3]
+    plot_tmcourse2revAC(avls,[10 13 16 19 22 24 27 41:44],ps)
+end
+
+function []=plotexspect(exsong);
+clear catchvl
+clear ax
+% 
+% figure;
+% ax1(1)=subplot(12,1,2:6)
+% exsong(1).ax=ax1(1);
+% ax1(2)=subplot(12,1,1);
+
+% exsong(2)=exsong(1)
+% ax2(1)=subplot(12,1,8:12);
+% exsong(2).ax=ax2(1);
+% ax2(2)=subplot(12,1,7);
+
+
+    [dat,fs]=plotcbin(exsong);
+    hold on;
+    plot([0 2.5],[6600 6600],'c--')

@@ -1,0 +1,254 @@
+  %purpose of this code is to go through sumbs and calculate
+%values for histograms of offsets.
+%in this version I take out all paired calculations.
+function [shiftplot,combvls]=plothistorystim5(sumbs,minpts,minshift,norm_asymp, STIM,axin,axbnds,PLOTEX)
+
+ctvl=1
+ 
+    
+%first find appropriate stim runs.
+% colvec{1}=[1 .6 .6]
+% colvec{2}=[1 .6 .6]
+colvec{1}=[0.2 0.2 0.2]
+colvec{2}=[0.2 0.2 0.2]
+colvec{3}=[.6 .6 1]
+    for colind=1:length(colvec)
+        combvls{colind}=[]
+    end
+for bsnm=1:length(sumbs)
+   crbs=sumbs(bsnm);
+    shiftruns=crbs.shiftruns;
+    revruns=crbs.revruns;
+    
+    numshiftruns=length(shiftruns);
+    numrevruns=length(revruns);
+    for ii=1:numshiftruns
+        asympruns=crbs.asympruns{ii};
+        if(~isempty(crbs.asymprevruns))
+            if(ii<=length(crbs.asymprevruns))
+                revasympruns=crbs.asymprevruns{ii};
+            else
+                revasympruns=[];
+            end
+        else
+            revasympruns=[];
+        end
+        shiftplot(bsnm).drxn{ii}=crbs.drxn{ii};
+        %runtype 1 is shift runs, runtype2 is basruns, runtype3 is revruns.
+        for runtype=1:3
+            if(runtype==1)
+                inruns=crbs.shiftruns;
+            elseif(runtype==2)
+                inruns=crbs.basruns;
+            else
+                inruns=crbs.revruns;
+            end
+            if(ii<=length(inruns))
+                if(runtype==2)
+                    cr_runs{runtype}=inruns;
+                else
+                     cr_runs{runtype}=inruns{ii};
+                end
+                if(STIM)
+                    tmpind=find(ismember(cr_runs{runtype},crbs.STANRUNS));
+                    cr_runs{runtype}=cr_runs{runtype}(tmpind);
+                end
+            else
+               cr_runs{runtype}=[]; 
+            end
+        end
+    
+        combins=[cr_runs{1}' cr_runs{2} ]
+   
+        if(STIM)
+            aczvls=crbs.acz
+            muzvls=crbs.muz
+        else
+            aczvls=crbs.acz(crbs.ntind,:)
+            muzvls=crbs.muz(crbs.ntind,:)
+        end
+        %DIVIDE DATA INTO THREE GROUPS
+        %BASIND(1)  SHIFTIND(2)  REVIND(3)
+        %pick the inds for baseline measurements, and shift measurements
+        %and reverse to baseline, and reverse shift.
+        analshiftinds=find(abs(aczvls(combins))>1);
+        analbasinds=setdiff(1:length(combins),analshiftinds);
+        analshiftinds=combins(analshiftinds);
+        outinds{1}=combins(analbasinds);
+        
+        %now remove asympruns from this analysis
+        if(asympruns>1)
+           keepind=find(~ismember(analshiftinds,asympruns(2:end))) 
+           outinds{2}=analshiftinds(keepind); 
+        else
+            outinds{2}=analshiftinds;
+        end
+        
+        if(~isempty(cr_runs{3}))
+            if(~isempty(revasympruns))
+                %remove anything greater than first asymptote runs
+                maxind=find(ismember(cr_runs{3},revasympruns(1)));
+                outinds{3}=cr_runs{3}(1:maxind);
+            else
+                outinds{3}=cr_runs{3};
+            end
+        else
+            outinds{3}=[];
+        end
+        
+        for runvl=1:3
+            shiftplot(bsnm).acshift{ii}{runvl}=aczvls(outinds{runvl});
+            shiftplot(bsnm).mushift{ii}{runvl}=muzvls(outinds{runvl});
+        end
+    end
+%     if (~isempty('aczpr_vls'))
+%         shiftplot(bsnm).aczpr_vls=aczpr_vls
+%         shiftplot(bsnm).muzpr_vls=muzpr_vls;
+%         shiftplot(bsnm).revacpr_vls=revacpr_vls;
+%         shiftplot(bsnm).revmupr_vls=revmupr_vls;
+%     end
+    if(PLOTEX)
+        if(bsnm>1)
+            axes(ax(bsnm-1))
+        end
+            ax(bsnm)=subplot(2,length(sumbs),bsnm);
+        axis([-1 7 -7 7]);
+        axis square;
+        box off;
+    
+    
+        plotarrow(shiftplot(bsnm),ax(bsnm),colvec,axbnds);
+    end
+   
+    if(bsnm==1)
+%         figure
+        axhor(1)=axin;
+    end
+    [combvls,ctvl]=plotmeanhorizarrow(shiftplot(bsnm),axhor(1),colvec,combvls,ctvl,axbnds);
+    ctvl=ctvl+1;
+end
+% linkaxes(ax);
+
+function []=plotarrow(shiftplot,ax, colvec,axbnds)
+axes(ax);
+hold on;
+numdrxn=length(shiftplot.drxn);   
+for ii=1:numdrxn
+    for typevl=1:length(shiftplot.acshift{ii})
+        drxn=shiftplot.drxn{ii};   
+        
+        y1=shiftplot.acshift{ii}{typevl};
+        y2=shiftplot.mushift{ii}{typevl};
+               
+       if(drxn=='up')
+           x=y1;
+       else
+           x=-y1;
+       end
+%            plot([x;x],[y1;y2],'k','Linewidth',2)
+           
+            plot(x,y2,'o','MarkerEdgeColor',colvec{typevl},'MarkerSize',3,'MarkerFaceColor',colvec{typevl})
+             hold on;
+             axis(axbnds);
+            %             plot([mnx1;mnx1],[ysh1;ysh2],'r--','Linewidth',2)
+           
+%              plot([mnx2;mnx2],[ymnrv1;ymnrv2],'c--','Linewidth',2)
+            plot([0 8],[0 8],'k--');
+            plot([0 8],[0 -8],'k--');
+    end
+end
+   
+function [combvls]=plothorizarrow(shiftplot,ax, colvec,combvls,axbnds)
+axes(ax);
+hold on;
+numdrxn=length(shiftplot.drxn);   
+for ii=1:numdrxn
+    
+    for typevl=1:length(shiftplot.acshift{ii})
+        drxn=shiftplot.drxn{ii};   
+        numvls=length(shiftplot.acshift{ii}{typevl});
+        if(numvls)
+            for vlind=1:numvls
+                y1=shiftplot.acshift{ii}{typevl}(vlind);
+                y2=shiftplot.mushift{ii}{typevl}(vlind);
+                diff=y2-y1;
+                if(drxn=='up')
+                   combdiff=diff 
+                else
+                    combdiff=-diff;
+                end
+                if(typevl==1)&(ii==1)
+                    combvls{1}=[combvls{1} combdiff]
+                elseif(typevl==2)
+                    combvls{2}=[combvls{2} combdiff]
+                elseif(typevl==3)
+                    combvls{3}=[combvls{3} combdiff]
+                end
+                plot([0 diff],[ct ct],'k')
+                hold on;
+                plot(diff,ct,'o','MarkerEdgeColor',colvec{typevl},'MarkerSize',4,'MarkerFaceColor',colvec{typevl})
+                
+            end
+        end
+    end
+    ctvl=ctvl+1;
+end
+function [combvls,ctvl]=plotmeanhorizarrow(shiftplot,ax, colvec,combvls,ctvl,axbnds)
+axes(ax);
+hold on;
+numdrxn=length(shiftplot.drxn);  
+plot([-4 4],[ctvl-.3 ctvl-.3],'Color',[0.6 0.6 0.6])
+for ii=1:numdrxn
+    
+    for typevl=1:length(shiftplot.acshift{ii})
+        drxn=shiftplot.drxn{ii};   
+        numvls=length(shiftplot.acshift{ii}{typevl});
+        if(numvls)
+                y1=shiftplot.acshift{ii}{typevl};
+                y2=shiftplot.mushift{ii}{typevl};
+                diff=y2-y1;
+                if(drxn=='up')
+                   combdiff=diff 
+                else
+                    combdiff=-diff;
+                end
+                nonaninds=find(~isnan(combdiff))
+                if(typevl==1)&(ii==1)
+                    combvls{1}=[combvls{1} combdiff(nonaninds)]
+                elseif(typevl==2)
+                    combvls{2}=[combvls{2} combdiff(nonaninds)]
+                elseif(typevl==3)
+                    combvls{3}=[combvls{3} combdiff(nonaninds)]
+                end
+                
+                
+
+                if(typevl>1)
+%                     plot([0 mean(combdiff)],[ctvl ctvl],'k')
+%                     hold on;
+%                     plot(mean(combdiff),ctvl,'o','MarkerEdgeColor',colvec{typevl},'MarkerSize',6,'MarkerFaceColor',colvec{typevl})
+                    hw=.35/abs(mean(combdiff(nonaninds)));
+                    hh=.15/abs(mean(combdiff(nonaninds)))
+
+                     
+            
+                    
+                    
+                    axis(axbnds)
+                    hold on;
+                    h=arrow([0 ctvl],[mean(combdiff(nonaninds)) ctvl],'Length',6,'width',1)
+                   set(h,'FaceColor',colvec{typevl});
+                    set(h,'EdgeColor','none');
+                set(h,'Linewidth',2)
+                    xvec=combdiff(nonaninds)
+                    yvec=[(ctvl+.2)*ones(length(combdiff(nonaninds)),1)]
+                    plot(xvec,yvec,'o','Color',colvec{typevl},'MarkerSize',4)
+                    ctvl=ctvl+.4
+                end
+            
+        end
+    end
+    ctvl=ctvl+1;
+end
+
+

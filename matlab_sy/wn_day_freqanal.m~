@@ -1,0 +1,42 @@
+clear pera_start
+
+
+%pera_start = datenum('2006-10-23 16:00:00', 'yyyy-mm-dd HH:MM:SS')
+%pera_end=datenum('2006-10-24 16:00:00','yyyy-mm-dd HH:MM:SS');
+%perb_start=datenum('2006-10-29 13:00:00','yyyy-mm-dd HH:MM:SS');
+%perb_end=datenum('2006-10-30 13:00:00','yyyy-mm-dd HH:MM:SS');
+
+%trigvec=[];
+%for ii=1:length(fvmas3)
+ %   trigvec=[trigvec fvmas3(ii).TRIG];
+%end
+
+
+vals=getvals(fv,1,'TRIG');
+
+
+
+
+
+%indnotriga=find(vals(indnotrig,1)>pera_start&vals(indnotrig,1)<pera_end);
+%indnotrigb=find(vals(indnotrig,1)>perb_start&vals(indnotrig,1)<perb_end)
+%indtriga=find(vals(indtrig,1)>pera_start&vals(indtrig,1)<pera_end);
+%indtrigb=find(vals(indtrig,1)>perb_start&vals(indtrig,1)<perb_end)
+%size(indnotriga)
+%size(indnotrigb)
+
+edges=[6200:50:7600]
+
+indtrig=find(vals(:,3)==1)
+indnotrig=find(vals(:,3)==0);
+trighist=histc(vals(indtrig,2),edges);
+notrighist=histc(vals(indnotrig,2),edges);
+%notrigbhist=histc(vals(indnotrig(indnotrigb),2)/2,edges);
+%stairs(edges, notrigahist, 'r--');hold on;
+figure
+stairs(edges,trighist,'r');
+hold on;
+stairs(edges, notrighist,'k--');
+hold on;
+stairs(edges,trigbhist,'k')
+figure

@@ -1,0 +1,139 @@
+%plotmuscdayscript
+%a hack to write plotmeanstdev for a single day.
+
+nnotes=3
+batchfiles=[2 3 4]
+refvals=[7094 2200 1552]
+
+wnon=graphvals.wnon
+ subval=floor(avls.chkarray{1}{1}(1,1));
+ stimes=avls.stimes;
+ etimes=avls.etimes;
+%put in the white noise
+fillind=[1 .9 .9]
+mnvl=avls.mnvl;
+stdv=avls.stdv;
+
+for ii=1:nnotes
+    ax1(ii)=subplot(nnotes,3,ii*3-2)
+    ti
+    
+    for jj=1:length(wnon)
+     x1=datenum([wnon{jj}],'yyyy-mm-dd  HH:MM:SS')-subval;
+       x2=datenum([wnoff{jj}],'yyyy-mm-dd  HH:MM:SS')-subval;
+       y1=minbnds{jj};
+       y2=maxbnds{jj};
+       fill([x1 x2 x2 x1], [y1 y1 y2 y2], fillind,'EdgeColor','none')
+           
+           hold on; 
+        
+    end
+
+ 
+ 
+    for jj=1:length(batchfiles)
+       
+       btnum=batchfiles(jj);
+       muind=find(graphvals.colvals{1}==btnum)
+       acind=find(graphvals.colvals{2}==btnum)
+       if(muind)
+           plot(avls.chkarray{ii}{btnum}(:,1)-subval,avls.chkarray{ii}{btnum}(:,2),'.','Color',graphvals.col(1),'MarkerSize',5.8)
+            hold on;
+       else
+           
+            plot(avls.chkarray{ii}{btnum}(:,1)-subval,avls.chkarray{ii}{btnum}(:,2),'.','Color',graphvals.col(2),'MarkerSize',5.8)
+            hold on;
+        
+       end
+    
+
+    
+           if(~isempty(graphvals.timoff{btnum}))
+               x1=datenum([graphvals.date{btnum} ' ' graphvals.timon{btnum}],'yyyy-mm-dd  HH:MM:SS')-subval
+               x2=datenum([graphvals.date{btnum} ' ' graphvals.timoff{btnum}], 'yyyy-mm-dd  HH:MM:SS')-subval
+                  y1=refvals(ii)
+                
+                plot([x1 x2], [y1 y1],'b--','Linewidth',1)
+           end
+            
+           
+           
+    ylim([graphvals.edges{ii}(1) graphvals.edges{ii}(end)])
+    end
+
+    linkaxes(ax1,'x');
+    xlim([x1-4/24 x1+7/24]) 
+    ylabel('frequency (hz)', 'Fontsize',18)
+    xlabel('day', 'Fontsize',18)
+    box off;
+    if(ii~=3)
+    axis off;
+    end
+    
+for jj=1:length(batchfiles)
+            
+     ax2(ii)=subplot(nnotes,3,ii*3-1)
+    btnum=batchfiles(jj)
+          x=mean([stimes ;etimes],1)
+          if jj==1
+              x=x1+0.5/24;
+          elseif jj==2
+              x=x1+1/24;
+          elseif jj==3
+              x=x1+1.5/24;
+          end
+              y=mnvl{ii}(btnum);
+            e=stdv{ii}(btnum);
+          txtht=graphvals.edges{ii}(end)
+          
+          xvec=[x;x]
+              yvec=[y+e;y-e]
+              yvec2=[y;y]
+             
+%                 ofst=graphvals.offset(ii)
+             
+              
+             if(jj==2)
+                 colvl=graphvals.col(1);
+             else
+                colvl=graphvals.col(2);
+             end
+
+                 plot(xvec, yvec, 'Color',colvl,'Linewidth',1);
+              hold on;
+             plot(xvec(1,:), yvec2(1,:), 'o','Color',colvl)
+             box off;
+             text(x, txtht, num2str(avls.nnote{ii}{btnum}))
+             plot([x1+0.5/24 x1+1.5/24], [refvals(ii) refvals(ii)],'b--','Linewidth',1)
+             ylim([graphvals.edges{ii}(1) graphvals.edges{ii}(end)])
+               
+            axis off;
+               
+             
+          end
+       end
+    
+    
+    for ii=1:nnotes
+        for jj=1:length(batchfiles)
+            btnum=batchfiles(jj)
+            ax3(ii)=subplot(nnotes,3,ii*3)
+               
+             if(jj==2)
+                 colvl=graphvals.col(1);
+             else
+                colvl=graphvals.col(2);
+             end
+             
+             if (jj==3)
+                 lstyl='--'
+             else
+                 lstyl='-'
+             end
+            stairs(graphvals.edges{ii},avls.hstout{ii}{btnum},'Color',colvl,'LineStyle',lstyl);
+            box off;
+            hold on;
+              plot([refvals(ii) refvals(ii)],[0 40],'b--','Linewidth',1)
+        end
+    end
+

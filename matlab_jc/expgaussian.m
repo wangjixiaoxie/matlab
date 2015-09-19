@@ -1,0 +1,1 @@
+function g = expgaussian(x,pos,wid,timeconstant)%  Exponentially-broadened gaussian(x,pos,wid) = gaussian peak centered on pos, half-width=wid%  x may be scalar, vector, or matrix, pos and wid both scalar%  T. C. O'Haver, 2006g = exp(-((x-pos)./(0.6006.*wid)) .^2);g = ExpBroaden(g',timeconstant);

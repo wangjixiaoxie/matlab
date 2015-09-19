@@ -1,0 +1,163 @@
+
+% test butterworth filter
+    fs=8000; % same as regular sampling rate
+    t=0:1/8000:0.06; % 30ms
+    x=cos(200*pi*t); % 10ms period - reduced by greater than 87%; % 15ms period - reduced by less than 12%
+    figure;plot(t,x)
+    [num den]=butter(5,1/48,'low');
+    y=filtfilt(num,den,x);      
+    figure;plot(x);hold on;plot(y,'r')
+
+
+%%%%%%%%%%%%         
+  %%%   MSB "jerk analysis"
+  %%%%%%%%%%
+  filtwidth=[8:8:120]; % 1ms to 20ms
+  for kk=1:length(filtwidth)
+      filtwidthsel=filtwidth(kk);
+            for i=1:6
+                dataE=AllEscs(i).data';
+                dataH=AllHits(i).data';
+            % 100/4000 (i.e. 1/40) filters all above 100Hz (10ms period)  - 4000 is Nyquist for data sampled at 8000Hz
+            % so 1/40 - 10ms or slower
+            % so 1/20 - 5ms or slower
+            % so 1/80 - 20ms or slower
+                [num den]=butter(5,1/filtwidthsel,'low');
+                yE=filtfilt(num,den,dataE);
+                yE=mean(yE(201:end-200,:)');
+                yH=filtfilt(num,den,dataH);
+                yH=mean(yH(201:end-200,:)');
+                learnedFF=filtfilt(num,den,abs(Actual(i).data/max(Actual(i).data)));
+                predE(i).data=yE;
+                predH(i).data=yH;
+                 distES(i).data=(abs(learnedFF-abs(yE/max(yE))));
+                 distHS(i).data=(abs(learnedFF-abs(yH/max(yH))));                 
+                 dES(kk,i)=mean(distES(i).data);
+                 dHS(kk,i)=mean(distHS(i).data);
+            end
+  end
+periodfilt=(filtwidth*2)/8;
+figure;plot(periodfilt,mean(dES'));hold on;plot(periodfilt,mean(dHS'),'r')
+hold on;plot(0,mean(dEm'),'.','Markersize',25,'color','b')
+plot(0,mean(dHm'),'.','Markersize',25,'color','r')
+  %%%%%
+  %%%%%
+  %%%%%
+  % Resampling
+         distmeansE=[mean(dEm) mean(dES')];
+         distmeansH=[mean(dHm) mean(dHS')];
+         diffsHE=distmeansH-distmeansE;
+         distsE=[dEm;dES];
+         distsH=[dHm;dHS];
+         for k=1:11
+          both=[distsE(k,:) distsH(k,:)];
+                for i=1:10000
+                    randES=both(ceil(rand(1,6)*12));
+                    randE=both(ceil(rand(1,6)*12));    
+                    diff(i)=mean(randES-randE);
+                end
+           prob(k)=sum(abs(diff)>diffsHE(k))/10000;
+         end
+% t-test
+for k=1:11
+    [h,p(k)]=ttest(dES(k,:),dHS(k,:));
+end
+figure;plot(periodfilt(1:11),p)  
+
+for k=1:11
+    [ps(k),h]=signtest(dES(k,:),dHS(k,:));
+end
+hold on;plot(periodfilt(1:11),ps,'r')
+
+
+for k=1:11
+    [h,pE(k)]=ttest(dES(1,:),dES(k,:));
+end
+ for k=1:11
+    [pEs(k),h]=signtest(dES(1,:),dES(k,:));
+end
+ hold on;plot(periodfilt(1:11),pEs,'r')
+ 
+  
+  
+ 
+ 
+   filtwidth=[48]; % 1ms to 20ms
+  for kk=1:length(filtwidth)
+      filtwidthsel=filtwidth(kk);
+            for i=1:6
+                dataE=AllEscs(i).data';
+                dataH=AllHits(i).data';
+            % 100/4000 (i.e. 1/40) filters all above 100Hz (10ms period)  - 4000 is Nyquist for data sampled at 8000Hz
+            % so 1/40 - 10ms or slower
+            % so 1/20 - 5ms or slower
+            % so 1/80 - 20ms or slower
+                [num den]=butter(5,1/filtwidthsel,'low');
+                yE=filtfilt(num,den,dataE);
+                yE=mean(yE(201:end-200,:)');
+                yH=filtfilt(num,den,dataH);
+                yH=mean(yH(201:end-200,:)');
+                learnedFFs(i).data=filtfilt(num,den,abs(Actual(i).data/max(Actual(i).data)));
+                predE(i).data=yE;
+                predH(i).data=yH;
+                 distES(i).data=(abs(learnedFFs(i).data-abs(yE/max(yE))));
+                 distHS(i).data=(abs(learnedFFs(i).data-abs(yH/max(yH))));                 
+                 dES(kk,i)=mean(distES(i).data);
+                 dHS(kk,i)=mean(distHS(i).data);
+            end
+  end
+
+ 
+  
+  
+ figure;hold on;
+for k=1:6
+subplot(3,2,k);hold on;
+for i=1:length(predE(k).data)
+plot([i i],[predE(k).data(i)/max(predE(k).data) Actual(k).data(i)/max(Actual(k).data)])
+end
+plot(predE(k).data/max(predE(k).data),'b','Linewidth',2)
+plot(Actual(k).data/max(Actual(k).data),'k','Linewidth',2)
+ylim([0 1.05])
+xlim([0 length(Actual(k).data)])
+end 
+  
+           figure;hold on;
+        for k=3
+        %subplot(3,2,k);hold on;
+        for i=1:length(predE(k).data)
+            plot([i i],[predE(k).data(i)/max(predE(k).data) learnedFFs(k).data(i)/max(learnedFFs(k).data)])
+        end
+        plot(predE(k).data/max(predE(k).data),'b','Linewidth',2)
+        plot(learnedFFs(k).data/max(learnedFFs(k).data),'k','Linewidth',2)
+        ylim([0 1.05])
+        xlim([0 length(Actual(k).data)])
+        end
+% resampling
+both=[dEm dES];
+        for i=1:10000
+            randES=both(ceil(rand(1,6)*12));
+            randE=both(ceil(rand(1,6)*12));    
+            diff(i)=mean(randES-randE);
+        end
+figure;plot(dEm,'b');hold on;plot(dES,'r')
+
+            for i=1:6
+                H=corrcoef(Actual(i).data,HitPred(i).data);
+                E=corrcoef(Actual(i).data,EscapePred(i).data);
+                ES=corrcoef(Actual(i).data,predJ(i).data)
+                 cHm(i)=H(2);
+                 cEm(i)=E(2);
+                 cESm(i)=ES(2);
+            end            
+  % resampling
+both=[cEm cESm];
+        for i=1:10000
+            randcES=both(ceil(rand(1,6)*12));
+            randcE=both(ceil(rand(1,6)*12));    
+            diffc(i)=mean(randcES-randcE);
+        end
+          
+ figure;plot(cEm,'b');hold on;plot(cESm,'r')
+             
+            

@@ -1,0 +1,11 @@
+
+function [ax]=plotwn(ax, fillind, graphvals, subval,ntvl)
+           
+         
+           x1=datenum([wnon{ntvl}.tmon],'yyyy-mm-dd  HH:MM')-subval;
+           x2=datenum([wnon{ntvl}.tmoff],'yyyy-mm-dd  HH:MM')-subval;
+           y1=wnon{ntvl}.freqlo;
+           y2=wnon{ntvl}.freqhi;
+           ax=fill([x1 x2 x2 x1], [y1 y1 y2 y2], fillind,'EdgeColor','none')
+           hold on; 
+       end   

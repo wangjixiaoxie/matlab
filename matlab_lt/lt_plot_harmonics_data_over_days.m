@@ -1,0 +1,107 @@
+% take data made from ... and plot over days.
+
+first_day=input('first day of analysis (e.g. 21Jul2013, no string)? ','s');
+last_day=input('last day of analysis (e.g. 22Jul2013, no string)? ','s');
+% num_of_pre_days=input('how many pre-WN days are included? ', 's');
+syllable = input('what syllable to analyze (e.g. b, no string)? ', 's');
+
+% experiment_phrase=input('what phrase marks your experiment folders?','s');
+
+days{1}=datenum(first_day);
+days{2}=datenum(last_day);
+
+directory = '/home/lucas/data/song/pu13bk43';
+
+% multiple_pitch.parameters.curr_directory = pwd;
+
+if(0)
+    %finds the folder names to use
+    song_folders_harmonics = db_list_song_folders(experiment_phrase, omit, directory);
+    fid = fopen([directory ...
+        '/song_folders_' experiment_phrase '.txt'],'r');
+    folders = textscan(fid,'%s');
+    fclose(fid);
+    
+    %picks out only the folders within the dates specified
+    folders{1} = folders{1}(find(datenum(song_folders) == days{1}):find(datenum(song_folders) == days{2}));
+end
+
+
+num_of_days=1+days{2}-days{1};
+   
+
+for j = days{1}:days{2};
+    
+    %        cd([directory '/' folders{1}{j-days{1}+1}])
+    %
+    datestr(j,'ddmmmyyyy')
+    cd(directory);
+    clear make_temp
+    disp('manually move to the lt_count_.. folder, load the .mat variables, then type return')
+    keyboard
+    
+    skip_to_next_day=input('skip to next day? (y or n)','s');
+    
+    if skip_to_next_day=='y';
+        
+        leave_old_data=input('Replace old compiled data from this day with NaN? (y or n) ','s');
+        if leave_old_data=='y';
+        %fill in with blank
+        harmonics_compiled_data_all_days.mean_of_spectral_means(j-days{1}+1)=nan;
+        harmonics_compiled_data_all_days.STD_of_spectral_means(j-days{1}+1)=nan;
+        end
+        
+
+        continue
+    else
+    end
+    
+
+    spectral_mean_yesorno=input('calculate harmonic spectral means? (y or n)','s');
+    if spectral_mean_yesorno=='y';
+        lt_calculate_harmonic_spectral_mean
+    end
+    
+    %        harmonics_compiled_data_all_days.mean_harmonic_ampl_over_renditions{j-first_day+1}=make_temp.all_spectrogram_mean_ampl_three_harmonics;
+    %        harmonics_compiled_data_all_days.STD_harmonic_ampl_over_renditions{j-first_day+1}=all_spectrogram_STD_ampl_three_harmonics;
+    figure(1); hold on
+    subplot(3,ceil(num_of_days/3),j-days{1}+1)
+    errorbar([1 2 3],make_temp.all_spectrogram_mean_ampl_three_harmonics{1}, make_temp.all_spectrogram_STD_ampl_three_harmonics{1});
+    title({['mean +/- STD amplitude'],['of harmonics 1,2,3 on ' datestr(j,'ddmmmyyyy')]}); xlim([0.8 3.2])
+    
+    
+    % hist mean, plot spectrogram
+    
+    harmonics_compiled_data_all_days.mean_of_spectral_means(j-days{1}+1)=make_temp.mean_over_renditions_spectral_mean{1};
+    harmonics_compiled_data_all_days.STD_of_spectral_means(j-days{1}+1)=make_temp.STD_over_renditions_spectral_mean{1};
+    
+    
+    figure(2); hold on
+    subplot(3,ceil(num_of_days/3),j-days{1}+1);
+    imagesc(make_temp.time_range{1}*1000,make_temp.freq_range{1},log(make_temp.spec{1}));syn;ylim([0,1e4]);
+    title(['mean spectrogram on ' datestr(j,'ddmmmyyyy')]);
+    ylabel('Frequency (Hz)')
+    xlabel('Time (ms)')
+    
+    
+end
+
+figure(3); hold on
+errorbar((1:3), harmonics_compiled_data_all_days.mean_of_spectral_means, harmonics_compiled_data_all_days.STD_of_spectral_means,'r');
+title('spectral means (averaged over all renditions) of each day"s song'); xlim([0.8 num_of_days+0.2])
+
+
+
+suffix2=fix(clock);
+save_dir2='/home/lucas/data/song/pu13bk43/all_days_harmonics_summary';
+cd(save_dir2)
+mkdir([num2str(suffix2(1)) num2str(suffix2(2)) num2str(suffix2(3)) '_' num2str(suffix2(4)) num2str(suffix2(5))]);
+cd([num2str(suffix2(1)) num2str(suffix2(2)) num2str(suffix2(3)) '_' num2str(suffix2(4)) num2str(suffix2(5))])
+
+save(['harmonics_compiled_data_' datestr(days{1},'ddmmmyyyy') '_to_' datestr(days{2},'ddmmmyyyy')], '-struct', 'harmonics_compiled_data_all_days');
+
+
+saveas(figure(1),['harmonics_relative_amplitudes', 'fig']) 
+saveas(figure(2),['mean_spectrograms', 'fig']) 
+saveas(figure(3),['spectral_means', 'fig']) 
+

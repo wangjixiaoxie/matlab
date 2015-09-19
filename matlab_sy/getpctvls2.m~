@@ -1,0 +1,23 @@
+
+%this is done for one set of shiftruns at a time.
+function [ypct,ypcter]=getpctvls2(avls,ntind,shs); 
+    %do pct for all the runs
+    subrns=shs.subruns
+    acz=avls.acz(ntind,:)
+    muz=avls.muz(ntind,:)
+    yac=acz;
+    ymu=muz;
+    ind=1:length(shs.muz);
+    
+    ydiff=-shs.acz(ind)+shs.muz(ind);
+        ydiffer=(shs.acerrz(ind)+shs.muerrz(ind))/2;
+        if(shs.mxshift)
+            ydiff=-ydiff;
+           
+        end
+        ypct=ydiff./yac*100;
+       
+        ypcter=ypct.*(ydiffer./(ymu(ind) +ydiffer./yac(ind)))/2
+        
+        
+       

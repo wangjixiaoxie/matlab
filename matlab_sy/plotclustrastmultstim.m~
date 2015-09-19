@@ -1,0 +1,115 @@
+% filename_arr{1}='2672';
+% filename_arr{2}='2672m2';
+% filename_arr{3}='2672rev';
+% filename_arr{4}='2672m12';
+% filename_arr{5}='2672p12';
+% filename_arr{6}='2672sn';
+
+
+clust=[1];
+numclust=length(clust);
+figure;
+stim2plot= [1 6 3 4 5 6];
+labels={'bos' 'm2' 'rev' 'm1.2' 'p1.2' 'sn'};
+plothist=0;
+drawx=0;
+xvals= [2.88 4.75];
+xvals2=[2.97 4.85];
+
+binsize=.005
+COLORS='rkmb'
+%stimleng=stmpclen;
+fs=44100
+
+
+
+load /cobain4/twarren4/g100o55/stim/stim.mat
+%[y,fs]=wavread('/cobain6/b26o72/b26o72/bu26o72_tim_combo.wav');
+rawsong=corpshiftednormg{1};
+%rawsong=y(stmpclen*44053*5:stmpclen*44053*6);
+stimleng=length(rawsong)/fs;
+
+ ax(1)=subplot(length(stim2plot)*2+1,1,1)
+ [sm,sp,t,f]=evsmooth(rawsong,fs,0.01);
+ imagesc(t,f,log(abs(sp)));syn;ylim([0,1e4]);
+ hold on;
+ if(drawx>0)
+     
+         drawxrasters(xvals, xvals2, 1000,'r');
+     
+ end
+     axis off;
+ box off;
+
+if(plothist==0)
+    for i=1:numclust
+        for j=1:length(stim2plot)
+            stm=stim2plot(j);
+            cur_clst=clust(i);
+            ax(j+1)=subplot(length(stim2plot)*2+1,1,2*j:2*j+1);
+            plotrasters3(stimf(cur_clst,stm).rast);
+            axis([0 stimleng 0 stimf(cur_clst,1).cnt+2])
+            ylabel(labels{stim2plot(j)},'Fontsize', 16,'Color','k')
+            if(j==length(stim2plot))
+                xlabel('Time (s)','Fontsize',16);
+                set(gca,'xcolor','k')
+                ylabel(labels{stim2plot(j)},'Fontsize', 16,'Color','k')
+            end
+            if (j~=length(stim2plot))
+                set(gca,'XTick',[])
+                set(gca,'YTick',[])
+                set(gca,'xcolor','w')
+                set(gca,'ycolor','k')
+            end
+        
+
+        end
+    end
+   linkaxes(ax(1:length(stim2plot)+1),'x')
+else
+    axcount=1;
+    for i=1:numclust
+        for j=1:length(stim2plot);
+            stm=stim2plot(j);
+            cur_clst=clust(i);
+            ax(j+1)=subplot(length(stim2plot)*2+1,1,2*j:2*j+1);
+            edges=0:binsize:stimleng;
+            [axt(axcount:axcount+1),h1,h2]=plotrasters3(stimf(cur_clst,stm).rast,edges,(1/binsize)*stimf(cur_clst,stm).meanhist,stimleng);
+        set(h1,'Color','r')
+        set(h2,'Color','k')
+        for k=1:numclust 
+            cur_clst2=clust(k)
+            maxval=(1/binsize)*max(stimf(cur_clst2,stm).meanhist);
+            maxplot=max(maxval)
+        end
+        axes(axt(axcount))
+            axis([0 stimleng 0 stimf(cur_clst,stm).cnt+2])
+            ylabel(labels{stim2plot(j)},'Fontsize', 16,'Color','k')
+            if(j==length(stim2plot))
+            XLabel('Time (s)','Fontsize',16);
+            
+            end
+            if (j~=length(stim2plot))
+                set(gca,'xcolor','w');
+            end
+            axes(axt(axcount+1))
+        axis([0 stimleng 0 ceil(maxplot)])
+        if(j==length(stim2plot))
+            YLabel('Spike Rate (Hz)','Fontsize', 16,'Color','k')
+            
+        end
+        if (j~=length(stim2plot))
+            set(gca,'XTick',[])
+            set(gca,'xcolor','w')
+            set(gca,'ycolor','w')
+        end
+    axcount=axcount+2
+        end
+    end
+    end
+ linkaxes(ax(1:numclust+1),'x')   
+ %linkaxes(axt,'x');
+
+
+            
+         

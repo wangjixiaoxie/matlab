@@ -1,0 +1,70 @@
+ed%this script is written to generate pitch contours for bk57w35
+%writes data to a .mat file in directory where data is.
+
+%YOU NEED TO SET MUINDS BELOW
+%calls jc_pitchcontourFV, in ~/matlab
+%      maketimevec2
+clear fv fbins bt smoothamp baspath conbins avls
+avls.baspath='/oriole5/bk1bk29/'
+avls.pvls{1}='syntest_B/'
+avls.cvl{1}='batch.catch.keep'
+avls.WINDOWSIZE=16;
+avls.pvls{2}='0913_wnon/'
+avls.cvl{2}='batch.catch.keep'
+
+avls.pvls{3}='0915_wnoff/'
+avls.cvl{3}='batch.catch'
+
+avls.pvls{4}='0922_pitch_wnon/'
+avls.cvl{4}='batch.catch'
+
+avls.pvls{5}='0916_wnon/'
+avls.cvl{5}='batch.catch'
+
+
+avls.pvls{6}='0916pm_wnoff/'
+avls.cvl{6}='batch.catch'
+
+avls.pvls{7}='postlesion_pt_test/'
+avls.cvl{7}='batch.catch'
+
+
+avls.pvls{8}='0924_wnoff/'
+avls.cvl{8}='batch.catch'
+
+avls.pvls{9}='0927_wnoff/'
+avls.cvl{9}='batch.catch'
+
+avls.pvls{10}='prept_test_0928/'
+avls.cvl{10}='batch.catch'
+
+avls.pvls{11}='postlesion/'
+avls.cvl{11}='batch20.catch'
+
+avls.pvls{12}='syntest_B/'
+avls.cvl{12}='batch11.catch'
+
+
+
+avls.NT{1}='a';
+avls.NT{2}='b';
+avls.NT{3}='c'
+avls.tbinshft(1)=.025;
+avls.tbinshft(2)=.025
+avls.tbinshft(3)=.025;
+
+
+avls.fbins{1}=[3000 3500];
+avls.fbins{2}=[2000 3000];
+avls.fbins{3}=[3000 3500];
+
+
+avls.ANALPTNT=3;
+
+
+
+avls.NFFT(1)=256;
+avls.NFFT(2)=512;
+avls.NFFT(3)=256;
+avls.MKFV=[1:12]
+   

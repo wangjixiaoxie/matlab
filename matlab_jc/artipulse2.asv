@@ -1,0 +1,65 @@
+function [articheck]=artipulse2
+fs=32000;
+%for i=1:30
+
+blips=20;
+
+%Random sign (+/-)
+b=rand;
+if b<0.5
+   c=-1;
+else
+   c=1;
+end
+    
+%Random disalignment of the slow (LMAN) component with the center of the note
+slow_shift=round(c*rand*800); %The number of points it gets shifted to the right of the center of the "note"
+medium_shift=round(c*rand*800);
+for i=1:blips
+    d=rand;
+    if d<0.5
+        e=-1;
+    else
+        e=1;
+    end
+    fast_shift(i)=round(e*rand*800);
+end
+
+
+%Width of the slow (LMAN) component
+sd=0.6; %Std of the slow Gaussian component
+coeff_slow=1/(2*sd*sd); %Gaussian coefficient
+
+sdm=0.
+coeff_medium=1/(2*sd*sd);
+%Width of the fast component
+sdf=0.005;
+coeff_fast=1/(2*sdf*sdf);
+
+%Weights
+slow_weight=0.4;
+fast_weight=0.03;
+
+t=-1:10/fs:1;
+for i=801:length(t)-801;
+    LMAN(i)=slow_weight*c*exp(-coeff_slow*t(i-slow_shift)*t(i-slow_shift));
+    %0.1*exp(-400*t(i-1200)*t(i-1200))+0.1*exp(-400*t(i+400)*t(i+400))+0.1*
+    %exp(-200*t(i+100)*t(i+100))+0.1*c*exp(-20*t(i)*t(i));
+end
+
+%Add in a blip
+for i=801:length(t)-801;
+    for j=1:blips
+        fast(j,i)=fast_weight*exp(-coeff_fast*t(i-fast_shift(j))*t(i-fast_shift(j)));
+    end
+end
+
+total_fast=fast(1,:);
+for i=2:blips
+    total_fast=total_fast+fast(i,:);
+end
+
+
+articheck=LMAN+total_fast;
+articheck=articheck(2400:4000);
+figure; plot(articheck); ylim([mean(articheck)-7*std(articheck) mean(articheck)+7*std(articheck)]);

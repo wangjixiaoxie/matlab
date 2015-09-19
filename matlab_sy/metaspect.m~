@@ -1,0 +1,16 @@
+
+%5pvls/cvls indices.
+
+pathinds=[1 26 56 62 63]
+
+%make the average spectrogram for each of them.
+for ii=1:length(pathinds)
+    indvl=pathinds(ii);
+    strcmd=['cd ' avls.pvls{indvl}]
+    eval(strcmd);
+    bt=avls.cvl{indvl}
+    [avna,t,f]=get_avn(bt,'a',0.2,0.2,'-','','obs0'); 
+    ax(ii+5)=subplot(2,5,5+ii)
+    imagesc(t,f,log(avna));syn;ylim([0,1e4]);
+
+end

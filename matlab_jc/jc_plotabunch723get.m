@@ -1,0 +1,55 @@
+function CVs=jc_plotabunch723get(arrayfileD,f,xmax,alpha,beta)
+
+%notelength=850;
+%Parameters
+spacing=180;
+note_length=6500;
+
+sampling_rate=32000;
+
+ymin=6500;
+ymax=10000; 
+
+xmin=0;
+%xmax=length(arrayfileD(1).pitches);
+
+%Smooth the data
+for i=1:length(arrayfileD)
+    [holder]=SmoothData(f(i).datt,sampling_rate,1);
+    smooth(i).smoothed=holder;
+end
+
+%Get average smoothed note
+for i=1:length(smooth(1).smoothed)
+    sumnote(i)=0;
+    for j=1:length(smooth)
+        sumnote(i)=sumnote(i)+smooth(j).smoothed(i);
+    end
+    avgnote(i)=sumnote(i)/length(smooth);
+end
+
+%figure; hold on
+
+for i=1:length(arrayfileD)
+    h=xcov(avgnote,smooth(i).smoothed);
+    [peak,index]=max(h);
+    shift(i)=(index-note_length)/4;
+    %smooth
+    processed=jc_pinterp(arrayfileD(i).pitches);
+    %shift them over to align
+    k=1;
+    for j=1:xmax
+        align_shift=shift(i);
+        shift_index=round(j-align_shift);
+        if shift_index>0
+            shifted(i,k)=processed(shift_index);
+        else
+            shifted(i,k)=ymin;
+        end
+        k=k+1;
+    end
+    plotshiftedD=shifted(i,:);
+    CVs(i)=mean(plotshiftedD(alpha:beta));
+    plotshiftedD=plotshiftedD+spacing*(i-20);
+    %plot(plotshiftedD); xlim([xmin xmax]); ylim([ymin ymax]); title('20-30')
+end

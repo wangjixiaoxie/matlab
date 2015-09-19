@@ -1,0 +1,413 @@
+%rewritten extensively 5.16.10,
+%to incorporate new figure requirements.
+
+%takes sumdyn,
+%and a ps (plotstruct).
+%ps.minx - minimum x value to include
+%ps.maxx - maximum x value to include.
+%ps.col,  col={ 'k' 'r','c'}
+%ps.colvec
+%ps.type, (pct or off or dis)
+%ps.addx
+%ps.excludebs
+%ps.plotavg=1
+%ps.comb
+%ps.normeff=0
+%ps.plot_type, 1 is for shift, 2 is for asymp, 3 is for rev.
+
+
+function [ctinds,ctindsin,meanmu,meanac]=plotcombdynamics7_pharm(sumdynin,sumbs,ps)
+%initialize values of REV, ASYMP_PCT,ADDBAS, maxsd
+
+
+
+if(isfield(ps,'asymp_pct'))
+   
+    
+
+if(isfield(ps,'addbas'))
+    if(ps.addbas)
+        ADDBAS=1;
+    else
+        ADDBAS=0;
+    end
+else
+        ADDBAS=0
+    end
+
+axis(ps.plotbnds);
+if(isfield(ps,'maxsd'))
+    maxsd=ps.maxsd;
+else
+    maxsd=100
+end
+    sdynln=length(sumdynin)
+    bsindcomb=[];
+    sumdyncomb=[];
+    ctinds=[];
+    ctindsin=[];
+    outstruct=[];   
+    fixct=0;
+   
+    ct=1;
+    
+    
+    calcvals(sumdynin,sumbs,ps);
+    [TKTK]=plotvals(ps);
+    
+function [meanmu,meanac]=plotvals 
+[outacmn]=calcmeanstder2(meanacpct(ctinds,:));
+ [outmumn]=calcmeanstder2(meanmupct(ctinds,:));
+ 
+  [outinactmn,outinactsd]=calcmeanstder2(meaninactvl(ctinds,:));
+  [outptmn,outptsd]=calcmeanstder2(meanptvl(ctinds,:));
+ inds=[1:length(combvls)]
+ [outacmn,outacstd]=calcmeanstder2(outvlaczcomb(inds,:));
+[outmumn,outmustd]=calcmeanstder2(outvlmuzcomb(inds,:));
+
+% figure
+rvacmn=[outacmn]
+rvmumn=[outmumn]
+rvacer=[outacstd]
+rvmuer=[outmustd]
+if(ps.plotsum)
+   axes(ps.sumax)
+%     plot(tm_matrix,outacmn);
+
+    hold on;
+%     plot(tm_matrix,outmumn,'r');
+end
+if(~isfield(ps,'mufillcol'))
+    mufillcol=[0.82 0.82 0.82]
+    acfillcol=[0.92 0.96 0.98]
+else
+    mufillcol=ps.mufillcol
+    acfillcol=ps.acfillcol
+end
+
+    xvec=tm_matrix;
+    fillx=[xvec xvec(end:-1:1)]
+
+    muvec=[rvmumn+rvmuer]
+    muvec2=[rvmumn-rvmuer]
+    filly=[muvec muvec2(end:-1:1)]
+
+    acvec=[rvacmn+rvacer]
+acvec2=[rvacmn-rvacer]
+filly2=[acvec acvec2(end:-1:1)]
+if (ps.plotsum)
+% fill(fillx,filly,'r');
+    if(ps.fill)
+        fill(fillx,filly2,ps.acfillcol,'edgecolor','none');
+        plot(xvec, rvacmn,'k','Linewidth',1);
+    end
+    plot(ps.xvls,outinactmn,'r','Linestyle','-','Linewidth',1)
+    plot(ps.xvls,outptmn,'k','Linestyle','-','Linewidth',1)
+    plot([ps.xvls;ps.xvls],[outinactmn+outinactsd;outinactmn-outinactsd],'r');
+    plot([ps.xvls;ps.xvls],[outptmn+outptsd;outptmn-outptsd],'k');
+end
+
+function [tst]=calcvals(sumdynin,sumbs,ps)
+    REV=0;
+    ASYMP_PCT=0;
+    if(isfield(ps,'runtype'))
+        if(ps.runtype=='rev')
+            REV=1;
+        end
+    end
+     if(ps.asymp_pct)
+        ASYMP_PCT=1;
+     end
+       
+    ln=ps.maxx
+    tmdiff=1;
+
+   for ii=1:length(sumdynin) 
+        smcr=sumdynin(ii);
+        shiftind=find(smcr.exadjtms>0)
+        crsumbs=sumbs(smcr.bsnum);
+        if(isfield(ps,'excludebs'))
+            if(smcr.bsnum==ps.excludebs)
+                if(intersect(smcr.shnum,ps.excludeshnum))
+                    keep=0
+                else
+                    keep=1;
+                end
+            else
+                    keep=1;
+            end
+        else
+            keep=1;
+        end
+
+        if(keep)
+            if(~isempty(smcr.acz))
+                if(REV)
+                acpctvl=smcr.mu_pct;
+                mupctvl=smcr.ac_pct;
+                actpctvl(1)=0;
+                mupctvl(1)=0;
+                ptvl=smcr.acz;
+                inactvl=smcr.muz;
+                aczvl=smcr.lmansize;
+                muzvl=smcr.motsize;
+                else
+                    if(~ASYMP_PCT)
+                    acpctvl=smcr.pct(shiftind);
+                    mupctvl=100-smcr.pct(shiftind);
+                    else
+                    acpctvl=smcr.asympmotpct(shiftind);
+                    mupctvl=100-acpctvl
+                    end
+                ptvl=smcr.acz(shiftind);
+                inactvl=smcr.muz(shiftind);
+                aczvl=smcr.acz(shiftind);
+                muzvl=smcr.muz(shiftind);
+                end
+                    
+            end    
+            if(ADDBAS)
+                [acbaszvl,mubaszvl]=calcbas(smcr,sumbs,ps.type)
+                aczvl=[acbaszvl aczvl]
+                ptvl=[aczvl]
+                muzvl=[mubaszvl muzvl]
+                acpctvl=[NaN acpctvl]
+                mupctvl=[NaN mupctvl]
+                inactvl=[mubaszvl inactvl]
+            end
+
+            if(ps.flip)
+                if(~isempty(smcr.drxn))
+                    if(smcr.drxn=='do')
+%                     if(ps.plot_type=='pct')
+                        aczvl=-aczvl;
+                        muzvl=-muzvl;
+                        ptvl=-ptvl;
+                        inactvl=-inactvl;
+%                     end
+                    end
+                end
+            end
+    end
+    if(ps.roundtimes)
+            %this averages values on the same day
+            if(~REV)
+                    adjtms=ceil(smcr.exadjtms(shiftind));
+            else
+                    adjtms=ceil(smcr.exadjtms);
+            end
+            if(ADDBAS)
+                adjtms=[0 makerow(adjtms)]
+            end
+                
+                %THIS averages across values in the same day
+            if(~isempty(adjtms))
+                [adjtms,acpctvl,mupctvl,aczvl,muzvl,ptvl,inactvl]=adj_vls(adjtms,acpctvl,mupctvl,aczvl,muzvl,ptvl,inactvl)
+            end
+            
+                lncomb=ln;
+                combvls=[0:tmdiff:lncomb]
+        else
+                adjtms=smcr.exadjtms(shiftind);
+                lncomb=(ln)*tmdiff;
+                combvls=[0:tmdiff:lncomb]
+        end
+        
+            
+        if(ps.plotfixedpoints)
+           fixct=fixct+1;
+           for crtmwin=1:length(ps.tmwins)
+               crtms=ps.tmwins{crtmwin};
+               [vls,matchinds]=intersect(adjtms,crtms);
+
+               if(~isempty(matchinds))
+                    meanmupct(fixct,crtmwin)=mean(calcmeanstder2(mupctvl(matchinds)));
+                    meanacpct(fixct,crtmwin)=mean(calcmeanstder2(acpctvl(matchinds)));
+                    meanacz(fixct,crtmwin)=mean(calcmeanstder2(aczvl(matchinds)));
+                    meanptvl(fixct,crtmwin)=mean(calcmeanstder2(ptvl(matchinds)));
+                    meanmuz(fixct,crtmwin)=mean(calcmeanstder2(muzvl(matchinds)));
+                    meaninactvl(fixct,crtmwin)=mean(calcmeanstder2(inactvl(matchinds))); 
+            
+              else
+                  meanmupct(fixct,crtmwin)=NaN;
+                  meanacpct(fixct,crtmwin)=NaN;
+                  meanacz(fixct,crtmwin)=NaN;
+                  meanmuz(fixct,crtmwin)=NaN;
+                  meanptvl(fixct,crtmwin)=NaN;
+                  meaninactvl(fixct,crtmwin)=NaN;
+              end
+           end
+        end
+           if(ps.plot_type=='pct')
+               muplot=meanmupct;
+               acplot=meanacpct;
+           elseif(ps.plot_type=='mop')
+               if(~REV)
+                   muplot=meanmuz;
+                   acplot=meanacz-meanmuz;
+               else
+                   muplot=meanmuz;
+                   acplot=meanacz;
+                   inactplot=meaninactvl;
+               end
+           end
+           notnaind=find(~isnan(muplot(fixct,:)));
+           
+           ps.matchreq=[1  3]
+           nomatchvls=find(~ismember(ps.matchreq, notnaind)); 
+%            nomatchvls=find(~ismember([1 length(ps.tmwins)],notnaind));
+           
+           if(isfield(ps,'addbas'))
+               if(ps.addbas==1)
+               [acbaszvl,mubaszvl]=calcbas(smcr,sumbs,ps.type)
+               
+                    if(ps.flip)
+                        if(smcr.drxn=='do')
+%                     if(ps.plot_type=='pct')
+                            acbaszvl=-acbaszvl;
+                            mubaszvl=-mubaszvl;
+%                     end
+                        end
+                    end
+               end
+           end
+
+
+           if(isempty(nomatchvls)&muzvl<ps.maxsd)
+                ctinds=[ctinds fixct];
+                axes(ps.axmot)
+                plotinds=ps.xvls;
+                if(~ADDBAS)
+                    if(ps.plotmot)
+                        plot([plotinds(notnaind)],[muplot(fixct,notnaind)],'Color','k','Marker','o','MarkerSize', 4);
+                    end
+                        hold on;
+                    if(ps.plotlman)
+                        axes(ps.axlman)
+                        plot([plotinds(notnaind)],[acplot(fixct,notnaind)],'Color','k','Marker','o','MarkerSize', 4);
+                    end
+                else
+                    if(ps.plotmot)   
+                    plot([1 plotinds(notnaind)],[mubaszvl muplot(fixct,notnaind)],'Color','k','Marker','o','MarkerSize', 4);
+                    end
+                    hold on;
+                    if(ps.plotlman)
+                        axes(ps.axlman)
+                        plot([1 plotinds(notnaind)],[acbaszvl-mubaszvl acplot(fixct,notnaind)],'Color','k','Marker','o','MarkerSize', 4);
+                    end
+                end
+                hold on;
+                if(ps.plotacz)
+                     axes(ps.axacz)
+                    if(~ADDBAS)
+                       
+                        plot([plotinds(notnaind)],[meanptvl(fixct,notnaind)],'Color','k','Marker','o','MarkerSize', 4);
+                        hold on;
+                    else
+                        plot([1 plotinds(notnaind)],[mubaszvl meanptvl(fixct,notnaind)],'Color','k','Marker','o','MarkerSize', 4);
+                        hold on;
+                    end
+                end
+           end
+   end
+function [outvls]=interp_tw(tms,invl,inmatrix,endflag)
+    if(exist('endflag'))
+         [outinitvls]=interp1(tms,invl,inmatrix);
+         if(isnan(outinitvls(1)))
+             outinitvls(1)=outinitvls(2);
+         end
+          if(isnan(outinitvls(end)))
+             outinitvls(end)=outinitvls(end-1);
+          end
+         outvls=outinitvls;
+    else
+         [outvls]=interp1(tms,invl,inmatrix);
+    end
+    
+    
+    function [aczvl,muzvl]=calcbas(smcr,sumbs,TYPE)
+        crbs=sumbs(smcr.bsnum);
+        ntind=crbs.ntind;
+      if(TYPE=='phar')
+          crshift=smcr.shnum;
+            shrun=crbs.shiftruns{crshift}(1);
+            basdiff=abs(crbs.flrtmvec(shrun)-crbs.flrtmvec(crbs.basruns));
+      else
+          shrun=smcr.runs(1);
+          basdiff=abs(crbs.flrtmvec(shrun)-crbs.flrtmvec(crbs.basruns));
+      end
+          
+        [mindiff,minind]=min(basdiff);
+        basrun=crbs.basruns(minind);
+        
+        if(TYPE=='phar')
+        aczvl=crbs.acprez(ntind,basrun);
+        muzvl=crbs.muz(ntind,basrun);
+        else
+           aczvl=crbs.acz(basrun);
+           muzvl=crbs.muz(basrun);
+        end
+            
+            
+function [normout]=normvls(vls,norm)
+    if(norm)
+        normout=vls./vls(1);
+    else
+        normout=vls;
+    end
+
+function [yvl,yvl2,equalflag]=geteffvl(smcr,indx,ps);
+     if(ps.comb&ps.normeff)
+          %first normalize each
+          normtargeff=norm_onevls(smcr.targeff(indx));
+          normctrleff=norm_onevls(smcr.contreff(indx));
+          yvl=mean([normtargeff;normctrleff]);
+          yvl2=yvl;
+          equalflag=1;
+     elseif(~ps.comb&~ps.normeff)
+            yvl=smcr.targeff(indx);
+            yvl2=smcr.contreff(indx);
+            equalflag=0;
+     elseif(ps.comb&~ps.normeff)
+            yvl=mean([smcr.targeff(indx); smcr.contreff(indx)]);
+            yvl2=yvl;
+            equalflag=1;
+     elseif(~ps.comb&ps.normeff)
+             yvl=norm_onevls(smcr.targeff(indx));
+             yvl2=norm_onevls(smcr.contreff(indx));
+             equalflag=0;
+     end
+                
+function [yout]=norm_onevls(yin);
+    yout=yin/mean(yin);
+    
+    
+    function [slope]= calcslope(xin,yin);
+        
+        s=polyfit(xin,yin',1);
+        slope=s(1);
+     
+ %find matching adjtms
+ %say that adjtms input is 12334556
+ 
+function[out_tms,outacpct,outmupct,outacz,outmuz,outptvl,outinactvl]=adj_vls(adjtms,acpct,mupct,acz,muz,ptvl,inactvl)
+     
+     %uniquetms=123456
+     %ind=123568
+     [uniquetms,ind]=unique(adjtms);
+     for ii=1:length(uniquetms)
+         ind=find(adjtms==uniquetms(ii))
+         out_tms(ii)=uniquetms(ii);
+         outacpct(ii)=mean(acpct(ind));
+         outmupct(ii)=mean(mupct(ind));
+         outacz(ii)=mean(acz(ind));
+         outmuz(ii)=mean(muz(ind));
+         outptvl(ii)=mean(ptvl(ind));
+         outinactvl(ii)=mean(inactvl(ind));
+      end
+          
+    
+       
+      
+     
+     

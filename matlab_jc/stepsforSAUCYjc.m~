@@ -1,0 +1,107 @@
+% steps for saucy
+% label files
+
+% Which notes do I want to analyze?
+n=1;
+avls(n).birdname='r30g38';
+nts='b'
+avls(n).nts=nts;
+chan='1' % 0 for most, 1 for bl82bl81
+channame='obs1';
+SAUCY_beta('bl82bl81_vol7-013105.002.cbin',chan,2)
+SAUCY_beta('bl82bl81_vol7-013105.002.cbin',chan,'batchmode')
+% SAUCY/JTS/SS/MJW analysis
+for i=1:length(nts)
+    nt=nts(i);
+    neural_by_syl_seq_SAUCY_beta(nt,0); % change 1 or 0 depending on channel
+    % Spiketimes are relative to FF measurement time
+    [f_cutoff,t_assay,spect_params]=syllable_params_by_bird(avls(n).birdname,nt);
+    time_assay(i)=t_assay;
+  % FF DATA - my adaptation of SS pitch measurement algorithm
+    avls(n).ntdata(i).fv=findwnoteJC('batchnotes',nt,'','',0,[6000 8100],4500,1,channame,1);      
+    [peak_pinterp]=SSpitch(avls(n).ntdata(i).fv,avls(n).birdname,nt);     
+    avls(n).ntdata(i).pitch=peak_pinterp;
+    FFmeastime=t_assay % 20ms
+  % NEURAL DATA
+    [avls(n).ntdata(i).spiketimes,avls(n).ntdata(i).nspikes]=jcspikeanal(nt,0,0,'combined_data_PCA_CH0_TH_recommended.mat','o',0,[-100 100]); 
+end
+% JC 'accupitch' analysis
+for n=1:length(avls)
+clear pitchcont
+for i=1:length(nts)
+    [f_cutoff,t_assay,spect_params]=syllable_params_by_bird(avls(n).birdname,nts(i));  
+    shifted=[];
+    for j=1:length(avls(n).ntdata(i).fv)
+        shifted(j,:)=avls(n).ntdata(i).fv(j).datt;
+    end
+    avls(n).pitchcont(i).data=jc_pitchmat1024(shifted,1024,1020,1,f_cutoff(1),f_cutoff(2),[1],'obs0',1);
+end
+end
+%%%%%
+%%%%%%
+avls(n).ntdata(1).actwin=[260:340];avls(n).ntdata(2).actwin=[190:230];
+avls(n).ntdata(3).actwin=[120:150];avls(n).ntdata(4).actwin=[120:170];
+avls(n).ntdata(5).actwin=[190:250];avls(n).ntdata(6).actwin=[280:350];
+
+
+%%%%%%
+%%%%%
+for i=1:length(nts)
+    avls(n).ntdata(i).accupitch=mean(pitchcont(i).data(avls(n).ntdata(i).actwin,:));
+end
+
+% Get relative spike times
+for n=1:length(avls)
+    nts=avls(n).nts;
+    for i=1:length(nts)
+        for j=1:length(avls(n).ntdata(i).nspikes)
+            avls(n).ntdata(i).spiketimesRel{j}=avls(n).ntdata(i).spiketimes{j}+t_assay(n,i)-mean(avls(n).ntdata(i).actwin/8+16);
+        end
+    end
+end
+for n=1:length(avls)
+    nts=avls(n).nts;
+    for i=1:length(nts)
+        for j=1:length(avls(n).ntdata(i).nspikes)
+            avls(n).ntdata(i).spikespre(j)=length(find(avls(n).ntdata(i).spiketimesRel{j}>-40 & avls(n).ntdata(i).spiketimesRel{j}<-20));
+            avls(n).ntdata(i).spikespost(j)=length(find(avls(n).ntdata(i).spiketimesRel{j}>0 & avls(n).ntdata(i).spiketimesRel{j}<40));
+        end
+    end
+
+    %clear precorr postcorr precorr1 postcorr1
+    for i=1:length(nts)
+        a=corrcoef(avls(n).ntdata(i).accupitch,avls(n).ntdata(i).spikespre);
+        b=corrcoef(avls(n).ntdata(i).accupitch,avls(n).ntdata(i).spikespost);
+        precorr(n,i)=a(2);
+        postcorr(n,i)=b(2);
+        a1=corrcoef(avls(n).ntdata(i).pitch',avls(n).ntdata(i).spikespre);
+        b1=corrcoef(avls(n).ntdata(i).pitch',avls(n).ntdata(i).spikespost);
+        precorr1(n,i)=a1(2);
+        postcorr1(n,i)=b1(2);
+        sampsize(n,i)=length(avls(n).ntdata(i).pitch);
+    end
+    % Why might n's be different?
+    % phantom .cbin file
+    % lowercase and uppercase - fv recognizes both
+end
+pc=precorr(1:end);
+pc2=pc(pc~=0);
+[h,p]=ttest(pc2)
+%precorr - p=0.03
+postc=postcorr(1:end);
+postc2=postc(postc~=0);
+[h,p]=ttest(postc2)
+
+ssize=sampsize(1:end);
+ssize2=ssize(ssize~=0);
+
+for i=1:length(ssize2)
+    tstatpre(i)=pc2(i)*sqrt((ssize2(i)-2)/(1-pc2(i)^2));
+    tstatpost(i)=postc2(i)*sqrt((ssize2(i)-2)/(1-postc2(i)^2));    
+end
+figure;hold on;
+plot([0 21],[0 0],'k')
+plot(tstatpre,'b.','Markersize',15)
+plot(tstatpost,'r.','Markersize',15)
+plot([0 21],[2 2],'k-')
+xlim([0 21])

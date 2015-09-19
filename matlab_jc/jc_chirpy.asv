@@ -1,0 +1,6 @@
+function jc_chirpy
+for i=1:10000
+    t(i)=1;
+    y(i)=sin(2*pi*(1000+0.3*i)
+end
+figure; plot(t,y)

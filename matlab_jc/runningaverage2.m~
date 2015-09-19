@@ -1,0 +1,4 @@
+function ravg=runningaverage2(input,window,overlap)
+for i=1:round((length(input)-window)/overlap)
+    ravg(i)=mean(input(i:i+window));
+end

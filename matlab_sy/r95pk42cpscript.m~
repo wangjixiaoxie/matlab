@@ -1,0 +1,41 @@
+cd /doyale
+
+    cd /doyale/twarren/r95pk42/wnon3
+    ls *42_28*_0*cbin>batch28a
+    ls *42_28*_1*cbin>batch28b
+    ls *42_29*_0*cbin>batch29a
+    ls *42_29*_1*cbin>batch29b
+    ls *42_30*_0*cbin>batch30a
+    ls *42_30*_1*cbin>batch30b
+    ls *42_31*_0*cbin>batch31a
+    ls *42_30*_1*cbin>batch31b
+    cleandir4tw('batch28a',1e4,500,6,10,'obs0')
+    mk_rmdata('batch28a.dcrd',1)
+    !csh rmdata ./
+    cleandir4tw('batch28b',1e4,500,6,10,'obs0')
+    mk_rmdata('batch28b.dcrd',1)
+    !csh rmdata ./
+    
+   cleandir4tw('batch29a',1e4,500,6,10,'obs0')
+    mk_rmdata('batch29a.dcrd',1)
+    !csh rmdata ./
+    
+    cleandir4tw('batch29b',1e4,500,6,10,'obs0')
+    mk_rmdata('batch29b.dcrd',1)
+    !csh rmdata ./
+    
+    cleandir4tw('batch30a',1e4,500,6,10,'obs0')
+    mk_rmdata('batch30a.dcrd',1)
+    !csh rmdata ./
+    
+    cleandir4tw('batch30b',1e4,500,6,10,'obs0')
+    mk_rmdata('batch30b.dcrd',1)
+    !csh rmdata ./
+    
+    cleandir4tw('batch31a',1e4,500,6,10,'obs0')
+    mk_rmdata('batch31a.dcrd',1)
+    !csh rmdata ./
+    
+    cleandir4tw('batch31b',1e4,500,6,10,'obs0')
+    mk_rmdata('batch31b.dcrd',1)
+    !csh rmdata ./

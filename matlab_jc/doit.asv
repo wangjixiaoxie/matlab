@@ -1,0 +1,2 @@
+function doit
+[fbd,pitchbd]=jc_PitchData611(1024,1020,1,1900,2800,'batchD','d','d','d');

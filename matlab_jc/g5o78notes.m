@@ -1,0 +1,69 @@
+% g5o78 notes
+summary_statsZF
+cleandir4('batch',10000,500,5,3)
+% default segmentation (30,5,10000,2)
+    % Always do findwnote4 using 'a'
+        % Go backwards to find short note
+        % Go forwards to find long note
+% Zebra Finch, Sam Sober's, old (400 days?)
+% Running on launchpad
+% A - 6am to 11am
+% B - 11am to 3pm
+% C - 3pm to 8pm
+
+
+% Experiment 1 - pitch shift at end of long note.  I chose the end of the
+% note because it appeared more flexible than the beginning.  I did not
+% choose the middle because I wanted to be able to get a good estimate of even a long
+% timescale learned bump.
+% For FFstats and pitch curve calculations, 
+    % I chose the most powerful harmonic (the 5th harmonic),
+    % which has a baseline mean of ~3700Hz and std of 45Hz. 
+% Initial template (templa1) is the average of the 95th point.
+% *cntrng settings have great precision and are near the end of the note but
+% before it gets abnormally noisy.
+
+% December 2, 2008
+% Baseline days --- December 1 and December 2
+% Took ~ 20% of all song after running cleandir4 b/c ZFs sing less.
+
+% 6:20pm - began testing the template with open logic.
+% 7:30pm - started bird at 3700Hz
+
+% December 3, 2008
+% Bumped up to 3730 Hz - I think the change is due to a circadian trend
+% that was evident in baseline song as opposed to learning.  There tends to
+% be a decrease in pitch over the course of a day.
+% 3750 overnight
+
+% December 4, 2008
+% 3775 at 11am
+% Adjusted downwards to around 3750 by evening - big circadian trend.
+% Shifting is going well.
+
+% December 5, 2008
+% 3820 at 11am
+% Changed template to templa2 - both new and old - at 11am.
+%templa1 - A
+% templa2 - B and C
+
+%there is no templa3
+
+% December 8, 2008
+% Kept it around 3900Hz for the weekend
+% templa4 for B and C
+
+% December 10, 2008 
+% 11am - computer HD filled up, so program "crashed" and wn playback
+% ceased.
+
+
+%%%%%%%%%%%%% Experiment 2 ---- on jcharlesE shared folder on launchpad
+% note b --> by labeling note 'a' (clean onset amplitude) and going
+% backwards using findwnoteJC2
+
+% use the most powerful harmonic == 6th harmonic at ~4800Hz
+
+% [shifted,FFstats,avg,toffset,pitch]=summary_statsZF2(templa,batch,batchnote,cntrng)
+
+% The targeting is really crappy - tried many things and sigma=32ms

@@ -1,0 +1,378 @@
+%this function is used for short pulse analysis across birds.
+%START OFF BY SETTING pitchtms, assuming they are constant across birds.
+function [os,combfvst,combstcr]= getresiduals6(sps,sts,ind) 
+
+% RESID_TMS=[.070 .1];
+% OFF_TMS=[0.07 0.08];
+TMBUFF=0.1
+os=struct([]);
+for stnum=1:length(sts)
+    mnbas{stnum}=getmeanbas(sts,stnum)
+end
+
+
+for spnum=1:length(ind)
+    spsvl=ind(spnum)
+    crsp=sps(spsvl);
+    
+    for grp=1:length(crsp.datbnds)
+        %generate mean catch contour
+        mnct=getmeancatch(sts, crsp, grp)
+        
+        stbnds=crsp.datbnds{grp}
+        %generate a matrix of residuals
+        [os,combfvst,combstcr]=getresid(sts,spnum, crsp,grp,mnct, mnbas{crsp.stind},crsp.RESIDTMS,crsp.OFF_TMS,stbnds,TMBUFF,os)
+    end
+end
+   
+function [basctmn]=getmeanbas(sts,stind)
+    
+    path=sts(stind).path
+    mfile=sts(stind).matfilename;
+    basinds=sts(stind).basruns;
+    [avls]=load_avls(path,mfile)
+    
+    for ii=1:length(basinds);
+        crbas=basinds(ii);
+        pathvl=avls.pvls{crbas}
+        btvl=avls.cvl{crbas};
+    
+        if(isfield(avls,'baspath'))
+            cmd=['cd ' avls.baspath pathvl]
+        else
+            cmd=['cd '  pathvl]
+        end
+        eval(cmd);
+        cmd=['load ' btvl '.mat']
+
+        eval(cmd);
+        basct(ii,:)=mean(contours(:,crctind),2);
+    end
+    
+    basctmn=mean(basct);
+
+function [mnct] = getmeancatch(sts,crsp,grp)
+    stind=crsp.stind;
+    path=sts(stind).path
+    mfile=sts(stind).matfilename;
+    pvlctind=crsp.catch{grp}
+    [avls]=load_avls(path,mfile)
+    crctcomb=[];
+    for ctind=1:length(pvlctind)
+        crct=pvlctind(ctind);
+        pvlct=crsp.inds(crct);
+        [contours,crctind, crfbind,fvst,pitchtms]=loadcontours(avls, pvlct);
+        crctcontours=contours(:,crctind);
+        crctcomb=[crctcomb crctcontours];
+    end
+    mnct=mean(crctcomb,2);
+    
+function [os,combfvst,combstcr] = getresid(sts,spnum,crsp,grp,mnct,mnbas,RESID_TMS,OFF_TMS,stbnds,TMBUFF,os)
+    stind=crsp.stind;
+    path=sts(stind).path
+    mfile=sts(stind).matfilename;
+    pvlfbind=crsp.fb{grp}
+    pvlfb=crsp.inds(pvlfbind);
+    [avls]=load_avls(path,mfile);
+    [combfb,combfvst,pitchtms,del_list,TMDIFF,combstcr,combctr,combct]=combinefbcontours(avls, pvlfb);
+    for ii=1:length(OFF_TMS)
+        [residmatfb,residmatfboff,residmatct,residmatctoff,residtmsct,residtmsctoff,residtmsfb,residtmsfboff,combctcon,combfbcon]=mkresiduals(pitchtms,combfb,combfvst,TMBUFF,RESID_TMS,OFF_TMS{ii},mnbas,del_list,stbnds,TMDIFF,combctr,combct);  
+        %calculate 
+         initinds=find(pitchtms>OFF_TMS{ii}(1));
+         endinds=find(pitchtms<OFF_TMS{ii}(end));
+         initind=initinds(1);
+         endind=endinds(end);
+         overall_ctmn=mean(mean(combct(initind:endind,:));
+         
+         
+        
+        [mndiff,mner,meanoutfrac,mnerfrac,sigvl,pvl]=calcoff(mnbas,pitchtms,residmatfboff,residmatctoff,residtmsfboff,TMDIFF);
+        os(spnum).outmatfb{ii}{grp}=residmatfb;
+        os(spnum).outmatct{ii}{grp}=residmatct
+        os(spnum).sigvl{ii}{grp}=sigvl;
+        os(spnum).pvl{ii}{grp}=pvl;
+        os(spnum).ct_tms{ii}{grp}=residtmsct;
+        os(spnum).fb_tms{ii}{grp}=residtmsfb;
+%         os(spnum).tm{ii}{grp}=tm;
+        os(spnum).mndiff{ii}{grp}=mndiff;
+%         os(spnum).mnct{ii}{grp}=mnctlim;
+        os(spnum).mner{ii}{grp}=mner;
+        os(spnum).mnerfrac{ii}{grp}=mnerfrac;
+        os(spnum).mnfrac{ii}{grp}=meanoutfrac;
+        os(spnum).tm{ii}=get_tm(crsp.OFF_TMS{ii},crsp.datbnds); 
+%         os(spnum).mnresid{ii}{grp}=mnresid;
+%         os(spnum).steresid{ii}{grp}=steresid;
+%         os(spnum).meanfracresid{ii}{grp}=meanfracresid;
+%         os(spnum).stefrac{ii}{grp}=stefrac;
+        os(spnum).combctcon{ii}{grp}=combctcon
+        os(spnum).combfbcon{ii}{grp}=combfbcon;
+        if(isfield(crsp,'drxn'))
+            os(spnum).drxn=crsp.drxn;
+        end
+    end
+    
+    %this function calculates the time of offset for short pulse experiment
+    function [tmlist] = get_tm(OFF_TMS,datbnds)
+        for ii=1:length(datbnds)
+            tmlist(ii)=-(mean(OFF_TMS)-mean(datbnds{ii}));
+        end
+    function [avls]=load_avls(path,mfile)
+    cmd=['cd ' path];
+    eval(cmd);
+    cmd=['load ' mfile];
+    eval(cmd);
+
+function [contours,crctind,crfbind,fvst,pitchtms]=loadcontours(avls,crind)
+    if(isfield(avls,'baspath'))
+        path=[avls.baspath avls.pvls{crind}]
+    else
+        path=[avls.pvls{crind}];
+    end
+    cmd=['cd ' path];
+    eval(cmd);
+    bt=avls.cvl{crind}
+    cmd=['load ' bt '.mat']
+    eval(cmd);
+    
+function [combfb,combfvst,pitchtms, del_list,TMDIFF,combstcr,combctr,combct]=combinefbcontours(avls,pvlfbind)
+    combfvst=[]
+    combfb=[];
+    combstcr=[];
+    combctr=[];
+    del_list=[];
+    for fbind=1:length(pvlfbind)
+        crfb=pvlfbind(fbind);
+        [contours,crctind,crfbind,fvst,pitchtms]=loadcontours(avls,crfb);
+        crdel=avls.del{crfb}*ones(length(fvst),1);
+        del_list=[del_list crdel']; 
+        combfvst=[combfvst fvst];
+        fvcr=fvst;
+        for ii=1:length(fvcr)
+            stcr(ii)=fvcr(ii).STIMTIME;
+        end
+        combstcr=[combstcr stcr/1000+avls.del{crfb}];
+        combfb=[combfb contours(:,crfbind)];
+        combct=[combfb contours(:,crctind)];
+        combctr=[combctr contours];
+    end
+%     pitchtms=.066:1.25e-4:.162
+    TMDIFF=pitchtms(2)-pitchtms(1)
+    
+
+%input are a matrix of feedback contours, a matric of matching fvst
+%structs, pitchtms, TMBUFF, and the mean catch contour
+%this code is borrowed from stimvardelay.m
+    
+function [residmatfb,residmatfboff,residmatct,residmatctoff,mat_tmsct,mat_tmsctoff,mat_tmsfb,mat_tmsfboff,combctcon,combfbcon]=mkresiduals(pitchtms,combfb,combfvst,TMBUFF,RESID_TMS,OFF_TMS,mnbas, del_list,stbnds,TMDIFF,combctr,combct)            
+    combctcon=[];
+    combfbcon=[];
+    fbind=[];
+    ctind=[];
+    tmbnds=get_tmbnds(pitchtms,RESID_TMS);
+    tmbndsoff=get_tmbnds(pitchtms,OFF_TMS);
+    mnbasresid=mean(mnbas(tmbnds(1):tmbnds(2)));
+  
+    mnbasoff=mean(mnbas(tmbndsoff(1):tmbndsoff(2)));
+    %each ROW is a different diff contour??
+    for ii=1:length(combctr(1,:))
+        diff_fbmat(:,ii)=combctr(tmbnds(1):tmbnds(2), ii)-mnbasresid;
+%         diff_fbmatbas
+        diff_fbmatoff(:,ii)=combctr(tmbndsoff(1):tmbndsoff(2),ii)-mnbasoff;
+%         diff_fbmatbasoff
+    end
+    %combfvst(ind).STIMTIME is the actual trigger time for the stim pulse
+    [stcr]=getstimtimes(combfvst);
+    %del_list is the index of delay times to add to the trigger time
+    actual_st=stcr/1000+del_list;
+   
+    stinds=find(actual_st>=stbnds(1)&actual_st<=stbnds(2));
+    
+    for jj=1:length(stinds)
+        crind=stinds(jj);
+        if(combfvst(crind).STIMCATCH==1)
+            [combctcon]=[combctcon combctr(:,crind)] ;
+            ctind=[ctind crind];
+        elseif(combfvst(crind).STIMCATCH==0)
+            [combfbcon]=[combfbcon combctr(:,crind)];
+            fbind=[fbind crind];
+        end
+   end    
+    %these should be fb stim times
+    crfbmat=diff_fbmat(:,fbind);
+    crfboffmat=diff_fbmatoff(:,fbind);
+   
+    
+    crctmat=diff_fbmat(:,ctind);
+    crctoffmat=diff_fbmatoff(:,ctind);
+    
+    
+    residfb_tms=actual_st(fbind);
+    residct_tms=actual_st(ctind);
+    
+    [residmatfb,residmatfboff,residmatct,residmatctoff,mat_tmsct,mat_tmsctoff,mat_tmsfb,mat_tmsfboff]=mkadjmat(crfbmat,crfboffmat,crctmat,crctoffmat,residfb_tms,residct_tms,tmbnds,RESID_TMS,OFF_TMS,TMDIFF,TMBUFF);
+    
+function [residmatfb,residmatfboff,residmatct,residmatctoff,mat_tmsct,mat_tmsctoff,mat_tmsfb,mat_tmsfboff]=mkadjmat(crfbmat,crfboffmat,crctmat,crctoffmat,residfb_tms,residct_tms,tmbnds,RESID_TMS,OFF_TMS,TMDIFF,TMBUFF,fbind,ctind)
+    residmatfb=zeros(1000,length(crfbmat(1,:)));
+    residmatfboff=zeros(1000,length(crfboffmat(1,:)));
+    residmatct=zeros(1000,length(crctmat(1,:)));
+    residmatctoff=zeros(1000,length(crctoffmat(1,:)));
+    lnmat=length(crfbmat(:,1));
+    lnmatoff=length(crfboffmat(:,1));
+    
+    for ii=1:length(residfb_tms)
+        adjtmshft(ii)=RESID_TMS(1)-residfb_tms(ii);
+        ptshft(ii)=round(adjtmshft(ii)/TMDIFF);
+        ptbuff=TMBUFF/TMDIFF;
+        residmatfb(floor(ptshft(ii)+ptbuff):floor(ptbuff+ptshft(ii)+lnmat-1),ii)=crfbmat(:,ii);
+        adjoff(ii)=OFF_TMS(1)-residfb_tms(ii);
+        ptshftoff(ii)=round(adjoff(ii)/TMDIFF);
+        residmatfboff(floor(ptshftoff(ii)+ptbuff):floor(ptbuff+ptshftoff(ii)+lnmatoff-1),ii)=crfboffmat(:,ii);
+      
+    end
+
+    for ii=1:length(residct_tms)
+        adjtmshft(ii)=RESID_TMS(1)-residct_tms(ii);
+        ptshft(ii)=round(adjtmshft(ii)/TMDIFF);
+        ptbuff=TMBUFF/TMDIFF;
+        residmatct(floor(ptshft(ii)+ptbuff):floor(ptbuff+ptshft(ii)+lnmat-1),ii)=crctmat(:,ii);
+        adjoff(ii)=OFF_TMS(1)-residct_tms(ii);
+        ptshftoff(ii)=round(adjoff(ii)/TMDIFF);
+        residmatctoff(floor(ptshftoff(ii)+ptbuff):floor(ptbuff+ptshftoff(ii)+lnmatoff-1),ii)=crctoffmat(:,ii);
+     
+    end
+    mat_tmsct=-TMBUFF:TMDIFF:TMDIFF*length(residmatct(:,1))-TMBUFF;
+    mat_tmsct=mat_tmsct(1:end-1);
+    
+    mat_tmsctoff=-TMBUFF:TMDIFF:TMDIFF*length(residmatctoff(:,1))-TMBUFF;
+    mat_tmsctoff=mat_tmsctoff(1:end-1);
+    
+    mat_tmsfb=-TMBUFF:TMDIFF:TMDIFF*length(residmatfb(:,1))-TMBUFF;
+    mat_tmsfb=mat_tmsfb(1:end-1);
+    
+    mat_tmsfboff=-TMBUFF:TMDIFF:TMDIFF*length(residmatfboff(:,1))-TMBUFF;
+    mat_tmsfboff=mat_tmsfboff(1:end-1);
+
+function [tmbnds]=get_tmbnds(pitchtms,PT_TMS)
+    for ii=1:2
+        difftms=pitchtms-PT_TMS(ii);
+        minvl=min(abs(difftms));
+        indmin=find(abs(difftms)==minvl);
+        tmbnds(ii)=indmin;
+    end
+    
+    function [stcr]=getstimtimes(combfvst,del_list)
+        for ii=1:length(combfvst)
+            stcr(ii)=combfvst(ii).STIMTIME;
+        end
+
+%this function rewritten 11.9.09 to only measure in time window set by
+%OFST_TMS
+
+function   [meanout,meaner,meanoutfrac,meanerfrac,sigvl,pvl]=calcoff(mnbas,pitchtms,residmatfb,residmatct,residtmsfb,TMDIFF)
+        
+        %go through residmat and find residmat~=0
+        lnfb=length(residmatfb(1,:));
+        lnct=length(residmatct(1,:));
+%         numfb=length(residmatfb(1,:));
+        if(lnct<lnfb)
+            ln=lnct
+%             tms=ct_tms
+        else
+            ln=lnfb
+%             tms=fbtms
+        end
+
+        %looping through all 1404 time inds.
+        for ii=1:lnfb
+            nzindfb{ii}=find(residmatfb(:,ii)~=0);
+            mnfb(ii)=mean(residmatfb(nzindfb{ii},ii));
+        end   
+        for ii=1:lnct
+            nzindct{ii}=find(residmatct(:,ii)~=0);
+            mnct(ii)=mean(residmatct(nzindct{ii},ii));
+            
+        end
+%         
+%         suffind=find(nonzeroind>.5*numfb);
+%         if(~isempty(suffind))
+%             startind=suffind(1);
+%             tm=residtmsfb(startind);
+%             
+%             endind=startind+.008/TMDIFF;
+%             
+%             inds=startind:endind;
+%             
+%             
+%             %calculate the offset over this time period from baseline
+% %             tmoffset=pitchtms-tm;
+% %             ind=find(
+% %             
+% %             basptval=mean(mnbas(startind:endind));
+%             catchptval=mean(mnct(startind:endind));
+%             ptoffset=catchptval-basptval;
+
+%the mean of the average offsets
+
+metmnfb=mean(mnfb);
+metmnct=mean(mnct);
+
+[sigvl,pvl]=ttest2(mnfb,mnct);
+
+if(lnfb<lnct)
+   
+   meanout=metmnfb-metmnct;
+   meaner=std(metmnfb-mnct)./sqrt(lnfb);
+   meanoutfrac=(metmnfb-metmnct)/metmnct;
+   resids=(metmnfb-mnct)./metmnct;
+   meanerfrac=std(resids)./sqrt(lnfb);
+   
+else
+    meanout=metmnfb-metmnct;
+    meaner=std(mnfb-metmnct)./sqrt(lnct);
+    meanoutfrac=(metmnfb-metmnct)/metmnct;
+    resids=(mnfb-metmnct)./metmnct;
+    meanerfrac=std(resids)./sqrt(lnct);
+end
+
+
+% for ii=1:length(inds)
+%                 crind=inds(ii);
+%                 meanresid(ii)=mean(residmatfb(crind,nzindfb{crind}),2)-mean(residmatct(crind,nzindct{crind}),2);
+%                 steresid(ii)=std(residmatfb(crind,nzindfb{crind}),0,2)./sqrt(length(nzindct{crind}));
+%                 meanfracresid(ii)=meanresid(ii)/mean(residmatct(crind,nzindct{crind}),2)
+%                 lnfb=length(nzindfb{crind});
+%                 lnct=length(nzindct{crind});
+%                 if(lnfb<lnct)
+%                     minln=lnfb;
+%                 else
+%                     minln=lnct;
+%                 
+%                 end
+%                 residfb=residmatfb(crind,nzindfb{crind}(1:minln));
+%                 residct=residmatct(crind,nzindct{crind}(1:minln));
+%                 
+%                 stefrac(ii)=std((residfb-residct)./residct)./sqrt(minln);
+%                 
+%             end
+%             meanout=mean(meanresid);
+%             meanoutfrac=mean(meanfracresid);
+%             meaner=mean(steresid);
+%             meanerfrac=mean(stefrac);
+%             mnctlim=mean(mnct(1:65));
+%         else
+%             meanout=[];
+%             meaner=[];
+%             meanoutfrac=[];
+%             meanerfrac=[];
+%             meanfracresid=[];
+%             meanresid=[];
+%             steresid=[];
+%             stefrac=[];
+%             tm=[];
+%             mnctlim=[];
+%         end
+        %calculate meanbas
+        
+
+        
+        

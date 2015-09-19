@@ -1,0 +1,42 @@
+%made for plotting inactiv_dynamics
+%inactiv_dynamics.m
+
+figure
+subplot(211)
+for ii=1:length(shsall)
+    sl=shsall(ii)
+   if(~isempty(sl.subruns)&length(sl.subruns)>1)
+        ofst_tm=sl.flrtmvec-sl.flrtmvec(sl.subruns(1));
+   end
+        x=ofst_tm(sl.subruns);
+   plot(x+1,sl.pct,'k-');
+   hold on;
+end
+
+plot([1:6], sumshs.pct,'c','Linewidth',2);
+plot([1:6;1:6],[sumshs.pct-sumshs.stderrpct;sumshs.pct+sumshs.stderrpct],'c');
+
+
+subplot(212)
+for ii=1:length(shsall)
+    %calc mean eff
+    
+        
+    
+    
+    sl=shsall(ii)
+    
+    nts=sl.allnote
+    mneff=mean(sl.effvls(nts,:),1)
+        
+   if(~isempty(sl.subruns)&length(sl.subruns)>1)
+        ofst_tm=sl.flrtmvec-sl.flrtmvec(sl.subruns(1));
+   end
+        x=ofst_tm(sl.subruns);
+   plot(x+1,mneff(sl.subruns),'k-');
+   hold on;
+  
+
+end
+ plot([1:6], sumshs.meaneff,'c','Linewidth',2);
+plot([1:6;1:6],[sumshs.meaneff-sumshs.stderreff;sumshs.meaneff+sumshs.stderreff],'c');

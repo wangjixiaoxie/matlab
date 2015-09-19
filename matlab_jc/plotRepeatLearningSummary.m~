@@ -1,0 +1,36 @@
+function [alls alls2]=plotRepeatLearningSummary(Exp)
+indPre=[4 6 12 10];
+indPost=[1 2 14 15];
+            count=0;
+            figure;hold on;
+            clear alls alls2
+            for i=1:15
+            if Exp(i).hitabove==1 
+                count=count+1;
+                alls(count,1:length(Exp(i).averages))=Exp(i).averages;
+                alls2(i,1:length(Exp(i).averages))=Exp(i).averages;    
+                indLES(count,:)=Exp(i).postlesion;
+                if Exp(i).postlesion
+                    plot(Exp(i).averages,'r')
+                     plot(Exp(i).averages,'r.','Markersize',15)
+
+                else
+                    plot(Exp(i).averages,'b')
+                     plot(Exp(i).averages,'b.','Markersize',15)        
+                end
+            end
+            end
+            xlim([0.5 3.5]);ylim([1 9])
+
+            figure;hold on;
+            plot(alls2(indPost,:)','r') 
+            plot(alls2(indPost,:)','r.','Markersize',15) 
+            plot(alls2([4 10 12],:)','b') 
+            plot(alls2(6,1:2)','b') 
+            plot(alls2([4 10 12],:)','b.','Markersize',15) 
+            plot(alls2(6,1:2)','b.','Markersize',15) 
+            xlim([0.5 3.5]);ylim([1 9])
+
+
+
+

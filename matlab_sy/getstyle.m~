@@ -1,0 +1,57 @@
+% %getstyle.m
+% %for inactivation plots, this functi
+% % %style options are 
+% % 1. ps.color
+% % 2. ps.width
+% % 3. ps.marksize
+% % 4. ps.markcolor
+% % 5. ps.markertype
+% 
+% color, width of line,
+% %marker size, color of line
+% 
+
+function [ps,ms] = getstyle(style)
+
+
+
+if (style=='mu') 
+    ps(1).col='k'
+    ps(1).wid=1;
+    ms(1).marksize=4;
+    ms(1).markertype='o';
+    ms(1).markcolor='k'
+    ms(2).marksize=4;
+    ms(2).markertype='o';
+    ms(2).markcolor='r';
+elseif(style=='co')
+    ps(1).col='g'
+    ps(1).wid=1;
+    ms(1).marksize=4;
+    ms(1).markertype='o';
+    ms(1).markcolor='g';
+    ms(2).marksize=4;
+    ms(2).markertype='o'
+    ms(2).markcolor='r';
+elseif(style=='re')
+    ps(1).col='g'
+    ps(1).wid=1;
+    ms(1).marksize=4;
+    ms(1).markertype='o';
+    ms(1).markcolor='g';
+    ms(2).marksize=4;
+    ms(2).markertype='o'
+    ms(2).markcolor='r';
+
+end
+    
+    
+end
+%for mu plots, line is black
+%marker1 is black
+%marker2 is red.
+
+%for control plots
+%line is green
+%markersize 1 is black
+%markersize 2 is red

@@ -1,0 +1,10 @@
+function [indwin] = findpeaks2(in,thr,upper)
+% function [val,ind] = findpeaks(in,thr,upper)
+USECHANSPEC=1;
+refrac=0.25e-3;
+PKVAL=0;
+SpkSrch=[-0.25e-3,1e-3];
+SameSpkWin = 0.1e-3;
+fs=32000;
+indall = FindSpikeTimes(in',fs,USECHANSPEC,thr,PKVAL,SpkSrch,SameSpkWin);
+indwin=indall(find(in(indall)<upper));

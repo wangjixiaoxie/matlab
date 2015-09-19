@@ -1,0 +1,99 @@
+
+%currently written to pick out asymptotic runs
+%with >2sd shifts, and same wn contingencies.
+function [shft_s] = shiftanal(bs, brdind)
+indct=1;
+for ct=1:length(brdind)
+    brdindvl=brdind(ct)
+     [avls,graphvals]=loadsumdata(bs,brdindvl);
+     
+     %find all runs in between the various wn days.
+     wn=avls.wn
+     ntind=bs(brdindvl).ntind;
+     contrind=bs(brdindvl).contrind;
+     allind=[ntind contrind];
+     contrvl=[zeros(length(ntind),1) ones(length(contrind),1)]
+     for zz=1:length(allind)
+        ii=allind(zz);
+        %each row is a different shift 
+        for jj=1:length(wn(ii).on(:,1))
+                flr_wnon=floor(wn(ii).on(jj,:))
+                flr_wnoff=floor(wn(ii).off(jj,:));
+                flrtmvec=floor(avls.adjtimes(:,1));
+            
+            %this is a bit tricky need to reorder times correctly,
+            %sortindex maps how each goes into the original sort matrix.
+                [sortflrtmvec,sortindex]=sort(flrtmvec);
+            
+            
+            %these are the <~10?>  pvls runs that fit within this wn regime.
+            endind=find(flrtmvec>=flr_wnon(end)&flrtmvec<flr_wnoff(end));    
+             allind=find(flrtmvec>=flr_wnon(1)&flrtmvec<flr_wnoff(end));    
+            
+            %now find which of these runs are muruns
+                matchind=find(ismember(endind,avls.mulist));
+                 allindmatch=find(ismember(allind,avls.mulist));
+                runs=endind(matchind);
+                runsall=allind(allindmatch);
+                
+                [sortruns,sortind]=sort(flrtmvec(runs));
+                [sortrunsall,sortindall]=sort(flrtmvec(runsall));
+                
+                
+                nwruns=runs(sortind);
+                runsall=runsall(sortindall);
+                
+                acz=avls.acz(ntind,nwruns);
+                aczall=avls.acz(ntind,runsall);
+            %now find the first run which is within one standard deviation of the max shift. 
+                [mxshift,mxind]=max(abs(acz));
+            
+                mxshift=acz(mxind);
+           
+        
+                diff=mxshift-avls.acz(ntind,nwruns);
+                subind=find(abs(diff)<1.5& abs(acz)>2);
+            
+                if (length(subind)>1)
+                
+                 if(mxshift>0)
+                    shft_s(indct).dir='up'
+                 else
+                    shft_s(indct).dir='do'
+                end
+                
+                shft_s(indct).subind=subind
+            %for these runs, 
+            %calculate 1.  the tmoffset for each day.
+               %2.  the acz, mu mnz, and stdz for each day.
+               %3.  the diff in z score.
+               %4 the %recovery for each day based on mean.
+  %to calculate offset
+                shft_s(indct).offset=flrtmvec(nwruns)-flr_wnon+1;
+  
+  %to calculate this/need to switch into mu coordinates.
+                shft_s(indct).runs=nwruns;
+                shft_s(indct).acz=avls.acz(ntind,nwruns);
+                shft_s(indct).aczall=avls.acz(ntind,runsall);
+                shft_s(indct).muz=avls.muz(ntind,nwruns);
+                shft_s(indct).muzall=avls.muzall(ntind,runsall);
+                shft_s(indct).acerrz=avls.acerracz(ntind,nwruns);
+                shft_s(indct).acerrzall=avls.er
+                shft_s(indct).muerrz=avls.mustderrz(ntind,nwruns);
+                shft_s(indct).diffz=shft_s(indct).acz-shft_s(indct).muz;
+                shft_s(indct).differrz=(shft_s(indct).acerrz+shft_s(indct).muerrz)/2;
+                shft_s(indct).pctrcv=shft_s(indct).diffz./shft_s(indct).acz*100;
+                shft_s(indct).bs=brdindvl
+                shft_s(indct).allruns=nwruns;
+                if(contrvl(zz))
+                    shft_s(indct).ntype='ctrl'
+                else
+                    shft_s(indct).ntype='targ'
+                end
+                shft_s(indct).bname=avls.bname;
+                indct=indct+1;
+            end
+        end
+     end
+    end
+end

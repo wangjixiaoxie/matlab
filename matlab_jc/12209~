@@ -1,0 +1,26 @@
+fvals2=findwnoteJC('batchJCnotes','a','pbaaaa','',0,[3000 4000],5000,1,'obs0',0);
+
+clear shifted
+for i=1:length(fvals2)
+shifted(i,:)=fvals2(i).datt;
+end
+RepeatBirds.shifted(2).note5=shifted;
+
+d1=mean(shift);
+d2=shift(1,:);
+D1=specgram(d1,512,32000,512,384);
+D2=specgram(d2,512,32000,512,384);
+SM=simmx(abs(D1),abs(D2));
+ subplot(121)
+ imagesc(SM)
+ figure;
+ colormap(1-gray)
+ [p,q,C] = dp(1-SM);
+ hold on; plot(q,p,'r'); hold off
+ C(size(C,1),size(C,2))
+  D2i1 = zeros(1, size(D1,2));
+ for i = 1:length(D2i1); D2i1(i) = q(min(find(p >= i))); end
+ % Phase-vocoder interpolate D2's STFT under the time warp
+ D2x = pvsample(D2, D2i1-1, 128);
+ % Invert it back to time domain
+ d2x = istft(D2x, 512, 512, 128);

@@ -1,0 +1,30 @@
+function [pitcher]= jc_chunks505_1(baseline,shifted,inactivated,on,off)
+quantum=10;
+quanta=(off-on)/10;
+for i=1:length(baseline)
+    for j=1:quanta
+        beginning=(j-1)*(quantum)+1;
+        ending=j*quantum;
+        a(i,j)=median(baseline(i).pitches(beginning:ending));
+    end
+end
+for j=1:quanta
+    b(j)=mean(a(:,j));
+end
+pitcher=b;
+figure; hold on
+plot(pitcher,'r'); 
+
+%------------------------------------------------------------------
+for i=1:length(sh)
+    for j=1:quanta
+        beginning=(j-1)*(quantum)+1;
+        ending=j*quantum;
+        a(i,j)=median(baseline(i).pitches(beginning:ending));
+    end
+end
+for j=1:quanta
+    b(j)=mean(a(:,j));
+end
+pitcher=b;
+plot(pitcher,'b'); 

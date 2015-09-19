@@ -1,0 +1,39 @@
+function [covaried,meancov]=jc_acorranaly519(pitch_data)
+
+%Smooth the pitchdata with a simple filter 
+for i=1:length(pitch_data)
+    smoothpitch(i).pitches=jc_wfilt(pitch_data(i).pitches);
+end
+
+%Align
+for i=1:length(arrayfile)
+    [holder]=SmoothData(f(i).datt,32000,1);
+    smooth(i).smoothed=holder;
+end
+for i=1:length(smooth(1).smoothed)
+    sumnote(i)=0;
+    for j=1:length(smooth)
+        sumnote(i)=sumnote(i)+smooth(j).smoothed(i);
+    end
+    avgnote(i)=sumnote(i)/length(smooth);
+end
+for i=1:length(arrayfile)
+    h=xcov(avgnote,smooth(i).smoothed);
+    [peak,index]=max(h);
+    shift=(index-6400)/4;
+    starting=round(280-shift);
+    ending=starting+400;
+    covaried(i).pitches=xcov(arrayfile(i).pitches(starting:ending));
+end
+
+%cut out the part of the note that you are interested in (the stack)
+a=smoothed(1).pitches(thresh+50:thresh+400); % initialize the matrix
+covaried=xcov(a);
+for n=2:length(pitch_data)
+    a(n,:)=smoothpitch(n).pitches(thresh+50:thresh+400);   %cut so you get useful info.
+    covaried(n,:)=xcov(a(n,:));
+end
+
+for i=1:length(covaried)
+    meancov(i)=mean(covaried(:,i));
+end

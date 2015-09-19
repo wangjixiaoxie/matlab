@@ -1,0 +1,11 @@
+function ax=plotlabeledspect(fn,timebnds,freqbnds,label)
+    [dat,fs]=ReadCbinFile(fn);
+    evspect(dat(:,1),fs,[ freqbnds(1) freqbnds(2)]);
+    
+    
+    if(label)
+    %onsets and offsets are in milliseconds
+    for ii=1:length(onsets)
+        text(((onsets+offsets)/2000),1000,labels(ii));
+    end
+    end

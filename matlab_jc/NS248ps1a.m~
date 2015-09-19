@@ -1,0 +1,124 @@
+%%%%%%%%% Problem 1
+p(A and ~B)=0.06    p(C | A and ~B)=0.06*0.5=0.03
+p(~A and B)=0.36    p(C | ~A and B)=0.36*0.2=0.072
+p(A and B)=0.04     p(C | A and B)=0.04*1=0.04
+                    p(C)= sum = 0.152
+a. (0.03+0.04)/0.142  = 0.4930
+b. (0.072+0.04)/0.142 = 0.7887
+c. (0.04)/0.142       = 0.2817
+d. (0.03)/0.142       = 0.2113
+e. (0.072)/0.142      = 0.5070
+                   
+%%%%%%%%% Problem 2A
+
+size=10000;
+randomA=rand(1,size);
+randomB=rand(1,size);
+% Did A fire?
+firesA=zeros(1,size);
+firesA(find(randomA<0.1))=1;
+% Did B fire?
+firesB=zeros(1,size);
+firesB(find(randomB<0.4))=1;
+% Does C fire?
+firesC=zeros(1,size);
+% C always fires when both A and B fire
+firesC(find(firesA==1 & firesB==1))=1;
+% C never fires when neither A nor B fire
+firesC(find(firesA==0 & firesB==0))=0;
+% C fires probabilistically when only A fires
+randomCA=rand(1,size);
+firesCA=zeros(1,size);
+firesCA(find(randomCA<0.5))=1;
+randomCB=rand(1,size);
+firesCB=zeros(1,size);
+firesCB(find(randomCA<0.2))=1;
+firesC(find(firesA==1 & firesB==0))=firesCA(find(firesA==1 & firesB==0));
+firesC(find(firesA==0 & firesB==1))=firesCB(find(firesA==0 & firesB==1));
+% 
+% A 
+sum(firesC(find(firesA==1)))/sum(firesC) % 0.4876
+% B
+sum(firesC(find(firesB==1)))/sum(firesC) % 0.7989
+% C
+sum(firesC(find(firesA==1 & firesB==1)))/sum(firesC) % 0.2864
+% D
+sum(firesC(find(firesA==1 & firesB==0)))/sum(firesC) % 0.2011
+% E
+sum(firesC(find(firesA==0 & firesB==1)))/sum(firesC) % 0.5124
+
+%%%%%%%%% Problem 2B
+sizes=[1 10 100 1000 10000];
+for ii=1:5
+    size=sizes(ii);
+    randomA=rand(1,size);
+    randomB=rand(1,size);
+    % Did A fire?
+    firesA=zeros(1,size);
+    firesA(find(randomA<0.1))=1;
+    % Did B fire?
+    firesB=zeros(1,size);
+    firesB(find(randomB<0.4))=1;
+    % Does C fire?
+    firesC=zeros(1,size);
+    % C always fires when both A and B fire
+    firesC(find(firesA==1 & firesB==1))=1;
+    % C never fires when neither A nor B fire
+    firesC(find(firesA==0 & firesB==0))=0;
+    % C fires probabilistically when only A fires
+    randomCA=rand(1,size);
+    firesCA=zeros(1,size);
+    firesCA(find(randomCA<0.5))=1;
+    randomCB=rand(1,size);
+    firesCB=zeros(1,size);
+    firesCB(find(randomCA<0.2))=1;
+    firesC(find(firesA==1 & firesB==0))=firesCA(find(firesA==1 & firesB==0));
+    firesC(find(firesA==0 & firesB==1))=firesCB(find(firesA==0 & firesB==1));
+    % 
+    % A 
+    if isempty(find(firesA==1))
+        error(ii)=0.4930-0;
+    else
+        error(ii)=abs(0.4930-sum(firesC(find(firesA==1)))/sum(firesC));
+    end
+end
+
+%%%%%%%%%% Problem 3
+
+s1a=s1([1:2:199]); % odd
+s1b=s1([2:2:200]); % even
+% A
+figure;hold on;
+bincenters=[0:1:100];
+[s1acounts]=hist(s1a,bincenters);
+[s1bcounts]=hist(s1b,bincenters);
+bar(bincenters,s1acounts,'r');
+stairs(bincenters,s1bcounts,'b','Linewidth',3);
+% B
+figure;hold on
+bincentersB=[0:5:100];
+s1acountsB=hist(s1a,bincentersB);
+s1bcountsB=hist(s1b,bincentersB);
+bar(bincentersB,s1acountsB,'r');
+stairs(bincentersB,s1bcountsB,'b','Linewidth',3);
+% C
+% The pdfs are just the normalized versions of (a) - divided by number of
+% bins
+figure;hold on;
+subplot(221);bar(bincenters,s1acounts/101,'r')
+subplot(223);bar(bincenters,s1bcounts/101,'b')
+for i=1:101
+    s1Acdf(i)=sum(s1acounts(1:i))/101;
+    s1Bcdf(i)=sum(s1bcounts(1:i))/101;
+end
+subplot(222);plot(s1Acdf,'r')
+subplot(224);plot(s1Bcdf,'b')
+% D
+s1acounts(find(bincenters==45))=7
+s1bcounts(find(bincenters==45))=9
+P(A | 45)=[P(A)*P(45 | A)]/P(45) = [0.5*(7/100)]/(16/200)=0.4375
+% E
+s1acountsB(find(bincentersB==45))=20
+s1bcountsB(find(bincentersB==45))=28
+P(A | 45)=[P(A)*P(45 | A)]/P(45) = [0.5*(20/100)]/(48/200)=0.4167
+% This estimate is likely to be better because law of large numbers

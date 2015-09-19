@@ -1,0 +1,11 @@
+function [a,xax]=jc_tscaleNOsmooth2(PC,LATENT)
+a=zeros(1,20);
+for i=1:20
+    xax(i)=(1/(i/2))*length(PC)/8;
+end
+for i=2:5
+    hh=jc_fft(xcorr(PC(:,i)));
+    for k=1:20
+        a(k)=a(k)+LATENT(i)*hh(k);
+    end
+end

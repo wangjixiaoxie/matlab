@@ -1,0 +1,62 @@
+function [avls] = contouranal(avls)
+%do analysis of contours
+for ii=1:length(avls.contfv)
+    crind=avls.contfv(ii)
+    pathvl=avls.pvls{crind}
+    
+    if(isfield(avls,'baspath'))
+        cmd=['cd ' avls.baspath pathvl]
+    else
+        cmd=['cd ' pathvl]
+    end
+    eval(cmd);
+    if(iscell(avls.fbins))
+        crfbins=avls.fbins{crind}
+    else
+        crfbins=avls.fbins;
+    end
+    if(iscell(avls.conbins))
+        crconbins=avls.conbins{crind}
+    else
+        crconbins=avls.conbins
+    end
+    
+    
+    NT=avls.NT{crind};PRENT='';PSTNT='';
+    bt{crind}=avls.cvl{crind};
+    %structure for pitch measurments
+    fvpt=findwnote4(bt{crind},NT, PRENT, PSTNT, avls.pt_tbinshft,crfbins, avls.pt_NFFT,1,'obs0');
+    
+    %structure for contours
+    fv=findwnote4(bt{crind},NT,PRENT,PSTNT,avls.con_tbinshft,crfbins,avls.con_NFFT,1,'obs0');
+    if(avls.contanal) 
+        pitchdata{crind}=jc_pitchcontourFV(fv,1024,1020,1,crconbins(1),crconbins(2),avls.contnum,'obs0');
+        contours=pitchdata{crind};
+    end
+    %first and last file of the batchfile.
+    tms=maketimevec2(bt{crind})
+    initsamptime=512/32000;
+    initsamptimediff=1/8000;
+    pitchtms=initsamptime:initsamptimediff:(4096-512)/32000
+    pitchtms=pitchtms+avls.con_tbinshft
+    if(avls.contanal)
+        ptvls=getvals_sec(fvpt,1,'trig')
+        btfile=[bt{crind} '.mat'];
+        contours2=contours;
+        if (exist(btfile))
+            cmd=['save -append ' bt{crind} '.mat contours contours2 tms fvpt pitchtms ptvls'];
+        else
+            cmd=['save  ' bt{crind} '.mat contours tms fvpt pitchtms ptvls'];
+        end
+    else
+       if (exist(btfile))
+        cmd=['save -append' bt{crind} '.mat  tms fvpt pitchtms'];
+       else
+           cmd=['save  ' bt{crind} '.mat  tms fvpt pitchtms'];
+       end
+    end
+    eval(cmd);
+    
+end
+ 
+

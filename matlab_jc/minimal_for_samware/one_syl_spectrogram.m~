@@ -1,0 +1,370 @@
+function foo(syl_to_quant,pitch_range,skip_first_and_last)
+
+if nargin==1;skip_first_and_last=[0 0];pitch_range=[0 1];end
+if nargin==2;skip_first_and_last=[0 0];end
+
+quantify_shifted_song=0;
+if strfind(pwd,'pu44w52')
+    birdname='pu44w52';
+    disp(' ');        disp(' This is for bird pu44w52');        disp(' '); pause(1)
+    ch_with_song='obs0';
+elseif strfind(pwd,'g26g23')
+    birdname='g26g23';
+    disp(' ');        disp(' This is for bird g26g23');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+elseif strfind(pwd,'pu24w39')
+    birdname='pu24w39';
+    disp(' ');        disp(' This is for bird pu24w39');        disp(' '); pause(1)
+    ch_with_song='obs0';
+elseif strfind(pwd,'r75g59')
+    birdname='r75g59';
+    disp(' ');        disp(' This is for bird r75g59');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+elseif strfind(pwd,'pu5b3')
+    birdname='pu5b3';
+    disp(' ');        disp(' This is for bird pu5b3');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+elseif strfind(pwd,'w48o28')
+    birdname='w48o28';
+    disp(' ');        disp(' This is for bird w48o28');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+elseif strfind(pwd,'pu54b57')
+    birdname='pu54b57';
+    disp(' ');        disp(' This is for bird pu54b57');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+elseif strfind(pwd,'pu53b58')
+    birdname='pu53b58';
+    disp(' ');        disp(' This is for bird pu53b58');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+elseif strfind(pwd,'pu28b75')
+    birdname='pu28b75';
+    disp(' ');        disp(' This is for bird pu28b75');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+elseif strfind(pwd,'g18g8')
+    birdname='g18g8';
+    disp(' ');        disp(' This is for bird g18g8');        disp(' '); pause(1)
+    ch_with_song='obs0';
+%    ch_with_song='obs2';
+elseif strfind(pwd,'W15-W94')
+    birdname='W15-W94';
+    disp(' ');        disp(' This is for bird W15-W94');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+elseif strfind(pwd,'ZFpi90w37') % NCM implant
+    birdname='ZFpi90w37';
+    disp(' ');        disp(' This is for bird ZFpi90w37');        disp(' '); pause(1)
+    ch_with_song='obs0';
+elseif strfind(pwd,'g44o23') % NCM implant
+    birdname='g44o23';
+    disp(' ');        disp(' This is for bird g44o23');        disp(' '); pause(1)
+    ch_with_song='obs0';
+elseif strfind(pwd,'pu26y2')
+    birdname='pu26y2';
+    disp(' ');        disp(' This is for bird pu26y2');        disp(' '); pause(1)
+    ch_with_song='obs0';
+elseif strfind(pwd,'r12r11')
+    birdname='r12r11';
+    disp(' ');        disp(' This is for bird r12r11');        disp(' '); pause(1)
+    ch_with_song='obs0';
+elseif strfind(pwd,'pk7r88')
+    birdname='pk7r88';
+    disp(' ');        disp(' This is for bird pk7r88');        disp(' '); pause(1)
+    ch_with_song='obs0';
+    
+elseif strfind(pwd,'pu77bk41')
+    birdname='pu77bk41';
+    disp(' ');        disp(' This is for bird pu77bk41');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+
+elseif strfind(pwd,'o85pu54')
+    birdname='o85pu54';
+    disp(' ');        disp(' This is for bird o85pu54');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+    
+elseif strfind(pwd,'g91pu54')
+    birdname='g91pu54';
+    disp(' ');        disp(' This is for bird g91pu54');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+elseif strfind(pwd,'bl82bl81')
+    birdname='bl82bl81';
+    disp(' ');        disp(' This is for bird bl82bl81');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+elseif strfind(pwd,'r93bl81')
+    birdname='r93bl81';
+    disp(' ');        disp(' This is for bird r93bl81');        disp(' '); pause(1)
+    ch_with_song='obs0r';
+end
+!rm -f batchfile
+
+% ch_with_shifted='obs1';
+% f_cutoff=[2450 2600];
+% t_assay=.016;
+% spect_params=[.5 16];
+% use_pct=1;
+% t_pct=15;
+
+%        t_assay=.032;
+%    spect_params=[0 64];
+%
+%             spect_params=[0 16];
+% t_assay=.004;
+% spect_params=[0 16];
+
+%[f_cutoff,t_assay,spect_params]=syllable_params_by_bird(birdname,syl_to_quant);
+[f_cutoff,t_assay,spect_params]=syllable_params_by_bird(birdname,syl_to_quant(skip_first_and_last(1)+1));
+
+if t_assay>1    % if t_assay>1, then it is the percentage (1-100) of the syl at which to quantify
+    use_pct=1;
+    t_pct=t_assay*.01;
+else
+    use_pct=0;
+end
+
+disp(['Assaying at t=' num2str(t_assay) ' with freq cutoff at ' num2str(f_cutoff)])
+
+if isunix
+    !ls -1 *.not.mat > batchfile
+else
+    !dir /B *.not.mat > batchfile
+%    !dir /B *.5383.*.not.mat > batchfile
+end
+fid=fopen('batchfile','r');
+
+min_syl_number=1;   % start plotting here
+
+
+%pitch_range=[0 4500];
+%pitch_range=[2700 2800];
+%
+n_syls=9;
+ct=1;
+ct_plotted=1;
+n_matches_so_far=0;
+while ct_plotted<=n_syls
+    %while ct<=4
+    %    ct
+    fn=fgetl(fid)
+    cbin_fn=fn(1:end-8);
+
+    %    if (~ischar(fn)) %| ct>8
+    if (~ischar(fn)) %| ct>8
+        break;
+    end
+    %    if (~exist(fn,'file'))
+    %        continue;
+    %    end
+    clear peak_pinterp_labelvec
+    disp(fn)
+    eval(sprintf('load %s',fn))
+
+
+
+
+    if cbin_fn(1)=='C'
+        cbin_fn=cbin_fn(3:end); % truncate C1 or C2
+    end
+    %[rawsong, Fs]=soundin('.', cbin_fn,'obs0');
+    if strcmp(cbin_fn(end-3:end),'cbin')
+        cbin_fn
+        ch_with_song
+        
+        [rawsong, Fs]=evsoundin('.', cbin_fn,ch_with_song);
+        is_cbin=1;
+    else    % if file is .wav
+        [rawsong,Fs,NBITS]=wavread(cbin_fn);
+        is_cbin=0;
+        quantify_shifted_song=0;
+        rawsong=resample(rawsong,32000,Fs);
+        Fs=32000;
+    end
+
+    if quantify_shifted_song
+        [shiftedsong, Fs]=evsoundin('.', cbin_fn,ch_with_shifted);
+    end
+
+    if Fs<=10000
+    disp('Hacking Fs to be 32000');
+    Fs=32000;
+    end
+
+    Ls=labels;
+
+    % get onsets and offsets into sec, not msec
+    onsets=onsets/1000;
+    offsets=offsets/1000;
+
+
+    % compensate for delay in shifting - move onsets and offsets into
+    % future
+    onsets_shifted=onsets+.0061;
+    offsets_shifted=offsets+.0061;
+
+    t_samples=1:length(rawsong);
+    t=t_samples/Fs;
+
+    
+    
+    if ~sum(skip_first_and_last)
+        id=find(Ls==syl_to_quant);  
+        disp(['Found ' num2str(length(id)) ' examples'])
+    else
+
+        true=[];
+        for x=1:(length(labels)-length(syl_to_quant)+1)
+            compare=labels(x:(x+length(syl_to_quant)-1));
+            true(x)=strcmp(syl_to_quant,compare);
+        end
+        id=find(true)+skip_first_and_last(1);
+    end
+
+%%%%%%%%%%
+    % find syllables in range
+
+    %    vector of pitches of the target syllable
+    if exist('peak_pinterp_labelvec')
+    pinterp_id=peak_pinterp_labelvec(id);
+    else
+    pinterp_id=zeros(1,length(id));
+    peak_pinterp_labelvec=zeros(1,length(labels));
+    end
+    %    ids of all pitches of target syllable that are within range
+    if pitch_range(1)==0
+    pitch_in_range=id;
+    else
+%    pitch_in_range=find(peak_pinterp_labelvec>pitch_range(1) & peak_pinterp_labelvec<pitch_range(2) & Ls==syl_to_quant);
+    pitch_in_range=intersect(find(peak_pinterp_labelvec>pitch_range(1) & peak_pinterp_labelvec<pitch_range(2)),id);
+    end
+    % if any of the target syllables are within range
+    if ~isempty(pitch_in_range)
+        clear target_syl_id_inrange
+        % for each target syllable within range...
+        for x=1:length(pitch_in_range)
+            % the id WITHIN the ids of the target syllable of the target
+            % syls that have appropriate pitch
+            target_syl_id_inrange(x)=find(id==pitch_in_range(x)); % which number syl is in range
+        end
+        % increment ids by the total number of syllables scanned in
+        % previous files
+        target_syl_id_inrange_orig=target_syl_id_inrange;
+        target_syl_id_inrange=target_syl_id_inrange+n_matches_so_far;
+        ct_defined=1;
+    else
+        target_syl_id_inrange=[];
+    end
+    n_matches_so_far=n_matches_so_far+length(id);
+    matches_vec=1:n_matches_so_far;
+
+    for x=1:length(id)
+        if sum(ct==target_syl_id_inrange)
+
+            if ct_plotted>n_syls;break;end
+            ax(ct_plotted)=subplot(2,n_syls,ct_plotted);hold on
+            on=onsets(id(x));
+            off=offsets(id(x));
+            if use_pct
+                t_assay=t_pct*(off-on);
+            end
+            if (off-on)<spect_params(2)/1000    %if syl is too short
+                off=on+spect_params(2)/1000;    % extend end of syl
+                disp('Extending offset')
+            end
+            on_id=find(abs((t-on))==min(abs(t-on)));
+            off_id=find(abs((t-off))==min(abs(t-off)));
+            syl_wav=rawsong(on_id:off_id);
+
+            [S1,F1,T1,P1] =spect_from_waveform(syl_wav,Fs,1,spect_params);
+            set(gca,'ylim',[500 10000])
+            %f_cut_id=min(find(F1>f_cutoff));
+            f_cut_id=find(F1>f_cutoff(1) & F1<f_cutoff(2));
+            F1=F1(f_cut_id);
+            P1=P1(f_cut_id,:);
+
+            if quantify_shifted_song
+                % syllable waveform, shifted song
+                on_shifted=onsets_shifted(id(x));
+                off_shifted=offsets_shifted(id(x));
+                on_id_shifted=find(abs((t-on_shifted))==min(abs(t-on_shifted)));
+                off_id_shifted=find(abs((t-off_shifted))==min(abs(t-off_shifted)));
+
+                syl_wav_shifted=shiftedsong(on_id:off_id);
+                [S1_sh,F1_sh,T1_sh,P1_sh] =spect_from_waveform(syl_wav_shifted,Fs,0,spect_params);
+                F1_sh=F1_sh(f_cut_id);
+                P1_sh=P1_sh(f_cut_id,:);
+            end
+
+
+            t_id=find(abs((T1-t_assay))==min(abs(T1-t_assay)));
+            if length(t_id)>1
+                disp('Two equidistant time windows - choosing earliest one')
+                t_id=min(t_id);
+            end
+            spect_slice=P1(:,t_id);
+            slice_save{ct}=spect_slice;
+            F1_save{ct}=F1;
+
+
+            max_p_id=find(spect_slice==max(spect_slice));
+            peak(ct,1)=F1(max_p_id);
+            plot(t_assay,peak(ct,1),'k*')
+            if quantify_shifted_song
+                spect_slice_shifted=P1_sh(:,t_id);
+                t_id_shifted=find(abs((T1_sh-t_assay))==min(abs(T1_sh-t_assay)));
+                slice_save{ct,2}=spect_slice_shifted;
+                max_p_id_shifted=find(spect_slice_shifted==max(spect_slice_shifted));
+                peak(ct,2)=F1_sh(max_p_id_shifted);
+            end
+
+
+            fname_arr{ct}=cbin_fn;
+            ida=max(find(cbin_fn=='_'))+1;    % last character '_' +1
+            idb=min(find(cbin_fn=='.'))-1;    % first character '.' -1
+            idc=min(find(cbin_fn=='_'))+1;    % first character '_' +1
+            title([replace_underscore(cbin_fn) ', syl ' num2str(ct)])
+            if is_cbin
+                % get a string for the date and syllable
+                ul_id=find(cbin_fn=='_');
+                if 0%~isempty(ul_id)
+                    idd=ul_id(end-1);
+                    date_str=cbin_fn(idd+1:(ida-2));
+                    date_str=[date_str(3:4) '_' date_str(1:2) '_20' date_str(5:6) '_syl_' syl_to_quant];
+                else
+                    date_str='NODATE';
+                end
+            end
+            ax2(ct_plotted)=subplot(2,n_syls,ct_plotted+n_syls);hold on
+
+            semilogy(F1,spect_slice)
+            semilogy(F1,spect_slice,'.')
+            yl=get(gca,'ylim');
+            val=peak_pinterp_labelvec(id(target_syl_id_inrange_orig(ct_defined)));
+            plot([val val],yl,'k:')
+            text(val,yl(2),['pinterp pitch = ' num2str(val) ' hz'],'horizontalalignment','center')
+%            xlabel(['Syl # ' num2str(ct)],'fontweight','bold')
+            xlab{1}=['Syl # ' num2str(ct)];
+%            xlab{2}=['(# ' num2str(id(x)) ' in file out of ' num2str(length(labels)) ')'];
+            xlab{2}=['t = ' num2str(round(onsets(id(x))*100)/100) ' sec'];
+%            xlab{2}=['Find at time = ' num2str(onsets(id(x))) ' sec'];
+            xlab{3}=['Cntxt: ' labels(max([1 id(x)-5]):id(x)-1) ' ' labels(id(x)) ' '  labels(id(x)+1:min([length(labels) id(x)+5]))];
+
+            xlabel(xlab,'fontweight','bold')
+
+            ct_defined=ct_defined+1;
+
+            ct_plotted=ct_plotted+1;
+        end
+
+        ct=ct+1;
+    end
+
+
+
+end
+
+for x=1:(ct_plotted-1)
+    xx(x)=subplot(2,n_syls,x+n_syls);hold on
+    linkaxes(xx,'x')
+end
+    set(gca,'xlim',[f_cutoff])
+
+if exist('ax');
+    linkaxes(ax,'xy')
+end

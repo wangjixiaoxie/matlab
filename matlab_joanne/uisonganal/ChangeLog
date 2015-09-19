@@ -1,0 +1,745 @@
+2002-10-23 02:02  bdwright
+
+	* get_thresh_val.m, uipsdanal.m, uizoom.m (utags: uisonganal-1-2):
+	Changed cyan titles to blue for readability.
+
+2002-10-23 01:30  bdwright
+
+	* uisonganal.m (tags: uisonganal-1-2): Fixes for batch printing.
+	Also batch printing without batch display leaves the figure
+	invisible.
+
+2002-10-23 01:28  bdwright
+
+	* move_right.m (tags: uisonganal-1-2): Fixed bug that showed up in
+	batch printing.
+
+2002-10-22 23:09  bdwright
+
+	* print_song.m (tags: uisonganal-1-2): no change
+
+2002-10-22 23:04  bdwright
+
+	* batch_setup.m (tags: uisonganal-1-2): no change
+
+2002-10-22 23:03  bdwright
+
+	* uisonganal.m: Make batch_print work without displaying. Also
+	changed page setting defaults for batch printing.
+
+2002-10-22 20:43  bdwright
+
+	* uisonganal.m: Try to keep the GUI on screen during batch_print
+	setup. Also try to get the label bar printed correctly.
+
+2002-10-22 19:31  bdwright
+
+	* batch_setup.m: Added missing do_filt global.
+
+2002-10-22 19:30  bdwright
+
+	* spect/psdanal.m (tags: uisonganal-1-2): Changed yellow lines to
+	green.
+
+2002-10-22 19:29  bdwright
+
+	* uisasetup.fig (tags: uisonganal-1-2): Better tooltips for what
+	different directories mean.
+
+2002-10-22 19:28  bdwright
+
+	* paramcb.m (tags: uisonganal-1-2): work around for uistack bug in
+	matlab version <= 6.0.
+
+2002-10-22 19:27  bdwright
+
+	* filecb.m (tags: uisonganal-1-2): Support for new uigetdir in
+	matlab 6.5.
+
+2002-10-22 19:26  bdwright
+
+	* uisonganal.m: Added automatic path setting. (bdw)
+
+2002-10-16 15:04  schenk
+
+	* extractfignum.m (tags: uisonganal-1-2): fixed small bug and made
+	code more compact...
+
+2002-10-09 03:08  bdwright
+
+	* uisonganal.m: Hopefully nothing changed.
+
+2002-10-09 02:33  bdwright
+
+	* uisasetparams.fig, uisasetparams.m (utags: uisonganal-1-2):
+	Stripped off tab buttons. They are now made on initialization. 
+	Made dialog resizable to fix display issues.
+
+2002-10-09 02:31  bdwright
+
+	* uisasetup.fig: Minor text fix.
+
+2002-10-09 02:31  bdwright
+
+	* uisonganal.m: Changes for the zero crossing display.
+
+2002-10-09 02:30  bdwright
+
+	* paramcb.m: Now create tabs on initialization.  Added zero
+	crossing frequency display options.
+
+2002-10-08 23:47  bdwright
+
+	* uisasetparams.fig: [no log message]
+
+2002-10-08 21:15  bdwright
+
+	* uisasetparams.fig: Made tab selector a little larger.
+
+2002-10-08 20:37  bdwright
+
+	* uisasetparams.m: Try to keep dialog on screen.
+
+2002-10-08 20:35  bdwright
+
+	* uisasetparams.fig: Try to fix up some layout problems. (bdw)
+
+2002-10-07 19:05  bdwright
+
+	* make_current.m (tags: uisonganal-1-2): Minor change for zero
+	crossing code.
+
+2002-10-07 19:04  bdwright
+
+	* uisonganal.m: Added support for displaying zero crossing
+	estimation of frequency on the spectrogram plot. (bdw)
+
+2002-10-07 19:03  bdwright
+
+	* mysign.m, zero_crossings.m (utags: uisonganal-1-2): Small
+	functions for zero crossing estimation. (bdw)
+
+2002-09-24 16:53  schenk
+
+	* bound2seg_sym.m (tags: uisonganal-1-2): routine for quickly
+	getting from boundaries to segmentation vec...
+
+2002-09-24 01:54  bdwright
+
+	* uisasetup.fig: Added tags for browse dir buttons.
+
+2002-09-24 01:53  bdwright
+
+	* uisasetparams.fig: Layout changes for default time display
+	parameter under the Misc tab.
+
+2002-09-24 01:52  bdwright
+
+	* paramcb.m: Added, but disabled, code for default display time
+	range.
+
+2002-09-24 01:51  bdwright
+
+	* filecb.m: Added code to disable directory browsing under windows,
+	due to java bug.  Will re-enable in matlab 6.5.
+
+2002-09-24 01:50  bdwright
+
+	* uisonganal.m: Added, but disabled support for default time range
+	to display on start.
+
+2002-09-23 23:31  bdwright
+
+	* uisonganal.m: Fixed bug in which notes for last file in a batch
+	were overwritten.
+
+2002-09-17 13:22  bdwright
+
+	* set_scale_vals.m (tags: uisonganal-1-2): Fix bug in which axis
+	rescaling didn't work for label bar.
+
+2002-09-17 13:21  bdwright
+
+	* uisonganal.m: Add ih_main_labels userdata index for proper
+	scaling of label axis.
+
+2002-09-17 12:37  schenk
+
+	* handseg2binary.m (tags: uisonganal-1-2): Routine to convert
+	onsets and offsets to binary.  Irrelavent to most.
+
+2002-09-14 17:38  schenk
+
+	* load_n_plot_spec_batch.m (tags: uisonganal-1-2): % function
+	load_n_plot_spec_batch(filt) % % This function uses a batch file to
+	tell it the names of files to % load.  These files can be in any
+	directory.  It then plots all % the spectrograms in their own
+	figure with a figure number defined % by the filename.	%  %
+	Dependancies: plotspec filecb extractfignum.  %
+
+2002-09-14 16:18  schenk
+
+	* extractfignum.m:  routine for extracting a figure name (or
+	whatever) from a song file name.  Usefulle
+	when you want to have multiple figures open.  This code could have
+	been written in perl in one line! sigh...Oh well, could have
+	written it in perl, but was a good excercise!
+
+2002-09-14 15:02  schenk
+
+	* plotspec.m (tags: uisonganal-1-2): Routine for plotting
+	spectrogram...
+
+2002-09-13 20:16  schenk
+
+	* get_durs.m (tags: uisonganal-1-2): Added some comments
+
+2002-09-13 20:15  schenk
+
+	* get_all_durs.m (tags: uisonganal-1-2): A piece of code to take
+	the results cell and return the note and interval durations
+
+2002-09-13 18:19  schenk
+
+	* get_durs.m:  a slight rewrite of MSB's get_durs
+
+2002-09-13 18:07  schenk
+
+	* load_uisonganal_results.m (tags: uisonganal-1-2): Final version: 
+	Outputs a cell of structs, one for each file loaded.
+
+2002-09-12 17:55  schenk
+
+	* load_uisonganal_results.m: Made numerous and profound changes!
+
+2002-09-12 17:11  bdwright
+
+	* uisasetparams.fig: Made units on all contols 'characters'.
+
+2002-09-12 17:10  bdwright
+
+	* paramcb.m: Make tabdlg code check and restore original units on
+	tab buttons.
+
+2002-09-12 17:09  bdwright
+
+	* tabdlg.m (tags: uisonganal-1-2): Make code check and restore
+	original units on controls.
+
+2002-09-12 14:31  schenk
+
+	* load_uisonganal_results.m: File for loading uisonganal results..
+
+2002-09-12 12:18  schenk
+
+	* short_time_lvar.m (tags: uisonganal-1-2): added a comment
+
+2002-09-12 12:17  schenk
+
+	* short_time_lvar.m:  made so it uses smwin in ms
+
+2002-09-12 12:14  schenk
+
+	* load_n_plot.m (tags: uisonganal-1-2):  changed var names for
+	clarity
+
+2002-09-12 12:12  schenk
+
+	* local_loudness.m (tags: uisonganal-1-2):  fixed an ancient bug
+	(this was very old unused code before fix)
+
+2002-09-12 12:08  schenk
+
+	* examine_uisonganal_results.m (tags: uisonganal-1-2): function for
+	examining uisonganal results...very early version
+
+2002-09-12 12:08  schenk
+
+	* local_loudness.m: routine for calcing local_loudness from var^2
+
+2002-09-11 17:54  bdwright
+
+	* uisasetparams.fig: Changed units to 'character' to test display
+	problems on other platforms.
+
+2002-09-11 17:47  bdwright
+
+	* uisonganal.m: Fixed file load bug. (Matlab's 'exist' function
+	won't check structure entries as variables. Use isfield instead.)
+
+2002-09-11 14:56  schenk
+
+	* load_n_plot_spec_only.m (tags: uisonganal-1-2): Same as
+	load_n_plot.m but only plots spectrogram...should be merged with
+	load_n_plot
+
+2002-09-11 14:55  schenk
+
+	* loadraw.m (tags: uisonganal-1-2): Made this so it can take a file
+	filter as arguement
+
+2002-09-11 14:54  schenk
+
+	* load_n_plot.m:  made this so that it can take a file filter
+	arguement
+
+2002-09-11 03:21  bdwright
+
+	* ChangeLog (tags: uisonganal-1-2): New changelog.
+
+2002-09-11 03:02  bdwright
+
+	* uisonganal.m: Major changes to setup. New GUI features: load file
+	dialog and parameter setting dialog, now on by default.
+	
+	Can call uisonganal function with saved config file as input and it
+	will automatically load it in.
+	
+	Command line and GUI based setup code made more consistent. Both
+	use the SA structure (saved in the figure's appdata). Will later
+	use this to save the state of a session.
+	
+	File load dialog can save temp data to a separate directory from
+	the results files. Maybe have app clean up temp files there on
+	exit? Can load single song file or batch file.
+	
+	Batch file now loaded into a cell array outside the main loop. 
+	Later this will enable random access of song files (prev song as
+	well as next song...).
+	
+	(bdw)
+
+2002-09-11 02:45  bdwright
+
+	* paramcb.m: Made Save/Restore configuration, and OK/Apply
+	functions work.  Improvements in main constructor: can pass config
+	file to load at start.	(bdw)
+
+2002-09-11 02:36  bdwright
+
+	* filecb.m: Lots of fixes for file loading dialog callbacks. Added
+	convenience callbacks for browsing and saving mat files. Made
+	filetype popup change its tooltip depending on what filetype is
+	selected. (bdw)
+
+2002-09-11 02:33  bdwright
+
+	* uisasetup.fig: Minor fixes to file load dialog layout. Made
+	filetype popoup consistent with current uisonganal. (bdw)
+
+2002-09-11 02:31  bdwright
+
+	* uisasetparams.fig: Fixed up restore/save config buttons.
+
+2002-09-11 02:28  bdwright
+
+	* get_xrange.m, myginput.m (utags: uisonganal-1-2): Now middle
+	mouse button (or pressing RET) will apply zoom or note boundary
+	selection. (bdw)
+
+2002-09-11 02:26  bdwright
+
+	* bandpass.m (tags: uisonganal-1-2): Support for alternative
+	filters turned on. Hanning FIR filter (order 512) using 'filt' is
+	added. (bdw)
+
+2002-09-11 02:23  bdwright
+
+	* make_map.m (tags: uisonganal-1-2): turn off verbosity.
+
+2002-09-09 20:12  schenk
+
+	* log_lvar.m (tags: uisonganal-1-2): lkj
+
+2002-09-09 20:02  schenk
+
+	* short_time_lvar.m: code for doing fast local variance calcs...
+
+2002-09-09 19:51  schenk
+
+	* plotsongs.m (tags: uisonganal-1-2): file for plotting oscillagram
+	and spectrogram...
+
+2002-09-09 19:50  schenk
+
+	* loadraw.m: new file for loading raw song data...uses uisonganal
+	subroutines
+
+2002-09-09 19:50  schenk
+
+	* load_n_plot.m: New file to load and plot song data...
+
+2002-09-09 12:29  bdwright
+
+	* paramcb.m: Major changes to add methods for functioning of all
+	parameter controls in the tabbed dialogs. (bdw)
+
+2002-09-09 12:27  bdwright
+
+	* uisasetparams.fig, uisasetparams.m: Layout of all parameter
+	setting controls completed. (bdw)
+
+2002-09-09 12:25  bdwright
+
+	* uisonganal.m: Support for different colormaps and gamma
+	correction on spectrogram display added. (bdw)
+
+2002-09-09 12:23  bdwright
+
+	* disp_idx_spect.m (tags: uisonganal-1-2), make_map.m,
+	uispectcontrols.m (tags: uisonganal-1-2): Support for different
+	colormaps added. Gamma correction of map adjustable using two
+	methods: 'classic' which is the old method or 'brightness' which
+	uses matlab's brighten command and is suitable for non-grayscale
+	maps.  Choice is determined by the values of spect_gamma_type and
+	spect_cmap_name.  (bdw)
+
+2002-09-07 22:58  bdwright
+
+	* ChangeLog: Logs for new UI dialog code.
+
+2002-09-07 22:57  bdwright
+
+	* uisonganal.m: Added support for new UI features: File Setup and
+	Parameter setting dialogs.  These are turned off by default with
+	use_new_gui_features = 0.  Main figure is made on startup now (but
+	invisible) and new SA structure with parameter defaults is put in
+	the main figure's appdata. (bdw)
+
+2002-09-07 22:42  bdwright
+
+	* uisasetparams.fig, uisasetparams.m: Added layout .fig file and
+	loader for new parameter setting tabbed dialog.  (bdw)
+
+2002-09-07 22:36  bdwright
+
+	* tabdlg.m: Added copy of matlab 6.1 tabdlg.m file. (bdw)
+
+2002-09-07 22:35  bdwright
+
+	* paramcb.m: Added main creation and callback routines for the new
+	parameter setting tabbed dialog. (bdw)
+
+2002-08-30 16:29  bdwright
+
+	* uisonganal.m: Added label, onset, offset validation for backwards
+	compatibility.	For testing (not turned on). (bdw)
+
+2002-08-30 16:27  bdwright
+
+	* makecol.m, makerow.m (utags: uisonganal-1-2): Utility functions.
+
+2002-08-30 15:54  bdwright
+
+	* ChangeLog: New changelog up to release 1.1.
+
+2002-08-30 15:47  bdwright
+
+	* bird1.batch (tags: uisonganal-1-2, uisonganal-1-1): [no log
+	message]
+
+2002-08-30 15:46  bdwright
+
+	* uibatch.m (tags: uisonganal-1-2, uisonganal-1-1): Updated for
+	do_filt option. Unused! (bdw)
+
+2002-08-30 15:46  bdwright
+
+	* write_filt.m, write_spect.m (utags: uisonganal-1-1,
+	uisonganal-1-2): Added explicit 'file' check on exist call. (bdw)
+
+2002-08-30 15:43  bdwright
+
+	* uisongcontrols.m (tags: uisonganal-1-2, uisonganal-1-1): Added
+	check for empty soundfile names. (bdw)
+
+2002-08-30 15:39  bdwright
+
+	* bandpass.m (tags: uisonganal-1-1): Prepare for alternative filter
+	types (turned off for now). (bdw)
+
+2002-08-30 15:37  bdwright
+
+	* uisonganal.m (tags: uisonganal-1-1): Several new features added
+	or merged in. (bdw) 1) Support for observer files. (code from
+	Mimi/Michael/Neal) 2) Support for results and temporary files in
+	different place than the batch file, which in turn, can be in a
+	different place from the raw data.  Previous default (all paths the
+	same as where the batch file is) is still the same. User must just
+	hit return a couple of times. (idea from KT) Note this means you
+	can have the raw data on CD or a read-only directory.  3) Related
+	to (2) the batch file can now have no paths (traditional) or
+	absolute or relative path prefixes in front of the song file names.
+	 4) Added do_filt option to turn off filtering if desired. (request
+	from SAnG) 5) Added fullfile concatenation of path and file names
+	for better cross-platform support.  6) Fix to avoid empty or
+	whitespace only song file names.  7) Indentation clean up.
+
+2002-08-30 15:21  bdwright
+
+	* batch_setup.m (tags: uisonganal-1-1): Added support for do_filt
+	flag. Minor indentation fixes. (bdw)
+
+2002-08-30 15:19  bdwright
+
+	* make_current.m (tags: uisonganal-1-1): Added fullfile for better
+	cross platform path/filename concatenation.  Added check for empty
+	soundfile names to avoid spurious ".not.mat" files. (bdw)
+
+2002-08-30 15:14  bdwright
+
+	* uiresegment.m (tags: uisonganal-1-2, uisonganal-1-1): Fixed bug
+	due to missing filtsong global. Previously, changing the smoothing
+	window didn't always (ever?) recompute the segments. (bdw)
+
+2002-08-30 15:11  bdwright
+
+	* save_data.m (tags: uisonganal-1-2, uisonganal-1-1): Added
+	fullfile for better cross platform path/filename concatenation. 
+	Removed unnecessary cd to notefile path. (bdw)
+
+2002-08-30 15:09  bdwright
+
+	* read_labv_file.m, read_obsdata.m (utags: uisonganal-1-1,
+	uisonganal-1-2): Added for support for observer format data. (bdw)
+
+2002-08-30 15:07  bdwright
+
+	* isint.m (tags: uisonganal-1-2, uisonganal-1-1): Added isint
+	utility required by read_labv_file.m. (bdw)
+
+2002-08-30 15:05  bdwright
+
+	* soundin.m (tags: uisonganal-1-2, uisonganal-1-1): Merged in
+	support for observer format file. Added fullfile for better cross
+	platform path/filename concatenation. (bdw)
+
+2002-08-08 04:35  bdwright
+
+	* get_thresh_val.m (tags: uisonganal-1-1): Oops really fix the
+	warning messages...
+
+2002-08-08 04:29  bdwright
+
+	* get_thresh_val.m: Fixed warnings due to empty == scalar
+	comparisons and uninitialized vars. (bdw)
+
+2002-08-08 04:08  bdwright
+
+	* read_song.mexglx (tags: uisonganal-1-2, uisonganal-1-1): For
+	convenience added compiled read_song (latest linux version).
+
+2002-08-08 04:04  bdwright
+
+	* get_yrange.m (tags: uisonganal-1-2, uisonganal-1-1): Fixed
+	zooming bug on rethresholding plot. (bdw)
+
+2002-08-08 03:46  bdwright
+
+	* disp_amp.m (tags: uisonganal-1-2, uisonganal-1-1): Added
+	disp_amp.m. This is a generic amplitude plot for the rethresholding
+	figure (no labels).
+
+2002-08-08 03:44  bdwright
+
+	* disp_song.m (tags: uisonganal-1-2, uisonganal-1-1): Fixed refresh
+	bug on note labels.
+
+2002-08-08 03:42  bdwright
+
+	* edit_note.m (tags: uisonganal-1-2, uisonganal-1-1): Added note on
+	hidden delete command to title. (bdw)
+
+2001-05-15 04:33  bdwright
+
+	* uisasetup.fig, uisasetup.m (tags: uisonganal-1-2) (utags:
+	uisonganal-1-1): Load file dialog layout.
+
+2001-05-15 04:32  bdwright
+
+	* uisalayout3.fig, uisalayout3.m (utags: uisonganal-1-1,
+	uisonganal-1-2): Layout for main SA GUI.
+
+2001-05-15 04:31  bdwright
+
+	* uigetdir_java.m (tags: uisonganal-1-2, uisonganal-1-1): Java
+	based directory browser.
+
+2001-05-15 04:30  bdwright
+
+	* filecb.m (tags: uisonganal-1-1): Added new callbacks for
+	directory browsing.
+
+2001-05-14 14:21  bdwright
+
+	* uifig.fig (tags: uisonganal-1-2, uisonganal-1-1): Updates to
+	obsolete uifig.
+
+2001-05-14 14:18  bdwright
+
+	* filecb.m: Main callback routines for file loading functions.
+
+2001-05-10 16:19  bdwright
+
+	* uifig.fig, uifig.m (tags: uisonganal-1-2, uisonganal-1-1): Layout
+	changes including context menus in axes.
+
+2001-05-07 13:05  bdwright
+
+	* get_yrange.m, uifig.fig, uifig.m: Added uifig layout files.
+
+2001-05-07 13:02  bdwright
+
+	* disp_idx_spect.m (tags: uisonganal-1-1), uisonganal.m: Remove old
+	spectrogram zoom hack that reversed the freq. axis.
+
+2001-05-07 13:01  bdwright
+
+	* get_xrange.m (tags: uisonganal-1-1): Fix bug in range
+	highlighting.
+
+2001-05-05 20:55  bdwright
+
+	* myginput.m (tags: uisonganal-1-1): Version of ginput that gets
+	points with respect to user defined axis handle.  Matlab 6 ginput
+	appears to set the current axis according to where you click.
+
+2001-05-05 20:51  bdwright
+
+	* uimove.m (tags: uisonganal-1-2, uisonganal-1-1): Added support
+	for label axis.
+
+2001-05-05 20:47  bdwright
+
+	* disp_song.m, uisonganal.m: Added support for label axis.
+
+2001-05-05 20:46  bdwright
+
+	* get_yrange.m: Added support for highlighting of zoom selection.
+	Attempted to fix y zoom bug when user tries to zoom in the
+	spectrogram figure.
+
+2001-05-05 20:45  bdwright
+
+	* get_xrange.m: Added support for label axis and highlighting of
+	zoom selection.
+
+2001-05-05 20:43  bdwright
+
+	* uizoom.m (tags: uisonganal-1-1): Added support for label axes.
+
+2001-05-01 22:25  bdwright
+
+	* centercb.m (tags: uisonganal-1-2, uisonganal-1-1): New code for
+	centering callback functions.
+
+2001-05-01 22:24  bdwright
+
+	* uisonganal.m: Added centering and center pointer support.
+
+2001-05-01 17:35  bdwright
+
+	* .not.mat: "Release 1.0 of uisonganal, original version by Michael
+	Brainard, updated to work with matlab 5.3 (bdw)."
+
+2001-05-01 17:31  bdwright
+
+	* read_song.mexaxp (tags: uisonganal-1-2, uisonganal-1-1,
+	uisonganal-1-0):  read_song Alpha binary
+
+2001-05-01 17:31  bdwright
+
+	* read_song.mexlx (tags: uisonganal-1-2, uisonganal-1-1,
+	uisonganal-1-0): read_song Linux libc5 binary
+
+2001-05-01 17:12  bdwright
+
+	* .not.mat, ChangeLog, M_FILES, bandpass.m, batch_setup.m,
+	bird1.batch, bird1UNDIRb.20000325.0001, bird1UNDIRb.20000325.0002,
+	bird1UNDIRb.20000325.0003, disp_idx_spect.m, disp_song.m,
+	edit_note.m, get_print_vals.m, get_scale_vals.m, get_segvals.m,
+	get_thresh_val.m, get_xrange.m, get_yrange.m, imagesc1.m, label.m,
+	make_current.m, make_map.m, move_left.m, move_right.m,
+	print_song.m, read_filt.m, read_note.m, read_rawfile42c.m,
+	read_song.c, read_spect.m, save_data.m, scale_spect.m, segment.m,
+	set_print_vals.m, set_scale_vals.m, songanalpath.m, soundin.m,
+	swap.h, uibatch.m, uimove.m, uiprint_sa.m, uipsdanal.m,
+	uiresegment.m, uiscale.m, uisonganal.m, uisonganal.ps.gz,
+	uisonganal_mtlb5.3.diffs, uisongcontrols.m, uispectcontrols.m,
+	uizoom.m, uizoomcontrols.m, wavread16.m, win_spect.m, wordsizes.h,
+	write_filt.m, write_spect.m, zoom_x.m, zoom_y.m,
+	matprint/pgsetup.m, matprint/print2.m, matprint/printopt2.m,
+	matprint/uiprint.m, spect/b_spectranal.m, spect/cepstrum.m,
+	spect/comp_scores.m, spect/costrans.m, spect/deltaprods.m,
+	spect/deltaprods2.m, spect/disp_spectra.m, spect/disp_spectra2.m,
+	spect/findmax1.m, spect/old_distchck.m, spect/old_normpdf.m,
+	spect/psd_get_xrange.m, spect/psdanal.m, spect/psdupdate.m,
+	spect/sinprods.m, spect/spect_comp.m, spect/spect_length.m,
+	spect/spectranal.m, spect/split_spect.m, spect/temp_plot.m,
+	spect/win_spect.m: Initial revision
+
+2001-05-01 17:12  bdwright
+
+	* .not.mat, ChangeLog (tags: uisonganal-1-1), M_FILES (tags:
+	uisonganal-1-2, uisonganal-1-1), bandpass.m, batch_setup.m,
+	bird1.batch, bird1UNDIRb.20000325.0001 (tags: uisonganal-1-2,
+	uisonganal-1-1), bird1UNDIRb.20000325.0002 (tags: uisonganal-1-2,
+	uisonganal-1-1), bird1UNDIRb.20000325.0003 (tags: uisonganal-1-2,
+	uisonganal-1-1), disp_idx_spect.m, disp_song.m, edit_note.m,
+	get_print_vals.m (tags: uisonganal-1-2, uisonganal-1-1),
+	get_scale_vals.m (tags: uisonganal-1-2, uisonganal-1-1),
+	get_segvals.m (tags: uisonganal-1-2, uisonganal-1-1),
+	get_thresh_val.m, get_xrange.m, get_yrange.m, imagesc1.m (tags:
+	uisonganal-1-2, uisonganal-1-1), label.m (tags: uisonganal-1-2,
+	uisonganal-1-1), make_current.m, make_map.m (tags: uisonganal-1-1),
+	move_left.m (tags: uisonganal-1-2, uisonganal-1-1), move_right.m
+	(tags: uisonganal-1-1), print_song.m (tags: uisonganal-1-1),
+	read_filt.m (tags: uisonganal-1-2, uisonganal-1-1), read_note.m
+	(tags: uisonganal-1-2, uisonganal-1-1), read_rawfile42c.m (tags:
+	uisonganal-1-2, uisonganal-1-1), read_song.c (tags: uisonganal-1-2,
+	uisonganal-1-1), read_spect.m (tags: uisonganal-1-2,
+	uisonganal-1-1), save_data.m, scale_spect.m (tags: uisonganal-1-2,
+	uisonganal-1-1), segment.m (tags: uisonganal-1-2, uisonganal-1-1),
+	set_print_vals.m (tags: uisonganal-1-2, uisonganal-1-1),
+	set_scale_vals.m (tags: uisonganal-1-1), songanalpath.m (tags:
+	uisonganal-1-2, uisonganal-1-1), soundin.m, swap.h (tags:
+	uisonganal-1-2, uisonganal-1-1), uibatch.m, uimove.m, uiprint_sa.m
+	(tags: uisonganal-1-2, uisonganal-1-1), uipsdanal.m (tags:
+	uisonganal-1-1), uiresegment.m, uiscale.m (tags: uisonganal-1-2,
+	uisonganal-1-1), uisonganal.m, uisonganal.ps.gz (tags:
+	uisonganal-1-2, uisonganal-1-1), uisonganal_mtlb5.3.diffs (tags:
+	uisonganal-1-2, uisonganal-1-1), uisongcontrols.m,
+	uispectcontrols.m (tags: uisonganal-1-1), uizoom.m,
+	uizoomcontrols.m (tags: uisonganal-1-2, uisonganal-1-1),
+	wavread16.m (tags: uisonganal-1-2, uisonganal-1-1), win_spect.m
+	(tags: uisonganal-1-2, uisonganal-1-1), wordsizes.h (tags:
+	uisonganal-1-2, uisonganal-1-1), write_filt.m, write_spect.m,
+	zoom_x.m (tags: uisonganal-1-2, uisonganal-1-1), zoom_y.m (tags:
+	uisonganal-1-2, uisonganal-1-1), matprint/pgsetup.m (tags:
+	uisonganal-1-2, uisonganal-1-1), matprint/print2.m (tags:
+	uisonganal-1-2, uisonganal-1-1), matprint/printopt2.m (tags:
+	uisonganal-1-2, uisonganal-1-1), matprint/uiprint.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/b_spectranal.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/cepstrum.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/comp_scores.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/costrans.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/deltaprods.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/deltaprods2.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/disp_spectra.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/disp_spectra2.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/findmax1.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/old_distchck.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/old_normpdf.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/psd_get_xrange.m (tags:
+	uisonganal-1-2, uisonganal-1-1), spect/psdanal.m (tags:
+	uisonganal-1-1), spect/psdupdate.m (tags: uisonganal-1-2,
+	uisonganal-1-1), spect/sinprods.m (tags: uisonganal-1-2,
+	uisonganal-1-1), spect/spect_comp.m (tags: uisonganal-1-2,
+	uisonganal-1-1), spect/spect_length.m (tags: uisonganal-1-2,
+	uisonganal-1-1), spect/spectranal.m (tags: uisonganal-1-2,
+	uisonganal-1-1), spect/split_spect.m (tags: uisonganal-1-2,
+	uisonganal-1-1), spect/temp_plot.m (tags: uisonganal-1-2,
+	uisonganal-1-1), spect/win_spect.m (tags: uisonganal-1-2,
+	uisonganal-1-1) (utags: uisonganal-1-0, start): Imported sources
+	for uisonganal project.
+

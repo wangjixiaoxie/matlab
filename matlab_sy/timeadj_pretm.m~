@@ -1,0 +1,39 @@
+%purpose of this fxn is to limit data included in analysis before and after
+%muscimol run so that ac value represents a stationary value!
+function [tmvc] = timeadj_pretm(avls)
+    tmvc=avls.adjtimes;
+    aclistpre=avls.aclist(:,1);
+    aclistpst=avls.aclist(:,2);
+    mulist=avls.mulist;
+    
+    for ind=1:length(mulst)
+        acpreind=avls.aclist(ind,1);
+        acpstind=avls.aclist(ind,2);
+        muind=avls.mul
+         %find where on the list of triplets this is   
+         indpos=find(avls.aclist(:,1)==indvl)
+          if(~isempty(indpos))  
+          %acsf only run  
+            if(avls.aclist(indpos,2)==0)
+                %do nothing to the times
+            else
+              %increase the start time according to the muscimol time
+              muind=avls.mulist(indpos);
+              must_tm=tmvc(muind,1);
+              muen_tm=tmvc(muind,2);
+              ac_ind1=avls.aclist(indpos,1);
+              ac_ind2=avls.aclist(indpos,2);
+              
+              tmpst_tm=must_tm-avls.pretm;
+              if(tmpst_tm>tmvc(ac_ind1))
+                tmvc(ac_ind1,1)=tmpst_tm;
+              end
+              tmpen_tm=muen_tm+avls.pretm;
+              if(tmpen_tm<tmvc(ac_ind2))
+                tmvc(ac_ind2)=tmpen_tm;
+              end
+            
+            end
+          end
+    end
+   

@@ -1,0 +1,23 @@
+figure
+for nt=1:2
+    for ii=1:length(timind)
+        for jj=1:3
+            clrvl='krb'
+            linestyl{1}='-'
+            linestyl{2}='-'
+            linestyl{3}='--'
+            curtm=timind(ii);
+            subplot(3,2,ii*2+nt-2)
+            
+            if(~isempty(mnhstout{nt}{curtm}{jj}))
+                stairs(edges{nt}, mnhstout{nt}{curtm}{jj},'Color',clrvl(jj), 'Linestyle', linestyl{jj},'Linewidth',2);
+                hold on;    
+            
+            
+                nvl=num2str(nvls{nt}{curtm}{jj});
+                cvl=num2str(cv{nt}{curtm}{jj});
+                text(edges{nt}(jj),.5,[nvl ' ' cvl],'Color',clrvl(jj));
+            end
+        end
+    end
+end

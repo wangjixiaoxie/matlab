@@ -1,0 +1,14 @@
+% hits vs. escapes
+n=211;
+
+for j=1:max(length(trigs(n).trigmintmp),length(trigs(n).ntmintmp))
+    g(j)=isempty(find(trigs(n).trigmintmp==trigs(n).ntmintmp(j)));
+    h(j)=isempty(find(trigs(n).trigmintmp==trigs(n).ntmintmp(j)));
+end
+
+% Get feedback (H/E) info from rec file
+rd=jcreadrecf2(trigs(n).fn,0);
+
+% For each note, classify as hit or escape
+for k=1:length(trigs(n).ntmintmp)
+    

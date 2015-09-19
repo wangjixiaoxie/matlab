@@ -1,0 +1,4 @@
+function[threshval,threshind]=calc_escapethresh(vals,ps)
+threshind=find(vals(:,3)==0);
+threshval=median(vals(escapeind,2));
+

@@ -1,0 +1,92 @@
+function [zSCORE]=jcMonteCarlo(pitch1,pitch2,a,b,ds1,ds2)
+lengthy=51;
+window_width=40;
+
+norm1=zeros(lengthy,1);
+norm2=zeros(lengthy,1);
+
+%Get the residuals
+for kk=0:2
+    pitchA=pitch1(lengthy*kk+1:lengthy*(kk+1));
+    pitchB=pitch2(lengthy*kk+1:lengthy*(kk+1));
+    for i=1:size(pitchA(1).pitches,2)
+        t(i)=0;
+        for j=1:size(pitch1,2)
+            matr1(i,j)=pitch1(j).pitches(i);
+            matr2(i,j)=pitch2(j).pitches(i);
+        end
+        averaged1(i)=mean(matr1(i,:));
+        averaged2(i)=mean(matr2(i,:));
+    end
+    for i=1:size(pitch1,2)
+        for j=size(pitch1(1).pitches,2)
+            normalized1(j,i)=matr1(j,i)/averaged1(j);
+            normalized2(j,i)=matr2(j,i)/averaged2(j);
+            normalized1(j,i)=normalized1(j,i)-1;
+            normalized2(j,i)=normalized2(j,i)-1;
+        end
+    end
+    nop1(kk+1).normalized=normalized1';
+    nop2(kk+1).normalized=normalized2';
+end
+normalizedA=nop1(1).normalized;
+normalizedB=nop2(2).normalized;
+for ll=1:kk
+    normalizedA=[normalizedA nop1(ll+1).normalized];
+    normalizedB=[normalizedB nop2(ll+1).normalized];
+end
+%UD_PRE
+ds1_first=(ds1-1)*lengthy+1;
+ds2_first=(ds2-1)*lengthy+1;
+ds1_last=ds1*lengthy;
+ds2_last=ds2*lengthy;
+count1=1;
+count2=1;
+for i=ds1_first:ds1_last
+    m(1,count1)=median(normalizedA(i,a:a+100));
+    m(2,count1)=median(normalizedB(i,b:b+100));
+    count1=count1+1;
+end
+
+%D_PRE
+for j=ds2_first:ds2_last
+    m(3,count2)=median(normalizedA(j,a:a+100));
+    m(4,count2)=median(normalizedB(j,b:b+100));
+    count2=count2+1;
+end
+
+ccLMAN=corrcoef(m(1,:),m(2,:));
+ccLMAN=ccLMAN(2);
+ccnone=corrcoef(m(3,:),m(4,:));
+ccnone=ccnone(2);
+for k=1:4
+    stand(k)=std(m(k,:));
+end
+
+%To avoid imaginary answers
+if stand(1)>stand(3)
+    sdLMAN1=sqrt(stand(1)^2-stand(3)^2);
+else sdLMAN1=0;
+end
+if stand(2)>stand(4)
+    sdLMAN2=sqrt(stand(2)^2-stand(4)^2);
+else sdLMAN2=0;
+end
+
+if stand(4)>stand(2) && stand(3)>stand(1)
+    zSCORE=100;
+else
+
+
+%The Monte Carlo simulation
+for ii=1:1000
+    noisy1=randn(1,lengthy)*sdLMAN1;
+    noisy2=randn(1,lengthy)*sdLMAN2;
+    mfake1=noisy1+m(3,:); %mocks m(1,:)
+    mfake2=noisy2+m(4,:); %mocks m(2,:)
+    cc=corrcoef(mfake1,mfake2);
+    ccMock(ii)=cc(2);
+end
+
+zSCORE=(ccLMAN-mean(ccMock))/(std(ccMock));
+end

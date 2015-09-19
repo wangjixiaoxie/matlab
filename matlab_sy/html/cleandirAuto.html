@@ -1,0 +1,302 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>cleandirAuto</title><meta name="generator" content="MATLAB 7.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-12"><meta name="DC.source" content="cleandirAuto.m"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> cleandirAuto(batch,wind,numwind,numnote)
+<span class="comment">% cleandirAuto(batch,wind,numwind,numnote,CHANSPEC)</span>
+<span class="comment">%</span>
+<span class="comment">% wind is the window size in MS</span>
+<span class="comment">% numwind is the number of notes in a window</span>
+<span class="comment">% numnote is the numer of times numwind has to be observed in 1 file</span>
+<span class="comment">%</span>
+<span class="comment">% Threshold is calculated by mbatchamphist() based on distributiuon of</span>
+<span class="comment">% amplitude values across files in batch.</span>
+
+<span class="keyword">if</span> (~exist(<span class="string">'TH'</span>))
+    TH=5;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> (~exist(<span class="string">'wind'</span>))
+    wind=1000;
+<span class="keyword">end</span>
+
+wind = wind*1e-3; <span class="comment">% convert to ms</span>
+
+<span class="keyword">if</span> (~exist(<span class="string">'numwind'</span>))
+    numwind=6;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> (~exist(<span class="string">'numnote'</span>))
+    numnote=4;
+<span class="keyword">end</span>
+
+<span class="comment">%</span>
+<span class="comment">% if (~exist('CHANSPEC'))</span>
+<span class="comment">%     CHANSPEC='obs0';</span>
+<span class="comment">% end</span>
+
+<span class="keyword">if</span> (exist([batch <span class="string">'.keep'</span>]));
+    ans=input(<span class="string">'.keep file exists, are you sure you want to proceed?  '</span>,<span class="string">'s'</span>);
+    <span class="keyword">if</span> (ans==<span class="string">'y'</span>)
+    <span class="keyword">else</span>
+        <span class="keyword">return</span>;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+fid=fopen(batch,<span class="string">'r'</span>);
+fkeep=fopen([batch,<span class="string">'.keep'</span>],<span class="string">'w'</span>);
+fdcrd=fopen([batch,<span class="string">'.dcrd'</span>],<span class="string">'w'</span>);
+disp([<span class="string">'working...'</span>]);
+
+<span class="comment">%calculate distribution of amplitudes in all songs in batch</span>
+[batchbins batchhist] = mbatchampdist(batch);
+[pks,pksloc] = findpeaks(batchhist,<span class="string">'SORTSTR'</span>,<span class="string">'descend'</span>);
+
+threshold = 10^(batchbins(pksloc(1))+(batchbins(pksloc(2))-batchbins(pksloc(1))));
+
+disp([<span class="string">'threshold = '</span> num2str(threshold)]);
+
+<span class="keyword">while</span> (1)
+    fn=fgetl(fid);
+    <span class="keyword">if</span> (~ischar(fn))
+        <span class="keyword">break</span>;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> (~exist(fn,<span class="string">'file'</span>))
+        <span class="keyword">continue</span>;
+    <span class="keyword">end</span>
+
+   <span class="comment">%disp(fn);</span>
+
+    [pth,nm,ext]=fileparts(fn);
+    <span class="keyword">if</span> (strcmp(ext,<span class="string">'.ebin'</span>))
+        [dat,fs]=readevtaf(fn,<span class="string">'0r'</span>);
+        sm=evsmooth(dat,fs,0.01);
+    <span class="keyword">elseif</span>(strcmp(ext,<span class="string">'.cbin'</span>))
+        [dat,fs]=ReadCbinFile(fn);
+        sm=mquicksmooth(dat,fs);
+    <span class="keyword">elseif</span>(strcmp(ext,<span class="string">'.wav'</span>))
+        [dat,fs]=wavread(fn);
+        sm=mquicksmooth(dat,fs);
+    <span class="keyword">end</span>
+    <span class="comment">%[ons,offs]=evsegment(sm,fs,5.0,30.0,TH);</span>
+
+    <span class="comment">%threshold = mautothresh(fn,TH);</span>
+
+    [ons offs] = msegment(sm,fs,15,20,threshold);
+    <span class="comment">%filter vocalizations that are between 10 and 150ms</span>
+    durs = offs-ons;
+    kills = find(durs&gt;0.15);
+    ons(kills)=[];
+    offs(kills)=[];
+    durs = offs-ons;
+    kills = find(durs&lt;0.01);
+    ons(kills)=[];
+    offs(kills)=[];
+
+    keepit=0;
+    <span class="keyword">if</span> (length(ons) &gt; numwind)
+        <span class="keyword">for</span> ii = 1:length(ons)
+            p = find(abs(ons(ii:length(ons))-ons(ii))&lt;=wind);
+            <span class="keyword">if</span> (length(p)&gt;=numwind)
+                keepit=keepit+1;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+        <span class="keyword">if</span> (keepit&gt;=numnote)
+            fprintf(fkeep,<span class="string">'%s\n'</span>,fn);
+            <span class="comment">%disp('keeping...');</span>
+        <span class="keyword">else</span>
+            fprintf(fdcrd,<span class="string">'%s\n'</span>,fn);
+            <span class="comment">%disp('discarding...');</span>
+        <span class="keyword">end</span>
+    <span class="keyword">else</span>
+        fprintf(fdcrd,<span class="string">'%s\n'</span>,fn);
+        <span class="comment">%disp('discarding...');</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+fclose(fid);fclose(fkeep);fclose(fdcrd);
+disp([<span class="string">'done.'</span>]);
+<span class="keyword">return</span>
+</pre><pre class="codeoutput">Input argument "batch" is undefined.
+
+Error in ==&gt; cleandirAuto at 34
+if (exist([batch '.keep']));
+</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.11<br></p></div><!--
+##### SOURCE BEGIN #####
+function cleandirAuto(batch,wind,numwind,numnote)
+% cleandirAuto(batch,wind,numwind,numnote,CHANSPEC)
+% 
+% wind is the window size in MS
+% numwind is the number of notes in a window
+% numnote is the numer of times numwind has to be observed in 1 file
+%
+% Threshold is calculated by mbatchamphist() based on distributiuon of 
+% amplitude values across files in batch.
+
+if (~exist('TH'))
+    TH=5;
+end
+
+if (~exist('wind'))
+    wind=1000;
+end
+
+wind = wind*1e-3; % convert to ms
+
+if (~exist('numwind'))
+    numwind=6;
+end
+
+if (~exist('numnote'))
+    numnote=4;
+end
+
+% 
+% if (~exist('CHANSPEC'))
+%     CHANSPEC='obs0';
+% end
+
+if (exist([batch '.keep']));
+    ans=input('.keep file exists, are you sure you want to proceed?  ','s');
+    if (ans=='y')
+    else
+        return;
+    end
+end
+
+fid=fopen(batch,'r');
+fkeep=fopen([batch,'.keep'],'w');
+fdcrd=fopen([batch,'.dcrd'],'w');
+disp(['working...']);
+
+%calculate distribution of amplitudes in all songs in batch
+[batchbins batchhist] = mbatchampdist(batch);
+[pks,pksloc] = findpeaks(batchhist,'SORTSTR','descend');
+
+threshold = 10^(batchbins(pksloc(1))+(batchbins(pksloc(2))-batchbins(pksloc(1))));
+
+disp(['threshold = ' num2str(threshold)]);
+
+while (1)
+    fn=fgetl(fid);
+    if (~ischar(fn))
+        break;
+    end
+    if (~exist(fn,'file'))
+        continue;
+    end
+
+   %disp(fn);
+
+    [pth,nm,ext]=fileparts(fn);
+    if (strcmp(ext,'.ebin'))
+        [dat,fs]=readevtaf(fn,'0r');
+        sm=evsmooth(dat,fs,0.01);
+    elseif(strcmp(ext,'.cbin'))
+        [dat,fs]=ReadCbinFile(fn);
+        sm=mquicksmooth(dat,fs);
+    elseif(strcmp(ext,'.wav'))
+        [dat,fs]=wavread(fn);
+        sm=mquicksmooth(dat,fs);
+    end
+    %[ons,offs]=evsegment(sm,fs,5.0,30.0,TH);
+    
+    %threshold = mautothresh(fn,TH);
+   
+    [ons offs] = msegment(sm,fs,15,20,threshold);
+    %filter vocalizations that are between 10 and 150ms
+    durs = offs-ons;
+    kills = find(durs>0.15);
+    ons(kills)=[];
+    offs(kills)=[];
+    durs = offs-ons;
+    kills = find(durs<0.01);
+    ons(kills)=[];
+    offs(kills)=[];
+    
+    keepit=0;
+    if (length(ons) > numwind)
+        for ii = 1:length(ons)
+            p = find(abs(ons(ii:length(ons))-ons(ii))<=wind);
+            if (length(p)>=numwind)
+                keepit=keepit+1;
+            end
+        end
+        if (keepit>=numnote)
+            fprintf(fkeep,'%s\n',fn);
+            %disp('keeping...');
+        else
+            fprintf(fdcrd,'%s\n',fn);
+            %disp('discarding...');
+        end
+    else
+        fprintf(fdcrd,'%s\n',fn);
+        %disp('discarding...');
+    end
+end
+fclose(fid);fclose(fkeep);fclose(fdcrd);
+disp(['done.']);
+return
+
+##### SOURCE END #####
+--></body></html>

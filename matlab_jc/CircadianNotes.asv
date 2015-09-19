@@ -1,0 +1,35 @@
+BK20
+'b' - 150:250
+%The general idea is to see if the change in pitch overnight is
+%anticorrelated with the learning on the subsequent day.
+%To measure the change in pitch overnight, we  
+
+
+%make batch of all files
+BK50
+%'a' - 3100:3900
+%'b' - 2200:2800
+%select only last 20 songs of evening/first 20 of morning
+cleandir4('batch',1000,500,6,10);
+%label all
+evsonganaly
+%
+%
+fvals06PMb=findwnoteJC('batch16dusknotes','b','','',0,[3000 4500],6000,1,'obs0')
+fvals17AMb=findwnoteJC('batch17dawnnotes','b','','',0,[3000 4500],6000,1,'obs0')
+
+[pitch20AMa,avg20AMa]=jc_pitchmat1024(shifted20AMa,1024,1020,1,3100,3900,[1 2 3],'obs0',1);
+figure;plot(median(pitch16PMa(100:260,:)'))
+DawnB(3)=mean(median(pitch16AMb(160:240)));
+
+vals1008dawnA=evtaf_freq('batch.catch',[3100 3900],'a',128,'obs0',0,0);
+FF1008dawnA=vals1008dawnA(:,2);
+DawnAff(1)=median(FF1008dawnA)
+
+%Other notes: 
+%findwnoteJC2 allows you to search for '-a' when you normally can't
+fv=findwnoteJC2('batch19Cnotes','a','-a','a',0.01,[3000 4500],3000,1,'obs0');
+%Get all the frequency values for the entire experiment in Tim's data
+    %Use this to see how far bird has gone down and compare to
+    %inactivations
+ffs=avls.vls{1,1}(:,2); 

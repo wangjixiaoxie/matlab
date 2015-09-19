@@ -1,0 +1,22 @@
+function aavfin=ContingSim(toffsets,pitch,cont)
+
+
+
+for k=1:20
+    for i=1:size(pitch,2)
+        rr=round(rand*length(toffsets));
+        if rr==0
+            rr=1;
+        end
+        offset=round(toffsets(rr)); %round(mean(toffsets)+0.8*std(toffsets)*randn);
+        ffs(i)=mean(pitch(offset-64:offset,i)); % estimate of pitch within the window
+    end
+    L=prctile(ffs,cont);
+    ind=find(ffs<L);
+    aav=zeros(length(pitch),1);
+    for j=1:length(ind)
+        aav=aav+pitch(:,ind(j));
+    end
+    aavTot(k,:)=aav/j;
+end
+aavfin=mean(aavTot);

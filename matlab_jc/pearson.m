@@ -1,0 +1,1 @@
+function g = pearson7(x,pos,wid,m)% Pearson VII function. % g = pearson7(x,pos,wid,m) where x may be scalar, vector, or matrix% pos=position; wid=half-width (both scalar)% m=some number%  T. C. O'Haver, 1990  g=ones(size(x))./(1+((x-pos)./((0.5.^(2/m)).*wid)).^2).^m;

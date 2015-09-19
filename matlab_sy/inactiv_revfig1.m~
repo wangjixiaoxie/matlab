@@ -1,0 +1,21 @@
+%rewritten after botched attempt from before
+
+figs2plot=1
+
+
+pstm.runstoplot=[
+pstm.bsnum=[8 5]
+
+if(ismember(1,figstoplot))
+    axtm=plotstim_tmcourse(sumbs,pstm);
+end
+
+function [axtm]=plotstim_tmcourse(sumbs,ps)
+    bsln=length(ps.bsnum);
+     figure
+    for ii=1:bsln
+        crbs=ps.bsnum(ii);
+       
+        axtmcourse(ii)=subplot(1,bsln,ii);
+        plot_tmcourse2(sumbs(crbs),ps.runstoplot{ii},axtmcourse(ii));
+    end

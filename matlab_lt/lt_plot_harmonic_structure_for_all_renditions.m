@@ -1,0 +1,85 @@
+
+first_day=input('first day of analysis (e.g. 21Jul2013, no string)? ','s');
+last_day=input('last day of analysis (e.g. 22Jul2013, no string)? ','s');
+% num_of_pre_days=input('how many pre-WN days are included? ', 's');
+syllable = input('what syllable to analyze (e.g. b, no string)? ', 's');
+
+% experiment_phrase=input('what phrase marks your experiment folders?','s');
+
+days{1}=datenum(first_day);
+days{2}=datenum(last_day);
+
+num_of_days=1+days{2}-days{1};
+directory = '/home/lucas/data/song/pu13bk43';
+
+
+for j = days{1}:days{2};
+    
+    %        cd([directory '/' folders{1}{j-days{1}+1}])
+    
+    datestr(j,'ddmmmyyyy')    
+        
+    skip_to_next_day=input('skip to next day? (y or n)','s');
+    
+    if skip_to_next_day=='y';
+            
+        leave_old_data='n'; %input('Replace old compiled data from this day with NaN? (y or n) ','s');
+        if leave_old_data=='y';
+        %fill in with blank
+        harmonics_compiled_data_all_days.all_harmonics_second_over_first{j-days{1}+1}=0;
+            harmonics_compiled_data_all_days.times{j-days{1}+1}=0;
+           harmonics_compiled_data_all_days.second_over_first_mean(j-days{1}+1)=0;
+    harmonics_compiled_data_all_days.second_over_first_STD(j-days{1}+1)=0;
+        
+        else
+        end
+
+        continue
+    
+    end
+    disp('move to results folder with the saved results of harmonics analysis for this day, then type return')
+    keyboard
+    
+    load('day_process_harmonics.mat');
+    harmonics_compiled_data_all_days.all_harmonics_second_over_first{j-days{1}+1}=ratio_second_harmonic_over_first{1};
+    harmonics_compiled_data_all_days.times{j-days{1}+1}=times{1};
+    harmonics_compiled_data_all_days.second_over_first_mean(j-days{1}+1)=second_over_first_mean;
+    harmonics_compiled_data_all_days.second_over_first_STD(j-days{1}+1)=second_over_first_STD;
+    
+    lt_goto_pu13bk43_folder
+end
+
+% plot harmonics over days.
+close(figure(5))
+
+figure(5); hold on; title('ratio of 2nd to 1st harmonic for all renditions over days')
+xlabel(['Days: ' first_day ' to ' last_day '. Numbers are hours']);
+ylabel('Ratio of peak ampl. of 2nd vs. 1st harmonic')
+
+for j = days{1}:days{2};
+        index=j-days{1}+1;
+
+    maxtime_temp=max(harmonics_compiled_data_all_days.times{index});
+    mintime_temp=min(harmonics_compiled_data_all_days.times{index});
+    day_duration(index)=maxtime_temp-mintime_temp;
+    plot(harmonics_compiled_data_all_days.times{index}+sum(day_duration(1:index-1))+(index-1)*12, harmonics_compiled_data_all_days.all_harmonics_second_over_first{index},'o');
+    
+    errorbar(10+(index-1)*12+sum(day_duration(1:index))-day_duration(index)/2,harmonics_compiled_data_all_days.second_over_first_mean(index),harmonics_compiled_data_all_days.second_over_first_STD(index),'xr');
+    
+end
+
+
+suffix2=fix(clock);
+save_dir2='/home/lucas/data/song/pu13bk43/all_days_harmonics_summary';
+cd(save_dir2)
+mkdir(['lt_plot_harmonics_structure_' num2str(suffix2(1)) num2str(suffix2(2)) num2str(suffix2(3)) '_' num2str(suffix2(4)) num2str(suffix2(5))]);
+cd(['lt_plot_harmonics_structure_' num2str(suffix2(1)) num2str(suffix2(2)) num2str(suffix2(3)) '_' num2str(suffix2(4)) num2str(suffix2(5))])
+
+save(['harmonics_compiled_data_ratios' datestr(days{1},'ddmmmyyyy') '_to_' datestr(days{2},'ddmmmyyyy')], '-struct', 'harmonics_compiled_data_all_days');
+
+
+saveas(figure(5),['ratio_second_over_first_all_renditions'], 'fig') 
+
+
+
+

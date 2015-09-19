@@ -1,0 +1,13 @@
+function Garray=manygaussians
+for i=1:20
+    center=500-(i-10)*500;
+    for j=0:20
+        std=j*20
+        for k=0:20
+            a=a+1;
+            amp=0.001*k;
+            gauss_stor(a).center=center;
+            gauss_stor(a).std=std;
+            gauss_stor(a).amp=ampl
+            gauss_stor(a).gauss=gaussian(
+            

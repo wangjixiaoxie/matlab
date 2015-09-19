@@ -1,0 +1,52 @@
+function [PC,SCORE,LATENT,a]=jc_pca519(arrayfile)
+
+%Smooth the data with a filter so pca doesn't get a bunch of noise
+for i=1:length(pitch_data)
+    arrayfile(i).pitches=jc_wfilt(arrayfile(i).pitches);
+end
+
+%Align
+for i=1:length(arrayfile)
+    [holder]=SmoothData(f(i).datt,32000,1);
+    smooth(i).smoothed=holder;
+end
+for i=1:length(smooth(1).smoothed)
+    sumnote(i)=0;
+    for j=1:length(smooth)
+        sumnote(i)=sumnote(i)+smooth(j).smoothed(i);
+    end
+    avgnote(i)=sumnote(i)/length(smooth);
+end
+for i=1:length(arrayfile)
+    h=xcov(avgnote,smooth(i).smoothed);
+    [peak,index]=max(h);
+    shift=(index-6400)/4;
+    starting=round(280-shift);
+    ending=starting+400;
+    forpca(i).pitches=xcov(arrayfile(i).pitches(starting:ending));
+end
+
+%Align the notes and cut out the part of the note that you are interested in (the stack)
+a=forpca(1).pitches(1:length(forpca(1).pitches); % initialize the matrix
+for n=2:length(pitch_data)
+    thresh=jc_getthresh(smoothed(n).pitches,100);
+    a(n,:)=smoothed(n).pitches(thresh+50:thresh+400);   %cut so you get useful info.
+end
+
+% PCA
+% PC = the principalcomponents (as columns)
+% SCORE = the transformed matrix a.
+% LATENT = the eigenvalues
+[PC, SCORE, LATENT]=princomp(a);
+
+
+
+
+
+%Center examples to make E[a]=0
+%http://www.dtek.chalmers.se/~d95danb/ocr/pca_new.html
+%dimension=351;   %Because we're going from thresh+100 to thresh + 500 and dimensions must agree
+%b=mean(a,1);
+%c=ones(dimension,1);
+%d=b*c;
+%a=a-d;

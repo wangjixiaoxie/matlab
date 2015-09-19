@@ -1,0 +1,55 @@
+%plot all upshifts 
+%different subplot, include bas runs.
+
+%
+ct=1;
+totct=1;
+
+for ii=1:length(phsumbs)
+    crbs=phsumbs(ii);
+    for jj=1:length(crbs.shiftruns)
+     
+            cr_shiftruns=crbs.shiftruns{jj};
+            basruns=crbs.basruns;
+            nonzeroind=find(crbs.mulist~=0);
+            mulistnonzero=crbs.mulist(nonzeroind);
+            shind=find(ismember(mulistnonzero,cr_shiftruns'));
+%             shindloc=find(nonzeroind==shind(1));
+            basind=find(ismember(mulistnonzero(shind(1)-1),basruns))
+                if(~isempty(basind))
+               
+                    phsumbs(ii).allruns{jj}=nonzeroind([basind shind]);
+                      
+                else
+                       phsumbs(ii).allruns{jj}=nonzeroind(shind);
+                end   
+    end
+end
+
+for ii=1:length(phsumbs)
+    for jj=1:length(phsumbs(ii).allruns)
+        ax(totct)=subplot(6,2,ct);
+        ps.flip=1;
+        ps.adjx=1;
+        ps.axin=ax(totct);
+        ps
+        ps.plotind=phsumbs(ii).allruns{jj}
+        plot_tmcourse3(phsumbs(ii),ps)
+        hold on;
+        
+        totct=totct+1;
+        ct=ct+1;
+    end
+    
+    if(ct==12)
+        figure
+        ct=1;
+       
+    end
+
+end
+
+
+
+
+ps.flip=1

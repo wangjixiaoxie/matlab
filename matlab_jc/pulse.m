@@ -1,0 +1,1 @@
+function g = pulse(x,pos,wid)%  pulse(x,pos,wid) = pulse peak centered on pos, half-width=wid%  x may be scalar, vector, or matrix, pos and wid both scalar%  T. C. O'Haver, 2006% Example: pulse([1 2 3],0,1) gives result [.1556  .0276  .0048]a2=wid/1.762747173;a1=(pos-a2)./log(2);e=(x-a1)./a2;g = 4*exp(-e).*(1-exp(-e));g(1:round(a1))=0;

@@ -1,0 +1,13 @@
+function plot_errorbars(FFstats,prct)
+figure;hold on;
+
+for i=1:length(FFstats)
+    GG=FFstats(i).data;
+
+    Y(i)=mean(GG);
+    L(i)=mean(GG)-prctile(GG,prct);
+    U(i)=prctile(GG,100-prct)-mean(GG);
+end
+X=(1,2,3,4,5,6,7,7.5,
+errorbarfigure(X,Y,L,U)
+%plot(X,Y,L,U)

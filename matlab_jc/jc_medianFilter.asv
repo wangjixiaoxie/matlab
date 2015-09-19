@@ -1,0 +1,6 @@
+function [median_filtered]=jc_medianFilter(input_matrix,width)
+a=input_matrix;
+for i=5:length(a-5)
+    
+end
+median_filtered=a;

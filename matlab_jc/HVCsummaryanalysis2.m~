@@ -1,0 +1,403 @@
+load /cardinal/HVCAnalysedData/Allbirds2.mat % good except
+% bird 1 - y50g89 (28 neurons)
+% bird 2 - y32g92 (3 neurons)
+% bird 3 - b75w54 (2 neurons)
+i=3;
+Bird(i).name='b75w54';
+Bird(i).dataUD=outdataUD_model1;
+Bird(i).dataD=outdataD_model1;
+Bird(i).varsUD=outvarsUD_model1;
+Bird(i).varsD=outvarsD_model1;
+wins=[-820:10:1420];
+numtbins=length(wins);
+
+
+
+figure;hold on;
+
+
+%%%%%%%%%%%%
+% Figure 2
+%%%%%%%%%%%%
+            thisbird=1;
+            wins=[-820:10:1420];
+            numtbins=length(wins);
+            figure;hold on;
+            for sylls=1:3
+                subplot(4,3,sylls);hold on;
+                plot(wins,Bird(thisbird).varsUD.Tmn(sylls,:),'Linewidth',4)
+                plot(wins,Bird(thisbird).varsUD.Tmn(sylls,:)+Bird(thisbird).varsUD.Tse(sylls,:),'Linewidth',2)
+                plot(wins,Bird(thisbird).varsUD.Tmn(sylls,:)-Bird(thisbird).varsUD.Tse(sylls,:),'Linewidth',2)
+                ylim([-2 3])
+                plot([-820 1420],[0 0],'k','Linewidth',2)
+                xlim([-820 1420])
+            end
+            for sylls=1:3
+                subplot(4,3,sylls+3);hold on;
+                plot(wins,Bird(thisbird).varsD.Tmn(sylls,:),'Linewidth',4)
+                plot(wins,Bird(thisbird).varsD.Tmn(sylls,:)+Bird(thisbird).varsD.Tse(sylls,:),'Linewidth',2)
+                plot(wins,Bird(thisbird).varsD.Tmn(sylls,:)-Bird(thisbird).varsD.Tse(sylls,:),'Linewidth',2)
+                ylim([-2 3])
+                plot([-820 1420],[0 0],'k','Linewidth',2)
+                xlim([-820 1420])
+            end
+            thisbird=1;
+            for sylls=1:3
+                subplot(4,3,sylls+6);hold on;
+                plot(wins,Bird(thisbird).varsUD.Rmn(sylls,:),'Linewidth',4)
+                plot(wins,Bird(thisbird).varsUD.Rmn(sylls,:)+Bird(thisbird).varsUD.Rse(sylls,:),'Linewidth',2)
+                plot(wins,Bird(thisbird).varsUD.Rmn(sylls,:)-Bird(thisbird).varsUD.Rse(sylls,:),'Linewidth',2)
+                ylim([-0.5 0.5])
+                plot([-820 1420],[0 0],'k','Linewidth',2)
+                xlim([-820 1420])
+            end
+            for sylls=1:3
+                subplot(4,3,sylls+9);hold on;
+                plot(wins,Bird(thisbird).varsD.Rmn(sylls,:),'Linewidth',4)
+                plot(wins,Bird(thisbird).varsD.Rmn(sylls,:)+Bird(thisbird).varsD.Rse(sylls,:),'Linewidth',2)
+                plot(wins,Bird(thisbird).varsD.Rmn(sylls,:)-Bird(thisbird).varsD.Rse(sylls,:),'Linewidth',2)
+                ylim([-0.5 0.5])
+                plot([-820 1420],[0 0],'k','Linewidth',2)
+                xlim([-820 1420])
+            end
+
+
+            %%%%%%%%%%%%%
+            %%%%%%%%%%%%%
+            clear TvalsUD RvalsUD
+            for timebin=1:numtbins % for each time bin
+                neuroncount=0;
+                for thisbird=1:length(Bird) % for each bird
+                    for thisneuron=1:length(Bird(thisbird).dataUD(1,1).rvaldata) % for each cluster/neuron
+                        tvalstore=[];
+                        rvalstore=[];
+                        for thissyllable=1:size(Bird(thisbird).dataUD,1) % for each syllable
+                            if length(Bird(thisbird).dataUD(thissyllable,timebin).rvaldata)>thisneuron-1 & abs(Bird(thisbird).dataUD(thissyllable,timebin).rvaldata(thisneuron))>0 % excludes 0 or d.n.e.
+                                tvalstore(thissyllable)=Bird(thisbird).dataUD(thissyllable,timebin).tvaldata(thisneuron);
+                                rvalstore(thissyllable)=Bird(thisbird).dataUD(thissyllable,timebin).rvaldata(thisneuron);
+                            end
+                        end
+                        if ~isempty(tvalstore)
+                            neuroncount=neuroncount+1;
+                            TvalsUD(timebin,neuroncount)=mean(tvalstore);
+                            RvalsUD(timebin,neuroncount)=mean(rvalstore);
+                        end
+                    end
+                end
+            end
+
+            clear TvalsD RvalsD
+            for timebin=1:numtbins % for each time bin
+                neuroncount=0;
+                for thisbird=1:length(Bird) % for each bird
+                    for thisneuron=1:length(Bird(thisbird).dataD(1,1).rvaldata) % for each cluster/neuron
+                        tvalstore=[];
+                        rvalstore=[];
+                        for thissyllable=1:size(Bird(thisbird).dataD,1) % for each syllable
+                            if length(Bird(thisbird).dataD(thissyllable,timebin).rvaldata)>thisneuron-1 & abs(Bird(thisbird).dataD(thissyllable,timebin).rvaldata(thisneuron))>0 % excludes 0 or d.n.e.
+                                tvalstore(thissyllable)=Bird(thisbird).dataD(thissyllable,timebin).tvaldata(thisneuron);
+                                rvalstore(thissyllable)=Bird(thisbird).dataD(thissyllable,timebin).rvaldata(thisneuron);
+                            end
+                        end
+                        if ~isempty(tvalstore)
+                            neuroncount=neuroncount+1;
+                            TvalsD(timebin,neuroncount)=mean(tvalstore);
+                            RvalsD(timebin,neuroncount)=mean(rvalstore);
+                        end
+                    end
+                end
+            end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+% Figure 3 - summary data all birds
+%%%%%%%%%%%%%%%%%%%%%%%%
+            figure;hold on;
+            subplot(221);hold on;
+            %plot(wins,TvalsUD)
+            for i=1:numtbins;
+                mnTvalsUD(i)=mean(TvalsUD(i,find(TvalsUD(i,:)~=0)));
+                semTvalsUD(i)=std(TvalsUD(i,find(TvalsUD(i,:)~=0)))/sqrt(length(find(TvalsUD(i,:)~=0)));
+            end
+            plot(wins,mnTvalsUD,'k','Linewidth',4)
+            plot(wins,mnTvalsUD+semTvalsUD,'k','Linewidth',2)
+            plot(wins,mnTvalsUD-semTvalsUD,'k','Linewidth',2)
+            ylim([-2 2])
+            plot([-820 1420],[0 0],'k','Linewidth',2)
+            xlim([-820 1420])
+            subplot(222);hold on
+            %plot(wins,TvalsD)
+            for i=1:numtbins;
+                mnTvalsD(i)=median(TvalsD(i,find(TvalsD(i,:)~=0)));
+                semTvalsD(i)=std(TvalsD(i,find(TvalsD(i,:)~=0)))/sqrt(length(find(TvalsD(i,:)~=0)));
+            end
+            plot(wins,mnTvalsD,'k','Linewidth',4)
+            plot(wins,mnTvalsD+semTvalsD,'k','Linewidth',2)
+            plot(wins,mnTvalsD-semTvalsD,'k','Linewidth',2)
+            ylim([-2 2])
+            plot([-820 1420],[0 0],'k','Linewidth',2)
+            xlim([-820 1420])
+            subplot(223);hold on;
+            %plot(wins,RvalsUD)
+            for i=1:numtbins;
+                mnRvalsUD(i)=mean(RvalsUD(i,find(RvalsUD(i,:)~=0)));
+                semRvalsUD(i)=std(RvalsUD(i,find(RvalsUD(i,:)~=0)))/sqrt(length(find(RvalsUD(i,:)~=0)));
+            end
+            plot(wins,mnRvalsUD,'k','Linewidth',4)
+            plot(wins,mnRvalsUD+semRvalsUD,'k','Linewidth',2)
+            plot(wins,mnRvalsUD-semRvalsUD,'k','Linewidth',2)
+            ylim([-0.5 0.5])
+            plot([-820 1420],[0 0],'k','Linewidth',2)
+            xlim([-820 1420])
+            subplot(224);hold on
+            %plot(wins,RvalsD)
+            for i=1:numtbins;
+                mnRvalsD(i)=mean(RvalsD(i,find(RvalsD(i,:)~=0)));
+                semRvalsD(i)=std(RvalsD(i,find(RvalsD(i,:)~=0)))/sqrt(length(find(RvalsD(i,:)~=0)));
+            end
+            plot(wins,mnRvalsD,'k','Linewidth',4)
+            plot(wins,mnRvalsD+semRvalsD,'k','Linewidth',2)
+            plot(wins,mnRvalsD-semRvalsD,'k','Linewidth',2)
+            ylim([-0.5 0.5])
+            plot([-820 1420],[0 0],'k','Linewidth',2)
+            xlim([-820 1420])
+
+%%%%
+%%%% Figure 4 - how correlated is pitch of adjacent syllables (and how much
+%%%% time between adjacent syllables)
+%%%%
+%%% Only look at y50g89 (to start with)
+            clear all
+            load /cardinal/HVCAnalysedData/UDsaved021011y50g89.mat
+
+            eachwindow(1).data=[260:380];
+            eachwindow(2).data=[750:950];
+            eachwindow(3).data=[750:800];
+            eachwindow(4).data=[1320:1420];
+            count=0;
+            clear songinfo songpitch
+            allpitch(1).datt=[];
+            allpitch(2).datt=[];
+            allpitch(3).datt=[];
+            for thisneuron=1:length(neuron) % for each neuron
+                for thissong=1:length(neuron(thisneuron).song) % for each song
+                    if(length(neuron(thisneuron).song(thissong).noteons)==3) % if song has all three sylls
+                        count=count+1;
+                        songinfo(count).times=[];
+                        songinfo(count).pitch=[];
+                        for thissyllable=1:3 % each syllable
+                            thiswindow=eachwindow(thissyllable).data;
+                            adjfactor=mean(thiswindow)/8+16; % in ms
+                            songinfo(count).times=[songinfo(count).times neuron(thisneuron).song(thissong).noteons{thissyllable}+adjfactor];
+                            songpitch(thissyllable,count)=mean(mean(neuron(thisneuron).song(thissong).pitchdata{thissyllable}.datt(:,thiswindow)'));
+                            %allpitch(thissyllable).datt=[allpitch(thissyllable).datt thissyllable*mean(neuron(thisneuron).song(thissong).pitchdata{thissyllable}.datt(:,thiswindow)')];
+                        end
+                    end
+                end
+            end
+            figure;plot(songpitch') % average pitch of each syllable in a given song
+            m=corrcoef(songpitch(1,:),songpitch(2,:)); % 0.91
+            UDcorrAB=m(2)
+            m=corrcoef(songpitch(1,:),songpitch(3,:)); % 0.81
+            UDcorrCA=m(2)
+            m=corrcoef(songpitch(2,:),songpitch(3,:)); % 0.83
+            UDcorrBC=m(2)
+            % CONCLUSION - Extensive correlations - more than 50% of var explained
+
+            clearvars -except UDcorrAB UDcorrBC UDcorrCA
+            load /cardinal/HVCAnalysedData/Dsaved021011y50g89.mat
+
+            eachwindow(1).data=[260:380];
+            eachwindow(2).data=[750:950];
+            eachwindow(3).data=[750:800];
+            eachwindow(4).data=[1320:1420];
+            count=0;
+            clear songinfo songpitch
+            allpitch(1).datt=[];
+            allpitch(2).datt=[];
+            allpitch(3).datt=[];
+            for thisneuron=1:length(neuron) % for each neuron
+                for thissong=1:length(neuron(thisneuron).song) % for each song
+                    if(length(neuron(thisneuron).song(thissong).noteons)==3) % if song has all three sylls
+                        count=count+1;
+                        songinfo(count).times=[];
+                        songinfo(count).pitch=[];
+                        for thissyllable=1:3 % each syllable
+                            thiswindow=eachwindow(thissyllable).data;
+                            adjfactor=mean(thiswindow)/8+16; % in ms
+                            %songinfo(count).times=[songinfo(count).times neuron(thisneuron).song(thissong).noteons{thissyllable}+adjfactor];
+                            songpitch(thissyllable,count)=mean(mean(neuron(thisneuron).song(thissong).pitchdata{thissyllable}.datt(:,thiswindow)'));
+                            %allpitch(thissyllable).datt=[allpitch(thissyllable).datt thissyllable*mean(neuron(thisneuron).song(thissong).pitchdata{thissyllable}.datt(:,thiswindow)')];
+                        end
+                    end
+                end
+            end
+            figure;plot(songpitch') % average pitch of each syllable in a given song
+            m=corrcoef(songpitch(1,:),songpitch(2,:)); % 0.70
+            DcorrAB=m(2)
+            m=corrcoef(songpitch(1,:),songpitch(3,:)); % 0.73
+            DcorrCA=m(2)
+            m=corrcoef(songpitch(2,:),songpitch(3,:)); % 0.60
+            % Extensive correlations - around 50% of variation explained
+            
+            
+            
+            
+            
+            
+ %%%%
+ % February 22, 2011 - post MSB meeting
+ %%%%
+ % syllable A, y50g89 - HVC(X) neurons that spike in the vicinity
+ % looked at rasters first to select neurons
+ % folder 1, folder 9 are premotor
+ % folder 3 (cluster 5 only) and folder 10 - in vicinity but not premotor
+
+            clearvars -except folders clusters prefixes
+            load /cardinal/HVCAnalysedData/UDsaved021011y50g89.mat
+            pitchtimes=[1/8:1/8:1745/8]+16; % 16ms because of window size
+             figure;hold on
+            thissyllable=3;
+                vals=1250;
+                for thisfolder=[1:12]
+                    vals=vals-20;
+                    goodclust=clusters{thisfolder*2};
+                    for thisclust=goodclust
+                        clrrnd=[rand,rand,rand];
+                        for thissong=1:length(neuron(thisfolder).song)
+                            if length(neuron(thisfolder).song(thissong).pitchdata)>thissyllable-1
+                                plot(pitchtimes,neuron(thisfolder).song(thissong).pitchdata{thissyllable}.datt)
+                                for thisrendition=1:length(neuron(thisfolder).song(thissong).noteons{thissyllable})
+                                    thesespikes=neuron(thisfolder).song(thissong).spiketimes{thisclust}...
+                                        -neuron(thisfolder).song(thissong).noteons{thissyllable}(thisrendition);
+                                    if ~isempty(find(thesespikes>-200 & thesespikes<200))
+                                        vals=vals-0.4;
+                                        plot(thesespikes(find(thesespikes>-200 & thesespikes<200)),vals,'.','color',clrrnd)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                xlim([-200 200])
+                ylim([700 1550])
+            %%% Focus on number 3
+            ptwin=[650:750];
+figure;
+            for thisfolder=1:12;
+                         clear sumspikes   
+            for goodclust=clusters{thisfolder*2};
+                clear spikes
+                clear pdata
+                count=0;
+                thissyllable=3;
+                vals=1250;
+                    thisclust=goodclust
+                    for thissong=1:length(neuron(thisfolder).song)
+                        if length(neuron(thisfolder).song(thissong).pitchdata)>thissyllable-1
+                            for thisrendition=1:length(neuron(thisfolder).song(thissong).noteons{thissyllable})
+                                count=count+1;
+                                pdata(count)=mean(neuron(thisfolder).song(thissong).pitchdata{thissyllable}.datt(thisrendition,ptwin));
+                                thesespikes=neuron(thisfolder).song(thissong).spiketimes{thisclust}...
+                                    -neuron(thisfolder).song(thissong).noteons{thissyllable}(thisrendition);
+                                spikes(count).datt=thesespikes(find(thesespikes>-100 & thesespikes<100));
+                            end
+                        end
+                    end
+                for i=1:length(spikes)
+                    sumspikes(goodclust,i)=length(spikes(i).datt);
+                end
+            end
+            hold on;plot(sum(sumspikes),pdata,'.')
+            r=corrcoef(sum(sumspikes),pdata)
+            n(thisfolder)=length(pdata)
+            g(thisfolder)=r(2);
+            if abs(r(2))>0
+            z(thisfolder)=0.5*log10((r(2)+1)/(1-r(2)))*sqrt((n(thisfolder)-3)/1.06);
+            else
+                z(thisfolder)=0
+                
+            end
+            end
+            figure;hold on;
+            for i=1:length(pdata)
+                plot(pdata(i).datt,'b')
+            end
+            for i=find(sum(sumspikes)==0)
+                plot(pdata(i).datt,'r')
+            end
+            % looks like two entirely different syllables - A1 vs A2 ???
+
+
+
+
+%%%%%%%%%
+% Syllable B
+%%%%%%%%%%%%%
+clearvars -except folders clusters prefixes
+load /cardinal/HVCAnalysedData/UDsaved021011y50g89.mat
+pitchtimes=[1/8:1/8:1745/8]+16; % 16ms because of window size
+ figure;hold on
+thissyllable=2;
+    vals=1250;
+    for thisfolder=1:length(neuron)
+        goodclust=clusters{thisfolder*2};
+        for k=1:length(goodclust);
+            thisclust=goodclust(k);
+            clrrnd=[rand,rand,rand];
+            for thissong=1:length(neuron(thisfolder).song)
+                if length(neuron(thisfolder).song(thissong).pitchdata)>thissyllable-1
+                    plot(pitchtimes,neuron(thisfolder).song(thissong).pitchdata{thissyllable}.datt)
+                    for thisrendition=1:length(neuron(thisfolder).song(thissong).noteons{thissyllable})
+                        thesespikes=neuron(thisfolder).song(thissong).spiketimes{thisclust}...
+                            -neuron(thisfolder).song(thissong).noteons{thissyllable}(thisrendition);
+                        if ~isempty(find(thesespikes>-200 & thesespikes<200))
+                            vals=vals-0.4;
+                            plot(thesespikes(find(thesespikes>-200 & thesespikes<200)),vals,'.','color',clrrnd)
+                        end
+                    end
+                end
+            end
+        end
+    end
+    xlim([-200 200])
+    ylim([700 1550])
+%%% Focus on number 9
+ptwin=[300:400];
+clear sumspikes
+thisfolder=;
+for goodclust=[5]%clusters{thisfolder*2};
+    clear spikes
+    clear pdata
+    count=0;
+    thissyllable=1;
+    vals=1250;
+        thisclust=goodclust
+        for thissong=1:length(neuron(thisfolder).song)
+            if length(neuron(thisfolder).song(thissong).pitchdata)>thissyllable-1
+                for thisrendition=1:length(neuron(thisfolder).song(thissong).noteons{thissyllable})
+                    count=count+1;
+                    pdata(count).datt=(neuron(thisfolder).song(thissong).pitchdata{thissyllable}.datt(thisrendition,:));
+                    thesespikes=neuron(thisfolder).song(thissong).spiketimes{thisclust}...
+                        -neuron(thisfolder).song(thissong).noteons{thissyllable}(thisrendition);
+                    spikes(count).datt=thesespikes(find(thesespikes>-200 & thesespikes<0));
+                end
+            end
+        end
+    for i=1:length(spikes)
+        sumspikes(goodclust,i)=length(spikes(i).datt);
+    end
+end
+figure;plot(sum(sumspikes),pdata,'.')
+corrcoef(sum(sumspikes),pdata)
+
+figure;hold on;
+for i=1:length(pdata)
+    plot(pdata(i).datt,'b')
+end
+for i=find(sum(sumspikes)==0)
+    plot(pdata(i).datt,'r')
+end
+% looks like two entirely different syllables - A1 vs A2 ???
+
+

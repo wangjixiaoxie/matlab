@@ -1,0 +1,119 @@
+% Problem 1
+    % A
+        % mean=EV=m=(rate)*(time)=(5 spikes/s)*(10s)=50 spikes
+        % variance = m = 50 spikes
+    % B
+        % mean=(5 spikes/s)*(5s)+(10 spikes/s)*(5s)=(25)+(50)=75 spikes
+        
+        % variance(first 5s)=25
+        % variance(second 5s)=50
+        % If variables are independent, then total variance is additive.
+        % Since Poisson is history-indep, variables are indep ---> additive
+            % So we can add var1 and var2 = 25+50 = 75 spikes
+        % It's the same as the mean
+    % C
+        % They are equivalent
+    % D
+        % mean=variance=m
+        % This is true because the logic in my answer to B applies to 
+        % the definite integral of any inhomogeneous Poisson process over
+        % any range.  Each infinitesimal chunk of time is independent and
+        % thus total variance is equivalent to the definite integral of
+        % variance.
+        
+        % m= Integral of 5*sin(t)+5 from t=0 to t=10
+        % 5(-1*cos(t)+t)[t=10 t=0]
+        5*[(-1*cos(10)+10)-(-1*cos(0)+0)]
+        =59.1954
+        
+    % E
+        % They are the same - see argument in D.
+        
+ % Problem 2 - figure 1
+    % A
+    jj=[2:1:length(spiketimes)];
+    ISIs=spiketimes(jj)-spiketimes(jj-1);
+    bins=[0:0.01:0.5];
+    figure;hold on;
+    subplot(311);
+    IScounts=hist(ISIs,bins);
+    bar(bins,IScounts/sum(IScounts))
+    xlim([-0.05 0.5]); ylim([0 0.2])
+    first50=sum(spiketimes<50);
+    subplot(312);
+    IScounts2=hist(ISIs(1:first50),bins);
+    bar(bins,IScounts2/sum(IScounts2))  
+    xlim([-0.05 0.5]); ylim([0 0.2])
+    subplot(313);
+    IScounts3=hist(ISIs(first50+1:end),bins);
+    bar(bins,IScounts3/sum(IScounts3))
+    xlim([-0.05 0.5]); ylim([0 0.2])
+    
+    % B 
+        % meanISI = 1/(mean rate) = 1/lambda(t)
+    % PREDICTED from lambda
+        % First 50s - 1/10=0.1
+        % Second 50s - 1/20=0.05
+        % Total - avg - 1/15 = 0.067
+    % ACTUAL
+    mnest1=expfit(ISIs);
+    % 0.0657 - 95% CIs from 0.0625 to 0.0691
+    mnest2=expfit(ISIs(1:first50));
+    % 0.0997 - 95% CIs from 0.0915 to 0.1090
+    mnest3=expfit(ISIs(first50+1:end));
+    % 0.0490 - 95% CIs from 0.0461 to 0.0521
+    
+% Problem 3
+    % A 
+        mean(exp1)=1.95
+    % B
+       % EXPECTED
+        % p(0 | m)=[exp(-m)*m^0]/0!=exp(-m)
+        exp(-1.95)
+            0.1423 
+       % ACTUAL
+        sum(exp1==0)/500
+            0.1260 
+       % Pretty similar.  Slightly fewer failures than expected.
+    % C
+    k=[0:1:10];
+    m=1.95;
+    for i=1:length(k)
+        pdist(i)=[exp(-1*m)*(m.^k(i))]/factorial(k(i));
+        actualdist(i)=sum(exp1==k(i))/500;
+    end
+    figure;plot(k,cumsum(pdist),'Linewidth',2);hold on;plot(k,cumsum(actualdist),'Color','r','Linewidth',2)
+    % Look very similar.
+    
+% Problem 4
+    % A 
+        mean(exp2)=3.2060
+    % 
+       % EXPECTED
+        % p(0 | m)=[exp(-m)*m^0]/0!=exp(-m)
+        exp(-3.2060)
+            0.0405
+       % ACTUAL
+        sum(exp2==0)/500
+            0.1240
+       % Much more failures than expected - doubtful that it's poisson.
+    figure;plot(exp2,'*')
+    figure;plot(k,actualdist,'Color','r','Linewidth',2);hold on;plot(k,pdist,'Linewidth',2)
+    % Don't look similar at all.
+   % Inhomogeneous poisson process.  
+   % The size of a quantum decreases by 50% at the middle of the
+   % experiment:
+    % Stim of two axons and one died
+    % Stim of two axons and effective stim current decrease due to electrode 
+        % gunk caused failure to recruit one of them.
+    % Stim of two spines and one became silent due to injury or homeostatic
+        % mechanisms.
+        
+% Problem 5
+lambda=[1:1:100];
+numsamples=[5:1:500];
+for i=1:length(lambda)
+    for j=i:length(numsamples)
+        signif(i,j)=lillietest(poissrnd(lambda(i),numsamples(j),1));
+    end
+end

@@ -1,0 +1,7 @@
+for i=1:12
+    gg=Alldata2(1).ind_longnotes(i);
+    pitchAC=Alldata2(Alldata2(gg).baselineAC(Alldata2(gg).basevaronset+40:Alldata2(gg).basevaroffset-40,:));
+    pitchINA=Alldata2(Alldata2(gg).baselineINA(Alldata2(gg).basevaronset+40:Alldata2(gg).basevaroffset-40,:));
+    figure;plot(xcorr(pitchAC))
+    hold on;plot(xcorr(pitchINA),'r')
+end

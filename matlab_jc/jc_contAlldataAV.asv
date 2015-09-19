@@ -1,0 +1,33 @@
+function jc_contAlldataAV(ZFnorm,BFnorm,stds,contingency,chunk)
+%aa=250-chunk(1);
+averZ=zeros(1,250);
+averB=zeros(1,250);
+for i=1:length(ZFnorm)
+    [av]=jc_contingencyAV(ZFnorm(i).data,1,stds,contingency,chunk);
+    averZ=averZ+av(51:300);
+end
+for i=1:length(BFnorm)
+    if i==4 || i==5 || i==6
+        chspec=0;
+    else
+        chspec=1;
+    end
+    [av]=jc_contingencyAV(BFnorm(i).data,chspec,stds,contingency,chunk);
+    averB=averB+av(51:300);
+end
+
+center=round(mean(chunk));
+diff=averB(
+hold on; plot(averB);plot(averZ,'r')
+
+%figure;hold on;xlim([0 3]);
+%plot(1,falloffBF,'*');
+%plot(2,falloffZF,'*');
+%M(1)=mean(falloffBF);
+%M(2)=mean(falloffZF);
+%E(1)=std(falloffBF)/sqrt(length(falloffBF));
+%E(2)=std(falloffZF)/sqrt(length(falloffZF));
+%figure;errorbar(M,E);
+%[h,p]=ttest2(falloffBF,falloffZF);
+g=8;
+

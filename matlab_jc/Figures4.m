@@ -1,0 +1,517 @@
+% Figure 7 - LMAN 
+load LMANtest824.mat
+% more m file
+
+figure;hold on;
+subplot(221);hold on;
+plot(Predict(27).ResidAC(:,10:40))
+xlim([200 360]); ylim([-0.05 0.05])
+subplot(222);hold on;
+plot(Predict(27).ResidINA(:,10:40))
+xlim([200 360]); ylim([-0.05 0.05])
+subplot(223);hold on;
+plot(mnccAC(:,6))
+plot(mnccINA(:,6),'r')
+
+
+%%%% Actual adaptation for indLes birds
+       figure;hold on
+            for i=[1:28]
+                [btop]=median(Predict(i).Targeting)-Predict(i).onset;%max(Predict(i).LearnedNorm(Predict(i).onset:Predict(i).offset));
+                abb=Predict(i).LearnedNorm(Predict(i).onset:Predict(i).onset+btop);
+                left=length(abb);
+                abb=[abb Predict(i).LearnedNorm(Predict(i).onset+btop:Predict(i).offset)];
+                right=length(abb)-left;
+                t=-1*left:1:right-1;
+            end
+            for i=[1:28]
+                notewidth(i)=(Predict(i).offset-Predict(i).onset)./8;
+            end
+            abb=zeros(28,1400);
+            for i=[1:28]
+                b=median(Predict(i).Targeting)-Predict(i).onset;%max(Predict(i).LearnedNorm(Predict(i).onset:Predict(i).offset));
+                b=round(b);
+                dister1=b;
+                dister2=notewidth(i)*8-b;
+
+                abb(i,700-dister1:700)=Predict(i).LearnedNorm(Predict(i).onset:Predict(i).onset+b);
+                abb(i,700:700+dister2)=Predict(i).LearnedNorm(Predict(i).onset+b:Predict(i).offset);
+            end
+            mnabb=zeros(1,1400);
+            seabb=zeros(1,1400);
+            for i=1:1400
+                ind=find(abb(indLes,i)>0);
+                if ~isempty(ind)
+                    mnabb(i)=mean(abb(indLes(ind),i));
+                    seabb(i)=std(abb(indLes(ind),i))/sqrt(length(indLes(ind)));
+                end
+            end
+            t=-542:1:559;
+            figure;hold on;
+            plot([t/8;t/8;t/8],[mnabb(158:1259)-seabb(158:1259);mnabb(158:1259);mnabb(158:1259)+seabb(158:1259)],'g')
+            plot(t/8,mnabb(158:1259),'k','Linewidth',3)
+            ylim([0 1.05])
+            xlim([-40 40])
+%%% Predicted from all data for indLes birds
+            clear a
+                for i=1:28
+                    aax=CSs64(i,i).data;
+                    if isequal(Predict(i).direction,'up')
+                        a(i)=max(aax(Predict(i).onset:Predict(i).offset));
+                    else
+                        a(i)=min(aax(Predict(i).onset:Predict(i).offset));
+                    end
+                    btop=median(Predict(i).Targeting)-Predict(i).onset;
+                    abb=aax(Predict(i).onset:Predict(i).onset+btop);
+                    left=length(abb);
+                    abb=[abb aax(Predict(i).onset+btop:Predict(i).offset)];
+                    right=length(abb)-left;
+                    t=-1*left:1:right-1;
+                    abb=abb/a(i);
+                end
+                for i=1:28
+                    notewidth(i)=(Predict(i).offset-Predict(i).onset)./8;
+                end
+                abb=zeros(28,1400);
+                for i=1:28
+                    b=round(median(Predict(i).Targeting)-Predict(i).onset); %max(abs(CSs2(i,i).data(Predict(i).onset:Predict(i).offset)));
+                    dister1=(b);
+                    dister2=(notewidth(i)*8-b);
+                    abb(i,700-dister1:700)=abs(CSs64(i,i).data(Predict(i).onset:Predict(i).onset+b)/a(i));
+                    abb(i,700:700+dister2)=abs(CSs64(i,i).data(Predict(i).onset+b:Predict(i).offset)/a(i));
+                end
+                mnabbT=zeros(1,1400);
+                seabbT=zeros(1,1400);
+                for i=1:1400
+                    ind=find(abb(indLes,i)>0);
+                    if ~isempty(ind)
+                        mnabbT(i)=mean(abb(indLes(ind),i));
+                        seabbT(i)=std(abb(indLes(ind),i))/sqrt(length(indLes(ind)));
+                    end
+                end
+                t=-542:1:559;
+                %%%%%
+                %%% FINAL PLOT - generates "A1H"
+                j1=max(mnabb(158:1259));
+                j2=max(mnabbT(158:1000));
+                %j3=max(mnabbNT(158:1259));
+                plot(t/8,mnabbT(158:1259),'r','LineWidth',3) % targ imprecision included
+%%% Prediction for just DMP
+        % THIS CALCULATES DATA FOR EACH EXPERIMENT
+        clear a
+                for k=1:length(indLes)
+                    i=indLes(k);
+                    aax=CSLMAN(k).data;
+                    if isequal(Predict(i).direction,'up')
+                        a(i)=max(aax(Predict(i).onset:Predict(i).offset));
+                    else
+                        a(i)=min(aax(Predict(i).onset:Predict(i).offset));
+                    end
+                    btop=median(Predict(i).Targeting)-Predict(i).onset;
+                    abb=aax(Predict(i).onset:Predict(i).onset+btop);
+                    left=length(abb);
+                    abb=[abb aax(Predict(i).onset+btop:Predict(i).offset)];
+                    right=length(abb)-left;
+                    t=-1*left:1:right-1;
+                    abb=abb/a(i);
+                end
+                for i=1:28
+                    notewidth(i)=(Predict(i).offset-Predict(i).onset)./8;
+                end
+                abb=zeros(28,1400);
+                for k=1:length(indLes)
+                    i=indLes(k);
+                    b=round(median(Predict(i).Targeting)-Predict(i).onset); %max(abs(CSs2(i,i).data(Predict(i).onset:Predict(i).offset)));
+                    dister1=(b);
+                    dister2=(notewidth(i)*8-b);
+                    abb(i,700-dister1:700)=abs(CSLMAN(k).data(Predict(i).onset:Predict(i).onset+b)/a(i));
+                    abb(i,700:700+dister2)=abs(CSLMAN(k).data(Predict(i).onset+b:Predict(i).offset)/a(i));
+                end
+                mnabbT=zeros(1,1400);
+                seabbT=zeros(1,1400);
+                for i=1:1400
+                    ind=find(abb(indLes,i)>0);
+                    if ~isempty(ind)
+                        mnabbT(i)=mean(abb(indLes(ind),i));
+                        seabbT(i)=std(abb(indLes(ind),i))/sqrt(length(indLes(ind)));
+                    end
+                end
+                t=-542:1:559;
+                %%%%%
+                %%% FINAL PLOT - generates "A1H"
+                j1=max(mnabb(158:1259));
+                j2=max(mnabbT(158:1000));
+                %j3=max(mnabbNT(158:1259));
+                plot(t/8,mnabbT(158:1259),'b','LineWidth',3) % targ imprecision included
+
+        
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%% FIGURES FOR LMAN only component
+%         for i=1:length(indLes)
+%             CVratio(indLes(i))=1-mean(std(Predictx(indLes(i)).ResidINA(Predictx(indLes(i)).onset+20:Predictx(indLes(i)).offset-20,:)'))/mean(std(Predictx(indLes(i)).ResidAC(Predictx(indLes(i)).onset+20:Predictx(indLes(i)).offset-20,:)'));
+%         end
+%         for i=1:size(mnccAC,2)
+%             weightedFF(:,i)=(mnccAC(:,i).^2-CVratio(indLes(i))*mnccINA(:,i).^2)/(1-CVratio(i));
+%             weightedFF(:,i)=weightedFF(:,i)/max(weightedFF(:,i));
+%         end
+%         for i=1:size(mnccAC,1)
+%             ind1=find(weightedFF(i,:)>0);
+%             weightedFF2(i)=mean(weightedFF(i,ind1));
+%         end
+%         weightedFF2=weightedFF2/max(weightedFF2);
+%         % 31.875ms (precisely)
+        
+  %%%%%%%%%      
+        clear crosscoAC
+        clear crosscoINA
+        clear ccAC
+        clear ccINA
+        clear mnccAC
+        clear mnccINA
+        clear mnccAC2
+        clear mnccINA2
+        for k=1:length(indLes)
+            i=indLes(k);
+            notelength=Predict(i).offset-Predict(i).onset;
+            numms=floor(notelength/8);
+            clear crosscoAC
+            clear crosscoINA
+            for ii=1:numms
+                first=ii*8;
+                middle=Predict(i).onset+first;
+                init=500-first+1;
+                for j=1:notelength
+                    ab=corrcoef(Predict(i).ResidAC(j+Predict(i).onset,:),Predict(i).ResidAC(middle,:));
+                    crosscoAC(init+j,ii)=ab(2);
+                    ai=corrcoef(Predict(i).ResidINA(j+Predict(i).onset,:),Predict(i).ResidINA(middle,:));
+                    crosscoINA(init+j,ii)=ai(2);
+                end
+            end
+            for i=1:size(crosscoAC,1)
+                ind1=find(crosscoAC(i,:)>0);
+                mnccAC(i,k)=mean(crosscoAC(i,ind1));
+                ind2=find(crosscoINA(i,:)>0);
+                mnccINA(i,k)=mean(crosscoINA(i,ind2));
+            end
+        end
+        %% THIS TAKES THE MEAN
+        for i=1:size(mnccAC,1)
+            ind1=find(mnccAC(i,:)>0);
+            mnccAC2(i)=mean(mnccAC(i,ind1).^2);
+            stdAC2(i)=std(mnccAC(i,ind1).^2);
+            ind2=find(mnccINA(i,:)>0);
+            mnccINA2(i)=mean(mnccINA(i,ind1).^2);
+            stdINA2(i)=std(mnccINA(i,ind1).^2);
+        end
+        sdAC=stdAC2/sqrt(11);
+        sdINA=stdINA2/sqrt(11);
+   %% THIS PLOTS IT
+        t1=[1:1:length(mnccAC2)];
+        figure;hold on;
+        plot([t1;t1],[(mnccAC2-sdAC);(mnccAC2+sdAC)],'-','Color','r')
+        plot([t1;t1],[(mnccINA2-sdINA);(mnccINA2+sdINA)],'-','Color','b')
+        xlim([220 780]);ylim([0 1])        
+        
+% Figure 8D
+t=0:1;
+            figure;
+            hold on;plot(BestSelfCSnorm(indLes),BestLMANCSnorm(indLes),'.','MarkerSize',25,'Color','r')
+            hold on;plot(t,t,'-','Color','k')
+            xlim([0 0.2]);ylim([0 0.2])
+%             plot([mean(BestSelfCSnorm(indLes))-std(BestSelfCSnorm(indLes))/sqrt(13);mean(BestSelfCSnorm(indLes))+std(BestSelfCSnorm(indLes))/sqrt(13)],[mean(BestLMANCSnorm(indLes));mean(BestLMANCSnorm(indLes))],'Color','k')
+%            plot([mean(BestSelfCSnorm(indLes));mean(BestSelfCSnorm(indLes))],[mean(BestLMANCSnorm(indLes))-std(BestLMANCSnorm(indLes))/sqrt(13);mean(BestLMANCSnorm(indLes))+std(BestLMANCSnorm(indLes))/sqrt(13)],'Color','k')
+           
+% Sigma calculation
+    % see 820.m
+    % or LOAD /cardinal/FiguresA/ConsensusData.mat
+    
+% Figure 9 - Zebra Finch Lesion Data
+% /cardinal/FiguresA/FinalFigures/figure9data.mat
+        clear crosscoAC
+        clear crosscoINA
+        clear ccAC
+        clear ccINA
+        clear mnccAC
+        clear mnccINA
+        clear mnccAC2
+        clear mnccINA2
+        for k=1:11
+            i=k;
+            notelength=PX(i,2)-PX(i,1);
+            numms=floor(notelength/8);
+            clear crosscoAC
+            clear crosscoINA
+            for ii=1:numms
+                first=ii*8;
+                middle=PX(i,1)+first;
+                init=500-first+1;
+                for j=1:notelength
+                    ab=corrcoef(ZFresidsCTL(i).data(j+PX(i,1),:),ZFresidsCTL(i).data(middle,:));
+                    crosscoAC(init+j,ii)=ab(2);
+                    ai=corrcoef(ZFresidsINA(i).data(j+PX(i,1),:),ZFresidsINA(i).data(middle,:));
+                    crosscoINA(init+j,ii)=ai(2);
+                end
+            end
+            for i=1:size(crosscoAC,1)
+                ind1=find(crosscoAC(i,:)>0);
+                mnccAC(i,k)=mean(crosscoAC(i,ind1));
+                ind2=find(crosscoINA(i,:)>0);
+                mnccINA(i,k)=mean(crosscoINA(i,ind2));
+            end
+        end
+        %% THIS TAKES THE MEAN
+        for i=1:size(mnccAC,1)
+            ind1=find(mnccAC(i,:)>0);
+            mnccAC2(i)=mean(mnccAC(i,ind1).^2);
+            stdAC2(i)=std(mnccAC(i,ind1).^2);
+            ind2=find(mnccINA(i,:)>0);
+            mnccINA2(i)=mean(mnccINA(i,ind1).^2);
+            stdINA2(i)=std(mnccINA(i,ind1).^2);
+        end
+        sdAC=stdAC2/sqrt(11);
+        sdINA=stdINA2/sqrt(11);
+   %% THIS PLOTS IT
+        t1=[1:1:length(mnccAC2)];
+        figure;hold on;
+        plot([t1;t1],[(mnccAC2-sdAC);(mnccAC2+sdAC)],'-','Color','r')
+        plot([t1;t1],[(mnccINA2-sdINA);(mnccINA2+sdINA)],'-','Color','b')
+        xlim([220 780]);ylim([0 1])
+%%% FIGURES FOR LMAN only component
+        for i=1:11
+            CVratio(i)=1-mean(std(ZFresidsINA(i).data(PX(i,1):PX(i,2),:)'))/mean(std(ZFresidsCTL(i).data(PX(i,1):PX(i,2),:)'));
+        end
+        for i=1:size(mnccAC,2)
+            weightedFF(:,i)=(mnccAC(:,i).^2-CVratio(i)*mnccINA(:,i).^2)/(1-CVratio(i));
+            weightedFF(:,i)=weightedFF(:,i)/max(weightedFF(:,i));
+        end
+        for i=1:size(mnccAC,1)
+            ind1=find(weightedFF(i,:)>0);
+            weightedFF2(i)=mean(weightedFF(i,ind1));
+        end
+        weightedFF2=weightedFF2/max(weightedFF2);
+        figure;plot(weightedFF2,'Linewidth',2)
+        halfwidth=(500-399-min(find(weightedFF2(400:end)>0.5)))/4;
+        % 13.215 (precisely)
+        
+        
+        
+%         for i=1:11
+%             widthAC(i)=mean([mnccAC(430,i);mnccAC(270,i)]);
+%             widthINA(i)=mean([mnccINA(430,i);mnccINA(270,i)]);
+%         end
+% figure;plot([1;2],[widthAC.^2;widthINA.^2],'k')
+% hold on;plot(1,widthAC.^2,'.','MarkerSize',15,'Color','r')
+% plot(2,widthINA.^2,'.','MarkerSize',15,'Color','b')
+% xlim([0.5 2.5])
+% ylim([0 1])
+ 
+
+% FIGURE 9D - see correctforn.m
+                  % Figure 9D
+                %         t1=[1:1:size(mnBothAC,2)];
+                %         figure;hold on;
+                %         plot([t1;t1],[(mnBothINA-stdBothINA).^2;(mnBothINA+stdBothINA).^2],'-','Color','b')
+                %         plot([t1;t1],[(mnBothAC-stdBothAC).^2;(mnBothAC+stdBothAC).^2],'-','Color','r')
+                %         xlim([7 692]);ylim([0 1])
+                
+% FIGURE 10 - MSBanalyInfoTheory --- October 7, 2009
+count=0;
+for j=0.4:0.1:1
+    count=count+1;
+    for i=15%1:28
+
+        if isequal(Predict(i).direction,'up')
+            valu=60;
+        else
+            valu=40;
+        end
+        if i<23
+            [pretime(count,i) posttime(count,i)]=ContingSimMSB(Predict(i).Targeting-Predict(i).onset,Predict(i).ResidAC(Predict(i).onset:Predict(i).onset+400,:),valu,j);
+        else
+        	[pretime(count,i) posttime(count,i)]=ContingSimMSB(Predict(i).Targeting-Predict(i).onset,Predict(i).ResidAC(Predict(i).onset:Predict(i).offset,:),valu,j);
+        end
+    end
+end
+
+predicted=mean(posttime'-pretime')/8;
+for i=1:22
+    notewidth(i)=400;
+end
+for i=23:28
+    notewidth(i)=Predict(i).offset-Predict(i).onset;
+end
+actual=mean(notewidth)/8;
+
+[h,p]=ttest(posttime(5,:)-pretime(5,:),notewidth)
+%   p=2.3e-8
+for j=1:500
+    predPrecise(j)=length(find(pretime(5,:)<-500+j))/28;
+end
+for j=501:1000
+    predPrecise(j)=length(find(posttime(5,:)>j-500))/28;
+end
+figure;hold on;plot([-40:1/8:40],predPrecise(181:821))
+
+
+% February 1, 2010
+
+% This gives predictions at all points, -1 if no data
+for i=1:22
+    FFnorms(i,:)=ContingSimMSB2(Predict(i).Targeting-Predict(i).onset,Predict(i).ResidAC(Predict(i).onset:Predict(i).offset,:),80,Predict(i).direction);
+end
+%
+for i=1:size(FFnorms,2)
+    g=find(FFnorms(:,i)>-1);
+    if isempty(g)
+        FFnormmn(i)=0;
+    else
+        FFnormmn(i)=mean(FFnorms(g,i));
+    end
+end
+%%%%
+
+59823
+for i=1:28
+    FFnorms30(i,:)=ContingSimMSB2(Predict(i).Targeting-Predict(i).onset,Predict(i).ResidAC(Predict(i).onset:Predict(i).offset,:),80,Predict(i).direction,30,90);
+end
+%
+for i=1:size(FFnorms30,2)
+    g=find(FFnorms30(:,i)>-1);
+    if isempty(g)
+        FFnormmn30(i)=0;
+    else
+        FFnormmn30(i)=mean(FFnorms30(g,i));
+    end
+end
+figure;plot(FFnormmn30,'b')
+hold on;plot(FFnormmn20,'k')
+hold on;plot(FFnormmn10,'r')
+xlim([300 700])
+
+%%%%%
+% October 23, 2009
+% Example with Targeting in the "middle"
+% Experiment #30 - pk37bk19
+% start at 290, go to 640
+
+% This figure shows PRE/POST with overlayed contours
+load 102309b.mat
+figure;imagesc(t,f,log(avPre));syn
+hold on;plot([0.080:1/8000:0.12],mean(pitchBaseline(769:1089,:)'),'.','Color','b')
+xlim([0.08 0.12]);ylim([0 1e4])
+figure; 
+% pitchBaseline - all day 913
+% pitchShifted - all day 921
+diff=(mean(pitchpk37post(769:1089,:)')-mean(pitchpk37pre(769:1089,:)'))
+figure;plot(diff/max(diff))
+targ=(targeting+240)-32
+hold on; plot([median(targ) median(targ)],[0 1])
+
+%%%
+% example 15
+predMax=[zeros(1,135) ones(1,182) zeros(1,60)];
+for i=1:length(predMax)-40
+    predMaxSmooth(i)=mean(predMax(i:i+40));
+end
+%%% figure 4, diff pred diff
+% figure;subplot(133);plot(Predict(24).LearnedNorm(203:483))
+% hold on;plot(Predict(30).LearnedNorm(157:437))
+% hold on;plot(CSs64(30,30).data(157:437)/0.016,'r')
+% hold on;plot(CSs64(24,24).data(203:483)/0.01555,'r')
+% hold on;plot([60 60],[0 1])
+% xlim([20 220])
+% ylim([0 1.1])
+% 
+% subplot(131);plot((Predict(24).ResidAC(223:423,1:31)),'b')
+
+% 11.16.09
+% SELF vs OTHER figure /mutual
+figure;hold on;subplot(131);hold on
+for i=1:31
+    plot(Predict(24).ResidAC(223:423,i)-mean(Predict(24).ResidAC(223:423,1:31)')','b')
+end
+xlim([20 200]);ylim([-0.06 0.06])
+subplot(132);
+hold on;
+for i=1:33
+    plot(Predict(30).ResidAC(197:397,i)-mean(Predict(30).ResidAC(197:397,1:33)')','k')
+end
+
+xlim([20 200])
+ylim([-0.06 0.06])
+
+%%%%%%%%%5
+%%%%%%%%%
+
+for k=30
+            i=k;
+            notelength=200;
+            numms=floor(notelength/4);
+            clear crosscoAC
+            clear crosscoINA
+            for ii=1:numms
+                first=ii*4;
+                PX=197;
+                middle=PX+first;
+                init=300-first+1;
+                for j=1:notelength
+                    ab=corrcoef(Predict(i).ResidAC(j+PX,:),Predict(i).ResidAC(middle,:));
+                    crosscoAC(init+j,ii)=ab(2);
+                end
+            end
+            for i=1:size(crosscoAC,1)
+                ind1=find(crosscoAC(i,:)>0);
+                mn30(i)=mean(crosscoAC(i,ind1));
+            end
+end
+
+figure;plot(mn24.^2);hold on;plot(mn30.^2,'r')
+
+%%%%
+BestSelfCSsyll64=[mean(BestSelfCSnorm64(1:2)) BestSelfCSnorm64(3) mean(BestSelfCSnorm64(4:6)) BestSelfCSnorm64(7) mean(BestSelfCSnorm64(8:9)) BestSelfCSnorm64(10:end)];
+BestOtherCSsyll64=[mean(BestOtherCSnorm64(1:2)) BestOtherCSnorm64(3) mean(BestOtherCSnorm64(4:6)) BestOtherCSnorm64(7) mean(BestOtherCSnorm64(8:9)) BestOtherCSnorm64(10:end)];
+figure;plot([1;2],[BestOtherCSsyll64;BestSelfCSsyll64],'k')
+hold on;plot(1,BestOtherCSsyll64,'.','Markersize',15,'Color','b')
+plot(2,BestSelfCSsyll64,'.','Markersize',15,'Color','r')
+xlim([0.7 2.3])
+
+
+%%%%%%%%%            figure;hold on;
+            % Fig.4A - example
+            figure;hold on
+            subplot(121);hold on
+            for i=1:20
+            plot(Predict(7).ResidAC(Predict(7).onset:Predict(7).onset+350,i)-mean(Predict(7).ResidAC(Predict(7).onset:Predict(7).onset+350,1:20)')','r')
+            end
+            xlim([0 350]);ylim([-0.06 0.06])
+            subplot(122);hold on
+            for i=1:20
+            plot(Predict(7).ResidINA(Predict(7).onset:Predict(7).onset+350,i)-mean(Predict(7).ResidINA(Predict(7).onset:Predict(7).onset+350,1:20)')','b')
+            end
+            xlim([0 350]);ylim([-0.06 0.06])
+            
+            % Add to figure 3E
+            % hold on;plot([-25:50/400:25],FFnormmn10(300:700)/max(FFnormmn10),'Linewidth',3)
+            
+            % Add to figure 3C ---   355=500-[median(Predict(15).Targeting)-750]
+            % hold on;plot(FFnorms10(15,355:750),'b')
+            
+            
+59823
+for i=1:28
+    FFnorms10(i,:)=ContingSimMSB2(Predict(i).Targeting-Predict(i).onset,Predict(i).ResidAC(Predict(i).onset:Predict(i).offset,:),80,Predict(i).direction,10,90);
+end
+%
+for i=1:size(FFnorms10,2)
+    g=find(FFnorms10(:,i)>-1);
+    if isempty(g)
+        FFnormmn10(i)=0;
+    else
+        FFnormmn10(i)=mean(FFnorms10(g,i));
+    end
+end
+figure;plot(FFnormmn10,'b')

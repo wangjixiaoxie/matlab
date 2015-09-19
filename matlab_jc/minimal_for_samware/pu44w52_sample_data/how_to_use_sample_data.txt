@@ -1,0 +1,58 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+1.	Label syllables with uisonganal.m or evsonganaly.m - produce .not.mat
+
+2.	quantify_pitch('x') for each syllable x.  this calls syllable_params_by_bird.m
+to get parameters for pitch quantification.  quantify_pitch adds pitch fields to .not.mat
+files
+
+3.	pick a file - figure;clf;neural_and_song(fname.cbin,channels to look at,1)
+this creates fname.neuralnot.mat
+
+4.	run neural_and_song(fname.cbin.neuralnot.mat) - applies preferences from
+last step and creates .neuralnot.mat files for all files in directory
+
+
+5.	neural_by_syl_seq('abicd') (some seq of syllables that appears at least once).  This will produce
+combined_data.mat.  in future, can call this as neural_by_syl_seq('abicd','combined_data')
+to load combined_data rather than recompute it.
+
+
+NOTES:
+
+Need to rerun neural_and_song.m every time song is shortened/cropped, because this file has a 
+"total_n_samples" field that needs to be right if neural_by_syl_seq.m is going to get the
+timing of onsets and offsets right.  so if anything gets cropped, need to rerun
+
+neural_and_song.m AND neural_by_syl_seq.m
+
+if fail to do this, will have very long gaps between onsets and offsets
+
+ALSO - problem with evsonganaly - will write over the fields added by quantify_pitch.m
+get around this in future by changing evsonganaly.m, or by saving fields in quantify_pitch.m
+into a different save file other than the .not.mats
+
+--------------------
+
+Analyzing BOS playbacks:
+
+Have .wav file of auditory stimulus in directory
+
+Make wavfilename.wav.not.mat - use evsonganaly.m 
+By hand, add 'X' at beginning of file
+
+Run BOS_make_combined_data.m to make combined_data.mat
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+
+(1)	quantify_pitch('a','obs0')
+
+(2)	figure(1);clf;neural_and_song('pu44w52_170306_1439.8.cbin',1,1)
+		- answer 'n' to "invert waveforms?"
+		- answer 'n' to "Apply 4.0 kHz lowpass filter?"
+		- set threshold at 5000
+		- answer 'y' to "Is channel 1 a single unit?"
+
+(3)	neural_and_song('pu44w52_170306_1439.8.cbin.neuralnot.mat')
+
+(4)	figure(2);clf;neural_by_syl_seq('abicd')

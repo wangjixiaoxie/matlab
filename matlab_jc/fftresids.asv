@@ -1,0 +1,14 @@
+function fftresids(y)
+a=size(y);
+for i=1:a(2)
+L=length(y);
+Fs=100;
+NFFT = 2^nextpow2(L); % Next power of 2 from length of y
+Y = fft(y,NFFT)/L;
+Z(i,:)=2*abs(Y(1:NFFT/2));
+end
+for j=1:a(1)
+    Z(j)=mean(Y(:,j));
+end
+% Plot single-sided amplitude spectrum.
+plot(2*abs(Z(1:NFFT/2))) 

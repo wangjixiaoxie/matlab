@@ -1,0 +1,7 @@
+function [sm,sp,t,f]=evspect(file,fs,freqbnds)
+    [sm,sp,t,f]=evsmooth(file,fs,.01,512,0.8,2,freqbnds(1),freqbnds(2));
+    imagesc(t,f,log(abs(sp)));
+    set(gca,'YD','n');
+    xlabel('Time (s)');
+    ylabel('Frequency Hz')';
+    

@@ -1,0 +1,39 @@
+function [effvl, combeffvl, ac_cv,mu_cv,cr_cv] = get_effvls(avls, allind,mineffn)
+    
+    for ii=1:length(allind)
+        indvl=allind(ii);
+        muind=1:length(avls.mumean);
+        ac_cv(indvl,:)=avls.acstdv(indvl,muind)./avls.acmean(indvl,muind);
+        mu_cv(indvl,:)=avls.mustdv(indvl,muind)./avls.mumean(indvl,muind);
+        acn(indvl,:)=avls.acn(indvl,muind);
+        mun(indvl,:)=avls.mun(indvl,muind);
+        
+            effvl(indvl,:)=ac_cv(indvl,:)./mu_cv(indvl,:);
+        
+    
+        nonaind=find(isnan(effvl(indvl,:))==0)
+        acind=find(acn(indvl,:)>=mineffn);
+        muind=find(mun(indvl,:)>=mineffn);
+        
+        [combind]=intersect(nonaind,acind);
+        [combind]=intersect(combind,muind);
+        
+
+
+
+        combeffvl(indvl,combind)=mean(effvl(indvl,combind),1);
+        
+        
+    end
+    
+    for ntind=1:length(allind)
+        ntindvl=allind(ntind);
+        for runind=1:length(avls.adjvls{ntindvl})
+            crvls=avls.adjvls{ntindvl}{runind}
+            mnvls=mean(crvls(:,2));
+            crstd=std(crvls(:,2));
+            cr_cv(runind,ntindvl)=crstd/mnvls;
+        end
+    end
+        
+        

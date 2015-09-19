@@ -1,0 +1,41 @@
+function averaged=jc_getaverage(arrayfile,f)
+
+spacing=180;
+
+ymin=2200;
+
+ymax=4400; 
+
+%Smooth the data
+for i=1:length(arrayfile)
+    [holder]=SmoothData(f(i).datt,32000,1);
+    smooth(i).smoothed=holder;
+end
+
+%Get average smoothed note
+for i=1:length(smooth(1).smoothed)
+    sumnote(i)=0;
+    for j=1:length(smooth)
+        sumnote(i)=sumnote(i)+smooth(j).smoothed(i);
+    end
+    avgnote(i)=sumnote(i)/length(smooth);
+end
+
+%Align the data
+for i=1:length(arrayfile)
+    h=xcov(avgnote,smooth(i).smoothed);
+    [peak,index]=max(h);
+    shift=(index-6400)/4;
+    starting=280-shift;
+    ending=starting+400;
+    processed(i).pitches=jc_pinterp(arrayfile(i).pitches(starting:ending));
+end
+
+summed=0;
+%Take the average of the aligned data
+for i=1:length(processed(1).pitches)
+    for j=1:length(processed)
+        summed(i)=summed(i)+processed(j).pitches(i);
+    end
+    averaged(i)=summed(i)/length(processed);
+end

@@ -1,0 +1,12 @@
+function prediction=jccrossco(residuals,targdistn)
+% Predict(1).crosscorrAC=jccrossco(Predict(1).ResidAC,Predict(1).Targeting);
+
+clear crossco;
+for k=1:100
+    Targetrandomdraw=round(rand*(length(targdistn)-1)+1);
+    for j=1:1700
+        nn=corrcoef(residuals(round(targdistn(Targetrandomdraw)),:),residuals(j,:));
+        crossco(k,j+1)=nn(2);
+    end
+end
+prediction=mean(crossco);

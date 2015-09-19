@@ -1,0 +1,25 @@
+function spiketimes=simulatespiketrain(times,rates)
+% Generate ISIs
+tmax=max(times);
+i=0;
+timenow=1;
+% until you reach the end of your time window (t>tmax)
+while timenow<length(times)
+    i=i+1;
+    r=exprnd(1);
+  % Given your current time (t), how long must you wait for the next spike?
+        % Calculate this by integrating the firing rate function from the 
+        % time of the previous spike until you get to an area > r
+    j=0;
+    % Keep integrating until you predict a spike or until you pass the
+    % edges of the time domain of your rate function
+    areaundercurve=0;
+        while areaundercurve < r & timenow+j < length(times)
+            j=j+1;
+            currenttime=
+            areaundercurve=trapz(times(t:t+j),rates(t:t+j));
+        end
+    % This is the estimated time of the next spike
+    start_ind          =t+j;
+    spiketimes(i)=t;
+end                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            

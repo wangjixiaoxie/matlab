@@ -1,0 +1,303 @@
+%master script, load and combine various fvs, from postscreen./50microstim,
+%and 10 microstim
+
+pathvl{1}='/doyale4/twarren/pu91bk65/day1screen/'
+catchvl{1}='batch.catch'
+pathvl{2}='/doyale4/twarren/pu91bk65/70stim/'
+catchvl{2}='batch2.catch'
+% pathvl{3}='/doyale2/g21g81/postscreen/'
+% catchvl{3}='batch.keep.comb'
+% pathvl{4}='/doyale1/twarren/g21g81/stimoff/'
+% catchvl{4}='batch.keep.catch'
+
+
+fvcomb=[];
+makefv=1;
+calc_prop_note=0;
+%stimstart 1/30 12pm
+
+if (makefv)
+    for ii=1:length(pathvl)
+        NT='a';PRENT='';PSTNT='';
+        tbinshft=0.016;
+        strcmd=['cd '  pathvl{ii}];
+        eval(strcmd);
+        fvnam='fva'
+        bt=catchvl{ii}
+        NFFT=1024;%number of data points to FFTstrcmd=strcat('!cd ' dir{i})
+        fbins=[1700,2300; 5000,9000];
+        strcmd=[fvnam '=findwnote4(bt,NT,PRENT,PSTNT,tbinshft,fbins,NFFT,1,''obs0'');']
+        eval(strcmd);
+        strcmd=['save ' bt '.mat ' fvnam    ' tbinshft ' ' fbins']
+        eval(strcmd)
+    end
+end
+
+
+%2/2 1355 - switch to make template earlier.
+%2/5 1635 - switch to make cutoff higher.
+
+clear switchdts
+bnds{1}='2007-03-30 07:00:00'
+bnds{2}='2007-04-09 07:00:00'
+switchdt{1}='2007-03-30 21:00:00' %12:00:00'
+switchdt{2}='2007-04-03 22:00:00' %13:55:00';
+switchdt{3}='2007-04-06 21:00:00'
+switchdt{4}='2007-04-09 21:00:00'
+dir=[1 1 1]
+thresh=[2030 1800 2050] 
+freqbnds=[1800 2400]
+for ii=1:length(switchdt)
+switchdts(ii)=datenum(switchdt{ii},'yyyy-mm-dd HH:MM:SS');
+end
+%make all the days,
+%and then find the switchdt days, and for all those days,
+%remove one row, modify the afternoon and morning of the previous.
+matrixvals=make_time_indices('2007-03-30','2007-04-09',7,21)
+
+% %find the indices, the last index is the one where it fits
+%     ind=find(switchdts(ii)>matrixvals(:,1))
+%     endct=ind(end)
+%     matrixvals=[matrixvals(1:ind(endct-1),:);matrixvals(endct+1:length(matrixvals),:)]
+%     matrixvals(ind(endct-1),2)=switchdts(ii);  matrixvals(ind(endct),1)=switchdts(ii)
+% end%now what you need to do is to change the ones in between, and you're set.
+%loop through every one of the switch days
+%calculate the
+%overlap thresholds...group points in with next day, for each of these days
+%make a figure just showing the first day, and the first change with hit
+%rate.
+    for ii=1:length(bnds)
+        bndsjs(ii)=datenum(bnds{ii},'yyyy-mm-dd HH:MM:SS');
+    end
+    fvcomb=[];
+    for ii=1:length(pathvl)
+    strcmd=['load ' pathvl{ii} catchvl{ii} '.mat']
+    eval(strcmd);
+    fvtmp=fva;
+    fvcomb=[fvcomb fvtmp];
+end
+vals=getvals(fvcomb,1,'TRIG');
+vlot=ceil((vals(:,1)-bndsjs(1)));
+switchdays=(switchdts-vals(1,1));
+daysbnds=[bndsjs(2)-bndsjs(1)]
+figure
+hold on;
+days=[1:daysbnds]
+unique(vlot);
+calc_prop_note=0;
+%solution make the matrixvals that you want...for those switch days,
+%split the day at that point, otherwise don't worry about it...do this for
+%hit rate, etc....
+mnvl=[]
+stdv=[]
+for ii=1:length(matrixvals)
+    indtmp=find(vals(:,1)>=matrixvals(ii,1)&vals(:,1)<=matrixvals(ii,2))
+    mnvl(ii)=mean(vals(indtmp,2))
+    stdv(ii)=std(vals(indtmp,2))
+    nnotes(ii)=length(indtmp)
+    if (calc_prop_note)
+        svfnval=fvcomb(indtmp(1))
+        targntcnt=0;
+        totntcnt=0;
+            for jj=1:length(indtmp)
+                currfnval=fv(indtmp(jj)).fn;
+                if(currfnval==svfnval)
+                    targntcnt=ntcnt+1;
+                    tempcnt=fv(indtmp(jj)).lbl;
+                elseif jj==length(indtmp)
+                    totntcnt=totntcnt+tmpcnt
+                else
+                    svfnval=curfnval;
+                    totntcnt=totntcnt+tmpcnt;
+                end
+            end
+    propnote(ii)=targntcnt/totntcnt;
+    end
+end
+figure
+timevals=mean(matrixvals,2)-vals(1,1);
+x=[switchdts-vals(1,1) ;switchdts-vals(1,1)];
+y=[4200 ;4400];
+plot(x,y,'r','Linewidth',3)
+hold on;
+errorbar(timevals, mnvl, stdv,'k+','Linewidth',3)
+x=[switchdts-vals(1,1) ;switchdts-vals(1,1)];
+y=[3600 ;4400];
+plot(x,y,'r','Linewidth',3)
+hold on;
+figure
+
+%subplot(4,1,1)
+ax(1)=plot_conting(switchdts, vals(1,1), thresh, dir, freqbnds,0)
+hold on;
+%subplot(4,1,2:4)
+errorbar(timevals, mnvl, stdv,'k+','Linewidth',3)
+
+for ii=1:length(matrixvals)
+%find within bounds
+    indtmp=find(vals(:,1)>=matrixvals(ii,1)&vals(:,1)<=matrixvals(ii,2))
+    indyht=find(vals(indtmp,3)==1)
+    indyms=find(vals(indtmp,3)==0)
+    %indyht=find(vlot(indhit)==daystm(ii));
+    %indyms=find(vlot(indmiss)==daystm(ii));
+    htrt(ii)=length(indyht)/(length(indyms)+length(indyht));
+end
+figure
+%go in and modift the hitrate for a few of these days
+%which days? the early days.
+indmatvals=find(matrixvals(:,1)<switchdts(1))
+for jj=1:length(indmatvals)
+    
+    %these are all the indices for the day
+    indtmp=find(evfreqprescreen(:,1)>=matrixvals(jj,1)&evfreqprescreen(:,1)<=matrixvals(jj,2))
+    %these are all the hits for all the days
+    indht=find(evfreqprescreen(:,2)>3860);
+    %these are the misses for one day
+    indmsday=setdiff(indtmp,indht)
+    %these are hits for one day
+    htday=length(indtmp)-length(indmsday);
+    htrt(jj)=htday/length(indtmp)
+    
+    
+end
+
+%do the same for the late days
+indmatvals=find(matrixvals(:,1)>=switchdts(end))
+for jj=1:length(indmatvals)
+    indx=indmatvals(jj);
+    indtmp=find(evfreqpst(:,1)>=matrixvals(indx,1)&evfreqpst(:,1)<=matrixvals(indx,2))
+    indht=find(evfreqpst(:,2)<3900)
+    indmsday=setdiff(indtmp,indht)
+    htday=length(indtmp)-length(indmsday)
+    htrt(indx)=htday/length(indtmp)
+    
+
+end
+figure
+plot_conting(switchdts,vals(1,1),thresh,dir,freqbnds,1,[0 1],1,[0 1])
+
+plot(timevals,htrt,'-o');
+hold on;
+%y=[.8 ;1]
+%plot(x,y,'r','Linewidth',3)
+
+
+%analysis of syntax for b.
+%probability of transition
+
+bttl=[]
+bsepttl=[]
+conttl=[]
+
+dayind=[3:8 11:27 29 33 36 39 42]
+for ii=1:length(days)
+    bcnt=0;
+    bsepcnt=0;
+    concnt=0;
+    
+    dyvl=days(ii);
+    ind=find(vlot==dyvl)
+    for jj=1:length(ind)
+        indvl=ind(jj);
+        if(fvcomb(indvl).trans(1)=='b')
+            bcnt=bcnt+1;
+        elseif (fvcomb(indvl).trans=='-b')
+            bsepcnt=bsepcnt+1;
+    
+        else
+            concnt=concnt+1;
+        end
+    end
+    bttl(dyvl)=bcnt;
+    bsepttl(dyvl)=bsepcnt;
+    conttl(dyvl)=concnt;
+end
+
+for ii=1:dyvl
+    
+    sumvl(ii)=bttl(ii)+bsepttl(ii)+conttl(ii)
+    if(sumvl(ii)==0)
+       bpct(ii)=0
+       bsepct(ii)=0
+       conpct(ii)=0
+    
+    else
+        bpct(ii)=bttl(ii)/sumvl(ii)
+        bsepct(ii)=bsepttl(ii)/sumvl(ii)
+        conpct(ii)=conttl(ii)/sumvl(ii)
+    end
+end
+
+figure;
+fill([10 25 25 10],[0 0 1 1],[1 .806 .817])
+
+hold on;
+plot(days(dayind), bpct(dayind), 'b','Linewidth',3)
+plot(days(dayind),bsepct(dayind),'r','Linewidth',3)
+plot(days(dayind),conpct(dayind),'k','Linewidth',3)
+
+attl=[]
+endttl=[]
+conttl=[]
+bttl=[]
+
+%analysis of syntax for a
+for ii=1:length(days)
+    acnt=0;
+    endcnt=0;
+    concnt=0;
+    bcnt=0;
+    dyvl=days(ii);
+    
+    ind=find(vlot==dyvl)
+    for jj=1:length(ind)
+        indvl=ind(jj)
+        if(fvcomb(indvl).trans=='-a')
+            acnt=acnt+1;
+        elseif (fvcomb(indvl).trans=='nd')
+            endcnt=endcnt+1;
+        elseif (fvcomb(indvl).trans=='ii')
+            endcnt=endcnt+1;
+        elseif (fvcomb(indvl).trans(1)=='b'|fvcomb(indvl).trans(2)=='b')
+            bcnt=bcnt+1;
+        else
+            concnt=concnt+1;
+        end
+    end
+    attl(dyvl)=acnt;
+    endttl(dyvl)=endcnt
+    conttl(dyvl)=concnt
+    bttl(dyvl)=bcnt
+end    
+    for ii=1:dyvl
+    
+        sumvl(ii)=bttl(ii)+endttl(ii)+conttl(ii)+attl(ii)
+        if(sumvl(ii)==0)
+            apct(ii)=0
+            endpct(ii)=0
+            conpct(ii)=0
+            bpct(ii)=0
+        else
+        bpct(ii)=bttl(ii)/sumvl(ii)
+        endpct(ii)=endttl(ii)/sumvl(ii)
+        conpct(ii)=conttl(ii)/sumvl(ii)
+        apct(ii)=attl(ii)/sumvl(ii)
+        end
+    end
+end
+dayind=[3:8 11:27 29 33 36 39 42]
+figure
+
+fill([10 25 25 10],[0 0 1 1],[1 .806 .817])
+
+hold on
+plot(days(dayind),apct(dayind),'k','Linewidth',3)
+plot(days(dayind),bpct(dayind),'g','Linewidth',3)
+plot(days(dayind),conpct(dayind),'b','Linewidth',3)
+plot(days(dayind),endpct(dayind),'r','Linewidth',3)
+
+
+    
+
+
+

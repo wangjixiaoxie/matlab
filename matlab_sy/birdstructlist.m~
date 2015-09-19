@@ -1,0 +1,32 @@
+%make birdstruct
+% 
+bs(1).path='/oriole6/pk20r49/'
+bs(1).matfilename='pathvals1-analdata.mat'
+bs(1).color=[1 .8 .8]
+bs(1).ntind=1;
+% bs(1).exsong='figs/
+
+bs(1).path='/oriole4/pu34/'
+bs(1).matfilename='pathvals1-analdata.mat'
+bs(1).color='k'
+bs(1).ntind=1;
+
+bs(3).path='/oriole4/bk20bk45/'
+bs(3).matfilename='pathvals1-analdata.mat'
+bs(3).color=[0.8 0.8 0.8]
+bs(3).ntind=3;
+
+bs(4).path='/oriole4/pk32bk28/'
+bs(4).matfilename='pathvals3-analdata.mat'
+bs(4).color=[0.8 0.8 1]
+bs(4).ntind=1;
+
+bs(5).path='/oriole/pk32bk28/'
+bs(5).matfilename='pathvals3-analdata.mat'
+bs(5).color=[0.2 0.4 0]
+bs(5).ntind=1;
+
+bs(6).path='/oriole4/bk20bk45/'
+bs(6).matfilename='pathvals1-analdata.mat'
+bs(6).color=[0.6 0.6 0.8]
+bs(6).ntind=1;

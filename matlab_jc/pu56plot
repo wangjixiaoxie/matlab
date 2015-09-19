@@ -1,0 +1,3 @@
+figure;plot([timevalsProbein timevalsAPV timevalsAPVwnon],[median(pitchProbein(150:180,:)) median(pitchAPV(150:180,:)) median(pitchAPVwnon(150:180,:))],'*')
+hold on;plot([timevalsProbein timevalsAPV],[median(pitchProbein(150:180,:)) median(pitchAPV(150:180,:))],'*','Color','r')
+hold on;plot([timevalsProbein],[median(pitchProbein(150:180,:))],'*','Color','k')

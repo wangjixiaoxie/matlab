@@ -1,0 +1,20 @@
+function del=goodrep
+windowsize=[32,64,128];
+shift=[4,8,16];
+for i=1:3
+    for j=1:3
+        windowsize=
+target=jc_flucRW;
+target=target/(max(abs(target))+1);
+signal=jc_fluca(target);
+target=target*100+2300;
+st=jc_evstftoneharmonic(signal,2000,2600,windowsize,shift);
+resampled_target=resample(target,1,shift);
+del=0;
+j=1;
+shifter=(windowsize/shift)/2;
+for i=20:180
+    del=del+(st(i)-resampled_target(i+shifter)).^2;
+    j=j+1;
+end
+del=del/j;

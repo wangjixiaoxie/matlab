@@ -1,0 +1,8 @@
+function plotExpPC2(EPC2,ravgwin,window1)
+    plot(EPC2.timePre,mean(EPC2.pitchPre(window1,:)),'k.','Markersize',15)
+    plot(EPC2.timeWN,mean(EPC2.pitchWN(window1,:)),'r.','Markersize',15)
+     plot(EPC2.timePost,mean(EPC2.pitchPost(window1,1:length(EPC2.timePost))),'k.','Markersize',15)    
+   plot(runningmedian(EPC2.timePre,ravgwin),runningmedian(mean(EPC2.pitchPre(window1,:)),ravgwin),'g-','Linewidth',3)
+    plot(runningmedian(EPC2.timeWN,ravgwin*2),runningmedian(mean(EPC2.pitchWN(window1,:)),ravgwin*2),'g-','Linewidth',3)
+    plot(runningmedian(EPC2.timePost,ravgwin),runningmedian(mean(EPC2.pitchPost(window1,1:length(EPC2.timePost))),ravgwin),'g-','Linewidth',3)    
+    plot([8000 8020],[median(mean(EPC2.pitchPre(window1,:))) median(mean(EPC2.pitchPre(window1,:)))],'k') 

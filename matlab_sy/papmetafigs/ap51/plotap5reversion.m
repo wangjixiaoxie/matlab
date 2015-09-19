@@ -1,0 +1,143 @@
+function []=plotap5reversion(ph,bs)
+figstoplot=1;
+
+
+if(ismember(1,figstoplot))    
+    cd /oriole5/pu56w26/datasum
+    load pathvals1-analdata.mat
+    figure
+     ps.runstoplot=2:10
+     ps.acindvl=2:10
+     ps.muindvl=2:10
+        ps.ACINDTOPLOT=1;
+        ps.plotdiff=1;
+        ps.netdiff=1;
+        ps.plotmuline=1;
+        ps.plotallacpts=0;
+        ps.STIM=0;
+        ps.plotstdv=1;
+        ps.startind=1;
+        ps.divfac=3000;
+        ps.plotz=0; ps.flip=1;
+        ps.FILL=0;
+        ps.plotsep=1;
+        ps.plotrawac=0;
+        ps.plotinitendline=0;ps.plotacline=1;
+        ps.plotmumarker=0;ps.plotrawmu=0;ps.plotallac=1;
+        subplot(2,2,1:2)
+        [os_ph]=plot_tmcourse5MOD2(ph(11),ps,avls)
+        
+        ps.plot_triangles=1;
+        ps.divfac=3;
+        
+       axt(1)=subplot(223)
+         ps.runstoplot=[2];
+        plotlimraw(avls,ps)
+       axt(2)=subplot(224)
+        ps.runstoplot=[8 9];
+        plotlimraw(avls,ps)
+%        axt(3)=subplot(236)
+%         ps.runstoplot=[11];
+%         plotlimraw(avls,ps)
+         linkaxes(axt)
+end   
+function []=plotlimraw(avls,ps)
+    if(ps.flip)
+        FC=-1;
+    else
+        FC=1;
+    end
+    ps.divfac=ps.divfac*FC;
+    for ii=1:length(ps.runstoplot)
+       crind=ps.runstoplot(ii);
+       crvl=avls.aclist(crind,1);
+       
+       crmuvl=avls.mulist(crind);
+        if(ii==1)
+           floorvl=floor(avls.adjvls{1}{crvl}(1,1));
+        end
+        mdac=(median(avls.adjvls{1}{crvl}(:,2))-avls.initmean{1})./ps.divfac;
+        if(crmuvl)
+        mdmu=(median(avls.adjvls{1}{crmuvl}(:,2))-avls.initmean{1})./ps.divfac;
+        end
+        if (ps.plot_triangles)
+            xvl=0.9;
+            plot(xvl,mdac,'<','MarkerFaceColor','k','MarkerEdgeColor','k');
+            hold on;
+            if(crmuvl)
+            plot(xvl,mdmu,'<','MarkerFaceColor','r','MarkerEdgeColor','r');
+            end
+            end
+
+        if(crvl)
+           
+           
+           plot(avls.adjvls{1}{crvl}(:,1)-floorvl,(avls.adjvls{1}{crvl}(:,2)-avls.initmean{1})./ps.divfac,'o','MarkerSize',2,'MarkerFaceColor','none','MarkerEdgeColor','k');
+           hold on;
+       end
+       crvl=avls.aclist(crind,2);
+       if(crvl)
+           [vl]=setdiff(avls.rawvls{1}{crvl}(:,1),avls.adjvls{1}{crvl}(:,1));
+           [rwind]=find(ismember(avls.rawvls{1}{crvl}(:,1),vl));
+           plot(avls.rawvls{1}{crvl}(rwind,1)-floorvl,(avls.rawvls{1}{crvl}(rwind,2)-avls.initmean{1})./ps.divfac,'o','MarkerSize',2,'MarkerFaceColor','none','MarkerEdgeColor',[0.5, 0.5, 0.5])
+           
+           plot(avls.adjvls{1}{crvl}(:,1)-floorvl,(avls.adjvls{1}{crvl}(:,2)-avls.initmean{1})./ps.divfac,'o','MarkerSize',2,'MarkerFaceColor','none','MarkerEdgeColor','k');
+       end
+       
+       if(crmuvl)
+          [vl]=setdiff(avls.rawvls{1}{crmuvl}(:,1),avls.adjvls{1}{crmuvl}(:,1));
+          [rwind]=find(ismember(avls.rawvls{1}{crmuvl}(:,1),vl)); 
+          plot(avls.rawvls{1}{crmuvl}(rwind,1)-floorvl,(avls.rawvls{1}{crmuvl}(rwind,2)-avls.initmean{1})./ps.divfac,'o','MarkerSize',2,'MarkerFaceColor','none','MarkerEdgeColor',[1, 0.4, 0.6])
+           plot(avls.adjvls{1}{crmuvl}(:,1)-floorvl,(avls.adjvls{1}{crmuvl}(:,2)-avls.initmean{1})./ps.divfac,'o','MarkerSize',2,'MarkerFaceColor','none','MarkerEdgeColor','r');
+       end
+        hold on; 
+    end
+
+
+
+function []=plotlimraw_orig(avls,ps)
+    for ii=1:length(ps.runstoplot)
+       crind=ps.runstoplot(ii);
+       crvl=avls.aclist(crind,1);
+       crmuvl=avls.mulist(crind);
+        if(ii==1)
+           floorvl=floor(avls.adjvls{1}{crvl}(1,1));
+        end
+        mdac=median(avls.adjvls{1}{crvl}(:,2))./ps.divfac;
+        if(crmuvl)
+        mdmu=mean(avls.adjvls{1}{crmuvl}(:,2))./ps.divfac;
+        end
+        if (ps.plot_triangles)
+            xvl=0.9;
+            plot(xvl,mdac,'<','MarkerFaceColor','k','MarkerEdgeColor','k');
+            hold on;
+            if(crmuvl)
+            plot(xvl,mdmu,'<','MarkerFaceColor','r','MarkerEdgeColor','r');
+            end
+            end
+
+        if(crvl)
+           
+           
+           plot(avls.adjvls{1}{crvl}(:,1)-floorvl,avls.adjvls{1}{crvl}(:,2)./ps.divfac,'o','MarkerSize',2,'MarkerFaceColor','none','MarkerEdgeColor','k');
+           hold on;
+       end
+       crvl=avls.aclist(crind,2);
+       if(crvl)
+           [vl]=setdiff(avls.rawvls{1}{crvl}(:,1),avls.adjvls{1}{crvl}(:,1));
+           [rwind]=find(ismember(avls.rawvls{1}{crvl}(:,1),vl));
+           plot(avls.rawvls{1}{crvl}(rwind,1)-floorvl,avls.rawvls{1}{crvl}(rwind,2)./ps.divfac,'o','MarkerSize',2,'MarkerFaceColor','none','MarkerEdgeColor',[0.5, 0.5, 0.5])
+           
+           plot(avls.adjvls{1}{crvl}(:,1)-floorvl,avls.adjvls{1}{crvl}(:,2)./ps.divfac,'o','MarkerSize',2,'MarkerFaceColor','none','MarkerEdgeColor','k');
+       end
+       
+       if(crvl)
+          [vl]=setdiff(avls.rawvls{1}{crmuvl}(:,1),avls.adjvls{1}{crmuvl}(:,1));
+          [rwind]=find(ismember(avls.rawvls{1}{crmuvl}(:,1),vl)); 
+          plot(avls.rawvls{1}{crmuvl}(rwind,1)-floorvl,avls.rawvls{1}{crmuvl}(rwind,2)./ps.divfac,'o','MarkerSize',2,'MarkerFaceColor','none','MarkerEdgeColor',[1, 0.4, 0.6])
+           plot(avls.adjvls{1}{crmuvl}(:,1)-floorvl,avls.adjvls{1}{crmuvl}(:,2)./ps.divfac,'o','MarkerSize',2,'MarkerFaceColor','none','MarkerEdgeColor','r');
+       end
+        hold on; 
+    end
+
+

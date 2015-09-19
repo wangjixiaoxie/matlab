@@ -1,0 +1,461 @@
+%% 2/18/15 - LT modified to accept >1 file. i.e. 60seconds cutoff by Intan for one file, can enter all files and will concatenate auto
+
+
+%% 11/9/14 - previously used lt_pj_PSTH_Intan_temp, or the pj version.  Here, make improvements such that:
+% 1) No need to specificy stim windows, program gets automatically.
+% 2) Median, not std, thresholding, which better approximates background noise.
+% 3) Collects spike waveforms.
+% 4) everything is in units of samples (until plotting).
+
+%% INPUT PARAMS
+
+clear all; close all
+
+FileDir='/bluejay4/lucas/birds/or100pu10/NEURAL/050815';
+AmplChansOfInterest_0to31=0; % array of nums 0 to 31.
+DigChan=1; % (usually 1 is individual stims, 2 is stim epochs), triggers
+ThrXNoise=4; % how many multiples of median noise to use as spike threshold.
+PSTH_bin=[0.01]; % bin in sec, if dont specificy ([]) then will use 1/10 of peri-stim dur.
+
+
+% FILENAME
+% generally only one filenmae. But Intan starts new file at 60s, so can put
+% multiple. 
+% make sure they are in chronolgical order
+fn{1}='Xleft_Site2_2975Vfromsurf_HVCStim_Surface_250ms_1500ms_100s_k75_150508_222820.rhd';
+fn{2}='Xleft_Site2_2975Vfromsurf_HVCStim_Surface_250ms_1500ms_100s_k75_150508_222918.rhd';
+% fn{3}='Xleft_4750V_HVCstim_200umLeft_Surface_250ms_1500ms_100s_k775_150508_210749.rhd';
+% fn{4}='Xleft_4750V_HVCstim_200umLeft_Surface_250ms_1500ms_100s_k775_150508_210847.rhd';
+% fn{5}='Xleft_4750V_HVCstim_200umPost_Surface_250ms_1500ms_100s_k775_150508_211419.rhd';
+% fn{6}='Xleft_4750V_HVCstim_200umPost_Surface_250ms_1500ms_100s_k775_150508_211517.rhd';
+% fn{7}='Xleft_4750V_HVCstim_250umAnt_Surface_250ms_1500ms_100s_k775_150508_211121.rhd';
+% fn{8}='Xleft_4750V_HVCstim_250umAnt_Surface_250ms_1500ms_100s_k775_150508_211219.rhd';
+% fn{9}='Xleft_4750V_HVCstim_250umRight_Surface_250ms_1500ms_100s_k775_150508_211701.rhd';
+% fn{10}='Xleft_4750V_HVCstim_250umRight_Surface_250ms_1500ms_100s_k775_150508_211759.rhd';
+
+%% RUN --------------------
+
+% how many filenames?
+NumFiles=length(fn);
+
+if NumFiles>1; % then need to concatenate files
+    disp('Multiple files, will open each in order and concatenate');
+    
+    for i=1:NumFiles;
+        
+        % add dir or not to the filename
+        if ~isempty(FileDir);
+            filename=[FileDir '/' fn{i}];
+        else
+            filename=fn{i};
+        end
+        
+        clear amplifier_data
+        clear board_dig_in_data
+        clear aux_input_data
+        clear supply_voltage_data
+        
+        disp(['Opening ' fn{i}]);
+        pj_readIntanNoGui(filename); % function writes to workspace
+        
+        % these 4 variables below are data. other variables should be the
+        % same for the same recording (but diff filename).
+        amplifier_data_Mult{i}=amplifier_data;
+        board_dig_in_data_Mult{i}=board_dig_in_data;
+        try
+            aux_input_data_Mult{i}=aux_input_data;
+            supply_voltage_data_Mult{i}=supply_voltage_data;
+        catch err
+            aux_input_data_Mult{i}=[];
+            supply_voltage_data_Mult{i}=[];
+
+        end
+        disp(['Size of data: ' num2str(size(amplifier_data,2))]);
+        
+    end
+    
+    % concatenate to create large vectors
+    clear amplifier_data
+    clear board_dig_in_data
+    clear aux_input_data
+    clear supply_voltage_data
+    
+    amplifier_data= cell2mat(amplifier_data_Mult); % rows are still channels, columns extend across time of all files
+    board_dig_in_data= cell2mat(board_dig_in_data_Mult);
+    aux_input_data= cell2mat(aux_input_data_Mult);
+    supply_voltage_data= cell2mat(supply_voltage_data_Mult);
+    
+else % if only one file
+    
+    if ~isempty(FileDir);
+        filename=[FileDir '/' fn{1}];
+    else
+        filename=fn{1};
+    end
+    
+    % OPEN Intan file
+    pj_readIntanNoGui(filename);
+    
+end
+
+disp('Loading done!');
+disp(['Number of files: ' num2str(NumFiles) '. Total duration: ' num2str(size(amplifier_data,2)/frequency_parameters.amplifier_sample_rate) ' sec.']);
+    
+
+% --------------------------------------------------------------------------
+% ONCE cancatenated files, continue below
+
+% AUTOMATIC PARAMETERS
+% convert chans (0 to 31) to array indices
+ChansOfInterest_1to32=AmplChansOfInterest_0to31+1;
+fs=frequency_parameters.amplifier_sample_rate;
+
+% amplifier_data
+% board_dig_in_data
+% digChan
+% fs,stimLength_ms,trialLength_ms, binSizes,xNoise,saveFigs,plotRaw,plot_dig,plotPSTH,plotRaster)
+
+
+% FILTER AMPLIFIER DATA (units: uV);
+% Design butterworth bandpass:
+
+% Should modify to:
+% Wp = [ 700 8000] * 2 / Fs;
+% Ws = [ 500 10000] * 2 / Fs;
+% [N,Wn] = buttord( Wp, Ws, 3, 20);
+% [B,A] = butter(N,Wn);
+% data = filtfilt( B, A, data );
+% %
+% %
+% %
+% %
+% %
+% pass band for filtering
+% transition zone
+% determine filter parameters
+% builds filter
+% runs filter
+% The 2nd line of code specifies a transition zone between the stop and pass bands of the filter.
+% This transition should not be instantaneous because it would produce an unstable filter. In the
+% 3rd line is specified the tolerances of the filter. The filter will have 3 dB of tolerance in the pass-
+% band, or roughly a gain that can vary between 0.5 and 2. The filter will have an attenuation of at
+% least 20 dB in the stop-zone, or a factor of 100. When desigining your own filter, you can see its
+% frequency and phase response by using the function freqz.
+
+F_low=300;
+F_high=5000;
+N=4;
+[b,a]=butter(N,[F_low*2/fs, F_high*2/fs]);
+
+
+% number of amplifier channels
+NumAmplChans=size(amplifier_data,1);
+% ---------------------
+
+
+for i=1:NumAmplChans;
+    amplifier_data_filt(i,:)=filtfilt(b,a,amplifier_data(i,:));
+end
+
+% GET SPIKE TIMES (all channels)
+for i=1:length(ChansOfInterest_1to32);
+    chan=ChansOfInterest_1to32(i);
+    MedianNoise(chan)=median(abs(amplifier_data_filt(chan,:))./0.6745); % median noise (not std), from http://www.scholarpedia.org/article/Spike_sorting
+    SpikeThreshold(chan)=ThrXNoise*MedianNoise(chan);
+    
+    [SpikePks{chan}, SpikeTimes{chan}]=findpeaks(-amplifier_data_filt(chan,:),'minpeakheight',...
+        SpikeThreshold(chan),'minpeakdistance',floor(0.0003*fs)); % 0.3ms min separation btw peaks.
+end
+
+
+% GET STIM TIMES
+% first, find dig data that corresponds to channel you want.
+for i=1:length(board_dig_in_channels);
+    if board_dig_in_channels(i).chip_channel==DigChan;
+        DigInd=i;
+    end
+end
+
+if length(DigChan)>1;
+    disp('Problem, >1 dig channel, have not coded to deal with more than one chan');
+    keyboard
+else
+    
+    StimChangeTimes=midcross(board_dig_in_data(DigInd,:)); % time stim switch 1 or 0
+    
+    TotSwitchTimes=length(StimChangeTimes); % Get on and off times;
+    StimOnTimes=StimChangeTimes(1:2:TotSwitchTimes); % odd vals are stim onset
+    StimOffTimes=StimChangeTimes(2:2:TotSwitchTimes);
+    NumStims=length(StimOnTimes);
+    
+    % make sure there are same number of stim ons/off (otherwise stim probably
+    % clipped);
+    if length(StimOnTimes)~=length(StimOffTimes);
+        disp('PROBLEM: Num of StimOn times ~= Num StimOff times.  Stim epoch clipped?');
+        disp('Will remove one stim');
+        
+        if length(StimOnTimes)>length(StimOffTimes);
+            StimOnTimes=StimOnTimes(1:end-1);
+        NumStims=NumStims-1;
+        
+        elseif length(StimOffTimes)>length(StimOnTimes);
+            StimOffTimes=StimOffTimes(1:end-1);
+        end
+        
+        keyboard
+    end
+end
+
+disp(['Number of stims: ' num2str(NumStims) ]);
+
+
+
+% ====== BIN SPIKES RELATIVE TO STIM WINDOWS
+
+% 1) find optimal peristimulus time window
+[PeriStimTime, F] =mode(StimOnTimes(2:end)-StimOffTimes(1:end-1)); % to get peri time, find the most common time between off and on of next stim. works because each file only uses one stim train parameter
+
+% mode might not work - i.e. if hand trigger then jitter will be non-zero.
+% In that case, query user for optimal peri stim time.
+if F<length(StimOnTimes)/2; % then cannot use mode, since F is occurances of the mode.  if low jitter, expect this to be at least 1/2 number of trials.
+    
+    MinISI=min(StimOnTimes(2:end)-StimOffTimes(1:end-1)); % minimum interstim dur recorded
+    
+    % round down by 100ms to get prestim time
+    MinISI_sec=MinISI/fs;
+    PeriStimTime_sec= (floor(MinISI_sec*10))/10; % i.e. convert to 100ms units, round down, then convert back to sec.
+    PeriStimTime=PeriStimTime_sec*fs;
+    
+    disp(['NOTE: no strong mode found in ISI (by auto peri-stim-time-maker), so peristim time chosen to be ' num2str(PeriStimTime_sec) 's (i.e. minimum ISI rounded down to nearest 0.1s)']);
+end
+
+StimDur=mode(StimOffTimes-StimOnTimes);
+
+if isempty(PSTH_bin);
+    PSTH_bin=max(0.005,(PeriStimTime/10)/fs); % bin in sec
+end
+
+% Collect Spike Times for each Stim epoch
+for i=1:length(ChansOfInterest_1to32);
+    chan=ChansOfInterest_1to32(i);
+    for ii=1:NumStims; % for each stim epoch
+        StimEpoch(ii,:)=[StimOnTimes(ii)-PeriStimTime StimOffTimes(ii)+PeriStimTime]; % samples of epoch
+        spktimes=SpikeTimes{chan}(SpikeTimes{chan}>StimEpoch(ii,1) ...
+            & SpikeTimes{chan}<StimEpoch(ii,2)); % sample time of spikes in this stim epoch
+        SpikeTimesInStim_RelToStimEpoch{chan}{ii} = spktimes-StimEpoch(ii,1); % spike time in stim epoch, relative to stim on.
+    end
+end
+
+
+% Bin and take mean to get PSTH
+BinEdges=0:PSTH_bin*fs:(StimDur+2*PeriStimTime); % edges spanning each stim epoch
+% Collect spikes and put into time bins, defined relative to stim epochs.
+for i=1:length(ChansOfInterest_1to32);
+    chan=ChansOfInterest_1to32(i);
+    for ii=1:NumStims;
+        if isempty(SpikeTimesInStim_RelToStimEpoch{chan}{ii}); % i.e. no spikes at all;
+            BinnedSpikesStimEpoch{chan}(ii,:)=zeros(length(BinEdges),1)'; % fill with "0" bins
+        else
+            BinnedSpikesStimEpoch{chan}(ii,:)=histc(SpikeTimesInStim_RelToStimEpoch{chan}{ii},BinEdges);
+        end
+    end
+    
+    % Get summary stats (across stim epochs)
+    if isempty(BinnedSpikesStimEpoch{chan});
+        MeanSpikes_PSTH{chan}=0;
+        StdSpikes{chan}=0;
+        SEMspikes{chan}=0;
+    else
+        MeanSpikes_PSTH{chan}=mean(BinnedSpikesStimEpoch{chan},1);
+        StdSpikes{chan}=std(BinnedSpikesStimEpoch{chan},0,1);
+        SEMspikes{chan}=StdSpikes{chan}./sqrt(NumStims-1);
+    end
+    
+    
+    % convert to firing rate
+    BinnedSpikeRate{chan}=MeanSpikes_PSTH{chan}./PSTH_bin; % rate is #spikes/binsize.
+    BinnedRateSEM{chan}=SEMspikes{chan}./PSTH_bin;
+end
+
+
+% PLOT PSTH FOR ALL CHANNELS IN ONE PLOT (PSTH), ORDERED BY ELECTRODE POSITION:
+
+figure; hold on;
+ElectrodePosToPlot_0to31=[7 1 6 14 10 11 5 12 4 3 9 8 13 2 15 0 23 28 25 20 22 27 17 21 26 30 19 24 29 18 31 16]; % Enter channels in spatial order - to plot channels in order (top to bottom of right shank, then top to bottom of left shank) : i.e. if electrode positions (from top to bottom, left to right) is like: [1 2; 3 4; ... ; 31 32] then rewrite that as: [2 4 8 ... 32 17 19 ... 31];
+
+for i=1:32; % indices, with correcponsdence to electrode defined by the subplot positions they call
+    subplot(2,16,i); hold on;
+    
+    ChanNum_0to31=ElectrodePosToPlot_0to31(i); % what Channel?
+    chan=ChanNum_0to31+1;  % convert from 0to31 to 1to32 scale
+    
+    % Plot for a channel
+    bar(BinEdges./fs,BinnedSpikeRate{chan},'histc');
+    xlabel('Time (s)');
+    ylabel('Mean spikes/s')
+    
+    % plot stim on and off.
+    line([PeriStimTime./fs PeriStimTime./fs],ylim);  % put lines denoting stim on and off
+    line([PeriStimTime./fs+StimDur./fs PeriStimTime./fs+StimDur./fs],ylim);
+    
+    xlim([0 StimDur./fs+(6/5)*PeriStimTime./fs]); % to reduce size of plot, as post and pre are identical.
+    
+    y0=max(0, min(BinnedSpikeRate{chan}(1:end-1))-10); % lower y limit
+    yf=max(BinnedSpikeRate{chan})+10;
+    ylim([y0 yf]);
+    
+    title(['Channel: ' num2str(ChanNum_0to31) ]);
+end
+subtitle([filename '; channels (0-31) in spatial order (left=top of probe); Num of stims averaged: ' num2str(NumStims)]);
+
+
+
+
+%% PLOT Raster + PSTH
+close all;
+for i=1:length(ChansOfInterest_1to32);
+    chan=ChansOfInterest_1to32(i);
+    figure; hold on;
+    subplot(2,1,1); hold on;
+    for ii=1:NumStims;
+        if ~isempty(SpikeTimesInStim_RelToStimEpoch{chan}{ii}); % if no spikes, then will not plot
+            plot(SpikeTimesInStim_RelToStimEpoch{chan}{ii}./fs,ii,'.k');
+        else
+            plot(1,ii,'Color',[1 1 1]); % if no spikes, plot a white thing as placeholder (important if this is last line).
+        end
+    end
+    
+    xlim([0 StimDur./fs+2*PeriStimTime./fs]); % makes sure xlims represent entire trial.
+    line([PeriStimTime./fs PeriStimTime./fs],ylim);  % put lines denoting stim on and off
+    line([PeriStimTime./fs+StimDur./fs PeriStimTime./fs+StimDur./fs],ylim);
+    title(['Raster plot: Channel (0-31): ' num2str(chan-1)]);
+    ylabel('Stim trial #');
+    xlabel('Time (s)');
+    
+    % Plot PSTH
+    subplot(2,1,2); 
+    X=BinEdges+(1/2)*PSTH_bin*fs; % midpoint of bin edges.
+    X=X./fs; % convert to sec
+    
+%     plot(BinnedSpikeRate{chan}(1:end-1),'k-.'); % plot used to get ylimits
+%     ylimits=ylim; 
+        
+    bar(BinEdges./fs,BinnedSpikeRate{chan},'histc'); % actual plot
+    hold on;
+%     plot(X,BinnedSpikeRate{chan}+BinnedRateSEM{chan},'b--'); % error curves
+%     plot(X,BinnedSpikeRate{chan}-BinnedRateSEM{chan},'b--');
+    ylabel('Mean Firing Rate (hz)');
+    xlabel('Time (s)');
+    xlim([0 StimDur./fs+2*PeriStimTime./fs])
+    
+    % zoom in y axis.
+    y0=max(0, min(BinnedSpikeRate{chan}(1:end-1))-10); % lower y limit
+    yf=max(BinnedSpikeRate{chan})+10;
+    ylim([y0 yf]);
+    
+    % plot stim on and off.
+    line([PeriStimTime./fs PeriStimTime./fs],ylim);  % put lines denoting stim on and off
+    line([PeriStimTime./fs+StimDur./fs PeriStimTime./fs+StimDur./fs],ylim);
+    
+end
+
+pause;
+
+
+%% PLOT RAW DATA, SPIKES, and STIM
+close all;
+
+for i=1:length(ChansOfInterest_1to32);
+    chan=ChansOfInterest_1to32(i);
+    
+    figure; hold on;
+    X_s=1/fs:1/fs:(length(amplifier_data_filt(chan,:)))/fs; % conv from sample to Sec
+    X_ms=1000*X_s; 
+    plot(X_s,-amplifier_data_filt(chan,:),'k'); % plot filtered waveform
+    scatter(SpikeTimes{chan}./fs,SpikePks{chan},'r'); % plot spikes
+    line(xlim, [SpikeThreshold(chan) SpikeThreshold(chan)],'LineStyle','--') % plot threshold used for spike detection
+    
+    ylimits=ylim;
+    for ii=1:NumStims;
+        line([StimOnTimes(ii)./fs StimOffTimes(ii)./fs],[0 0],'LineWidth',5);
+    end
+    
+    title(['Raw voltage trace, stim epochs, and spikes, for channel (0-31): ' num2str(chan-1) ]);
+    ylabel('Voltage (uV)');
+    xlabel('Time (s)');
+    
+end
+
+pause; % allows user to look thru plots
+
+
+%% PLOT SPIKE WAVEFORMS - also sorted into stim and not-stim epochs
+
+
+%%
+
+% IGNORE: stuff below was used by LT for testing differen filter parameters (N and F_hi)
+
+% i=28;
+% F_low=300;
+% F_high=5000;
+% N=2;
+% [b,a]=butter(N,[F_low*2/fs, F_high*2/fs]);
+% amplifier_data_filt2(i,:)=filtfilt(b,a,amplifier_data(i,:));
+% MedianNoise1=median(abs(amplifier_data_filt2(i,:))./0.6745)
+%
+% N=4;
+% [b,a]=butter(N,[F_low*2/fs, F_high*2/fs]);
+% amplifier_data_filt4(i,:)=filtfilt(b,a,amplifier_data(i,:));
+% MedianNoise1=median(abs(amplifier_data_filt4(i,:))./0.6745)
+%
+% N=8;
+% [b,a]=butter(N,[F_low*2/fs, F_high*2/fs]);
+% amplifier_data_filt8(i,:)=filtfilt(b,a,amplifier_data(i,:));
+% MedianNoise1=median(abs(amplifier_data_filt8(i,:))./0.6745)
+%
+%
+%
+% figure; hold on;
+% plot(amplifier_data(28,:),'b');
+% plot(amplifier_data_filt2(28,:)+80,'k')
+% plot(amplifier_data_filt4(28,:)+160,'r')
+% plot(amplifier_data_filt8(28,:)+240,'g')
+%
+% figure; hold on;
+% plot(amplifier_data(28,:),'b');
+% plot(amplifier_data_filt2(28,:),'k')
+% plot(amplifier_data_filt4(28,:),'r')
+% plot(amplifier_data_filt8(28,:),'g')
+
+
+% i=28;
+% F_low=300;
+% F_high=3000;
+% N=4;
+% [b,a]=butter(N,[F_low*2/fs, F_high*2/fs]);
+% amplifier_data_filt4(i,:)=filtfilt(b,a,amplifier_data(i,:));
+%
+% N=8;
+% [b,a]=butter(N,[F_low*2/fs, F_high*2/fs]);
+% amplifier_data_filt8(i,:)=filtfilt(b,a,amplifier_data(i,:));
+%
+% N=2;
+% [b,a]=butter(N,[F_low*2/fs, F_high*2/fs]);
+% amplifier_data_filt2(i,:)=filtfilt(b,a,amplifier_data(i,:));
+%
+%
+% figure; hold on;
+% plot(amplifier_data(28,:),'b');
+% plot(amplifier_data_filt2(28,:)+80,'k')
+% plot(amplifier_data_filt4(28,:)+160,'r')
+% plot(amplifier_data_filt8(28,:)+240,'g')
+%
+% figure; hold on;
+% plot(amplifier_data(28,:),'b');
+% plot(amplifier_data_filt2(28,:),'k')
+% plot(amplifier_data_filt4(28,:),'r')
+% plot(amplifier_data_filt8(28,:),'g')
+
+
+

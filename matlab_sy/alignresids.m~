@@ -1,0 +1,268 @@
+
+    
+
+
+
+function[residmod,avgmod,combmatout]=alignresids(outstr,mnbnds,outstrinds)
+
+
+
+clear ps
+    colvec={'k' 'r' 'c' 'm' 'b' 'g' 'y'}
+    if(~exist('outstrinds'))
+        
+        outstrinds=[1:12]
+    end
+    %number of consecutive ms to reach significance threshold.
+    consectm=.010;
+% outstrinds=1
+    subplotinds=[1 ]
+    for ii=1:length(outstrinds)
+        cros=outstr(outstrinds(ii));
+        maxln=getln(cros);
+        [residmod{ii},avgmod{ii}]=modresiduals(cros,maxln);
+        residmod{ii}.drxn=cros.drxn;
+        [avgmod{ii}]=findsigresid(avgmod{ii},consectm);
+    end
+    
+    %initialize outmat
+    mnvls=[mnbnds(1):1.25e-4:mnbnds(2)]
+    combmat=zeros(ii,length(mnvls));
+    %fill in values
+    for ii=1:length(avgmod)
+       crtms=avgmod{ii}.tms;
+       crvls=avgmod{ii}.mnvls;
+       crfrac=avgmod{ii}.mnfrac;
+       indtms=find(crtms>=mnbnds(1)&crtms<=mnbnds(2))
+       
+       startind=find(abs((mnvls-crtms(indtms(1))))<1.25e-4);
+       combmat(ii,startind(1):startind(1)+length(indtms)-1)=crvls(indtms);
+       combmatfrac(ii,startind(1):startind(1)+length(indtms)-1)=crfrac(indtms);
+    end
+%     figure
+%     for ii=1:length(combmat(:,1))
+%         plot(mnvls,combmat(ii,:),'Color',colvec{ii})
+%         hold on;
+%     end
+    
+    
+    for ii=1:length(combmat(1,:))
+        
+        nozeroind=find(combmat(:,ii)==0)
+        combmatout.mn=mean(combmat(nozeroind,:))
+        combmatout.mnall=combmat(nozeroind,:);
+        combmatout.ste=std(combmat(nozeroind,:))./sqrt(length(nozeroind));
+        combmatout.tms=mnvls;
+        combmatout.frac=mean(combmatfrac(nozeroind,:));
+        combmatout.stefrac=std(combmatfrac(nozeroind,:))./sqrt(length(nozeroind));
+        combmatout.fracall=combmatfrac(nozeroind,:);
+    end
+    
+ 
+function [maxln]=getln(cros)
+    ct=0;    
+    for jj=1:length(cros.fb_tms{1})
+            ct=ct+1;
+            %find max fbtm
+%             fb=outstr.outmatfb{outstrinds(ii)};
+            crfbln=length(cros.fb_tms{1}{jj});
+            crctln=length(cros.ct_tms{1}{jj});
+            if(crfbln>crctln)
+                crlong=crfbln;
+            else
+                crlong=crctln
+            end
+            
+            if(ct==1)
+                maxln=crlong;
+            else
+                if(crfbln>maxln)
+                    maxln=crlong;
+                end
+            end
+        end
+
+%residmod has fields of fbtms,residfb, ct_tms,residct
+    function [residmod,avgmod]=modresiduals(cros,maxln)
+        for jj=1:length(cros.fb_tms{1})
+            crfbln=length(cros.fb_tms{1}{jj});
+            crctln=length(cros.ct_tms{1}{jj});
+            diff_fb=maxln-crfbln;
+            diff_ct=maxln-crctln;
+           
+           
+            if(diff_fb)
+                residmod.residfb{jj}=[cros.outmatfb{1}{jj}; zeros(diff_fb,length(cros.outmatfb{1}{jj}(1,:)))];
+                residmod.fb_tms{jj}=[cros.fb_tms{1}{jj} zeros(1,diff_fb)];
+            else
+                residmod.residfb{jj}=cros.outmatfb{1}{jj};
+                residmod.fb_tms{jj}=cros.fb_tms{1}{jj};
+            end
+            if(diff_ct)
+                residmod.residct{jj}=[cros.outmatct{1}{jj}; zeros(diff_ct,length(cros.outmatct{1}{jj}(1,:)))];
+                 residmod.ct_tms{jj}=[cros.ct_tms{1}{jj} zeros(1,diff_ct)];
+            else
+                residmod.ct_tms{jj}=cros.ct_tms{1}{jj};
+                residmod.residct{jj}=cros.outmatct{1}{jj};
+            end
+        end
+
+       
+        
+        
+        
+        
+        %this is set this way as the last time
+        %is set to calculate the residuals without double counting.
+        %only do this for last time
+        for ii=length(residmod.ct_tms)
+            lnct=length(residmod.ct_tms{ii});
+            residfb=residmod.residfb{ii};
+            residct=residmod.residct{ii};
+            
+             %get start times and end times
+            for vcnum=1:length(residfb(1,:))
+                indfb=find(residfb(:,vcnum)~=0);
+                st_tmfb(vcnum)=indfb(1)+3;
+                end_tmfb(vcnum)=indfb(end)-3;
+            end
+            
+            for vcnum=1:length(residct(1,:))
+                indct=find(residct(:,vcnum)~=0);
+                st_tmct(vcnum)=indct(1)+3;
+                end_tmct(vcnum)=indct(end)-3;
+            end
+            
+            
+            avgmod.tms=[];
+            avgmod.mnvls=[];
+            avgmod.stevls=[];
+            avgmod.mnfrac=[];
+            avgmod.stefrac=[];
+            avgmod.pvl=[];
+        for jj=1:lnct 
+            indfb=find(st_tmfb<=jj&end_tmfb>=jj);
+            indct=find(st_tmct<=jj&end_tmct>=jj);
+            lnindfb=length(indfb);
+            lnindct=length(indct);
+            
+            if(lnindfb<lnindct)
+                minln=lnindfb
+            else
+                minln=lnindct
+            end
+            
+            if(lnindfb>10&lnindct>10)
+                resid_diff=mean(residfb(jj,indfb))-mean(residct(jj,indct))
+                [
+                avgmod.pvl=
+                avgmod.mnvls=[avgmod.mnvls resid_diff];
+                avgmod.mnfrac=[avgmod.mnfrac resid_diff./mean(residct(jj,indct))]
+                avgmod.tms=[avgmod.tms residmod.ct_tms{ii}(jj)];
+                avgmod.stevls=[avgmod.stevls std(residfb(jj,indfb(1:minln))-residct(jj,indct(1:minln)))./sqrt(minln)];
+                avgmod.stefrac=[avgmod.stefrac std((residfb(jj,indfb(1:minln))-residct(jj,indct(1:minln)))./mean(residct(jj,indct)))./sqrt(minln)];
+                
+            
+            else
+            mnvls(jj)=0;
+           
+%             stevls(ii)=0;
+            end
+        end
+
+
+if(cros.drxn=='up')
+                   avgmod.mnvls=-avgmod.mnvls; 
+end
+
+
+
+        end
+        
+%             residmod.residfb{jj}=[cros.r
+%             residmod.residct{jj}
+%         outresidct=outstr.outmatct{outstrinds(ii)};
+%         out_tmsct=outstr.ct_tms{outstrinds(ii)};
+%         
+%         subplot(5,3,subplotinds(ii))
+%         ps.ax(ii)=gca();
+%         ps.basind=1
+%         ps.TIMEBNDS=[.07 .12]
+%         plotresid(out_tmsfb,outresidfb,out_tmsct,outresidct)
+%         plot([0 0.08],[0 0],'k--','Linewidth',2);
+%         axis square;
+%         
+%         
+        
+        
+function []=plotresid(fbtms,residfb,ct_tms,residct)
+%first align catch and fb
+lnct=length(ct_tms);
+lnfb=length(fbtms);
+if(lnct<lnfb)
+    ln=lnct
+    tms=ct_tms
+else
+    ln=lnfb
+    tms=fbtms
+end
+
+mnct=mean(residct,2);
+
+for ii=1:ln   
+    indfb=find(residfb(ii,:)~=0);
+    indct=find(residct(ii,:)~=0);
+        lnindfb=length(indfb);
+        lnindct=length(indct);
+        if(lnindfb>10&lnindct>10)
+            mnvls(ii)=mean(residfb(ii,indfb))-mean(residct(ii,indct));
+            stevls(ii)=std(residfb(ii,indfb))./sqrt(lnindfb);
+        else
+            mnvls(ii)=0;
+            stevls(ii)=0;
+        end
+end
+     fillx=[tms tms(end:-1:1)];
+     yvls=[mnvls+stevls];
+     yvls2=[mnvls-stevls];
+     filly=[yvls yvls2(end:-1:1)];
+        
+     acfillcol=[0.6 0.6 0.6]
+     fill(fillx,filly,acfillcol,'edgecolor','w');
+     hold on;
+     plot(tms,mnvls,'k','Linewidth',2);
+   
+    function [avgmod]=findsigresid(avgmod,consectm)   
+        ind=find(((avgmod.mnvls-avgmod.stevls)>0)&((avgmod.mnvls+avgmod.stevls)>0));
+        
+        avgmod.sigind=ind;
+        if(isempty(avgmod.tms))
+           consecsigind=[];
+           avgmod.consecsigind=[];
+        else
+            TMDIFF=avgmod.tms(2)-avgmod.tms(1);
+        
+            consecind=floor(consectm/TMDIFF);
+        %indmod is the value of the index number 5 ms over
+        indmod=ind(consecind+1:end);
+        consecsigind=find((indmod-ind(1:end-consecind))<=consecind);
+        consecsigind=indmod(consecsigind);
+        avgmod.consecsigind=consecsigind;
+        if(~isempty(consecsigind))
+            %find all the initial consecsigind
+%             ind=find((consecsigind(2:end)-consecsigind(1:end-1))>consecind);
+            if(length(consecsigind)>1)
+                avgmod.initsigtime(1)=avgmod.tms(consecsigind(1)-consecind);
+                avgmod.initsigtime(2)=avgmod.tms(consecsigind(end));
+            else
+                avgmod.initsigtime=avgmod.tms(consecsigind(1)-consecind);
+            end
+                
+                %does it start off significant??
+            if(consecsigind(1)<=consecind+5);
+            avgmod.initsig=1;
+            else
+            avgmod.initsig=0;
+            end
+        end
+        end

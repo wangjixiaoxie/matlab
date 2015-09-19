@@ -1,0 +1,58 @@
+%Unfortunately I need to bring wav_files in from caracara...save these
+%wav_files to an appropriate folder
+%
+wavfiles={'1055.wav' '1055m10.wav' '1055m2st.wav' '1055jig.wav' '10055jigcomp.wav' '10055jig2.wav' '10055jig2-comp.wav'}
+structnames={'bos' 'm1.2' 'm2' 'jig' 'jigC' 'jigm2' 'jigm2C'}
+load /cobain4/twarren/g100o55/stim/stim.mat
+ln=length(wavfiles);
+clear y
+for i=1:ln
+    [y{i},fs,nbits]=wavread(wavfiles{i})
+end
+figure;
+for j=1:ln
+    i=2*j;
+    i
+    ax3(j)=subplot(2*ln+2,1,1+(j-1)*2:2+(j-1)*2)
+    [sm,sp,t,f]=evsmooth(y{j},fs,0.01);
+    imagesc(t,f,log(abs(sp)));syn;ylim([0,1e4])
+    hold on;
+    xaxis=1:1/100:8
+    plot(xaxis,5000*ones(length(xaxis),1),'Color','r','Linestyle','--')
+    axis([2 7 500 8000]);
+    
+    box off;
+   set(gca,'XTick',[])
+   set(gca,'YTick',[])
+   set(gca,'xcolor','w')
+   
+   YLabel(structnames{j},'Fontsize',14); 
+   %set(get(gca,'YLabel'),'Rotation',0) 
+end
+    colormap('gray')
+ax3(j+1)=subplot(2*ln+2,1,2*ln+2);
+
+%Now plot a sereies of horizontal rasters.
+%Best way to do this.  Look at code from plotrasters3
+
+%Write this as a function which draws lines under bars of spectrogram....
+
+
+yvals=0
+
+ind=find(randvecfin==1);
+xvals=xlist(ind);
+xvals2=xlist(ind+1);
+yarray=100;
+
+drawxrasters(xvals',xvals2',yarray)
+axis([2 7 -99 101])
+
+linkaxes(ax3(1:j+1),'x');
+XLabel('Time(s)','Fontsize',14);
+YLabel('Pshifts','Fontsize',14,'Rotation',0);
+%set(gca,'XTick',[])
+set(gca,'YTick',[])
+%set(gca,'ycolor','w')
+%set(gca,'xcolor','w')
+box off;

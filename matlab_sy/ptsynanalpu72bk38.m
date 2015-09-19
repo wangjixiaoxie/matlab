@@ -1,0 +1,186 @@
+%this script is written to generate pitch contours for bk57w35
+%writes data to a .mat file in directory where data is.
+
+%YOU NEED TO SET MUINDS BELOW
+%calls jc_pitchcontourFV, in ~/matlab
+%      maketimevec2
+clear fv fbins bt smoothamp baspath conbins avls
+avls.baspath='/oriole7/dir1/pu72bk38/'
+%need to label 1101 through 1110 for stable window analysis
+
+
+%prelesionpt
+avls.pvls{1}='screen2/'
+avls.cvl{1}='batch24.rand'
+
+
+avls.pvls{2}='screen2/'
+avls.cvl{2}='batch26.rand'
+avls.WINDOWSIZE=15;
+
+%prelesionsyn
+avls.pvls{3}='screen2/'
+avls.cvl{3}='batch28.rand'
+avls.pvls{4}='screen2/'
+avls.cvl{4}='batch25.rand'
+avls.pvls{5}='screen2/'
+avls.cvl{5}='batch27.rand'
+% avls.pvls{4}='syn4prelesionampon/'
+% avls.cvl{4}='batch23.catch'
+% 
+% %postlesionpt
+% avls.pvls{5}='221_tmptest/'
+% avls.cvl{5}='batch21.catch'
+% 
+% avls.pvls{6}='222_ptwnon/'
+% avls.cvl{6}='batch23.catch'
+% 
+% %postlesionsyn
+% 
+% avls.pvls{7}='postlesionsyn/tmptest'
+% avls.cvl{7}='batch25.catch'
+% 
+% avls.pvls{8}='postlesionsyn/synwnon_226'
+% avls.cvl{8}='batch27.catch'
+% 
+% 
+% avls.pvls{9}='tmptest2/'
+% avls.cvl{9}='batch06.catch'
+% 
+% 
+% avls.pvls{10}='tmptest2/'
+% avls.cvl{10}='batch08.catch'
+% 
+% avls.pvls{11}='tmptest2/'
+% avls.cvl{11}='batch10.catch'
+% 
+% avls.pvls{12}='tmptest2/'
+% avls.cvl{12}='batch09.catch'
+% 
+% avls.pvls{13}='tmptest2/'
+% avls.cvl{13}='batch07.catch'
+% 
+% % avls.pvls{3}='0915_wnoff/'
+% % avls.cvl{3}='batch.catch'
+% % 
+% % avls.pvls{4}='0922_pitch_wnon/'
+% % avls.cvl{4}='batch.catch'
+% % 
+% % avls.pvls{5}='0916_wnon/'
+% % avls.cvl{5}='batch.catch'
+% % 
+% % 
+% % avls.pvls{6}='0916pm_wnoff/'
+% % avls.cvl{6}='batch.catch'
+% % 
+% % avls.pvls{7}='postlesion_pt_test/'avls.ANALPTNT=3;
+% avls.SEQTRGNT=2;
+% avls.ALLSEQNT=[1 2]
+% 
+% % avls.cvl{7}='batch.catch'
+% % 
+% % 
+% % avls.pvls{8}='0924_wnoff/'
+% % avls.cvl{8}='batch.catch'
+% % 
+% % avls.pvls{9}='0927_wnoff/'
+% % avls.cvl{9}='batch.catch'
+% % 
+% % avls.pvls{10}='prept_test_0928/'
+% % avls.cvl{10}='batch.catch'
+% % 
+% % avls.pvls{11}='postlesion/'
+% % avls.cvl{11}='batch20.catch'
+% % 
+% % avls.pvls{12}='syntest_B/'
+% % avls.cvl{12}='batch11.catch'
+% 
+
+
+avls.NT{1}='e';
+avls.NT{2}='a';
+% avls.NT{3}='c'
+avls.tbinshft(1)=.025;
+avls.tbinshft(2)=.025
+% avls.tbinshft(3)=.028;
+% avls.tbinshft(4)=.028;
+
+avls.fbins{1}=[3000 3500];
+avls.fbins{2}=[2000 3000];
+% avls.fbins{3}=[2800 3800];
+% avls.fbins{4}=[2800 3800];
+for ii=1:length(avls.pvls)
+    avls.EV4(ii)=1
+end
+for ii=1:2
+    avls.PRENT{ii}=''
+end
+
+% %prelesion sequence shift
+% avls.bastms{1}={'2011-1-21' '2011-1-21'}
+% avls.wntms{1}={'2011-1-22' '2011-1-24'},
+% avls.rectms{1}=[]
+% avls.type{1}='SQ'
+% avls.offset_dys(1)=1;
+% 
+% %prelesion pitch shift
+% avls.bastms{2}={'2010-12-01' '2010-12-01'}
+% avls.wntms{2}={'2010-12-02' '2010-12-04'}
+% avls.rectms{2}=[]
+% avls.type{2}='PT'
+% avls.drxn{2}='up'
+% avls.offset_dys(2)=1;
+% 
+% %postlesion pitch shift
+% avls.bastms{3}={'2011-02-21' '2011-02-21'}
+% avls.wntms{3}={'2011-02-22' '2011-02-24'}
+% avls.rectms{3}=[]
+% avls.type{3}='PT'
+% avls.drxn{3}='up'
+% avls.offset_dys(3)=1;
+% 
+% %postlesion sequence shift
+% avls.bastms{4}={'2011-02-25' '2011-02-25'}
+% avls.wntms{4}={'2011-02-26' '2011-02-27'}
+% avls.rectms{4}=[]
+% avls.offset_dys(4)=1;
+% avls.type{4}='SQ'
+% 
+avls.stabwin={'2011-03-24' '2011-03-28'}
+% 
+% 
+% avls.seq_days{1}={'2011-1-21' '2011-1-24'}
+% avls.seq_start(1)=1;
+% avls.seq_days{2}={'2011-2-25' '2011-2-27'}
+% avls.seq_start(2)=1;
+% avls.pt_days{1}={'2010-12-01' '2010-12-04'}
+% avls.pt_start(1)=1;
+% avls.pt_days{2}={'2011-2-21' '2011-2-24'}
+% avls.pt_start(2)=1;
+% 
+
+
+avls.MKFV=[1:5]
+avls.SEQIND=[1:5]
+avls.PTIND=[]
+
+avls.ANALPTNT=1;
+avls.SEQTRGNT{1}=2;
+avls.ALLSEQNT=[1 2 ]
+avls.SPLITDAY=1;
+for ii=1:length(avls.pvls)
+     avls.SEC(ii)=0; 
+end
+% avls.NT{1}='b';
+% avls.NT{2}='a';
+% avls.NT{3}='c';
+% avls.NT{4}='i';
+% 
+% avls.NFFT(1)=256;
+% avls.NFFT(2)=512;
+avls.NFFT(1)=256;
+avls.NFFT(2)=256;
+avls.DOCONTPTANAL=0;
+avls.DOCONTSYNANAL=0;
+avls.SPLITDAY=1;
+avls.LESIONDATE={'2011-02-01'}   

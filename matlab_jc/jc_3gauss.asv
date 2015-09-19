@@ -1,0 +1,8 @@
+function F=jc_3gauss(x,xdata,numgauss)
+for i=1:length(xdata)
+    for j=1:numgauss
+        first=x(1+(j-1)*numgauss);
+        second=x(1*2);
+        third=x(j*3);
+        G(i)=x(1)+exp(-(xdata(i)-x(2))^2/(2*x(3)^2));
+end

@@ -1,0 +1,100 @@
+% r16g83
+
+% surgery on 12.17.09 - bilateral RA cannulae implantation using new
+    % coordinates - 10 degrees at 0.3mm caudal
+% singing in the morning of 12.18.09
+
+% good bird for covert syllable structure
+% bad bird for syntax - no transition
+
+% control WN test
+% 12.20.09 at 2:15pm - amp on 
+%   hit highest 70% of solo high stack note 'a' (below 3360Hz)
+% completely stopped singing when wn came on
+
+%  01.11.10 at 4pm - probes in
+%  01.12.10 at ~9am - started singing
+%  01.13.10 at 11:25am - 4mMapv on at 1.0uL/min
+%  01.13.10 at 2:14pm - start hitting first high stack after the long low
+%       stacks - hit all above 3240Hz (~40%) to drive pitch down.
+%       Didn't sing much
+%       9:30pm/lights off - switch to ACSF
+%  01.15.10 at 10:40am - 4mMapv on at 1.0uL/min
+%           at 12:30pm - hit above 3200Hz to drive pitch down
+%  01.16.10 - clog
+figure;plot(runningaverage(mean(pitch113C(220:400,:)),10))
+hold on;plot(runningaverage(mean(pitch114acsfC(200:380,:)),10),'r')
+hold on;plot(runningaverage(mean(pitch113apvC(200:380,:)),10),'g')                
+% white noise attenuation
+% 01.19.10 at 9:57am chick time - hit above 3350Hz (I think wn had driven
+% it up) --> note that wn is at low volume (level 53)
+% 01.19.10 at 4:49pm - hit above 3320Hz
+    % CAN'T USE THIS AS CTL BECAUSE LOTS WN started on 1.18.10
+% 01.19.10 at lights off - wn off
+% 01.20.10 - learned to reduce pitch
+
+% 01.21.10 at 1:22pm - hit above 3305Hz - see if you can drive learning
+%          at 2:41pm - all above 3295Hz
+
+% within a small period of time (afternoon)
+
+% 01.25 - at 2:15pm - probes in 
+.
+    % right side showed a bit of friction despite no apparent clog 
+
+    % began singing late night 1.25
+% 1.26 at 6pm - stable, ready to shift on 1.27
+% 1.27 at 11am chick time - 4mMapv on at 1.0uL/min
+% 1.27 at 1:20pm chick time - WN on - hit above 3330Hz (top 70%)
+    %% NOTE %%%% - bird sings different pitch for stack note after a-
+% 1.28 
+    % Covert shift revealed - 30Hz decrease
+    % Note that 127pC is the appropriate data set (morning of 127)
+        % Before this, pitch was lower due to lack of stabilization after
+        % probe insertion.
+        % Note that 
+    % 4pm chick time - accidentally switched APV on for 5min at 0.8uL/min
+    
+% 1.29
+    % New experiment (bidir - try to shift C up)
+    % 4mMapv on at 10:40am chick time
+    % WN on at 12:50pm - hit below 3340Hz
+% 1.30
+    % NO LEARNING - suggests learning is of absolute position instead of
+        % directional bias!!!
+% 1.31
+    % 12:08pm chick time - 4mMapv on
+    % 12:50pm chick time - note A template test
+    % 1:30pm - wn on below 3430Hz
+    
+% 2.01 
+    % looks good
+% 2.02
+    % NOTE C
+    % acute effect is up
+    % time to test my hypothesis
+    % shift up - hit below 3380Hz
+    % APV on at 10:15 chick time
+    % WN on at 12:15 chick time
+    
+% 2.03 - turned WN on at noon on 2.03 then off mid-afternoon on 2.03
+% 2.04 - planned control shift, WN on at 12:15pm but clog
+    % 2.04 - probes out at 3pm
+
+    
+% 3.03 - Positive Control  (24hrs - to match pu57 etc)
+    % tmptest - 6:30pm - same template as before - cntrng(4).TH=3 instead of 2
+% 3.04 - 1:45pm - hit above 3340Hz to drive pitch down (~bottom 40% escape)
+% 3.05 - 12:00pm - amp off
+
+% 3.17 - single housed in cold room
+
+
+figure;plot(tvals127pC,mean(pitch127pC(180:400,:)),'*')
+hold on;plot(tvals127apvC,mean(pitch127apvC(180:400,:)),'*','Color','g')
+hold on;plot(tvals127apvwnC,mean(pitch127apvwnC(180:400,:)),'*','Color','r')    
+hold on;plot(tvals128C,mean(pitch128C(180:400,:)),'*')
+hold on;plot([mean(tvals127pC-1) mean(tvals127pC+1)],[mean(mean(pitch127pC(180:400,:))) mean(mean(pitch127pC(180:400,:)))],'Linewidth',4,'Color','k')
+hold on;plot([mean(tvals128C-1) mean(tvals128C+1)],[mean(mean(pitch128C(180:400,:))) mean(mean(pitch128C(180:400,:)))],'Linewidth',4,'Color','k')
+hold on;plot([mean(tvals127apvwnC-1) mean(tvals127apvwnC+1)],[mean(mean(pitch127apvwnC(180:400,:))) mean(mean(pitch127apvwnC(180:400,:)))],'Linewidth',4,'Color','k')
+hold on;plot([mean(tvals127apvC-1) mean(tvals127apvC+1)],[mean(mean(pitch127apvC(180:400,:))) mean(mean(pitch127apvC(180:400,:)))],'Linewidth',4,'Color','k')

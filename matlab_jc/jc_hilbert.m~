@@ -1,0 +1,25 @@
+function filtfreqvals=jc_hilbert(shifted,lowfreq,highfreq,ms_period)
+% This takes the hilbert transform
+% ms_period is the speed of the fastest fluctuation (in ms)
+% It looks completely ridiculous in
+sampling=32000;
+Nyq=sampling/2;
+lowratio=lowfreq/Nyq;
+highratio=highfreq/Nyq;
+lowpassfilt=(1/ms_period)*1000*(1/Nyq);
+
+% I still don't understand the degree of the filter, stop means bandpass
+[b,a]=butter(4,[lowratio highratio],'bandpass'); % This is messing things up if I try to do bandpass at a high frequency for some strange reason.
+for i=1:size(shifted,1)
+    x=shifted(i,:);
+    y=filtfilt(b,a,x);
+    % instantaneous deltapitch estimate
+    idp=diff(unwrap(angle(hilbert(y))));
+    % convert instantaneous deltapitch (radians/point) to frequency
+    freqvals=sampling./((1./idp)*2*pi);
+    [c,d]=butter(4,lowpassfilt,'low');
+    filtfreqvals(:,i)=filter(c,d,freqvals);
+end
+
+    
+    

@@ -1,0 +1,32 @@
+%Loop through all the files in the batch.
+batch='batch'
+figure
+fid=fopen(batch,'r');
+fkeep=fopen([batch,'.keep'],'w');
+fdcrd=fopen([batch,'.dcrd'],'w');
+while (1)
+	fn=fgetl(fid);
+	if (~ischar(fn))
+		break;
+	end
+	if (~exist(fn,'file'))
+		continue;
+	end
+	disp(fn);
+	
+    dat=Readcbinfile(fn);
+    plot(dat(:,2));
+	rd=readrecf(fn);
+    
+    %title(fn rd.out)
+    title(rd.outfile)
+    xlabel(fn)
+    
+    ans=input('file okay?')
+
+    if (isempty(ans))
+		fprintf(fkeep,'%s\n',fn);
+	else
+		fprintf(fdcrd,'%s\n',fn);
+    end
+end

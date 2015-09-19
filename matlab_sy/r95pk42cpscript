@@ -1,0 +1,26 @@
+cd /doyale3/twarren/grebe/wnon3
+dates=[28 29 30 31]
+
+    for ii=1:length(dates)
+    
+    cpscript('/doyale/twarren/r95pk42/wnon3',42,dates(ii))
+    end
+    
+    cd /doyale/twarren/r95pk42/wnon3
+    ls *42_28*cbin>batch28
+    ls *42_29*cbin>batch29
+    ls *42_30*cbin>batch30
+    ls *42_31*cbin>batch31
+    
+    cleandir4('batch28',1e4,500,6,10,'obs0')
+    mk_rmdata('batch28.dcrd',1)
+    !csh rmdata ./
+    cleandir4('batch29',1e4,500,6,10,'obs0')
+    mk_rmdata('batch29.dcrd',1)
+    !csh rmdata ./
+    cleandir4('batch30',1e4,500,6,10,'obs0')
+    mk_rmdata('batch30.dcrd',1)
+    !csh rmdata ./
+    cleandir4('batch31',1e4,500,6,10,'obs0')
+    mk_rmdata('batch31.dcrd',1)
+    !csh rmdata ./

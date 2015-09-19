@@ -1,0 +1,276 @@
+Interactive Peak Fitter (Version 1.5, November 3, 2006)
+
+A Matlab peak fitting program for time-series signals, 
+with sliders to adjust the parameters conveniently. 
+Requires Matlab 6.5. Uses a constrained non-linear 
+optimization algorithm to decompose a complex, overlapping-
+peak signal into its component parts. The objective is 
+to determine whether your signal can be represented as 
+the sum of fundamental underlying peaks shapes. Accepts 
+signals of any length, including those with non-integer 
+and non-uniform x-values. Fits groups of  peaks of Gaussian, 
+Lorentzian, Logistic, Pearson, and  exponentially-broadened 
+Gaussian shapes (expandable to other shapes).
+
+Version 1.6, November 10, 2006, adds a set of keyboard 
+shortcuts that allow the program to be operated by simple 
+keypresses:
+
+Pan signal left and right:    left and right cursor arrow keys
+Zoom in and out:              up and down cursor arrow keys
+Select # of peaks:            number keys 1-5
+Select peak shape:            g Gaussian
+                              l Lorentzian
+                              o Logistic
+                              p Pearson
+                              e exponentially-broadened Gaussian
+Fit                           f
+Background                    b
+Custom start position         c
+-------------------------------------------------
+
+InteractivePeakFitter.m
+
+Interactive Peak Fitter script for your own signal.
+Here's how to use it:
+
+    1. Load your data set into the vectors x and y 
+(x = independent variable, y = dependent variable) 
+and then execute InteractivePeakFitter.m.
+
+   2. Use the Pan and Zoom sliders on the left and 
+right to isolate the peak or group of peaks that you 
+want to fit. The curve fitting operation applies only 
+to the segment of the signal shown in the top plot. 
+(The bottom plot shows the entire signal).
+
+   3. Use the # Peaks slider to choose the number 
+of model peaks, that is, the minimum number of peaks 
+that you think might suffice to fit this segment of 
+the signal.
+
+   4. A set of vertical dashed lines are shown on 
+the plot, one for each model peak. Try to fine-tune 
+the Pan and Zoom sliders so that the signal goes 
+to the background at both ends of the upper plot 
+and so that the peaks (or bumps) in the signal 
+roughly line up with the vertical dashed lines, 
+as show in the figures on the left. This does not
+have to be exact.
+
+   5. If you wish, you can use the BG button to 
+refine the background subtraction. Click once on 
+the BG button, click on the background to the LEFT 
+the peak(s), then click on the background to the 
+RIGHT the peak(s). The background will be subtracted 
+and the fit calculated.
+
+   6. Use the Shape slider to select the desired 
+model peak shape. In this version there are five 
+choices: Gaussian, Lorentzian, Logistic, Pearson, 
+and Exponentionally-broadened gaussian (ExpGaussian).
+
+   7. Click on the Re-fit slider to repeat the 
+curve-fitting calculation. Each time you click on 
+this slider, another fit of the selected model to 
+the data is performed. Keep your eye on the residuals 
+plot and on the "Error %" display. Click Re-fit 
+several times, trying for the lowest error and the 
+most unstructured random residuals plot. At any 
+time, you can go back and refine the background 
+position (step 5) or change the number or peaks 
+(step 3) or peak shape (step 6).
+
+   8. To display the model parameters of the last 
+fit, type "FitResults" in the Matlab command window 
+and press Enter. For example, for a 3-peak fit:
+
+      FitResults =
+          1.0000  100.1113    0.9813   30.6670
+          2.0000  130.0333    1.9820   40.5012
+          3.0000  200.0037    2.9861   50.2751
+
+      The column are, left to right: the peak number, 
+peak position, peak height, and peak width. Peaks are 
+numbered from left to right. If you prefer to have the 
+fit results printed automatically each time a fit is 
+computed, add "FitResults" as the last line of 
+FitAndPlot.m. 
+
+   9. The Custom button is used when you want to 
+manually specify the first-guess peak positions. 
+Click it once, then click on your estimates of the 
+peak positions in the upper graph, once for each 
+peak. A fit is automatically performed after the 
+last click. Peaks are numbered in the order clicked.
+
+  10. The Extra slider is used only if you are using 
+the Pearson or the exponentionally-broadened Gaussian 
+(ExpGaussian) shapes. It controls the extra shape factor 
+of the Pearson (a value of 1.0 gives a Lorentzian 
+shape, a value of 2.0 gives a shape rouighly half-way 
+between a Lorentzian and a Gaussian, and a larger 
+values give a nearly Gaussian shape) and it also 
+controls the time constant of the exponentionally-
+broadened gaussian. Adjust this slider to minimize 
+the Error %. You can change this slider's range to 
+suit your proposes in 47-48 of InteractivePeakFitter.m. 
+
+Note 1: When a fit is performed, the lower half of 
+the figure window temporarily displays the residuals 
+(differences between the model and the data).
+
+Note 2: When the number of peaks is 2 or greater, the 
+green lines in the upper plot are the individual model 
+peaks; the red line is the total model, i.e. the sum 
+of the components, which is a least-squares best-fit 
+to the blue data points.
+
+Note 3: If the range of the sliders is not appropriate 
+for your signal, you can adjust the slider ranges in 
+lines 45-52 of InteractivePeakFitter.m.
+
+Note 4: The Extra slider is used to manually control 
+the global variable "extra", which could be used for 
+a variety of purposes.
+
+Note 5: The program automatically subtracts the
+baseline from the signal displayed in the upper 
+window.  This baseline is drawn from the first
+point to the last point displayed in the upper 
+window.  If that is not what you want, or if you 
+wish to refine the baseline subtraction manually, 
+use the BG button as described in step 5, above.
+
+-------------------------------------------------
+
+DemoInteractivePeakFitter.m
+
+Self-contained demonstration of Interactive 
+Peak Fitter with a built-in simulated signal 
+generator. The true values of the simulated 
+peak positions, heights, and widths are displayed 
+in the Matlab command window, for comparison to 
+the FitResults obtained by peak fitting.
+
+>> ColumnLabels =
+           Peak#   Positon      Height      Width
+ActualParameters =
+           1         100           1          30
+           2         130           2          40
+           3         200           3          50
+           4         400           1          30
+           5         600           4          20
+           6         630           1          20
+           7         800           3          30
+           8         850           2          40
+           9         900           1          50
+          10        1200           2         100
+
+The default simulated signal contains six independent 
+groups of peaks that you can use for practice: a 
+triplet at x = 150, a singlet at 400, a doublet near 
+600, a triplet at 850, and two broad single peaks at 
+1200 and 1700. You can change the character of the 
+simulated signal in lines 23-28.
+-------------------------------------------------
+
+Hints and Tips
+
+   1.  The most important factor in non-linear iterative 
+curve fitting is selecting the underlying model peak 
+function (gaussian, lorentzian, etc). It's worth spending 
+some time finding and verifying a suitable function for 
+your data. (See the instructions below for adding a new 
+peak shape to the program).
+
+   2. You should always use the minimum number of peaks 
+that adequately fits your data. Using too many peaks 
+will result in an unstable fit - the green lines in the 
+upper plot, representing the individual component peaks, 
+will bounce around wildly as the Re-fit slider is moved, 
+without significantly reducing the Error %.
+
+   3. This program uses an iterative non-linear search 
+function (modified Simplex) to determine the peak 
+positions and widths that best match the data. This 
+requires first guesses for the peak positions and widths. 
+(The peak heights are determined by linear regression 
+and don't require first guesses). The default first 
+guesses for the peak positions are made by the computer 
+on the basis of the pan and zoom slider settings and 
+are indicated by the magenta vertical dashed lines. 
+The first guesses for the peak widths are computed 
+from the Zoom setting, so the best results will be 
+obtained if you zoom in so that the particular group 
+of peaks is isolated and spread out as suggested by 
+the peak position markers (vertical dashed lines).
+
+   4. If the peak components are very unevenly spaced, 
+you might be better off entering the first-guess peak 
+positions yourself by clicking on the Custom slider 
+and then clicking on the top graph where you think 
+the peaks might be. None of this has to be exact - 
+they're just first guesses, but if they are too 
+far off it can throw the search algorithm off.
+
+   5. The Re-fit slider adds small random deviations 
+to the first guesses, in order to determine whether 
+an improved fit might be obtained with slightly 
+different first guesses; the higher the slider 
+position, the higher the deviations. 
+-------------------------------------------------
+
+How to add a new peak shape
+
+   1. To add a new peak shape to the five initial 
+shapes, you must have a function for that peak shape, 
+similar to gaussian.m, that takes as arguments a 
+vector of x-values, a peak-center value, and a peak 
+width, and returns a vector of that function evaluated 
+at each value of x. Let's call it NewPeakShape. Add 
+NewPeakShape to the PeakFitter folder.
+
+   2. Create a fitting function for this peak shape, 
+similar to fitgaussian.m.
+
+      function err = fitNewPeakShape(lambda,t,y)
+      %   Fitting function for NewPeakShape.
+      global c
+      A = zeros(length(t),round(length(lambda)/2));
+      for j = 1:length(lambda)/2,
+          A(:,j) = NewPeakShape(t,lambda(2*j-1),lambda(2*j))';
+      end
+      c = A\y';
+      z = A*c;
+      err = norm(z-y');
+
+      Save this function as "fitNewPeakShape" into the PeakFitter folder.
+
+   3. Change FitAndPlot.m to add a 5th case to the switch 
+statements at line 32:
+
+    case 5
+      FitParameters=FMINSEARCHBND('fitNewPeakShape',start,LB,UB,options,x,y);
+      ShapeString='NewPeakShape';
+
+and at line 57:
+
+    case 5
+      A(m,:)NewPeakShape(x,FitParameters(2*m-1),FitParameters(2*m));
+
+   4. Change ipfshape.m to add a 5th case to the switch statement:
+
+      case 5
+          ShapeString='NewPeakShape';
+
+   5. Change ipfpeaks.m to add a 5th case to the switch statement:
+
+       case 5
+          ShapeString='NewPeakShape';
+
+   6. Change line 39 in InteractivePeakFitter.m to read MaxShapes=5. 
+
+
+
+Tom O'haver, toh@umd.edu, October 23, 2006.

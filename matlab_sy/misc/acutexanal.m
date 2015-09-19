@@ -1,0 +1,43 @@
+%acute effect analysis
+%acute_X_anal.m
+
+
+%one batch file is catch trials.
+%the true comparison needs to be catch trials which were
+%hits and notcatch trials which were hits,
+
+clear bt;
+bt{1}='batch08.catch'
+bt{2}='batch08.notcatch.rand'
+
+for i=1:length(bt)
+    tbinshft=0.04;
+NFFT=1024;%number of data points to FFTstrcmd=strcat('!cd ' dir{i})
+fbins=[2500,4000; 5000,8000];
+save BINS_B NFFT fbins tbinshft
+% frequency analysis just for 'b'
+load BINS_B
+NT='a';PRENT='';PSTNT='';
+    fv=findwnote4(bt{i},NT,PRENT,PSTNT,tbinshft,fbins,NFFT,1,'obs0');
+
+    vals{i}=getvals(fv,2,'TRIG');
+
+end
+
+figure
+for i=1:length(bt)
+    indtrig{i}=find(vals{i}(:,3)==1)
+    trighist{i}=histc(vals{i}(indtrig{i},2),edges);
+end
+
+%plotdist(trighist,edges,[1 2],1, [length(indtrig{1}) length(indtrig{2})])
+
+
+
+for i=1:length(bt)
+    figure;
+    
+    
+    [avn{i},t{i},f{i}]=get_avn(bt{i},'a',0.2,0.2,'','','obs0');
+    imagesc(t{i},f{i},log(avn{i}));syn;ylim([0,1e4]);
+end

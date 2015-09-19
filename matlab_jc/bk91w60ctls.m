@@ -1,0 +1,94 @@
+bk91w60
+
+% 9.14.10 - wn on at noon - hit below 2340Hz - louder volume - notched
+    % 1:51pm - hit below 2360Hz
+    % 2:42pm - hit below 2340Hz
+    
+    % 8:10pm - looks like a big decrease in hit rate - check tomorrow
+% 9.15.10
+    % 10:30am - hit below 2360Hz
+
+        
+% Baseline is 9.14 morning
+% Learning is 9.14 evening and 9.15 morning - batchHitMiss
+fvBaseline=findwnoteJC('batchnotes','b','','',0,[6000 8100],8500,1,'obs0',0);
+for i=1:length(fvBaseline)
+    shiftedBaseline(i,:)=fvBaseline(i).datt;
+end
+pitchBaseline=jc_pitchmat1024(shiftedBaseline,1024,1020,1,6000,8100,[1],'obs0',1);
+fvWNon=findwnoteNN('batchnotes','b','','',0,[6000 8100],8500,1,'obs0',0);
+        recognized=[];
+        hitrange=[];
+        catchtrial=[];
+        for i=1:length(fvWNon)
+            shiftedWNon(i,:)=fvWNon(i).datt;
+            recognized(i)=fvWNon(i).CATCH>-1;
+            hitrange(i)=fvWNon(i).TEMPLATE==1;
+            catchtrial(i)=fvWNon(i).CATCH==1;
+        end
+        indEscapeAbove=recognized & hitrange & catchtrial;
+        indHitAbove=recognized & hitrange & ~catchtrial;
+pitchWNon=jc_pitchmat1024(shiftedWNon,1024,1020,1,6000,8100,[1],'obs0',1);    
+figure;plot(median(pitchWNon(:,indEscapeAbove)'))
+hold on;plot(median(pitchWNon(:,indHitAbove)'),'r')
+% PRE-PROCESSING
+    % How much does pitch at t depend on pitch of the most recent 100
+    % performances.
+    ptwindow=[260 310];
+    histwindow=100; 
+    residWNon=[];
+    for i=1:size(pitchWNon,2)
+        residWNon(:,i)=pitchWNon(:,i)-mean(pitchBaseline')';
+    end
+    residWNon=residWNon(ptwindow,:); % only look at reasonable part
+
+% REGRESSION
+        b=zeros(size(pitchWNon,2)-histwindow,histwindow);
+        clear bint
+    % Rows of b are the syllable renditions being predicted ("predictees")
+    % Columns of b are the syllable renditions doing the predicting ("predictors")
+        % Final column is the most recent syllable rendition
+        for i=histwindow+1:size(pitchWNon,2)
+            [b(i-histwindow,1:histwindow),bint(i).data]=regress(residWNon(:,i),residWNon(:,i-histwindow:i-1));
+            i
+        end    
+        regcoefs=b;
+% POST-PROCESSING
+    clear recentcoefs recentescapesabove recenthitsabove mrecentescapes mrecenthits mrecentabove
+    for i=1:size(regcoefs,1)
+        recentcoefs(i,:)=regcoefs(i,:);
+        recentescapesabove(i,:)=indEscapeAbove(i:i+histwindow-1);
+        recenthitsabove(i,:)=indHitAbove(i:i+histwindow-1);
+    end
+
+
+    for i=1:histwindow
+        aind=find(recentescapesabove(:,i));
+        if ~isempty(aind)
+            holder=(recentcoefs(aind,i));
+            mrecentescapes(i)=mean(holder(abs(holder)<1)); % Only look at the regression coefficients that are not outliers
+        end
+        bind=find(recenthitsabove(:,i));
+        if ~isempty(bind)
+            holder=(recentcoefs(bind,i));
+            mrecenthits(i)=mean(holder(abs(holder)<1)); % Only look at the regression coefficients that are not outliers
+        end
+    %     abind=find(recentescapesabove(:,i)+recenthitsabove(:,i));
+    %     if ~isempty(aind) | ~isempty(bind)
+    %         mrecentabove(i)=median(recentcoefs(abind,i));
+    %     end
+    end
+    mrecent=mean(recentcoefs);
+  % Flip so that first point is most recent syllable.
+  fmrecentescapes=fliplr(mrecentescapes);
+  fmrecenthits=fliplr(mrecenthits);
+  fmrecent=fliplr(mrecent);
+% PLOT
+figure;hold on;
+plot(runningaverage(fmrecentescapes,10),'b')
+plot(runningaverage(fmrecenthits,10),'r')
+figure;hold on;
+plot(fmrecentescapes,'b')
+plot(fmrecenthits,'r')
+
+

@@ -1,0 +1,7 @@
+function jc_autocov501(input_array,first_note,last_note,start,stop)
+for i=first:last 
+    a=input_array(i).pitches(start:stop);
+    b=xcov(a)/max(xcov(a));  %Normalize the autocovariance matrix
+    c=b+i;  %Shift the graph up
+    plot(c)
+end

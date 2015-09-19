@@ -1,0 +1,14 @@
+for i=1:5
+    baselineAC=[];
+    baselineINA=[];
+    for j=1:length(All_shortsigma2(i).exp)
+    if All_shortsigma2(i).exp(1).baseline(j)==1 && All_shortsigma2(i).exp(1).acsf(j)==1
+        baselineAC=[baselineAC All_shortsigma2(i).exp(j).selectedpitchcurves];
+    else if All_shortsigma2(i).exp(1).baseline(j)==1 && All_shortsigma2(i).exp(1).acsf(j)==0
+        baselineINA=[baselineINA All_shortsigma2(i).exp(j).selectedpitchcurves];
+        end
+    end
+    end
+    All_shortsigma2(i).baselineAC=baselineAC;
+    All_shortsigma2(i).baselineINA=baselineINA;
+end

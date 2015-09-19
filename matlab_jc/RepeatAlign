@@ -1,0 +1,27 @@
+function aligned=jc_align(arrayfileD,rawdataArray)
+%The raw data array is the output of findwnote2.
+
+%Smooth the raw data
+for i=1:length(arrayfile)
+    [holder]=SmoothData(rawdataArray(i).datt,32000,1);
+    smooth(i).smoothed=holder;
+end
+
+%Get average smoothed data
+for i=1:length(smooth(1).smoothed)
+    sumnote(i)=0;
+    for j=1:length(smooth)
+        sumnote(i)=sumnote(i)+smooth(j).smoothed(i);
+    end
+    avgnote(i)=sumnote(i)/length(smooth);
+end
+
+%Align the pitch curves
+for i=1:length(arrayfile)
+    h=xcov(avgnote,smooth(i).smoothed);
+    [peak,index]=max(h);
+    shift=(index-6400)/4;
+    starting=round(280-shift);
+    ending=starting+400;
+    aligned(i).pitches=arrayfile(i).pitches(starting:ending);
+end

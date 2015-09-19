@@ -1,0 +1,22 @@
+%ST.days N rows (number of days)
+%ST.colors V rows (number of transitions)
+%ST.prob N rows and V columns
+%ST.err N rows and V columns
+
+function [outmat,ss]=plotseqtm(st)
+
+plot(crdt.days,100*st.prob,'k');
+    hold on;
+    plot(st.days,100*st.prob,'ko');
+%     plot(st.days,100*ones(1,6)*mean(st.sqvls),'k--');
+    plot(st.days,100*(1-st.prob),'r');
+    hold on;
+    plot(st.days,100*(1-st.prob),'ro');
+    plot(crdt.days,100*ones(1,6)*(1-mean(crdt.sqvls)),'r--');
+    for ii=1:length(crdt.days)
+        text(crdt.days(ii),80, num2str(crdt.targn(ii)),'Color','k');
+        hold on;
+        text(crdt.days(ii),40,num2str(crdt.alln(ii)-crdt.targn(ii)),'Color','r')
+    end
+    
+    box off;

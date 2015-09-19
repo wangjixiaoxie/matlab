@@ -1,0 +1,50 @@
+%each row of inarray is a stimulus, each column is meanhistresponse at a
+%time bin
+
+function plothistfxn(inarray,binsize,labels,rawsong,fs,stimleng,thresh,respvec)
+    %following line is a hack just for sam's data!!!
+    %stimleng=stmpclen;
+    numstim=length(inarray(:,1));
+    ax(1)=subplot(numstim+2,1,1)
+    [sm,sp,t,f]=evsmooth(rawsong,fs,0.1);
+    imagesc(t,f,log(abs(sp)));syn;ylim([0,1e4]);
+    axis off;
+    box off;
+    for i=1:numstim
+        ax(i+1)=subplot(numstim+2,1,i+1);
+        %hack
+        %vec=0:binsize:stimleng;
+        %plotvec=vec(1:end-1);
+        stairs(0:binsize:stimleng,inarray(i,:),'Linewidth',2, 'Color','k');
+        hold on;
+        if (nargin>4)
+            
+            %plot(0:20*binsize:stimleng,thresh,'Color','r','Linestyle','--','Linewidth',3);
+        end
+        axis([0 stimleng 0 max(max(inarray))+1])
+        box off;
+        set(gca,'xcolor','w');
+        ylabel(labels{i},'Fontsize',16);
+        
+    end
+    if(nargin>6)
+        ax(i+2)=subplot(numstim+2,1,i+2)
+        
+        x=[mean(respvec,2)'; mean(respvec,2)']
+        
+        y=[0;1]
+        plot(x,y,'-','Color','k','Linewidth',1);
+        
+        axis([0 stimleng 0 1])
+        %set(gca,'xcolor','w');
+        set(gca,'ycolor','w');
+        ylabel('Responses','Color','k','Fontsize',16);
+        xlabel('Time (s)','Fontsize',16);
+        box off;
+    else
+        xlabel('Time (s)','Fontsize',16);
+        set(gca,'xcolor','k');
+    end
+    linkaxes(ax,'x');
+   % linkaxes(ax(2:end-1))
+    

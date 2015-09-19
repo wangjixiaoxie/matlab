@@ -1,0 +1,48 @@
+%metainitshiftstats.
+
+%summary stats
+
+pk20r49- 1 upshift (between 1 and 2d)
+            2 mu runs (0.6 1.2)
+            
+         1 downshift (between 1 and 2 sd)
+            3 mu runs (1.4)
+pu34
+        2 downshift
+            2 lid runs  (1.4 3)
+            2 lid runs   (2.8 2.7)
+        1 upshift
+            2 lid runs (2.1 2.9)
+            
+bk20bk45 - 2notes
+    NOTE 3 - 2 downshift
+        2 mu runs (>2 std)
+        2 mu runs (>2 std)
+    NOTE 1- 1 upshift
+    
+pk32bk28-
+   3 upshift-
+        2 mu runs(both <2 std)
+        1 lid run run
+   1 downshift(>2 std)
+        1 mu run
+        
+ bk15bk14
+    NOTE 1
+        1 upshift
+        1 downshift
+    NOTE 2
+        1 upshift 
+        1 downshift
+ bk61w42
+        1 upshift
+ 
+ bk63w43
+        1 downshift
+ bk28w6 
+        1 upshift.
+ 
+ 
+   
+   
+    

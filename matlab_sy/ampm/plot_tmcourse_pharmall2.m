@@ -1,0 +1,129 @@
+%plot_tmcourse_stimall.m
+function [stimvls,catchvls] = plot_tmcourse_pharmall(sumbs,avls)
+%set bsind
+bsind=2;
+%num2average=20;
+avls.endptvls=15;
+
+%shiftind=4;
+shiftindvl=1;
+crbs=sumbs(bsind);
+
+%load avls.
+
+indtoplot=[1:50]
+ybnds=[6000 8500]
+
+
+% shiftruns=crbs.shiftruns{shiftindvl};
+% shiftstanruns=intersect(shiftruns,crbs.STANRUNS);
+
+%plot edges
+
+
+for ii=1:length(indtoplot);
+    crind=indtoplot(ii);
+    if(ii==1)
+       avls.bastime=crbs.flrtmvec(crind); 
+       plotedge(ybnds,1:60);
+    end
+    %acsf only.
+    if(crbs.aclist(crind,1))
+        %just plot ends
+        ind=crbs.aclist(crind,1);
+        if(crbs.aclist(crind,2))
+            endvec=1
+        else
+            endvec=[1 2];
+        end
+        
+        plotends(crbs,avls,ind,endvec);
+    end
+    if(crbs.aclist(crind,2))
+            ind=crbs.aclist(crind,1);
+            endvec=2;
+            plotends(crbs,avls,ind,endvec);
+    end
+    if(crbs.mulist(crind))
+        
+             muind=crbs.mulist(crind);
+             plotmu(crbs,avls,muind);
+          
+    end
+  tst=1;      
+end
+    
+
+   
+   
+  function [xvls,stimvls,catchvls] = plotends(crbs,avls,plotind,edgevls)
+    bastime=avls.bastime;
+    edgenum=avls.endptvls;
+    %plotbeginning
+    if(ismember(1,edgevls))
+        ln=avls.ptvls{plotind}(:,2);
+        if(ln>edgenum)
+            ind=1:edgenum;
+        else
+            ind=1:ln
+        end
+        yvls=avls.ptvls{plotind}(ind,2);
+        xvls=crbs.tmvec(plotind,1)-bastime;
+        plot(xvls,yvls,'b.');
+        hold on;
+        plot(mean(xvls),mean(yvls),'ko','Markersize',8,'MarkerFaceColor','k');
+    end
+      
+    
+    if(ismember(2,edgevls))
+          numvls=length(avls.ptvls{plotind}(:,1));
+        if(numvls>edgenum)
+            ind=numvls:-1:numvls-edgenum;
+        else
+            ind=numvls:-1:1;
+        end
+            yvls=avls.ptvls{plotind}(ind,2);
+            xvls=crbs.tmvec(plotind,2)-bastime;
+            plot(xvls,yvls,'b.');
+            hold on;
+            plot(mean(xvls),mean(yvls),'ko','Markersize',8,'MarkerFaceColor','k');
+        end
+  
+  
+    
+  function [initxvls,endxvls] = plotmu(crbs,avls,muind)
+      bastime=avls.bastime;
+      edgenum=avls.endptvls;
+         muyvls=crbs.mumean(muind);
+        muxvls=mean([crbs.tmvec(muind,1) crbs.tmvec(muind,2)])-bastime;
+        acxvls=muxvls;
+        acyvls=crbs.acmean(muind);
+      
+      
+       plot(muxvls,muyvls,'ro','Markersize',8,'MarkerFaceColor','r');
+       plot(acxvls,acyvls,'mo','Markersize',8,'MarkerFaceColor','m');
+       
+    
+     
+   
+       function []=plotedge(ybnds,xvecin)
+%            minx=min([makerow(initxvls) makerow(xvls) makerow(enxvls)]);
+%            maxx=max([makerow(initxvls) makerow(xvls) makerow(enxvls)]);
+%            st_x=floor(minx);
+%            max_x=ceil(maxx);
+           
+           for ii=[xvecin]
+               crx=xvecin(ii);
+              xbnds(1)=crx-3/24;
+              xbnds(2)=crx+6/24;
+              xvec=[xbnds xbnds(end:-1:1)]
+              yvec=[ybnds(1) ybnds(1) ybnds(2) ybnds(2)]
+              fill(xvec,yvec,[0.7 0.7 0.7],'edgecolor','none');
+              hold on;
+               
+               
+           end
+               
+       
+    
+

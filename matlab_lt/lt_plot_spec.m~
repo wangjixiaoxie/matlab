@@ -1,0 +1,1 @@
+figure; imagesc(time*1000,freq,log(spec))

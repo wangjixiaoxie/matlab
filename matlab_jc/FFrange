@@ -1,0 +1,45 @@
+% ......
+for i=1:1
+    tvalsBase=timing3(RawData(i).fvBase);
+    tvalsShift=timing3(RawData(i).fvShift);
+%     MeanpitchBase=mean(RawData(i).pitchBase(RawData(i).start:RawData(i).end,:));
+    MeanpitchShift=mean(RawData(i).pitchShift(RawData(i).start:RawData(i).end,:));
+    % find days
+%         count=1;
+%         indBase(1)=1;
+%         for j=2:length(tvalsBase)
+%             if tvalsBase(j)>tvalsBase(j-1)+8
+%                 count=count+1;
+%                 indBase(count)=j;
+%             end
+%         end
+%     % for each day, get the CV
+%         count=0;
+%         for j=2:length(indBase)
+%             pitchDay=MeanpitchBase(ind(j-1):ind(j)-1);
+%             if length(pitchDay)>50
+%                 residDay=detrend(pitchDay,'linear');
+%                 Baseline(i).day(j-1)=std(residDay)/mean(pitchDay);
+%             end
+%         end
+    % find days
+        count=1;
+        indShift(1)=1;
+        for j=2:length(tvalsShift)
+            if tvalsShift(j)>tvalsShift(j-1)+8
+                count=count+1;
+                indShift(count)=j;
+            end
+        end
+    % for each day, get the CV
+        count=0;
+        for j=2:length(indShift)
+            pitchDay=MeanpitchShift(indShift(j-1):indShift(j)-1);
+            if length(pitchDay)>50
+                count=count+1;
+                residDay=detrend(pitchDay,'linear');
+                Shifting(i).day(count)=std(residDay)/mean(pitchDay);
+            end
+        end
+          
+end

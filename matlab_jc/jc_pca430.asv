@@ -1,0 +1,18 @@
+function [PC,SCORE,LATENT]=jc_pca430(pitch_data)
+a=pitch_data(1).pitches(15:115);
+for n=2:length(pitch_data)
+    a(n,:)=pitch_data(n).pitches(thresh:thresh+550);   %cut so you get useful info.
+end
+%Center examples to make E[a]=0
+%http://www.dtek.chalmers.se/~d95danb/ocr/pca_new.html
+dimension=101;   %Because we're going from 15 to 115
+b=mean(a,1);
+c=ones(dimension,1);
+d=b*c;
+a=a-d;
+
+% PCA
+% PC = the principalcomponents (as columns)
+% SCORE = the transformed matrix a.
+% LATENT = the eigenvalues
+[PC, SCORE, LATENT]=princomp(a);

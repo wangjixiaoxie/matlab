@@ -1,0 +1,82 @@
+% 1) across day, plot 1, spectral mean for each song, 2) 2nd/1st harmonic
+% for each song, 3) 20 slices overlayed, 4) moving window measurements of
+% average spectral mean and peak #.
+
+close all
+
+disp('perform lt_compare_hits_to_misses if not done already (choosing to not convert missed syllables)')
+
+if input('have you done lt_compare_hits_to_misses (without converting missed syllables) (y or n)? ','s')=='y';
+    disp('move to results folder manually and type return')
+    keyboard
+else
+    disp('running lt_compare_hits_to_misses. do not convert missed syllables)');
+    lt_compare_hits_to_misses
+end
+
+load('make_temp')
+for i=1;
+% FIRST, getting time data for each rendition (acts as x-axis for following plots)
+
+% getting absolute times from batch file.
+current=pwd;
+cd ..
+[~, time] = db_motif_entropy('batch.catch.keep', 'b');
+cd(current);
+day_process_harmonics.times{i}=datevec(time.b);
+day_process_harmonics.times{i}=day_process_harmonics.times{i}(:,4)+(1/60)*day_process_harmonics.times{i}(:,5)+(1/3600)*day_process_harmonics.times{i}(:,6);
+
+
+% SECOND< plotting spectral mean for each rendition across the day.
+figure(7); scatter(day_process_harmonics.times{i},make_temp.all_spectrogram_spectral_means{i}); title('spectral mean for each syllable across the day')
+
+% plotting running window averaging over 20 spectral means.
+all_window_sizes= [5 20 50 100];
+all_window_sizes= all_window_sizes(all_window_sizes<length(make_temp.all_spectrogram_spectral_means{i}))
+
+for n=1:length(all_window_sizes);
+window_size_temp=all_window_sizes(n);
+day_process_harmonics.moving_mean_spectralmean{i}{n}=moving(make_temp.all_spectrogram_spectral_means{i},window_size_temp);
+figure(8); hold on; subplot(4,1,n); plot(day_process_harmonics.times{i},day_process_harmonics.moving_mean_spectralmean{i}{n});
+title(['running average, window size = ' num2str(window_size_temp)])
+
+
+end
+figure(7); hold on; plot(day_process_harmonics.times{i},day_process_harmonics.moving_mean_spectralmean{i}{2},'r')
+
+
+% THIRD, 2nd harmonic divided by 1st, (peak amplitude); 
+day_process_harmonics.ratio_second_harmonic_over_first{i}=make_temp.all_spectrogram_ampl_first_three_harmonics{i}(2,:)./make_temp.all_spectrogram_ampl_first_three_harmonics{i}(1,:);
+day_process_harmonics.second_over_first_mean=mean(day_process_harmonics.ratio_second_harmonic_over_first{i});
+day_process_harmonics.second_over_first_STD=std(day_process_harmonics.ratio_second_harmonic_over_first{i})
+
+
+figure(9); scatter(day_process_harmonics.times{i}, day_process_harmonics.ratio_second_harmonic_over_first{i}); title('amplitude ratio of 2nd over 1st harmonic throughout the day')
+
+% all_window_sizes= [5 20 50 100];
+
+for n=1:length(all_window_sizes);
+window_size_temp=all_window_sizes(n);
+day_process_harmonics.moving_mean_harmonics_ratio{i}{n}=moving(day_process_harmonics.ratio_second_harmonic_over_first{i},window_size_temp);
+figure(10); hold on; subplot(4,1,n); plot(day_process_harmonics.times{i},day_process_harmonics.moving_mean_harmonics_ratio{i}{n});
+title(['running average, window size = ' num2str(window_size_temp)])
+
+end
+
+figure(9); hold on; plot(day_process_harmonics.times{i},day_process_harmonics.moving_mean_harmonics_ratio{i}{2},'r')
+
+suffix1=datestr(now,'ddmmmyyyy');
+suffix2=datestr(now,'HHMM');
+mkdir(['lt_day_process_harmonics_' suffix1 '_' suffix2]);
+cd(['lt_day_process_harmonics_' suffix1 '_' suffix2])
+save('day_process_harmonics','-struct','day_process_harmonics')
+for fig=7:10;
+    handle=figure(fig);
+    saveas(handle, ['figure_' num2str(handle)], 'fig')
+end
+end
+
+
+% stuff to save - day_process_harmonics, figure(6-10) .
+
+

@@ -1,0 +1,67 @@
+%samposanal
+%Here I want to massage data into format hwere I can plot rasters and
+%histograms, easiest way is to use existing code, and get data into stimf
+%structure, where clustnum is 1,
+%stim is 1:6 depending on 
+%stimf(clustval,stim).cnt is number of trials
+%stimf(clustval,stim).spkarray is nx2 array, where first column is spktimes
+%for that stimulus, and 2nd column is trial number.
+%stimf.histdist
+
+
+clear stimf;
+
+
+
+clustnum=1;
+numstim=6;
+numtrials=length(outdata);
+%rewrite this to get it write.
+[y,fs]=wavread('/cobain6/b26o72/b26o72/bu26o72_tim_combo.wav');
+stmpclen=((length(y)/fs))/6
+%this is to fix problem of playing out songs at wrong sampling rate
+stmpclen=stmpclen*(44.1/44.053);
+
+binsize=.005
+edges=0:binsize:stmpclen;
+timelist=stmpclen*[1 2 3 4 5 6];
+for ii=1:6
+    stimf(1,ii).cnt=numtrials;
+    stimf(1,ii).spkarray=[];
+end
+
+%this is the key loop which will go through the outdata struct, find the
+%spike times, and build up an array, which has all the spike times and the
+%trial numbers for each stim.
+
+for ii=1:length(outdata)
+    for jj=1:numstim
+        %create a timing list by which we will divide spikes for this trial
+        outdata(ii).tmlst=[outdata(ii).tbefore timelist+outdata(ii).tbefore];
+        
+            spkind=find(outdata(ii).spktms>outdata(ii).tmlst(jj)&outdata(ii).spktms<outdata(ii).tmlst(jj+1));
+            spks=outdata(ii).spktms(spkind)-outdata(ii).tmlst(jj);
+            trial=ii*ones(length(spks),1);
+            comb=[spks trial];
+            stimf(1,jj).spkarray=[stimf(1,jj).spkarray;comb];
+            stimf(1,jj).rast{ii}=comb;
+            
+    end
+end    
+
+for (stim=1:length(stimf))     
+    trials=stimf(1,stim).cnt;
+    ind2=[];
+   for trialnum=1:trials
+             cr_arry=stimf(1,stim).spkarray;
+             
+                 ind2=find(cr_arry(:,2)==trialnum);
+                 
+                    stimf(1,stim).histdist(trialnum,:)=(histc(cr_arry(ind2,1),edges))
+                   %histdist3{stim}(trialnum,:)=(histc(spkind(spksin{clustnum}(ind(ind2)),1),edges2))
+            
+         end
+         ax1 = gca;
+         stimf(1,stim).meanhist=mean(stimf(1,stim).histdist)
+         end    
+%     

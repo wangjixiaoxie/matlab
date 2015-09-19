@@ -1,0 +1,121 @@
+clear indcatch indnotcatch
+for ii=1:length(fv)
+ fvcur=fv{ii}   
+ indcatch{ii}=[];
+        indnotcatch{ii}=[];   
+ for jj=1:length(fvcur)
+        
+        if(fvcur(jj).CATCH)
+            indcatch{ii}=[indcatch{ii} jj]
+        else
+            indnotcatch{ii}=[indnotcatch{ii} jj]
+        end
+    end
+end
+
+ct=1;
+for ii=1:length(fv)
+    ctour{ct}=pitchdata{ii}(:, indcatch{ii});
+    ctour{ct+1}=pitchdata{ii}(:,indnotcatch{ii});
+    ct=ct+2;
+end
+    
+    
+
+
+%plot cvs.
+figure
+for ii=1:8
+   ax(ii)=subplot(8,1,ii);
+end
+
+for ii=1:16
+    stdv_mat{ii}=std(ctour{ii},0,2);
+    mn_mat{ii}=mean(ctour{ii},2);
+    cv_mat{ii}=stdv_mat{ii}./mn_mat{ii};
+end
+
+for ii=1:16
+    axvl=ceil(ii/2);
+    if(mod(ii,2))
+        col='k'
+        stde_mat{ii}=stdv_mat{ii}./sqrt(length(indcatch{axvl}));
+    else
+        col='r'
+        stde_mat{ii}=stdv_mat{ii}./sqrt(length(indnotcatch{axvl}));
+    end
+    axes(ax(axvl))
+    plot(pitchtms,mn_mat{ii},'Color',col);
+    hold on;
+       plot(pitchtms,mn_mat{ii}+stde_mat{ii},'Color',col);
+    hold on;
+end
+
+figure
+for ii=1:8
+   ax(ii)=subplot(8,1,ii);
+end
+
+for ii=1:16
+    stdv_mat{ii}=std(ctour{ii},0,2);
+    mn_mat{ii}=mean(ctour{ii},2);
+    cv_mat{ii}=stdv_mat{ii}./mn_mat{ii};
+end
+
+for ii=1:16
+    axvl=ceil(ii/2);
+    if(mod(ii,2))
+        col='k'
+    else
+        col='r'
+    end
+    axes(ax(axvl))
+    plot(pitchtms,cv_mat{ii},'Color',col);
+    hold on;
+end
+
+
+
+
+%get amplitude matrices.
+for ii=1:8
+    
+    pathvl=avls.pvls{ii}
+    cmd=['cd ' pathvl]
+    eval(cmd);
+    bt=avls.cvl{ii};
+[avna,t,f,catchsm,sm_mat{ii}]=get_avn3(bt,'a',0.2,0.2,'','','obs0');
+end
+
+ct=1;
+for ii=1:length(fv)
+    amp{ct}=sm_mat{ii}(:, indcatch{ii});
+    amp{ct+1}=sm_mat{ii}(:,indnotcatch{ii});
+    ct=ct+2;
+end
+
+
+figure
+for ii=1:8
+   ax2(ii)=subplot(6,1,ii);
+end
+for ii=1:16
+    stdv_sm{ii}=std(amp{ii},0,2);
+%     stder_sm{ii}=stdv_sm{ii}./sqrt
+    mn_sm{ii}=mean(amp{ii},2);
+    cv_sm{ii}=stdv_sm{ii}./mn_sm{ii};
+end
+for ii=1:14
+    axvl=ceil(ii/2);
+    if(mod(ii,2))
+        col='k'
+    else
+        col='r'
+    end
+    axes(ax2(axvl))
+    tms=0:.4/12801:.4-.4/25601
+    plot(tms,mn_sm{ii},'Color',col);
+    hold on;
+    
+    hold on;
+end

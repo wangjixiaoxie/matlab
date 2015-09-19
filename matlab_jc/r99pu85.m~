@@ -1,0 +1,35 @@
+% r99pu85
+% potential for syntax and repeat number effects
+% Can we get him to drop the flat stack note?
+
+
+% Segment with 15 as minimum gap
+cleandir4('batch',100000,500,6,10);
+
+% looks big and healthy
+% LAUNCHPAD
+
+% began screening at 7:30pm on 1.25.10
+
+% A: branch point
+% B: repeat onset
+% C: long flat stack note
+
+% 1.26
+
+    % Pre: 51% B, 49% C
+    % pm: 40% B, 60% C
+    % 7:08pm - new config with less false positives
+% 1.27 
+    % 35% B, 65% C
+    % WN on all C's at 11:10am
+   % might actually be learning - WN looks weird - false positive
+   
+% 1.28 - has sang very little - but 74% B, 26 % C
+    % 4pm - new config to be more specific on hitting C
+    
+% 1.29 - new config screwed up - lots of escapes 
+    % 11:07am - changed config
+    % message is good and he is singing through --> should learn...
+    
+    % 5pm 

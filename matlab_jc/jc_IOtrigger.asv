@@ -1,0 +1,15 @@
+function jc_IOtrigger
+tvals=[];
+for TH=3.6:-.2:1.4
+	cntrng(1).TH=TH;
+	get_trigt2('batchTEMPtest',cntrng,0.3,128,1,1);
+	[vals]=triglabel('batchTEMPtest','a',1,1,0,1);
+    toff=[];
+    toff=[];
+    for ii=1:length(trigs)
+        toff=[toff;trigs(ii).toffset];
+    end
+    std(toff)
+
+	tvals=[tvals;TH,sum(vals)];
+end

@@ -1,0 +1,7 @@
+%draw lines between certain x values at a y height.
+
+
+function []=drawyrasters(xval,xval2,yarray)
+xvals=[xval;xval2];
+yval=[ones(size(xval));ones(size(xval))];
+plot(xvals,yval,'k','Linewidth',3)

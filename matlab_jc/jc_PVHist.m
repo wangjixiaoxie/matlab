@@ -1,0 +1,41 @@
+function [HistoMatrix,normpd]=jc_PVHist(pitch_data,onset,offset)
+%Run this after running jc_PitchData to get the pitch_data array and plotting a couple pitch curves to
+%determine good values for onset and offset.  The onset and offsets should
+%be the values on the x-axis (these are in units of sample number, not ms).
+
+%Calculate the mean pitch curve
+
+for point_count=onset:offset
+    summater=0;
+    for note_count=1:length(pitch_data)
+        summater=summater+pitch_data(note_count).pitches(point_count);
+    end
+    mean_pc(point_count)=summater/length(pitch_data);
+end
+overall_mean=mean(mean_pc(onset:offset));
+
+%Calculate mean 
+
+%Normalize the data
+for n=1:length(pitch_data)
+    %Normalize for shift of the entire note up or down
+    note_shift=mean(pitch_data(n).pitches)-overall_mean;
+    normpd(n).pitches=pitch_data(n).pitches-note_shift;
+    %Subtract out the average dynamics of the note
+    for point_count=onset:offset
+        normpd(n).pitches(point_count)=normpd(n).pitches(point_count)-mean_pc(point_count);
+    end
+end
+
+%Truncate down to the chunk that you want to analyze.  I could do this
+%earlier but it doesn't take much time so I haven't bothered.
+for m=1:length(pitch_data)
+    normpd(m).pitches=normpd(m).pitches(onset:offset);
+end
+
+%Combine all the stuff in the area into a matrix so that you can do a
+%histogram of the variation.
+HistoMatrix=normpd(1).pitches;
+for k=2:length(pitch_data)
+    HistoMatrix=[HistoMatrix normpd(k).pitches];
+end

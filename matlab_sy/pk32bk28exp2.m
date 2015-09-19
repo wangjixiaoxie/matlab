@@ -1,0 +1,356 @@
+%designed to call pitchsyntaxanal, and then inactivanal.m
+clear date
+clear avls
+clear ac
+clear graphvals
+sumpath='/oriole/pk32bk28/'
+strcmd=['cd ' sumpath]
+eval(strcmd);
+if (~exist('datasum','dir'))
+    !mkdir datasum
+end
+matfilename='pathvals2'
+
+extractvals=1
+
+
+%white noise information
+wnon{1}=  '2008-03-09  07:00:00'
+minbnds{1}=6700
+maxbnds{1}=7320
+wnoff{1} ='2008-3-12 07:00:00'
+
+wnon{2}='2008-03-12 07:00:00'
+wnoff{2}='2008-03-14 07:00:00'
+minbnds{2}=6700
+maxbnds{2}=7450
+
+wnon{3}='2008-03-14 07:00:00'
+wnoff{3}='2008-03-17 07:00:00'
+minbnds{3}=6700
+maxbnds{3}=7630
+
+
+wnon{4}='2008-03-19 14:00:00'
+wnoff{4}='2008-03-22 07:00:00'
+minbnds{4}=7280 
+maxbnds{4}=8000
+
+wnon{5}='2008-03-22 7:00:00'
+wnoff{5}='2008-03-26 07:00:00'
+minbnds{5}=6980
+maxbnds{5}=8000
+
+
+
+
+clear pathvl vals
+
+
+
+
+pathvl{1}='/oriole/pk32bk28/ac3608b/'
+catchvl{1}='batch.keep.rand'
+timon=[]
+timoff=[]
+date{1}=''
+% timon{1}='13:57:00'
+% timoff{1}='18:51:00'
+% date{1}='2008-01-26'
+
+pathvl{2}='/oriole/pk32bk28/ac3708/'
+catchvl{2}='batch08.keep.rand'
+
+pathvl{3}='/oriole/pk32bk28/300mu3808/'
+catchvl{3}='batch.keep.rand'
+timon{3}='08:49:00'
+timoff{3}='12:58:00'
+date{3}='2008-03-08'
+
+pathvl{4}='/oriole/pk32bk28/ac30808/'
+catchvl{4}='batch.keep.rand'
+ac(4)=3
+
+pathvl{5}='/oriole/pk32bk28/ac3808ampon/'
+catchvl{5}='batch.catch.keep'
+
+pathvl{6}='/oriole/pk32bk28/ampon3908probein/'
+catchvl{6}='batch.catch'
+
+%7777%
+pathvl{7}='/oriole/pk32bk28/300muampon310/'
+catchvl{7}='batch'
+timon{7}='13:45:00'
+timoff{7}='15:31:00'
+date{7}='2008-03-10'
+
+
+pathvl{8}='/oriole/pk32bk28/ac31008ampon/'
+catchvl{8}='batch10.catch'
+acon(8)=7;
+
+pathvl{9}='/oriole/pk32bk28/ac31008ampon/'
+catchvl{9}='batch11.catch'
+
+
+pathvl{10}='/oriole/pk32bk28/200mu31108/'
+catchvl{10}='batch.catch'
+timon{10}='13:48:00'
+timoff{10}='15:31:00'
+date{10}='2008-03-11'
+
+pathvl{11}='/oriole/pk32bk28/ac31108/'
+catchvl{11}='batch.catch'
+ac(11)=10;
+
+pathvl{12}='/oriole/pk32bk28/ac31208newtemp/'
+catchvl{12}='batch12.catch'
+
+pathvl{13}='/oriole/pk32bk28/ac31208newtemp/'
+catchvl{13}='batch13.catch'
+
+%%%%repeat%%%
+pathvl{14}='/oriole/pk32bk28/ac31208newtemp/'
+catchvl{14}='batch13.catch'
+
+pathvl{15}='/oriole/pk32bk28/200mu31308/'
+catchvl{15}='batch.catch'              
+timon{15}='11:51:00'
+timoff{15}='15:55:00'
+date{15}='2008-03-13'
+
+pathvl{16}='/oriole/pk32bk28/ac31308newtemp/'
+catchvl{16}='batch.catch'
+ac(16)=15;
+
+pathvl{17}='/oriole/pk32bk28/lid314/'
+catchvl{17}='batch.catch'
+timon{17}='17:11:00'
+timoff{17}='19:20:00'
+date{17}='2008-03-14'
+
+
+pathvl{18}='/oriole/pk32bk28/ac31408/'
+catchvl{18}='batch14.catch'
+ac(18)=17;
+
+pathvl{19}='/oriole/pk32bk28/ac31408/'
+catchvl{19}='batch15.catch'
+
+pathvl{20}='/oriole/pk32bk28/lid315/'
+catchvl{20}='batch.catch'
+timon{20}='13:28:00'
+timoff{20}='15:38:00'
+date{20}='2008-03-15'
+
+pathvl{21}='/oriole/pk32bk28/ac315/'
+catchvl{21}='batch.catch'
+ac(21)=20;
+
+pathvl{22}='/oriole/pk32bk28/ac315newtemp/'
+catchvl{22}='batch.catch.keep'
+
+pathvl{23}='/oriole/pk32bk28/ac31608_wnoff/'
+catchvl{23}='batch.keep.rand'
+
+pathvl{24}='/oriole/pk32bk28/lid317wnoff/'
+catchvl{24}='batch.keep'
+timon{24}='08:25:00'
+timoff{24}='11:52:00'
+date{24}='2008-03-17'
+
+pathvl{25}='/oriole/pk32bk28/ac317/'
+catchvl{25}='batch17.keep.rand'
+ac(25)=24;
+
+pathvl{26}='/oriole/pk32bk28/ac317/'
+catchvl{26}='batch18.keep.rand'
+
+
+pathvl{27}='/oriole/pk32bk28/lid318/'
+catchvl{27}='batch.keep'
+
+pathvl{28}='/oriole/pk32bk28/ac318/'
+catchvl{28}='batch18.keep.rand'
+timon{28}='15:07:00'
+timoff{28}='17:19:00'
+date{28}='2008-01-26'
+ac(28)=27;
+
+
+pathvl{29}='/oriole/pk32bk28/ac318/'
+catchvl{29}='batch19.keep.rand'
+
+
+pathvl{30}='/oriole/pk32bk28/lid319/'
+catchvl{30}='batch2.keep'
+timon{30}='08:25:00'
+timoff{30}='11:22:00'
+date{30}='2008-03-19'
+
+pathvl{31}='/oriole/pk32bk28/ac319/'
+catchvl{31}='batch.keep.rand'
+ac(31)=30;
+
+pathvl{31}='/oriole/pk32bk28/ac319wnon/'
+catchvl{31}='batch19.catch'
+
+pathvl{32}='/oriole/pk32bk28/ac319wnon/'
+catchvl{32}='batch20.catch'
+
+
+pathvl{33}='/oriole/pk32bk28/lid320ampon/'
+catchvl{33}='batch.catch'
+timon{33}='16:13:00'
+timoff{33}='18:55:00'
+date{33}='2008-03-20'
+
+pathvl{34}='/oriole/pk32bk28/ac320ampon/'
+catchvl{34}='batch20.catch.keep'
+ac(34)=33;
+
+pathvl{35}='/oriole/pk32bk28/ac320ampon/'
+catchvl{35}='batch21.catch.keep'
+
+
+pathvl{36}='/oriole/pk32bk28/lid321ampon/'
+catchvl{36}='batch.catch'
+
+timon{36}='10:18:00'
+timoff{36}='13:37:00'
+date{36}='2008-03-21'
+
+pathvl{37}='/oriole/pk32bk28/ac321ampon/'
+catchvl{37}='batch'
+ac(37)=36;
+pathvl{38}='/oriole/pk32bk28/ac321newtemp/'
+catchvl{38}='batch23.catch.keep'
+
+pathvl{39}='/oriole/pk32bk28/ac323ampon/'
+catchvl{39}='batch.catch.keep'
+
+pathvl{40}='/oriole/pk32bk28/lid324/'
+catchvl{40}='batch.catch.keep'
+timon{40}='10:24:00'
+timoff{40}='13:59:00'
+date{40}='2008-03-24'
+
+pathvl{41}='/oriole/pk32bk28/ac324/'
+catchvl{41}='batch.catch.keep'
+
+pathvl{42}='/oriole/pk32bk28/ac324/'
+catchvl{42}='batch25.catch.keep.rand'
+
+pathvl{43}='/oriole/pk32bk28/lid325/'
+catchvl{43}='batch.catch.keep'
+timon{43}='10:48:00'
+timoff{43}='13:01:00'
+date{43}='2008-03-25'
+
+pathvl{44}='/oriole/pk32bk28/ac325/'
+catchvl{44}='batch.catch.keep'
+ac(44)=43
+
+pathvl{45}='/oriole/pk32bk28/ac326newtemp/'
+catchvl{45}='batch.catch.comb'
+
+pathvl{46}='/oriole/pk32bk28/lid327/'
+catchvl{46}='batch.catch.keep'
+
+
+
+timon{46}=''
+timoff{46}=''
+date{46}=''
+usex(1:46)=0;
+ac(46)=[0];
+avls.analind=[1:46]
+
+numnotes=1
+notes='a'
+
+fbins={};
+tbinshft{1}=0.035;
+  tbinshft{2}=0.02
+ tbinshft{3}=0.03
+NFFT(1)=1024
+ NFFT(2)=512
+NFFT(3)=512
+
+fbins{1}=[6000,8000];
+fbins{2}=[2000,2500];
+ fbins{3}=[1300,1800];
+
+clear NT    
+NT{1}='a'
+ NT{2}='b'
+ NT{3}='c'
+% NT{3}='g'
+
+PRENT{1}='';PSTNT{1}='';
+PRENT{2}='';PSTNT{2}='';
+ PRENT{3}='-';PSTNT{3}='';
+   
+  %%%plotvals
+acon=[ 1 2 4 5 6 8 9 11:13 16 18 19 21:23 25:27 29 31 32 34 35 37:39 41 42 44 45];  
+muon=[3 7 10 15 17 20 24 28 30 33 36 40 43 46]
+diron=[]
+extraon=[]
+
+clear colvals
+colvals{1}=muon;
+colvals{2}=acon
+
+graphvals.numcol=2
+graphvals.col='rk'
+graphvals.plttext=1
+graphvals.txtht=[3260 3200]
+graphvals.tickht=8000
+graphvals.edges{1}=[6700:80:7900]
+graphvals.edges{2}=[2000:40:2500]
+graphvals.edges{3}=[1300:40:1800]
+graphvals.colvals=colvals
+graphvals.pltpnts=1
+
+graphvals.timon=timon;
+graphvals.timoff=timoff;
+graphvals.acon=ac;
+graphvals.date=date;
+
+graphvals.wnon=wnon;
+graphvals.wnoff=wnoff;
+graphvals.minbnds=minbnds;
+graphvals.maxbnds=maxbnds;
+
+
+graphvals.colvals=colvals
+graphvals.chunkdata=1
+
+avls.pvls=pathvl
+avls.datfile=matfilename;
+avls.cvl=catchvl
+avls.sumpath=sumpath
+avls.mtflnm=matfilename  
+avls.supanal=0
+avls.NT=NT
+avls.NFFT=NFFT
+avls.fbins=fbins
+avls.tshft=tbinshft
+avls.usex=usex
+avls.numnotes=numnotes
+avls.mkfv=[]
+avls.PRENT=PRENT
+avls.PSTNT=PSTNT
+avls.repeatanal=[0 0 0]
+avls.bnds{1}='2007-09-20 07:00:00'
+avvls.bnds{2}='2007-11-20 07:00:00'
+avls.offset=1.75;
+avls.acoffset=1;
+
+strcmd=['cd ' sumpath 'datasum']
+eval(strcmd)
+
+strcmd=['save ' matfilename '.mat avls graphvals'];
+eval(strcmd);
+
+

@@ -1,0 +1,1 @@
+[dat,fs]=evsoundin('','bk50w18_130109_1326.1911.cbin','obs0');

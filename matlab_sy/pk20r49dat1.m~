@@ -1,0 +1,219 @@
+
+%designed to call pitchsyntaxanal, and then inactivanal.m
+
+clear avls
+clear catchvl
+clear pathvl
+clear graphvals
+sumpath='/oriole3/pk20r49/'
+strcmd=['cd ' sumpath]
+eval(strcmd);
+if (~exist('datasum','dir'))
+    !mkdir datasum
+end
+matfilename='pathvals1'
+
+extractvals=1
+
+
+
+wnon{1}=  '2008-03-09  07:00:00'
+minbnds{1}=7320
+maxbnds{1}=8000
+wnoff{1} ='2008-3-12 07:00:00'
+
+wnon{2}='2008-03-12 07:00:00'
+wnoff{2}='2008-03-14 07:00:00'
+minbnds{2}=7450
+maxbnds{2}=8000
+
+wnon{3}='2008-03-14 07:00:00'
+wnoff{3}='2008-03-17 07:00:00'
+minbnds{3}=7630
+maxbnds{3}=8000
+
+
+wnon{4}='2008-03-19 14:00:00'
+wnoff{4}='2008-03-22 07:00:00'
+minbnds{4}=6800
+maxbnds{4}=7280
+
+wnon{5}='2008-03-22 7:00:00'
+wnoff{5}='2008-03-26 07:00:00'
+minbnds{5}=6800
+maxbnds{5}=6980
+
+
+pathvl{1}='/oriole3/pk20r49/ac260108/'
+catchvl{1}='batch.keep27'
+
+pathvl{2}='/oriole3/pk20r49/200mu70108/'
+catchvl{2}='batch.keep'
+
+timon{2}='10:06:00'
+timoff{2}='14:17:00'
+date{2}='2008-01-27'
+
+pathvl{3}='/oriole3/pk20r49/wnon/'
+catchvl{3}='batch29.catch.keep'
+
+pathvl{4}='/oriole3/pk20r49/200muampoff13008/'
+catchvl{4}='batch.keep'
+timon{4}='15:06:00'
+timoff{4}='19:03:00'
+date{4}='2008-01-30'
+
+pathvl{5}='/oriole3/pk20r49/acampoff_300108/'
+catchvl{5}='batch.catch30'
+
+pathvl{6}='/oriole3/pk20r49/200muampon1.31.08/'
+catchvl{6}='batch.catch'
+timon{6}='15:41:00'
+timoff{6}='19:41:00'
+date{6}='2008-01-31';
+
+pathvl{7}='/oriole3/pk20r49/acampon13108-3/'
+catchvl{7}='batch.catch.keep'
+
+pathvl{8}='/oriole3/pk20r49/acampon13108-4/'
+catchvl{8}='batch01.catch'
+
+pathvl{9}='/oriole3/pk20r49/acsf_ampon3/'
+catchvl{9}='batch.catch'
+
+pathvl{10}='/oriole3/pk20r49/acsf_ampon2/'
+catchvl{10}='batch.train.catch'
+
+pathvl{11}='/oriole3/pk20r49/200muampon202008/'
+catchvl{11}='batch.train.catch'
+timon{11}='12:33:00'
+timoff{11}='16:34:00'
+date{11}='2008-02-02'
+
+pathvl{12}='/oriole3/pk20r49/probeout20408/'
+catchvl{12}='batch.catch'
+
+pathvl{13}='/oriole3/pk20r49/probein20408/'
+catchvl{13}='batch.catch'
+
+
+pathvl{14}='/oriole3/pk20r49/200mu20508/'
+catchvl{14}='batch.catch'
+
+timon{14}='10:48:00'
+timoff{14}='15:05:00'
+date{14}='2008-02-05'
+
+
+pathvl{15}='/oriole3/pk20r49/acampon210/'
+catchvl{15}='batch.catch.keep12'
+
+pathvl{16}='/oriole3/pk20r49/300mu21208/'
+catchvl{16}='batch.catch'
+
+timon{16}='10:35:00'
+timoff{16}='14:31:00'
+date{16}='2008-02-12'
+
+
+
+pathvl{17}='/oriole3/pk20r49/ac21208ampon/'
+catchvl{17}='batch.catch'
+
+pathvl{18}='/oriole3/pk20r49/acampon13108-4/'
+catchvl{18}='batch02.catch'
+
+pathvl{19}='/oriole3/pk20r49/ac020508/'
+catchvl{19}='batch.catch.keep'
+
+date{19}=''
+
+pathvl{20}='/oriole3/pk20r49/acsf_ampon/'
+catchvl{20}='batch.catch'
+
+date{20}=''
+
+% timon{6}='15:06:00'
+% timoff{6}='19:03:00'
+% date{6}='2008-01-30'
+
+
+usex(1:20)=0;
+avls.analind=[1:20]
+
+numnotes=3
+notes='a'
+
+fbins={};
+tbinshft{1}=0.02;
+% tbinshft{2}=0.015
+% tbinshft{3}=0.015
+NFFT(1)=512
+% NFFT(2)=512
+% NFFT(3)=512
+
+fbins{1}=[3000,4000];
+% fbins{2}=[3000,4000];
+% fbins{3}=[3000,4000];
+
+clear NT    
+NT{1}='a'
+% NT{2}='f'
+% NT{3}='g'
+
+PRENT{1}='';PSTNT{1}='';
+PRENT{2}='';PSTNT{2}='';
+PRENT{3}='';PSTNT{3}='';
+   
+  %%%plotvals
+muon=[2 4 6 11 14 16];  
+acon=[1 3 5 7 8 9 10  12 13 15 17 18 19 20]
+diron=[]
+extraon=[]
+
+clear colvals
+colvals{1}=muon;
+colvals{2}=acon
+
+graphvals.numcol=2
+graphvals.col='rk'
+graphvals.plttext=1
+graphvals.txtht=[3260 3200]
+graphvals.edges{1}=[3000:50:4000]
+graphvals.colvals=colvals
+graphvals.pltpnts=1
+
+graphvals.timon=timon;
+graphvals.timoff=timoff;
+graphvals.date=date;
+graphvals.colvals=colvals
+graphvals.chunkdata=1
+
+avls.pvls=pathvl
+avls.datfile=matfilename;
+avls.cvl=catchvl
+avls.sumpath=sumpath
+avls.mtflnm=matfilename  
+avls.supanal=0
+avls.NT=NT
+avls.NFFT=NFFT
+avls.fbins=fbins
+avls.tshft=tbinshft
+avls.usex=usex
+avls.numnotes=numnotes
+avls.mkfv=[]
+avls.PRENT=PRENT
+avls.PSTNT=PSTNT
+avls.repeatanal=[0 0 0]
+avls.bnds{1}='2007-09-20 07:00:00'
+avvls.bnds{2}='2007-11-20 07:00:00'
+avls.offset=2;
+avls.acoffset=2;
+
+strcmd=['cd ' sumpath 'datasum']
+eval(strcmd)
+
+strcmd=['save ' matfilename '.mat avls graphvals'];
+eval(strcmd);
+
+

@@ -1,0 +1,14 @@
+%plotap5_sumscript
+
+figure
+crxvl=[1 2]
+crmnvl=[187.8 96.3]
+crer=[34 31.9]
+
+    for ii=
+                    bar(crxvl,mnvlsmod,0.6,'EdgeColor',col,'FaceColor','none');
+                    hold on;
+                    plot([crxvl crxvl],[(mnvlsmod)-stervls (mnvlsmod)+stervls],'k')
+                    text(crxvl,mnvls*1.5,['n=' num2str(lnvls)]);
+                 
+                 end

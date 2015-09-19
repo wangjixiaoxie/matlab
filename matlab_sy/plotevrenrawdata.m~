@@ -1,0 +1,5 @@
+for ii=1:length(fndat)
+
+   strvl=[baspath fndat(ijk).fn];
+    load(strvl);
+end

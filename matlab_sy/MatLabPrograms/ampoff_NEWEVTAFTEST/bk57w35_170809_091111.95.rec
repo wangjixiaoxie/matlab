@@ -1,0 +1,23 @@
+File created: Mon, Aug 17, 2009, 09:11:22.60
+
+     begin rec = 0 ms
+     trig time  = 2000 ms
+     rec end = 13374 ms
+
+ADFREQ =   32000
+Chans = 1
+Samples = 427956
+Catch Song = 0
+T Before = 2.0000000000E+0
+T After = 1.0000000000E+0
+Feedback information: 
+
+3.304000E+3 msec: catch # TrigPulse 1 : Templ = 1
+3.448063E+3 msec: FB # E:\bk57w35\sndpb3\wn80low5500.wav : Templ = 0
+4.552094E+3 msec: catch # TrigPulse 1 : Templ = 1
+5.840000E+3 msec: FB # TrigPulse 1 : Templ = 1
+5.976062E+3 msec: FB # E:\bk57w35\sndpb3\wn80low5500.wav : Templ = 0
+7.416062E+3 msec: catch # TrigPulse 1 : Templ = 1
+9.448000E+3 msec: FB # TrigPulse 1 : Templ = 1
+9.584125E+3 msec: FB # E:\bk57w35\sndpb3\wn80low5500.wav : Templ = 0
+11.816063E+3 msec: catch # TrigPulse 1 : Templ = 1

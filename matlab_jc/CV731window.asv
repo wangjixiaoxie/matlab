@@ -1,0 +1,10 @@
+function [CV,m]=CV731window(pitchcurves,window)
+for i=1:950
+    for j=1:length(pitchcurves)
+        slice(j)=pitchcurves(j).pitches(i);
+    end
+    m(i)=mean(slice);
+    s=std(slice);
+    CV(i)=s/m(i);
+end
+

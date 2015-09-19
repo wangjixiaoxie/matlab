@@ -1,0 +1,18 @@
+File created: Fri, Mar 17, 2006, 14:41:18
+
+     begin rec = 0 ms
+     trig time  = 4000 ms
+     rec end = 23278 ms
+
+ADFREQ =   32000
+Chans = 5
+Samples = 744893
+Catch = 0
+Output Sound File =D:\playbacks\Female_Call.wav
+T Before = 4.0000000000E+0
+T After = 4.0000000000E+0
+Thresholds = 
+0.000000E+0
+Feedback information: 
+
+4.000000E+3 msec: FB

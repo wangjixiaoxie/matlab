@@ -1,0 +1,6 @@
+function [aa,bb]=jcnext(pitch,se)
+wide=40;
+for i=1:70
+    aa(i)=median(pitch(i).pitches(se(1):se(1)+wide));
+    bb(i)=median(pitch(i).pitches(se(1):se(1)+wide));
+end

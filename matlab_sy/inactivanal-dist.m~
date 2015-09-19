@@ -1,0 +1,34 @@
+bnd{1}=datenum([graphvals.date{4} ' ' '06:00:00'],'yyyy-mm-dd  HH:MM:SS')
+bnd{2}=datenum([graphvals.date{4} ' ' graphvals.timon{4}],'yyyy-mm-dd  HH:MM:SS')
+bnd{3}=datenum([graphvals.date{4} ' ' graphvals.timoff{4}],'yyyy-mm-dd  HH:MM:SS')
+bnd{4}=datenum([graphvals.date{4} ' ' '21:00:00'],'yyyy-mm-dd  HH:MM:SS')
+
+offset=1/24;
+
+valsa1=getvals(avls.fvcomb{2},1,'trig')
+valsa2=getvals(avls.fvcomb{3},1,'trig')
+valsb=getvals(avls.fvcomb{1},1,'trig')
+
+va1=valsa1
+
+vind{1}=find(va1(:,1)>bnd{1}& va1(:,1)<bnd{2})
+vind{2}=find(va1(:,1)>bnd{2}+offset& va1(:,1)<bnd{3})
+vind{3}=find(va1(:,1)>bnd{3}+offset& va1(:,1)<bnd{4})
+
+vb1=va1(vind{1},2)
+vb2=va1(vind{2},2)
+vb3=va1(vind{3},2)
+
+edges=[2200:40:2800]
+
+hst1=histc(vb1,edges);
+hst1=hst1/sum(hst1)
+hst2=histc(vb2,edges);
+hst2=hst2/sum(hst2)
+hst3=histc(vb3,edges);
+hst3=hst3/sum(hst3)
+figure
+stairs(edges,hst1,'k','Linewidth',2);
+hold on;
+stairs(edges,hst2,'r','Linewidth',2);
+stairs(edges,hst3,'k--');

@@ -1,0 +1,366 @@
+% r30g38
+% 10.29.10 - looks like a great stim candidate
+    % noon -  Targeted for white noise
+    % 6:10pm - cntrng adjustment
+    % 9pm - wn on (planned)
+  % MISTAKE - wn 100%
+  
+% 10.31.10 - wn off at 10am (realized 100%)
+    % 9pm - wn on, hit below 2665Hz
+
+% 11.01.10 - WN ON
+    % 11am - raised to hit below 2680Hz
+    % 12:20pm - adjusted/improved template
+    % convincing learning occurred by late afternoon (around 40Hz)
+  % 9pm - wn off
+
+% 11.15.10 - surgery - bilateral LMAN stim array implantation
+
+% 11.17.10 - song looks good - good singing rate
+% 11.28.10 - leads in
+
+% 11.20.10 - stim 20% - 110ms delay, 80ms duration, 50uA, R23,L14
+% 11.21.10 - stim 20% - 150ms delay, 80ms duration, 50uA, R23,L14
+% 11.22.10 - wn on - hit below 3230Hz (median+30Hz)
+    % 7:15pm - Tim accidentally turned WN off
+% 11.23.10 - wn back on at 10am
+%       12:24pm - raised wn threshold to 3350Hz
+% 11.24.10
+%       1:25pm - wn off - reversion looks great! -compare exp #6 to exp #2
+% late night - problem with filter/acquiring data - upper thr of 20kHz
+% 11.25.10
+%       10am - fixed problem with acquisition
+% 11.26.10 - 10am - more problems with oscillations - unclear why but replaced
+% some things
+% stim 80% (accident, meant to be 20%)
+
+% 11.27.10
+% 9:40am - changed to 20% stim
+% 10:15am - 100% stim
+% 11:25am - wn on, hit below 3440Hz (median+30Hz)
+% 7:15pm - lowered to 3425Hz (due to high hit rate)
+
+% 11.28.10
+% 11:30am - wn off, 20% stim
+    % 1pm - initial quantification looked like block of learning failed, so I 
+    % briefly changed stim configuration to 80uA, R14,L23
+
+% 11.29.10
+    % 11:40am - wn on, hit below 3430Hz
+    % no signs of learning
+    
+%%%%%%%%%%%%%%%%%%%%%%%    
+%%%%%%  LOW STACK NOTE
+%%%%%%%%%%%%%%%%%%%%%%%
+% 11.30.10
+    % 3pm - new template, 2nd low stack (faster learning?), no stim
+    
+% 12.01.10
+    % 12pm - wn on, hit above 2705Hz (20% stim)
+% 12.02.10
+    % 12pm - wn off
+    % 1:40pm - no evidence of stim effect 
+    % 1:45pm - switch to 24L,13R, 80uA
+        % GREAT
+% 12.03.10
+    % waiting for recovery
+    % 11am - test PIC chip - looks good
+    % 12:16pm - switched template (improvement?)
+    
+% 12.04.10
+    % 9:30am - 100% stim
+    % 11:30am - wn on - hit above 2655Hz
+% 12.05.10 
+    % 11:30am - wn off
+    % looks like stim effect started dying...
+    % FAILED TO BLOCK LEARNING
+    
+%%%%%%%%%%%%%%%%%%
+% Shift protocol to look at reversion timecourse
+%%%%%%%%%%%%%%%%%%
+% 12.06.10 and 12.07.10 - baseline estimation of stim effect
+    % Looks very nice - stim has consistent bias of -20Hz
+    % Hit below 2720Hz
+% 12.08.10 - day one of WN
+    % 11:49am - hit below 2690Hz
+    
+% 12.12.10 (5:25pm) - set threshold at 2775Hz and hold there
+% 12.14.10 - asymptote
+% 12.15.10 - held at asymptote
+% 12.16.10 - held at asympote - looks like it's catching up!
+% 12.17.10 - final day of WN
+% 12.21.10 - realized that for the last ~24-48, the two poles on the left
+    % side were shorted to each other so that presumably no current was being
+    % passed on that side of the brain
+   % 10:35am - corrected
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Stim with single stimulator and split output
+%%%%%%%%%%%%%%%%%%%%%%%
+% 1.05.11 - plugged in
+% 1.07.11 
+%   - 11:42am - stim on R23,L23
+%       looks good - 40Hz downward offset
+% 1.08.11
+%   11am - stim on 100%
+%   1:30pm - wn on, stim 100% - hit above 2675Hz, R23, L23 === Did not block learning
+% 1.09.11
+%   noon - wn off, stim 20%
+
+% 1.10.11
+%   11am - R14, L23
+%   1pm - R14,L23 - 250uA (split b/t both)
+%       Effect looks good
+
+% 1.11.11
+%   10:30am - 100% stim (R14,L23,250uA,40msdel,80msdur)
+% STIM effect started dying as it always has when I increase to 100%
+
+% 1.12.11 - 9pm - wn on - hit above 2680Hz (20th prctile)
+
+% 1.13.11 - WN DAY ONE - intermittent stim
+% 1.15.11 - wn off at 12:30pm - not much learning or 
+
+% 1.17.11 - 4pm - wn on - no stim, hit below 2700Hz (control for pharma covert)
+% 1.18.11 - 2:30pm - unplugged leads
+
+%%%%%%%%% Dual stimulators %%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 2.10.11 - 2pm - transferred to stim rig with dual stimulators
+%   Note that bk80w28 was recently run on this rig and showed good reversion
+
+% 2.11.11 - 10:30am - 200uV on each side - 40msdel, 80msdur, stim on 20% of renditions
+            % around 0.8V on each side
+                % too much stim - causes syllable termination
+% 2.11.11 - 1:15pm - reduced stim to 100uV on each side, stim on 50% of renditions
+%               % this looks pretty good, but occasional stoppages
+%         - 1:50pm - reduced to 75uV on each side, stim on 20% of
+%         renditions
+            % CAUSES VARIABILITY REDUCTION!!! and consistent 50Hz downward
+            % offset
+% 2.14.11 - 11am - 100% stim, same parameters
+%         - 1pm - 100% stim, wn on, hit above 2710Hz
+
+% 2.15.11 - increase to 100uV on both sides
+% 2.16.11 - 10:50am - 100% stim
+%         - 12:20pm - 100% stim, wn on, hit below 2720Hz
+% 2.17.11 - noon - learning occurred (failed to block learning)
+
+% 2.18.11 -plan DOWNSHIFT - good downward stim effect
+%       around 500-600mV
+% 2.20.11 - DAY ONE - wn on, hit above 2670Hz
+%       noon - hit above 2650Hz
+
+% 2.21.11
+%   11am - hit above 2670Hz
+
+
+% Try reversion (?)
+
+% 4.05.11
+% Decide to use him as the pilot test of recording since he has an acute stim
+% effect but it not one of the best birds (unlike bk80w28 or r87g80)
+% 2:50pm - transferred to recording soundbox, plugged in
+
+% LOW PASS 300Hz, HIGH PASS 10kHz
+% CH0 - obs0 - song
+% CH1 - obs1 - L1
+% CH2 - obs2 -  L3
+% CH3 - obs3 -  L4
+% CH4 - obs4 (i.e. obs0r) -  R1
+
+% REF - silver wire in bird brain, buffered
+% GND - ground
+
+    % 4.07.11 - trying a bunch of stuff
+        % put other birds (including orpu female) in cage, but he never sang
+        % tried BOS - but it turns out that most of the day my BOS files were
+            % sampled incorrectly (44.1kHz vs 32kHz) so that they weren't actually BOS
+            % corrected in time for /0407pm_BOSpd_record_actuallgood_GND
+        % Things to consider - grounding to oscilloscope appears to reduce noise???
+        %                    - GND vs REF
+        %                    - rBOS
+
+    % 4.08.11
+        % 0408_withmaleREF --- with male bird, REF
+        % 0408_withfemaleREF --- with two female birds, REF
+            % First file is a playback
+            % Sang two songs!!!
+        % 0408_withfemaleGND --- with two female birds, GND
+    % 4.09.11
+        % SINGING on his own!
+        % 0409_recsoloGND - GND as ground
+%**** REF **** 11:45am - changed REF from silver wire to R3 
+        % R1 has no signal, L1,L3,L4 all look almost exactly the same 
+            % Consistent with multi-unit field potential in LMAN
+    % 4.10.11
+% CH0 - obs0 - song
+% CH1 - obs1 -  R3
+% CH2 - obs2 -  L3
+% CH3 - obs3 -  L4
+% CH4 - obs4 (i.e. obs0r) -  R1
+% REF - L1
+    % 0410_recsolo_L1_REF
+
+% Change - LOW PASS 1Hz
+
+
+
+    % 4.11.11
+    % Change - CH2,4 LOW PASS 300Hz; CH1,3 LOW PASS 1Hz
+% CH0 - obs0 - song
+% CH1 - obs1 -  R3 - open band
+% CH2 - obs2 -  L3 - filtered
+% CH3 - obs3 -  L4 - open band
+% CH4 - obs4 -  R1 - filtered
+% REF - L1
+    % 12:30pm - wn on low stack note (B), hit below 2735Hz (70%)
+    
+    % 4.13.11
+    % not much going on in the way of learning
+    % late pm - switched to hit random 50% with WN, random 50% no WN to
+        % check for acute effects of WN
+    
+    % 4.14.11
+    % 10:45am - changed REF to reference wire
+% CH0 - obs0 - song
+% CH1 - obs1 -  R3 - open band (1Hz to 10kHz)
+% CH2 - obs2 -  L3 - filtered (300Hz to 10kHz)
+% CH3 - obs3 -  L4 - open band (1Hz to 10kHz)
+% CH4 - obs4 -  R1 - filtered (300Hz to 10kHz)
+% REF - silver wire in bird brain, buffered
+ 
+dirf('*.cbin.not.mat','batchnotes');
+fvSong=findwnoteJC('batchnotes','b','','',0,[2000 2700],8500,1,'obs0',1);
+fvCH1=findwnoteJC('batchnotes','b','','',0,[2000 2700],8500,1,'obs1',1);
+fvCH3=findwnoteJC('batchnotes','b','','',0,[2000 2700],8500,1,'obs3',1);
+fvCH2=findwnoteJC('batchnotes','b','','',0,[2000 2700],8500,1,'obs2',1);
+fvCH4=findwnoteJC('batchnotes','b','','',0,[2000 2700],8500,1,'obs4',1);
+pitchSong=pitchcontour(fvSong,2000,3000);
+for i=1:length(fvCH1);allCH1(i,:)=fvCH1(i).datt-mean(fvCH1(i).datt);end
+for i=1:length(fvCH3);allCH3(i,:)=fvCH3(i).datt-mean(fvCH3(i).datt);end
+sds=std(pitchSong(400:550,:))
+figure;plot(sds,'.')
+indESC=find(sds<150);
+indHIT=find(sds>150);
+figure;plot((mean(allCH1(indHIT,:))-mean(allCH1(indESC,:)))./(std(allCH1(indHIT,:))/5),'r')
+hold on;plot((mean(allCH3(indHIT,:))-mean(allCH3(indESC,:)))./(std(allCH3(indHIT,:))/5),'b')
+%%%%%%5
+%%%
+toffs=gettarg('batchnotes','b')
+indH=[2 3 5 7 9 10 11 14 15];
+toffs=toffs(2:end);
+
+%%%%
+% Take unfiltered data and filter it 
+tbfilt=fvalsCH1B(1).datt;
+[b,a]=butter(4,[300/32000],'high');
+y=filtfilt(b,a,tbfilt);
+z=fvalsCH4B(1).datt;
+figure;hold on;plot(y-mean(y));plot(z-mean(z),'r')
+% LOOKS GREAT!!!
+[b,a]=butter(4,[130/32000],'low');
+y=filtfilt(b,a,tbfilt);
+[b,a]=butter(4,[30/32000],'high');
+z=filtfilt(b,a,y);
+%%%%
+%%%% April 11,2011
+% Neural activity in reponse to WN within song
+
+    % INSIDE SONG - 'b'
+        % Do this in order to get the indices of notes hit with WN
+            pretimems=0;
+            fvalsSongB=findwnoteSPK('batchnotes','b','','',0,[2000 2700],1e4,1,'obs0',0,pretimems);
+            clear isTRIG isCATCH
+            for i=1:length(fvalsSongB);isTRIG(i)=fvalsSongB(i).TRIG;end
+            for i=1:length(fvalsSongB);isCATCH(i)=fvalsSongB(i).CATCH;end
+            isHIT1=~isCATCH(find(isTRIG==1)); % for dividing targtimesWN
+            isHIT2=find(isTRIG & ~isCATCH); % for identifying fvals
+            isESC2=find(~isTRIG | isCATCH);
+
+        % Get the song and neural data
+            pretimems=100;
+            fvalsSongB=findwnoteSPK('batchnotes','b','','',0,[2000 2700],1e4,1,'obs0',0,pretimems);
+            fvalsCH1B=findwnoteSPK('batchnotes','b','','',0,[2000 2700],1e4,1,'obs1',0,pretimems); % unfiltered
+         % Get WN times
+            targtimes=gettargSPK('batch','b',pretimems);
+            targtimesWN=targtimes(find(isHIT1));               
+        % make a filter
+            [b,a]=butter(4,[300/32000],'high');
+            [b1,a1]=butter(4,[30/32000],'high');
+        % pull out neural data around time of WN and filter it
+            winpre=2000;
+            winpost=2000;
+            clear alignSonghitB  alignNeuralUNFILThitB alignNeuralFILThitB alignSongescB alignNeuralUNFILTescB alignNeuralFILTescB
+            for i=1:length(fvalsSongB(isHIT2));alignSonghitB(i,:)=fvalsSongB(isHIT2(i)).datt(targtimesWN(i)-winpre:targtimesWN(i)+winpost);end
+            for i=1:length(fvalsCH1B(isHIT2));alignNeuralUNFILThitB(i,:)=filtfilt(b1,a1,fvalsCH1B(isHIT2(i)).datt(targtimesWN(i)-winpre:targtimesWN(i)+winpost))-mean(filtfilt(b1,a1,fvalsCH1B(isHIT2(i)).datt(targtimesWN(i)-winpre:targtimesWN(i)+winpost)));end
+            for i=1:length(fvalsCH1B(isHIT2));alignNeuralFILThitB(i,:)=filtfilt(b,a,fvalsCH1B(isHIT2(i)).datt(targtimesWN(i)-winpre:targtimesWN(i)+winpost))-mean(filtfilt(b,a,fvalsCH1B(isHIT2(i)).datt(targtimesWN(i)-winpre:targtimesWN(i)+winpost)));end
+            for i=1:length(fvalsSongB(isESC2));alignSongescB(i,:)=fvalsSongB(isESC2(i)).datt(mean(targtimesWN)-winpre:mean(targtimesWN)+winpost);end
+            for i=1:length(fvalsCH1B(isESC2));alignNeuralUNFILTescB(i,:)=filtfilt(b1,a1,fvalsCH1B(isESC2(i)).datt(mean(targtimesWN)-winpre:mean(targtimesWN)+winpost))-mean(filtfilt(b1,a1,fvalsCH1B(isESC2(i)).datt(mean(targtimesWN)-winpre:mean(targtimesWN)+winpost)));end
+            for i=1:length(fvalsCH1B(isESC2));alignNeuralFILTescB(i,:)=filtfilt(b,a,fvalsCH1B(isESC2(i)).datt(mean(targtimesWN)-winpre:mean(targtimesWN)+winpost))-mean(filtfilt(b,a,fvalsCH1B(isESC2(i)).datt(mean(targtimesWN)-winpre:mean(targtimesWN)+winpost)));end
+            
+   % OUTSIDE SONG - 'c'
+            pretimems=100;
+            fvalsSongC=findwnoteSPK('batchnotes','c','','',0,[2000 2700],1e4,1,'obs0',0,pretimems);
+            fvalsCH1C=findwnoteSPK('batchnotes','c','','',0,[2000 2700],1e4,1,'obs1',0,pretimems);
+            targtimesC=gettargSPK('batchfiles','c',pretimems);
+            clear alignSonghitC  alignNeuralUNFILThitC alignNeuralFILThitC 
+            for i=1:length(fvalsSongC);alignSonghitC(i,:)=fvalsSongC(i).datt(targtimesC(i)-winpre:targtimesC(i)+winpost);end
+            for i=1:length(fvalsCH1C);alignNeuralUNFILThitC(i,:)=filtfilt(b1,a1,fvalsCH1C(i).datt(targtimesC(i)-winpre:targtimesC(i)+winpost))-mean(filtfilt(b1,a1,fvalsCH1C(i).datt(targtimesC(i)-winpre:targtimesC(i)+winpost)));end
+            for i=1:length(fvalsCH1C);alignNeuralFILThitC(i,:)=filtfilt(b,a,fvalsCH1C(i).datt(targtimesC(i)-winpre:targtimesC(i)+winpost))-mean(filtfilt(b,a,fvalsCH1C(i).datt(targtimesC(i)-winpre:targtimesC(i)+winpost)));end
+
+% plot
+figure;plot(mean(abs(alignSonghitB)),'r')
+hold on;plot(mean(abs(alignSonghitC)),'b')
+hold on;plot(10*mean(abs(alignNeuralFILThitC))-1000,'b')
+hold on;plot(10*mean(abs(alignNeuralFILThitB))-2000,'r')
+hold on;plot(10*mean(abs(alignNeuralUNFILThitC))-4000,'b')
+hold on;plot(10*mean(abs(alignNeuralUNFILThitB))-5000,'r')
+
+hold on;plot([1 4000],[10*mean(mean(abs(alignNeuralFILThitC(:,1:2000))))-1000 10*mean(mean(abs(alignNeuralFILThitC(:,1:2000))))-1000],'k-','Linewidth',4)
+hold on;plot([1 4000],[10*mean(mean(abs(alignNeuralFILThitB(:,1:2000))))-2000 10*mean(mean(abs(alignNeuralFILThitB(:,1:2000))))-2000],'k-','Linewidth',4)
+hold on;plot([1 4000],[10*mean(mean(abs(alignNeuralUNFILThitC(:,1:2000))))-4000 10*mean(mean(abs(alignNeuralUNFILThitC(:,1:2000))))-4000],'k-','Linewidth',4)
+hold on;plot([1 4000],[10*mean(mean(abs(alignNeuralUNFILThitB(:,1:2000))))-5000 10*mean(mean(abs(alignNeuralUNFILThitB(:,1:2000))))-5000],'k-','Linewidth',4)
+
+hold on;plot([2000 2000],[-5000 2500],'k-','Linewidth',2)
+xlim([0 4000]);ylim([-5000 2500])
+
+
+% ADAPTATION/HABITUATION!!! during playback - proves it isnt artifact
+% 'd' 'e' 'f' 'g'
+            pretimems=100;
+            fvalsSongD=findwnoteSPK('batchnotes2','d','','',0,[2000 2700],1e4,1,'obs0',0,pretimems);
+            fvalsCH1D=findwnoteSPK('batchnotes2','d','','',0,[2000 2700],1e4,1,'obs1',0,pretimems);
+            fvalsSongE=findwnoteSPK('batchnotes2','e','','',0,[2000 2700],1e4,1,'obs0',0,pretimems);
+            fvalsCH1E=findwnoteSPK('batchnotes2','e','','',0,[2000 2700],1e4,1,'obs1',0,pretimems);
+            fvalsSongF=findwnoteSPK('batchnotes2','f','','',0,[2000 2700],1e4,1,'obs0',0,pretimems);
+            fvalsCH1F=findwnoteSPK('batchnotes2','f','','',0,[2000 2700],1e4,1,'obs1',0,pretimems);
+            targtimesD=gettargSPK('batch2','d',pretimems);
+            targtimesE=gettargSPK('batch2','e',pretimems);   
+            targtimesF=gettargSPK('batch2','f',pretimems);    
+            winpost=5000;
+            clear alignSonghitD  alignNeuralUNFILThitD alignNeuralFILThitD 
+            for i=1:length(fvalsSongD);alignSonghitD(i,:)=fvalsSongD(i).datt(targtimesD(i)-winpre:targtimesD(i)+winpost);end
+            for i=1:length(fvalsCH1D);alignNeuralUNFILThitD(i,:)=filtfilt(b1,a1,fvalsCH1D(i).datt(targtimesD(i)-winpre:targtimesD(i)+winpost))-mean(filtfilt(b1,a1,fvalsCH1D(i).datt(targtimesD(i)-winpre:targtimesD(i)+winpost)));end
+            for i=1:length(fvalsCH1D);alignNeuralFILThitD(i,:)=filtfilt(b,a,fvalsCH1D(i).datt(targtimesD(i)-winpre:targtimesD(i)+winpost))-mean(filtfilt(b,a,fvalsCH1D(i).datt(targtimesD(i)-winpre:targtimesD(i)+winpost)));end
+            clear alignSonghitE  alignNeuralUNFILThitE alignNeuralFILThitE 
+            for i=1:length(fvalsSongE);alignSonghitE(i,:)=fvalsSongE(i).datt(targtimesE(i)-winpre:targtimesE(i)+winpost);end
+            for i=1:length(fvalsCH1E);alignNeuralUNFILThitE(i,:)=filtfilt(b1,a1,fvalsCH1E(i).datt(targtimesE(i)-winpre:targtimesE(i)+winpost))-mean(filtfilt(b1,a1,fvalsCH1E(i).datt(targtimesE(i)-winpre:targtimesE(i)+winpost)));end
+            for i=1:length(fvalsCH1E);alignNeuralFILThitE(i,:)=filtfilt(b,a,fvalsCH1E(i).datt(targtimesE(i)-winpre:targtimesE(i)+winpost))-mean(filtfilt(b,a,fvalsCH1E(i).datt(targtimesE(i)-winpre:targtimesE(i)+winpost)));end
+            clear alignSonghitF  alignNeuralUNFILThitF alignNeuralFILThitF 
+            for i=1:length(fvalsSongF);alignSonghitF(i,:)=fvalsSongF(i).datt(targtimesF(i)-winpre:targtimesF(i)+winpost);end
+            for i=1:length(fvalsCH1F);alignNeuralUNFILThitF(i,:)=filtfilt(b1,a1,fvalsCH1F(i).datt(targtimesF(i)-winpre:targtimesF(i)+winpost))-mean(filtfilt(b1,a1,fvalsCH1F(i).datt(targtimesF(i)-winpre:targtimesF(i)+winpost)));end
+            for i=1:length(fvalsCH1F);alignNeuralFILThitF(i,:)=filtfilt(b,a,fvalsCH1F(i).datt(targtimesF(i)-winpre:targtimesF(i)+winpost))-mean(filtfilt(b,a,fvalsCH1F(i).datt(targtimesF(i)-winpre:targtimesF(i)+winpost)));end
+% typical time in between is 400ms or 12800pts - so we are not close to
+% that
+figure;hold on;
+plot(runningaverage(mean(abs(alignNeuralUNFILThitD)),100))
+plot(runningaverage(mean(abs(alignNeuralUNFILThitD))+std(abs(alignNeuralUNFILThitD))/sqrt(size(alignNeuralUNFILThitD,1)),100))
+plot(runningaverage(mean(abs(alignNeuralUNFILThitD))-std(abs(alignNeuralUNFILThitD))/sqrt(size(alignNeuralUNFILThitD,1)),100))
+plot(runningaverage(mean(abs(alignNeuralUNFILThitE)),100),'r')
+plot(runningaverage(mean(abs(alignNeuralUNFILThitE))+std(abs(alignNeuralUNFILThitE))/sqrt(size(alignNeuralUNFILThitE,1)),100),'r')
+plot(runningaverage(mean(abs(alignNeuralUNFILThitE))-std(abs(alignNeuralUNFILThitE))/sqrt(size(alignNeuralUNFILThitE,1)),100),'r')
+plot(runningaverage(mean(abs(alignNeuralUNFILThitF)),100),'k')
+plot(runningaverage(mean(abs(alignNeuralUNFILThitF))+std(abs(alignNeuralUNFILThitF))/sqrt(size(alignNeuralUNFILThitF,1)),100),'k')
+plot(runningaverage(mean(abs(alignNeuralUNFILThitF))-std(abs(alignNeuralUNFILThitF))/sqrt(size(alignNeuralUNFILThitF,1)),100),'k')
+plot([1950 1950],[30 130],'k')

@@ -1,0 +1,16 @@
+figure
+
+[n,fs,bits]=wavread('g79g80_bos.wav');
+[sm,sp,t,f]=evsmooth(n,fs,.1);
+ax(1)=subplot(1,2,1)
+imagesc(t,f,log(abs(sp)));syn;ylim([0,1e4]);
+axis([6.36 6.91 100 8000])
+
+[p15,fs,bits]=wavread('g79g80_p15bos.wav');
+[sm,sp,t,f]=evsmooth(p15,fs,.1);
+ax(2)=subplot(1,2,2)
+imagesc(t,f,log(abs(sp)));syn;ylim([0,1e4]);
+
+axis([6.36 6.91 100 8000])
+
+linkaxes(ax);

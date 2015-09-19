@@ -1,0 +1,11 @@
+
+figure;plot(
+[PC, SCORE, LATENT]=princomp([x1 x2]');
+figure;plot(SCORE(:,1),SCORE(:,2),'*')
+hold on;plot(SCORE(1:117,1),SCORE(1:117,2),'*','Color','r')
+    % How much does LMAN contribute to each
+    meanAC=mean(abs(SCORE(1:117,:)));
+    meanINA=mean(abs(SCORE(118:end,:)));
+    stdAC=std(abs(SCORE(1:117,:)));
+    stdINA=std(abs(SCORE(118:end,:)));
+figure;plot((meanAC-meanINA)*PC')

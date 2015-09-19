@@ -1,0 +1,14 @@
+function pitchT=jc_exclude(normA,pitchA)
+count=1;
+init=680;
+fin=1280;
+width=fin-init+1;
+for i=1:size(normA,2)
+    for j=init:fin
+        Adt(j)=abs(normA(j-1,i)-normA(j,i));
+    end
+    if max(Adt)<0.01 %&& max(normA(init:fin,i))<0.06
+        pitchT(count).pitches=pitchA(i).pitches(init:fin);
+        count=count+1;
+    end
+end

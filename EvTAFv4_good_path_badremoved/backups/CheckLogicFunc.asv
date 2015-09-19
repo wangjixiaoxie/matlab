@@ -1,0 +1,7 @@
+function Match=CheckLogicFunc(SingleND,IndivMatchVals);
+%
+
+
+%
+NTemplates=size(SingleND.Templates,2);
+for itempl=1:SingleND.

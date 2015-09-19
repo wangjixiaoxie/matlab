@@ -1,0 +1,101 @@
+ %This script is specifically for examining previously constructed wav
+ %files, RATHER THAN for creating them in the first place.
+ 
+ 
+
+
+%colordef black
+%figure
+
+%fs=44100
+%startsong=.1
+%endsong=6.2
+%lowfiltval=100
+%highfiltval=20000
+
+clear fftarray
+clear array
+clear psarray
+clear absarray
+wavfiles={'34.wav' '34m10.wav' '34m5.wav' '34p5.wav' '34p10.wav'};
+
+
+
+%datoutfiles={'3667s1' '3667s2'};
+
+
+corpshiftednormg{1}=rawsongout2
+
+
+%Write the aif files back to regular data%
+for(i=1:length(corpshiftednormg))
+ %   [pshift{i},fs,nbits]=wavread(wavfiles{i});
+    
+  %  startsong=2.2
+   % endsong=2.6
+    %endsong=length(pshift{i})/fs;
+    
+    startsong=7.05
+    endsong=7.15;
+    pshift{i}=corpshiftednormg{i}(floor(startsong*fs):floor(endsong*fs))
+    end
+
+
+%for i=1:length(pshift)
+    %pshift{i}=pshift{i}(1:262000)
+    %[pshift{i}]=bandpass(pshift{i},fs,lowfiltval,highfiltval,'butter');
+    %normvec(1)=max(pshift{i});
+    %normvec(2)=abs(min(pshift{i}))
+
+    %normfactor(i)=max(pshift{i});
+
+    %ind{i}=find(pshift{i}==normfactor(i));
+%end
+
+
+
+
+
+figure
+%check total power
+for(i=1:length(pshift))
+    freqres=2^14
+       array{i}=fft(pshift{i});
+%changed this to reduce frequency samplinng
+        datalength=length(array{i});
+        if(mod(datalength,2)==1)
+            array{i}=array{i}(1:length(array{i}-1))
+        end
+         datalength=length(array{i});
+        psarray{i}=array{i}.*conj(array{i})/datalength;
+        %fftarray{i}=resample(psarray{i},1,100);
+        %datalength=datalength/100;
+        fftarray{i}=psarray{i};
+        fftfreqs=44100*(0:(datalength/2))/(datalength);
+        ax2(i)=subplot(5,1,i)
+    
+        plot(fftfreqs, (fftarray{i}(1:((datalength/2)+1))))
+        if (i==length(pshift))
+            Xlabel('Frequency (Hz)')
+        end
+        Ylabel('Power')
+        box off;
+end
+figure;
+for(i=1:length(pshift))
+ax(i)=subplot(5,1,i)
+
+diffarray=(fftarray{i})-(fftarray{1});
+plot(fftfreqs, diffarray(1:((datalength/2)+1)))
+if (i==length(pshift))
+            Xlabel('Frequency (Hz)')
+end
+
+Ylabel('diffpower')
+box off;
+end
+%cut out initial points...6616 is a good blank spot
+%for(i=1:length(pshift7980))
+ %   corpshifted7980{i}=corpshifted7980{i}(6616:length(corpshifted7980{i}));
+%end
+%produce a reverse bos stimulus

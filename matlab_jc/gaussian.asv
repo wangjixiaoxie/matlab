@@ -1,0 +1,28 @@
+function [x,m]=gaussian(A,c,sig)
+width=4*sig;
+t=-2:1/sig:+2;
+t=t*sig;
+
+long=2000;
+
+starting=c-2*sig;
+ending=c+2*sig;
+if starting>0
+    starting0=starting;
+else 
+    starting0=1;
+end
+if ending<long
+    ending0=ending;
+else
+    ending0=long;
+end
+x=zeros(long);
+for i=starting0:ending0
+    x(i)=A*exp(-(-t(i-(starting0-1)))*(-t(i-(starting0-1)))/(2*sig*sig));
+end
+
+m=min(x(starting0:ending0));
+for i=starting:ending
+    x(i)=x(i)-m;
+end

@@ -1,0 +1,181 @@
+function [f_cutoff,t_assay,spect_params,syl_name_in_notmat]=syllable_params_by_bird(bname,syl)
+
+if strcmp(bname,'pu77bk41')
+    if strcmp(syl,'a') %syl a - no good for pitch measurement
+        f_cutoff=[1000 2500];
+        t_assay=.008;
+        spect_params=[0 8];
+    elseif strcmp(syl,'b') %syl b - good long solid note for pitch
+        f_cutoff=[1000 2500];
+        t_assay=.040;
+        spect_params=[0 16];
+    elseif strcmp(syl,'c')  % syl c 
+        f_cutoff=[1200 2600];
+        t_assay=.024;
+        spect_params=[0 8];
+    elseif strcmp(syl,'d') % syl d 
+        f_cutoff=[1300 2800];
+        t_assay=.024;
+        spect_params=[0 16];
+    elseif strcmp(syl,'e') %syl e -
+        f_cutoff=[1000 2700];
+        t_assay=.024;
+        spect_params=[0 16];
+    elseif strcmp(syl,'f') %syl f -
+        f_cutoff=[1000 2700];
+        t_assay=.024;
+        spect_params=[0 16];
+    end
+end
+
+if strcmp(bname,'o85pu54')
+    if strcmp(syl,'a') %syl a -
+        f_cutoff=[1000 2500];
+        t_assay=.024;
+        spect_params=[0 16];
+    elseif strcmp(syl,'B') %syl B
+        f_cutoff=[1000 2500];
+        t_assay=.024;
+        spect_params=[0 16];
+    elseif strcmp(syl,'b') %syl b
+        f_cutoff=[1000 2800];
+        t_assay=.024;
+        spect_params=[0 16];
+    elseif strcmp(syl,'c') %syl c
+        f_cutoff=[1000 2800];
+        t_assay=.024;
+        spect_params=[0 16];
+    elseif strcmp(syl,'d') % syl d
+        f_cutoff=[700 2100];
+        t_assay=.052;
+        spect_params=[0 12];
+    elseif strcmp(syl,'m') %syl e  %%%%%%%%%%%%%%%%%%%%%% CHANGED
+        f_cutoff=[2500 4500];
+        t_assay=.008;
+        spect_params=[0 12];
+    elseif strcmp(syl,'T') %syl T
+        f_cutoff=[500 1700];
+        t_assay=.04;
+        spect_params=[0 16];
+
+    end
+end
+
+if strcmp(bname,'g91pu54')
+    if strcmp(syl,'a') %syl a
+        f_cutoff=[1000 2500];
+        t_assay=.028;
+        spect_params=[0 8];
+    elseif strcmp(syl,'b') %syl b
+        f_cutoff=[500 2700];
+        t_assay=.04;
+        spect_params=[0 16];
+    elseif strcmp(syl,'c') %syl c
+        f_cutoff=[1000 2700];
+        t_assay=.04;
+        spect_params=[0 16];
+    elseif strcmp(syl,'d') %syl d
+        f_cutoff=[2700 5000];
+        t_assay=.025;
+        spect_params=[0 16];
+    elseif strcmp(syl,'e') %syl e
+        f_cutoff=[3100 6000];
+        t_assay=.025;
+        spect_params=[0 16];
+    elseif strcmp(syl,'f') %syl f
+        f_cutoff=[1200 2500];
+        t_assay=.024;
+        spect_params=[0 16];    
+    elseif strcmp(syl,'A') %syl A
+        f_cutoff=[3000 5000];
+        t_assay=.025;
+        spect_params=[0 12];
+    elseif strcmp(syl,'B') %syl B
+        f_cutoff=[3000 5000];
+        t_assay=.025;
+        spect_params=[0 12];
+    end
+end
+
+if strcmp(bname,'bl82bl81')
+    if strcmp(syl,'c') %syl c
+        f_cutoff=[1000 2400];
+        t_assay=.012;
+        spect_params=[0 8];
+    elseif strcmp(syl,'D') %syl D
+        f_cutoff=[5000 7000];
+        t_assay=.004;
+        spect_params=[0 8];    
+    elseif strcmp(syl,'d') %syl d
+        f_cutoff=[4000 8000];
+        t_assay=.004;
+        spect_params=[0 8];
+    elseif strcmp(syl,'a') %syl A
+         f_cutoff=[1000 2500];
+         t_assay=.012;
+         spect_params=[0 8];
+    elseif strcmp(syl,'b') %syl b
+        f_cutoff=[1000 2800];
+        t_assay=.012;
+        spect_params=[0 8];
+     elseif strcmp(syl,'e') %syl e
+         f_cutoff=[900 3000];
+         t_assay=.012;
+         spect_params=[0 8];
+    elseif strcmp(syl,'f') %syl f
+        f_cutoff=[1000 2700];
+        t_assay=.018;
+        spect_params=[0 12];
+    elseif strcmp(syl,'B') %syl B
+        f_cutoff=[1000 2800];
+        t_assay=.012;
+        spect_params=[0 8];
+    elseif strcmp(syl,'F') %syl F
+        f_cutoff=[1000 2700];
+        t_assay=.018;
+        spect_params=[0 12];
+    elseif strcmp(syl,'v') %syl v
+        f_cutoff=[1000 2800];
+        t_assay=.012;
+        spect_params=[0 8];  
+    elseif strcmp(syl,'s') %syl s (second d; always Ddd)
+        f_cutoff=[4000 8000];
+        t_assay=.004;
+        spect_params=[0 8];   
+    elseif strcmp(syl,'t') %syl t (third d; always Ddd)
+        f_cutoff=[4000 8000];
+        t_assay=.004;
+        spect_params=[0 8];    
+    end
+end
+
+if strcmp(bname,'r93bl81')
+    if strcmp(syl,'a') %syl a  <-- pitch measurement not good
+        f_cutoff=[900 2400];
+        t_assay=.024;
+        spect_params=[0 16];
+    elseif strcmp(syl,'b') %syl b    <-- best pitch example (one long and flat/constant note)
+        f_cutoff=[1500 3000];
+        t_assay=.047;
+        spect_params=[0 32];
+    elseif strcmp(syl,'c') %syl c
+        f_cutoff=[900 2400];
+        t_assay=.025;
+        spect_params=[0 16];
+    elseif strcmp(syl,'e') %syl e
+        f_cutoff=[700 2400];
+        t_assay=.040;
+        spect_params=[0 16];
+%     elseif strcmp(syl,'E') %syl E
+%         f_cutoff=[800 2200];
+%         t_assay=.025;
+%         spect_params=[0 64];
+    end
+end
+
+
+if ~exist('f_cutoff')    % if undefined
+    f_cutoff='undefined';
+    t_assay='undefined';
+    spect_params='undefined';
+end

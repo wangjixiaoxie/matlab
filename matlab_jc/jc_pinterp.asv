@@ -1,0 +1,8 @@
+function [output]=jc_pinterp(input)
+for Index=1:length(input)
+    if Index==1 || Index==length(input) 
+        peak=Index;
+    else
+        peak=pinterp([Index-1;Index;Index+1],[input(Index-1);input(Index);input(Index+1)]);
+    end
+    output(i)=

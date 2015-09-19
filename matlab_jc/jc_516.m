@@ -1,0 +1,6 @@
+function [returned]=jc_516(arrayfile,starting,ending)
+
+for i=length(arrayfile)
+    x(i)=mean(arrayfile.pitches(starting:ending));
+end
+plot(x)

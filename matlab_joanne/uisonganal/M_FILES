@@ -1,0 +1,54 @@
+uisonganal.m*   %main prog
+
+   uisongcontrols.m*  %called to help build left hand gui
+      uibatch.m   %button and paramaters to start batch processing/printing
+      	batch_setup.m
+      uimove.m*   %shifitng left and right
+      	move_left.m
+	move_right.m
+      uiprint_sa.m %printing
+      	get_print_vals.m
+	set_print_vals.m
+	print_song.m
+      uipsdanal.m  %calls psdanal program for spectral analysis
+      uiresegment.m* %for changing parameters that segment song
+      	get_thresh_val.m*
+	get_segvals.m
+	segment.m
+      uiscale.m  %for scaling display and printout (time and vertical axis)
+      	get_scale_vals.m
+	set_scale_vals.m
+      	scale_spect.m
+      uizoom.m*  %for zooming in and out on plot
+      	zoom_x.m
+	   get_xrange.m 
+	zoom_y.m
+	   get_yrange.m
+      edit_note.m %for editing (manually) start and stops of note segments
+      label.m %for initiating labelling mode
+      make_current.m* %called by most buttons - for part. impl. wmulti. window control
+
+   uispectcontrols.m  %called to help build spectrogram gui
+	make_map.m
+   
+   soundin.m   %reads in raw song files of various formats
+	bandpass.m  %filters input sound files
+   read_filt.m* %reads filtered sound files
+   write_filt.m* %writes filtered sound files
+   read_spect.m* %reads spectrogram files 
+   write_spect.m* %writes spectrogram files 
+   read_note.m*  %loads '.not.mat' files with info on labels, timing, Fs, etc. 
+   save_data.m   %saves '.not.mat' files with various info
+   disp_song.m  %displays song data
+   disp_idx_spect.m  %displays spectrogram data
+	imagesc1.m  %home brew version of matlab imagesc.m to work around bug
+	
+
+
+*****************
+miscellaneous:
+songanal.m  %I think garbage old, old version with key commands insead of gui
+uisonganal1.m*  %main prog variant: I think to alter specgram display (color?)
+
+
+

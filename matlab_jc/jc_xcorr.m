@@ -1,0 +1,5 @@
+function [autocorr]=jc_xcorr(residuals)
+autocorr=[];
+for i=1:size(residuals,2)
+    autocorr(:,i)=xcorr(residuals(:,i));
+end

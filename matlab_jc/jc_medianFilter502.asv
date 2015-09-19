@@ -1,0 +1,17 @@
+function [median_filtered]=jc_medianFilter502(input_matrix,halfwidth)
+%halfwidth of 3 gives a filter size of 6
+width=halfwidth*2;
+a=input_matrix;
+c=a;
+ending=length(a)-width;
+for i=halfwidth+1:ending
+    m=median(a(i-halfwidth:i+halfwidth));
+    for j=0:halfwidth
+        n=i+j;
+        if (a(n)>m+40 || a(n)<m-40) && 
+            c(n)=m;
+            record=[record n]
+        end
+    end
+end
+median_filtered=c;

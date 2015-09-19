@@ -1,0 +1,169 @@
+%written 4.1.10 to plot group data histograms
+%input combvls takes the following form.
+%combvls{1} - baseline runs
+%combvls{2} - shift runs
+
+% combvls{X}{1}-upshift
+% combvls{X}{2}-downshift
+
+%combvls{X}{X}{1}-shift
+%combvls{X}{X}{2}-control.
+
+%try to write compatible with stim and shift
+function [sumdata]=plotgroupbar(combvls,ps)   
+    ax=ps.ax;
+    ps.col={'k' 'r' 'k'}
+%     edges=ps.edges;
+%     col=ps.col;
+% %     jjpair{1}=[1 2]
+%     jjpair{2}=[1 2]
+    
+    %XVLS
+    %baseline runs are going to x-7, 8, 9
+    
+    if(~ps.STIM)
+    
+    %baseline runs  target notes are going to 12 13 14
+    xvls{1}{1}{1}=[12 13 14]
+    xvls{1}{2}{1}=[16 17 18]
+    
+    %shift runs, target notes
+    xvls{2}{1}{1}=[0 1 2]
+    xvls{2}{2}{1}=[0 1 2]
+    
+    %shift runs, control notes
+    xvls{2}{1}{2}=[4 5 6]
+    xvls{2}{2}{2}=[8 9 10]
+    
+    %baseline runs, control notes
+    xvls{1}{1}{2}=[20:22]
+    xvls{1}{2}{2}=[20:22]
+    
+    else
+    %shiftruns, targetnotes
+    xvls{2}{1}{1}=[0 1]
+    xvls{2}{2}{1}=[0 1]
+    
+    %baseline runs, target notes
+    xvls{1}{1}{1}=[3 4]
+    xvls{1}{2}{1}=[6 7]
+    end
+    
+
+
+    for typevl=1:length(combvls)
+        for drxnvl=1:length(combvls{typevl})
+            for ntvl=1:length(combvls{typevl}{drxnvl})
+                crvls=combvls{typevl}{drxnvl}{ntvl}
+                crxvl=xvls{typevl}{drxnvl}{ntvl}
+                
+                
+                
+                axes(ax)
+                for ii=1:length(crxvl)
+                    if(ii==1)
+                        if(~ps.STIM)
+                            axvls{1}=crvls.acpreshift;
+                     
+                             lidind=find(crvls.lidflag==1)
+                        else
+                            axvls{1}=crvls.acshift;
+                        end
+                    elseif(ii==2)
+                        axvls{2}=crvls.mushift;
+                    else
+                        axvls{3}=crvls.acpostshift;
+                    end
+
+
+                    
+                    %bas runs
+                    if(typevl==1)
+                        [redinds]=reduce_vls(crvls);
+                        if(~ps.STIM)
+                            if(~isempty(lidind))
+                            lidindout=ismember(redinds,lidind);
+                            end
+                        end
+                        
+                            axvls{ii}=axvls{ii}(redinds)
+                       
+                    end
+                    
+                    %shiftruns
+                    if(typevl==2)
+                        [redinds]=reduce_vls(crvls);
+                        if(~ps.STIM)
+                            
+                            if(~isempty(lidind))
+                                lidindout=find(ismember(redinds,lidind)==1);
+                            end
+                        else
+                            lidindout=[];
+                        end
+                    
+                   
+                        axvls{ii}=axvls{ii}(redinds);
+                    end
+
+                    crx{ii}=crxvl(ii)*ones(length(axvls{ii}),1);
+                
+                    plot(crx{ii},axvls{ii},'o','Color',ps.col{ii},'MarkerSize',4);
+                    hold on;
+                    if(ii>1)
+                        plot([crx{ii-1}' ;crx{ii}'],[axvls{ii-1}; axvls{ii}],'Linewidth',2,'Color','k');
+                        
+                        if(~ps.STIM&~isempty(lidindout))
+                            plot([crx{ii-1}(lidindout)' ;crx{ii}(lidindout)'],[axvls{ii-1}(lidindout); axvls{ii}(lidindout)],'Linewidth',2,'Color','c');
+                        end
+                        if (ii==2)
+                            text(crx{1}(1)-1,1,['n=' num2str(length(axvls{ii}))]);
+                        end
+                    end
+                    
+                        
+                %calcmean and ster of each value for bar plots
+                    
+                            mnoutpre=nanmean(axvls{ii})
+                            sterpre=nanstd(axvls{ii})./sqrt(length(axvls{ii}));
+                            bar(crxvl(ii),mnoutpre,0.6,'FaceColor','none');
+                            plot([crxvl(ii) crxvl(ii)],[mnoutpre-sterpre mnoutpre+sterpre],'k')
+                    %shift_target notes
+                     if(typevl==2)
+                        if(ntvl==1)
+                            sumdata(drxnvl).mnoutpre=mnoutpre;
+                            sumdata(drxnvl).sterpre=sterpre;
+                            sumdata(drxnvl).pct=crvls.pct(redinds)
+                            sumdata(drxnvl).nvls=length(redinds);
+                            sumdata(drxnvl).lidvls=length(lidindout);
+                            sumdata(drxnvl).pctlid=crvls.pct(redinds(lidindout));
+                        end
+                     end
+                
+                
+                end
+                
+                
+                
+            end
+        end
+    end
+    function [redinds]=reduce_vls(crvls)
+        redinds=[];
+        bsind=unique(crvls.bsnm);
+        shind=unique(crvls.shnum);
+        for ii=1:length(bsind)
+            crbs=bsind(ii);
+            for jj=1:length(shind);
+                crsh=shind(jj);
+                bsinds=find(crvls.bsnm==crbs)
+                shinds=find(crvls.shnum==crsh);
+                inds=intersect(bsinds,shinds);
+                
+                if(~isempty(inds))
+                    redinds=[redinds max(inds)];
+                end
+            
+            end
+        end
+        

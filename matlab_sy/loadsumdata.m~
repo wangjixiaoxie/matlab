@@ -1,0 +1,7 @@
+function [avlsout,graphvals]=loadsumdata(bs, birdind);
+pth=bs(birdind).path;
+nm=bs(birdind).matfilename
+strcmd=['cd ' pth '/datasum']
+eval(strcmd)
+strcmd=['load ' nm]
+eval(strcmd)

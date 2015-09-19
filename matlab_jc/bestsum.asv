@@ -1,0 +1,15 @@
+function x=bestsum(y,input)
+sumgauss=input;
+diff=10^100;
+place=911;
+for i=1:length(manysums)
+    difference=0;
+    for j=1:length(y)
+        difference=difference+sumgauss(i).gauss(350+j)-y(j);
+    end
+    if difference<diff
+        place=i;
+        diff=difference;
+    end
+end
+x=sumgauss(place).gauss;

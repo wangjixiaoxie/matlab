@@ -1,0 +1,84 @@
+% o30bk18
+% surgery on 8.14.09
+% 8.19 - probes in
+% 8.20 (morning) - started singing
+
+% decide to target note B - can be targeted more reliably
+% EXPERIMENT 1
+    % 8.21 at 11:10am - 2mM AP5 at 1.0uL/min
+    % 8.21 at 1:12pm - hit below 1920Hz (near onset of syllable
+    % 8.21 at 4:48pm - door open - acq off - ACSF at 1.5uL/min
+    % 8.21 at 5:18pm - door closed - acq off - ACSF at 0.6uL/min
+    
+    % 8.23 at 1:00pm - 1mM AP5 at 1.0uL/min
+    % 8.23 at 2:45pm - hit below 1950Hz
+    %       at 5:58pm - wn off
+    % 8.23 at 6:01pm - door open - acquisition off ACSF at 1.5uL/min
+    % 8.23 at 6:45pm - door closed
+    
+    % 8.25 at 10:20am - 1mM AP5 at 1.0uL/min
+    % 8.25 at 1:10pm - hit below 1970Hz
+    % 8.25 at 5:13pm - wn off, door open, acq off, ACSF at 1.5uL/min
+% EXPERIMENT 2
+    % 8.31 at 7pm - probes in
+    % 9.02 at 11:15am - 1mM AP5 at 1.0uL/min
+    % effect gave immediate reduction in FF variability but later caused
+    % syntax disruption - use lower dose
+    % 9.02 at 1:01pm - ACSF at 0.6uL/min
+    % song recovers at precisely 2:15pm
+ pitch902apv=jc_pitchmat1024(shifted902apv,1024,1020,2,3400,4600,[1],'obs0',1);2   
+
+ figure;plot(tvals821acsf,pitch821acsf2(200,:),'*')
+hold on;plot(tvals823apv(50:end),pitch823apv(200,50:end),'*','Color','r')
+hold on;plot(tvals823apvwn,pitch823apvwn(200,:),'*','Color','g')
+hold on;plot(tvals823acsf,pitch823acsf(200,:),'*','Color','b')     
+plot(tvals825apv,pitch825apv(200,:),'*','Color','r')
+plot(tvals825apvwn,pitch825apvwn(200,:),'*','Color','g')
+hold on;plot(tvals825acsf,pitch825acsf(200,:),'*','Color','b')
+hold on;plot(tvals901acsf,pitch901acsf(200,:),'*','Color','b')
+plot(tvals902apv,pitch902apv(200,:),'*','Color','r')
+
+ figure;plot(tvals821acsf,pitch821acsf2(160,:),'*')
+hold on;plot(tvals823apv(50:end),pitch823apv(160,50:end),'*','Color','r')
+hold on;plot(tvals823apvwn,pitch823apvwn(160,:),'*','Color','g')
+hold on;plot(tvals823acsf,pitch823acsf(160,:),'*','Color','b')     
+plot(tvals825apv,pitch825apv(160,:),'*','Color','r')
+plot(tvals825apvwn,pitch825apvwn(160,:),'*','Color','g')
+hold on;plot(tvals825acsf,pitch825acsf(160,:),'*','Color','b')
+hold on;plot(tvals901acsf,pitch901acsf(160,:),'*','Color','b')
+plot(tvals902apv,pitch902apv(200,:),'*','Color','r')
+% How does it correlate with changes in variability
+% baseline Variability
+pitch821acsfX=pitch821acsf2(:,ind([1:34 36:133 135:end]));
+tvals821acsfX=tvals821acsf(ind([1:34 36:133 135:end]));
+for i=1:size(pitch821acsfX,2)-30
+    bvar(i)=median(std(pitch821acsfX(900:960,i:i+30)'));
+end
+basevar=median(bvar);
+for i=1:size(pitch823apv,2)-30
+    apv1var(i)=median(std(pitch823apv(900:960,i:i+30)'));
+end
+for i=1:size(pitch823apvwn,2)-20
+        apv1wnvar(i)=median(std(pitch823apvwn(900:960,i:i+20)'));
+end
+
+for i=1:size(pitch823acsf,2)-30
+    post1var(i)=median(std(pitch823acsf(900:960,i:i+30)'));
+end
+for i=1:size(pitch825apv,2)-30
+    apv2var(i)=median(std(pitch825apv(900:960,i:i+30)'));
+end
+for i=1:size(pitch825apvwn,2)-20
+        apv2wnvar(i)=median(std(pitch825apvwn(900:960,i:i+20)'));
+end
+
+for i=1:size(pitch825acsfX,2)-30
+        post2var(i)=median(std(pitch825acsfX(900:960,i:i+30)'));
+end
+figure;plot(tvals821acsfX(16:end-15),bvar,'*')
+hold on;plot(tvals823apv(16:end-15),apv1var,'*','Color','r')
+hold on;plot(tvals823apvwn(11:end-10),apv1wnvar,'*','Color','g')
+hold on;plot(tvals823acsf(16:end-15),post1var,'*','Color','b')
+hold on;plot(tvals825apv(16:end-15),apv2var,'*','Color','r')
+hold on;plot(tvals825apvwn(11:end-10),apv2wnvar,'*','Color','g')
+hold on;plot(tvals825acsfX(16:end-15),post2var,'*','Color','b')

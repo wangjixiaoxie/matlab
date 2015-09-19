@@ -1,0 +1,47 @@
+% trialbytrial
+
+% bk50w18 --- chick
+    
+    % problem - failed to have 1 second after trig, so didn't record any
+    % song between 12/13 1100hrs and 12/14 1200hrs  
+    
+    % adjusted gain of input at 1230 on 12/14 to zero it
+    
+    % Need to adjust alignment of notes starting at 1230 on 12/14 because
+    % of adjusting the gain of the input.
+    
+    %%%%%%% 12/14 @ 1500 hrs
+    % segment at 30;5;2000;2
+    % templa at point 90
+    
+    % Start "official" baseline recording at this time --- if I need
+    % extra files, I can go back and align the previous files.  Everything
+    % after this time point (location of mic, etc) should be kept constant.
+    % 12/15 % 1230hrs --- put on the correct template that hits every note
+    % and will be used for the reinforcement trials.
+    
+    %%%%%%% 12/15 @ 2130hrs - ampon
+    % There were only 4 notes before the bird went to sleep.
+    % 12/16 @ 1100hrs - notch looks great, catch notes working
+    
+    
+% or92or82 --- launchpad
+
+    % Baseline: started recording Friday 12/12 at 1300hrs
+    %   ignored 12/12 1353-1356hrs because wn test
+    % started singing less after 12/13 1600hrs
+    %
+    % 12/14 - 1300hrs to 1400hrs -- messed around with things and added a
+    % new template - ampoff but open logic - should hit every note.
+    
+    % The water bottle had been stuck outside the cage - reason he wasn't
+    % singing as much as he should have been.
+    
+    %%%%%%% 12/14 @ 1500hrs
+    % segment at 30;5;10000;2 --- default settings
+    % templa at point 75
+    % Start "official" baseline recording at this time
+    
+    %%%%%%% 12/15 @ 2100hrs - ampon
+    % First note was the morning of 12/16
+    % 12/16 @ 1100hrs - notch looks great, catch notes working

@@ -1,0 +1,22 @@
+function aav=PCsim(lesion,Goodinactivations,num,starting,ending)
+%PCsim(0,Goodinactivations,num,starting,ending)
+%PCsim(1,normAC,normINA,starting,ending)
+if lesion==0
+    PCAset=[Goodinactivations.ACSF(num).residSTFT(starting:ending,:) Goodinactivations.INA(num).residSTFT(starting:ending,:)];
+    ACsize=size(Goodinactivations.ACSF(num).residSTFT,2);
+    INAsize=size(Goodinactivations.INA(num).residSTFT,2);
+else 
+    PCAset=[Goodinactivations num];
+    ACsize=size(Goodinactivations,2);
+    INAsize=size(num,2);
+    starting=1;
+    ending=size(PCAset,1);
+end
+[PC,SCORE,LATENT]=princomp(PCAset');
+
+for i=1:3
+    Reconst=PCsubtract(i,SCORE,PC,ACsize,INAsize);
+    aav(:,i)=ContingSim((ending-starting)/2,Reconst,70);
+end
+% LMAN-blue; nonLMAN-red; both-green
+g=7;

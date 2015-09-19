@@ -1,0 +1,41 @@
+%useful for analyzing sam's data
+batch='/cobain6/batch1';
+chn2plot=4;
+[TH]=get_thresh(batch,song_chan,tet_chans,chn2plot);
+fid=fopen(batchfile,'r');
+upper=TH(2);
+thr=TH(1);
+samplerate=32000;
+while (1)
+	fn=fgetl(fid);
+	if (~ischar(fn))
+		break;
+	end
+	if (~exist(fn,'file'))
+		continue;
+	end
+	
+	cnt=cnt+1;
+	fnm{cnt}=fn;
+end
+fclose(fid);
+
+for ifn=1:length(fnm);
+
+    fn=fnm{ifn};
+    %run tetanal on the file get spike times and spkamps
+	
+    rd=readrecf(fn);
+    %read in data
+    if(isempty(rd)==0)
+        [data,fs]=Readcbinfile(fn,-2000,song_chan,tet_chans);
+    end
+
+    sfct=(1e3/2^15);
+    data=-sfct.*data;
+    snd=data(:,1)'
+    ch=data(:,chn2plot)';
+    
+    [outstruct(ifn).spktimes]=analbird(upper,thr,snd,ch,samplerate);
+    outstruct(ifn).ttimes=ttimes;
+end

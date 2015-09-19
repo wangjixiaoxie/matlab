@@ -1,0 +1,168 @@
+
+function []=plotcontour(avls,ps)
+    
+     if(isfield(ps,'PLOTSTIMBOUNDS'))
+        if(ps.PLOTSTIMBOUNDS)
+            PLOTSTIMBOUNDS=1;
+        else
+            PLOTSTIMBOUNDS=0;
+        end
+    else 
+        PLOTSTIMBOUNDS=0;
+    end
+
+
+    crind=ps.indtoplot;
+    pathvl=avls.pvls{crind}
+    btvl=avls.cvl{crind};
+    
+    if(isfield(avls,'baspath'))
+        cmd=['cd ' avls.baspath pathvl]
+    else
+        cmd=['cd '  pathvl]
+    end
+    eval(cmd);
+    cmd=['load ' btvl '.mat']
+
+    eval(cmd);
+    
+    axes(ps.ax);
+    if(~isempty('crfbind'))
+        mnfb=mean(contours(:,crfbind),2);
+    end
+    mnct=mean(contours(:,crctind),2);
+    basct=getbas(avls,ps.basind);
+    if(~isempty('crfbind'))
+        stdfb=std(contours(:,crfbind),0,2);
+        stefb=stdfb./sqrt((length(crfbind)));
+    end
+        stdct=std(contours(:,crctind),0,2);
+        stect=stdct./sqrt(length(crctind));
+    ind=find(pitchtms>ps.TIMEBNDS(1)&pitchtms<ps.TIMEBNDS(2))
+    xvls=pitchtms(ind);
+   
+        
+        fillx=[xvls xvls(end:-1:1)]
+        fbvec=[mnfb(ind)/1000+stefb(ind)/1000]
+        fbvec2=[mnfb(ind)/1000-stefb(ind)/1000]
+        filly=[fbvec' fbvec2(end:-1:1)']
+
+ctvec=[mnct(ind)/1000+stect(ind)/1000]
+ctvec2=[mnct(ind)/1000-stect(ind)/1000]
+filly2=[ctvec' ctvec2(end:-1:1)']
+
+ mufillcol=[0.6 0.6 0.6]
+        acfillcol=[1 .8 .8]
+if(~isempty('crfbind'))
+    if(isfield(ps,'boxbnds'))
+        xbnds(1)=ps.boxbnds(1);
+        xbnds(2)=ps.boxbnds(2);
+        y1=2.2 
+        y2=2.6
+        fillcol=[.83 .83 .83]
+        fill([xbnds(1) xbnds(2) xbnds(2) xbnds(1)],[y1 y1 y2 y2],fillcol,'edgecolor','none');
+        hold on;
+    end
+  
+%     fill(xvec,yvec,acfillcol);
+% filly([1 end])=0
+% filly2([1 end])=0
+    fill(fillx,filly,acfillcol,'edgecolor','none');
+      hold on;
+     fill(fillx,filly2,mufillcol,'edgecolor','none');
+%         plot(pitchtms(ind), mnfb(ind)-stefb(ind),'r');
+%         hold on;
+        plot(xvls,mnfb(ind)/1000,'r','Linewidth',0.5)
+        hold on;
+%         plot(pitchtms(ind), mnfb(ind)+stefb(ind),'r');
+    end
+        
+%         plot(pitchtms(ind), mnct(ind)+stect(ind),'k');
+%         plot(pitchtms(ind), mnct(ind)-stect(ind),'k');
+        plot(xvls,mnct(ind)/1000,'k','Linewidth',0.5)
+        
+            plot(xvls,basct(ind)/1000,'k--','Linewidth',0.5)
+            if(ps.plot_triangles)
+                plot(
+            
+
+% %     mupts=mumean(1:length(indvl))
+%     acpts=acmean(1:length(indvl))
+%     yvec=[avls.initmean{notevl}*ones(length(mupts),1);mupts(end:-1:1)']
+    if(PLOTSTIMBOUNDS)
+                [mnstim,stdstim]=calcstim_meanstd(ps.fvst,crfbind);
+                plotstmean=mnstim/1000+avls.con_tbinshft;
+                plotstd=stdstim/1000;
+                stimht=mean(basct)/1000;
+                stimln=ps.plotstimln;
+                
+                plotste=plotstd/sqrt(length(crfbind));
+                x1=plotstmean-plotste;
+                x2=plotstmean+plotste;
+                
+                x3=plotstmean+stimln-plotste;
+                x4=plotstmean+stimln+plotste;
+                ht1=stimht-.02;
+                ht2=stimht+.02;
+                xvec{1}=[x1 x2 x2 x1]
+                xvec{2}=[x3 x4 x4 x3]
+                htout{1}=[ht1 ht1 ht2 ht2]
+                htout{2}=[ht1 ht1 ht2 ht2]
+                for ii=1:2
+                   fill(xvec{ii},htout{ii}, fillcol,'edgecolor','none')
+                end
+                plot([plotstmean plotstmean+stimln],[stimht stimht],'k','Linewidth',1);
+    end 
+
+    
+        plot([plotstmean plotstmean+stimln],[stimht stimht],'k','Linewidth',1);
+   
+    box off;
+    
+ 
+function [mnstim,stdstim]=calcstim_meanstd(fvst,crfbind)
+%         onstime(1)=fvst(2).ons(fvst(2).ind)
+%     onstime(2)=fvst(3).ons(fvst(3).ind)
+%     onstime(3)=fvst(4).ons(fvst(4).ind)
+%     % onstime(3)=fvst(9).ons(fvst(9).ind)
+%     stimofftime(1)=fvst(2).STIMTIME;
+%     catchvl(1)=fvst(2).STIMCATCH
+%     stimofftime(2)=fvst(3).STIMTIME;
+%     catchvl(2)=fvst(3).STIMCATCH
+%     stimofftime(3)=fvst(4).STIMTIME;
+%     catchvl(3)=fvst(3).STIMCATCH;
+% 
+%     dtime(1)=onstime(1)/1000+stimofftime(1)/1000-exsong(1).bnds(1);
+%     dtime(2)=onstime(2)/1000+stimofftime(2)/1000-exsong(1).bnds(1);
+%     dtime(3)=onstime(3)/1000+stimofftime(3)/1000-exsong(1).bnds(1);
+
+
+
+        combfvst=[];
+        for ii=1:length(fvst)
+           combfvst=[combfvst fvst(ii).STIMTIME];
+           
+           
+            
+        end
+        mnstim=mean(combfvst(crfbind));
+        stdstim=std(combfvst(crfbind));
+
+
+
+function [basct]=getbas(avls,basind)
+
+    pathvl=avls.pvls{basind}
+    btvl=avls.cvl{basind};
+    
+    if(isfield(avls,'baspath'))
+        cmd=['cd ' avls.baspath pathvl]
+    else
+        cmd=['cd '  pathvl]
+    end
+    eval(cmd);
+    cmd=['load ' btvl '.mat']
+
+    eval(cmd);
+    basct=mean(contours(:,crctind),2);
+    

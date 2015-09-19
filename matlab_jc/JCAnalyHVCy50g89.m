@@ -1,0 +1,670 @@
+
+% .song.mat
+    % Song data, sampled as 32kHz
+% .spk
+    % First column = cluster number (for each neuron, only a subset of
+            % clusters are actual spikes - and the rest are just noise -
+            % see e-mail from raghav)
+    % Second column = spike time (seconds)
+    
+%     y50g89_081610160745.song.mat
+
+
+
+
+
+% Undirected
+load /cardinal/HVCAnalysedData/UDsaved021011y50g89.mat
+
+% Directed
+load /cardinal/HVCAnalysedData/Dsaved021011y50g89.mat
+
+clear clusters
+basedir='/cardinal/HVCAnalysedData/'
+a=1;folders{a}=[basedir 'y50g89_081610_4/Directed'];clusters{a}=[1 3 4 5 6 7];prefixes{a}='Chan3_';
+a=2;folders{a}=[basedir 'y50g89_081610_4/UnDirected'];clusters{a}=[1 3 4 5 6 7];prefixes{a}='Chan3_';
+a=3;folders{a}=[basedir 'y50g89_081610_5/Directed'];clusters{a}=[1 2];prefixes{a}='Chan3_';
+a=4;folders{a}=[basedir 'y50g89_081610_5/UnDirected'];clusters{a}=[1 2];prefixes{a}='Chan3_';
+a=5;folders{a}=[basedir 'y50g89_081710_6/Directed'];clusters{a}=[3 4 5];prefixes{a}='Chan2_';
+a=6;folders{a}=[basedir 'y50g89_081710_6/UnDirected'];clusters{a}=[3 4 5];prefixes{a}='Chan2_';
+a=7;folders{a}=[basedir 'y50g89_081710_7/Directed'];clusters{a}=[2];prefixes{a}='Chan2_';
+a=8;folders{a}=[basedir 'y50g89_081710_7/UnDirected'];clusters{a}=[2];prefixes{a}='Chan2_';
+a=9;folders{a}=[basedir 'y50g89_081710_8/Directed'];clusters{a}=[1 6 9 12];prefixes{a}='Chan2_';
+a=10;folders{a}=[basedir 'y50g89_081710_8/UnDirected'];clusters{a}=[1 6 9 12];prefixes{a}='Chan2_';
+a=11;folders{a}=[basedir 'y50g89_081810_9/Directed'];clusters{a}=[3];prefixes{a}='Chan3_';
+a=12;folders{a}=[basedir 'y50g89_081810_9/UnDirected'];clusters{a}=[3];prefixes{a}='Chan3_';
+a=13;folders{a}=[basedir 'y50g89_082010_10/Directed'];clusters{a}=[4 7 9];prefixes{a}='Chan3_';
+a=14;folders{a}=[basedir 'y50g89_082010_10/UnDirected'];clusters{a}=[4 7 9];prefixes{a}='Chan3_';
+a=15;folders{a}=[basedir 'y50g89_082010_11/Directed'];clusters{a}=[1 6 9 10];prefixes{a}='Chan3_';
+a=16;folders{a}=[basedir 'y50g89_082010_11/UnDirected'];clusters{a}=[1 6 9 10];prefixes{a}='Chan3_';
+a=17;folders{a}=[basedir 'y50g89_082010_12/Directed'];clusters{a}=[2 4 7 9 12];prefixes{a}='Chan4_';
+a=18;folders{a}=[basedir 'y50g89_082010_12/UnDirected'];clusters{a}=[2 4 7 9 12];prefixes{a}='Chan4_';
+a=19;folders{a}=[basedir 'y50g89_082310_13/Directed'];clusters{a}=[2 5];prefixes{a}='Chan4_';
+a=20;folders{a}=[basedir 'y50g89_082310_13/UnDirected'];clusters{a}=[2 5];prefixes{a}='Chan4_';
+a=21;folders{a}=[basedir 'y50g89_082410_14/Directed'];clusters{a}=[5 7 10];prefixes{a}='Chan5_';
+a=22;folders{a}=[basedir 'y50g89_082410_14/UnDirected'];clusters{a}=[5 7 10];prefixes{a}='Chan5_';
+a=23;folders{a}=[basedir 'y50g89_101210_15/Directed'];clusters{a}=[1 3];prefixes{a}='Chan4_';
+a=24;folders{a}=[basedir 'y50g89_101210_15/UnDirected'];clusters{a}=[1 3];prefixes{a}='Chan4_';
+
+
+% Create "neuron" structure
+    isDir=1; % for directed
+    [neuron]=HVCprocessing_y50g89(folders,clusters,prefixes,isDir);
+    % only works for this bird!!!!
+    % neuron(folder)
+    %	 .song(song)
+            % .Song --> entire song file
+            % .noteons{syllable}(rendition)   % note onsets (minus 30ms) relative to song onset (30ms subtracted to allow pitch quant)
+            % .noteoffs{syllable}(rendition)  % note offsets (minus 30ms) relative to song onset
+            % .spiketimes{cluster}            % spike times (minus 30ms) relative to song onset (30ms subtracted to align with note onsets)
+            % .notedata{syllable}.datt(rendition,:)   % raw data for note - used to calculate pitch contours
+            % .pitchdata{syllable}.datt(rendition,:)  % pitch contours - first point is 16ms after note onset (512 points)
+
+% Create "Rendition" structure (March 8, 2011)
+clear Rendition
+        clear ptwindows
+        ptwindows(1).data=[250:400];
+        ptwindows(2).data=[600:1000];
+        ptwindows(3).data=[700:850];
+        numsylls=3;
+    % Undirected
+        clear theseclusters
+        for i=1:12 
+        theseclusters{i}=clusters{i*2};
+        end
+        wins=[-300:1:0];
+    [Rendition]=HVCrendstruc(neuron,ptwindows,theseclusters,numsylls,wins);
+    %%%%
+% Use Rendition structure
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% March 11, 2011)
+%%%% MULTIPLE REGRESSION
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+    count=0;
+    clear datamatrix
+    for i=1:length(Rendition)
+      for k=1:size(Rendition(i).burstparams,2)
+            count=count+1;
+        datamatrix(count,1)=Rendition(i).motif;                             % 1 = motif number (ignore 0 and 100 - first A and after third motif)
+        datamatrix(count,2)=Rendition(i).sylltype;                          % 2 = syllable type
+        datamatrix(count,3)=Rendition(i).neuron;                            % 3 = neuron number    
+        datamatrix(count,4)=mean(Rendition(i).burstparams(:,k));            % 4 = burst midpoint
+        datamatrix(count,5)=Rendition(i).residburstspikecountsDIFF(k);      % 5 = spike count residuals (subtracted)
+        datamatrix(count,6)=Rendition(i).residburstspikecountsFACTOR(k);    % 6 = spike count residuals (as factor)
+        datamatrix(count,7)=Rendition(i).residburstspiketime(k);            % 7 = spike times in burst (subtracted)
+        datamatrix(count,8)=Rendition(i).pitchresiduals;                    % 8 = pitch residual
+      end  
+    end
+    
+    % Look only at ones in good motifs
+    indgood=find([datamatrix(:,1)>0 & datamatrix(:,1)<100]);
+    % Look only at ones in good motifs that have at least one spike for this rendition
+    indgoodspikes=find([datamatrix(:,1)>0 & datamatrix(:,1)<100] & datamatrix(:,6)~=0);
+    
+    % look at only the PREMOTOR ones - previous 100ms
+    indgood=find([datamatrix(:,1)>0 & datamatrix(:,1)<100] & datamatrix(:,4)>-100);
+    indgoodspikes=find([datamatrix(:,1)>0 & datamatrix(:,1)<100] & datamatrix(:,6)~=0 & datamatrix(:,4)>-100);
+
+% Is there a significant effect when you account for covariances?
+        % SPIKE TIMING, IGNORING ALL OTHER EFFECTS
+            % STEP 1 - regress against all other things except spike timing
+            [b,bint,r,rint,stats]=regress(datamatrix(indgoodspikes,8),[ones(length(indgoodspikes),1) datamatrix(indgoodspikes,1:6)]);
+            % STEP 2 - see what remains
+            [b,bint,r,rint,stats]=regress(r,[ones(length(indgoodspikes),1) datamatrix(indgoodspikes,7)]);
+           % SIGNIFICANT - b_int is [-2.19 to -0.41] for -100:1:0 
+           % Not significant for -300:1:0 - b_int is [-0.0834 to 0.6759]
+        % SPIKE COUNT IGNORING ALL OTHER EFFECTS (and excluding zeros)
+            % STEP 1 - regress against all other things except spike count
+            [b,bint,r,rint,stats]=regress(datamatrix(indgoodspikes,8),[ones(length(indgoodspikes),1) datamatrix(indgoodspikes,1:4)]);
+            % STEP 2 - see what remains
+            [b,bint,r,rint,stats]=regress(r,[ones(length(indgoodspikes),1) datamatrix(indgoodspikes,5)]);
+            % ALMOST significant - b_int is [-4.71 to 0.088] for -100:1:0
+            % Almost significant - b_int is [-2.28 to 0.25] for -300:1:0
+        % SPIKE COUNT IGNORING ALL OTHER EFFECTS (NOT excluding zeros)
+            % STEP 1 - regress against all other things except spike count
+            [b,bint,r,rint,stats]=regress(datamatrix(indgood,8),[ones(length(indgood),1) datamatrix(indgood,1:4)]);
+            % STEP 2 - see what remains
+            [b,bint,r,rint,stats]=regress(r,[ones(length(indgood),1) datamatrix(indgood,5)]);
+            % Not significant - b_int is [-3.91 to 0.77] for -100:1:0
+            % Almost significant - b_int is [-2.35 to 0.06] for -300:1:0
+% Treat each burst independently...
+    clear burst_tstatsTIMING
+    unibursts=unique(datamatrix(:,4));
+    for i=1:length(unibursts)
+            ind1=find(datamatrix(:,4)==unibursts(i) & [datamatrix(:,1)>0 & datamatrix(:,1)<100] & datamatrix(:,6)~=0);
+            if length(ind1)>10
+                clear bint r
+                [b,bint,r,rint,stats]=regress(datamatrix(ind1,8),[ones(length(ind1),1) datamatrix(ind1,1:6)]);
+                % STEP 2 - see what remains
+                holder=corrcoef(r,datamatrix(ind1,7));
+                rr=holder(2);
+                nn=length(r);
+                burst_tstatsTIMING(i)=rr*sqrt((nn-2)/(1-rr^2));
+            end
+    end
+figure;plot(unibursts(find(burst_tstatsTIMING~=0)),burst_tstatsTIMING(find(burst_tstatsTIMING~=0)),'.')
+% Treat each burst independently...
+    clear burst_tstatsCOUNT
+    unibursts=unique(datamatrix(:,4));
+    for i=1:length(unibursts)
+            ind1=find(datamatrix(:,4)==unibursts(i) & [datamatrix(:,1)>0 & datamatrix(:,1)<100] & datamatrix(:,6)~=0);
+            if length(ind1)>15
+            clear bint r
+            [b,bint,r,rint,stats]=regress(datamatrix(ind1,8),[ones(length(ind1),1) datamatrix(ind1,1:4)]);
+                    % STEP 2 - see what remains
+            holder=corrcoef(r,datamatrix(ind1,5));
+            rr=holder(2);
+            nn=length(r);
+            burst_tstatsCOUNT(i)=rr*sqrt((nn-2)/(1-rr^2));
+            end
+    end
+figure;plot(unibursts(find(burst_tstatsCOUNT~=0)),burst_tstatsCOUNT(find(burst_tstatsCOUNT~=0)),'.')
+
+
+
+%%%%
+% ancova! DOUBTFUL matlab's implementation is doing what I want
+            A=[];B=[];C=[];
+            for i=1:4
+                A=[A;datamatrix(indgoodspikes,8)]; % y-variable
+                B=[B;datamatrix(indgoodspikes,i)];
+                C=[C;i*ones(1,length(datamatrix(indgoodspikes,1)))'];
+            end
+                A=[A;datamatrix(indgoodspikes,8)]; % y-variable
+                B=[B;datamatrix(indgoodspikes,7)];
+                C=[C;5*ones(1,length(datamatrix(indgoodspikes,1)))'];
+
+            yvar=A;xvar=B;groupvar=C;
+            [h,atab,ctab,stats] = aoctool(yvar,xvar,groupvar);
+
+% stepwisefit? - seems to work but I don't completely understand
+        [b,se,pval,inmodel,stats,nextstep,history]=stepwisefit(datamatrix(indgoodspikes,[1:5 7]),datamatrix(indgoodspikes,8));
+        [b,se,pval,inmodel,stats,nextstep,history]=stepwisefit(datamatrix(indgoodspikes,[1:5 7]),datamatrix(indgoodspikes,8));
+
+% basic mult regression - concern about covariances
+        [b,bint,r,rint,stats]=regress(datamatrix(indgoodspikes,8),[ones(length(indgoodspikes),1) datamatrix(indgoodspikes,1:7)]);
+            % Depends a ton on the motif number
+            % Depends a lot on the syllable type
+            % Weak (almost significant) positive correlation with neuron number
+            % Small but significant positive correlation with burst
+            % Large but slightly non-significant negative correlation with spike count residuals (substracted)
+            % No relationship with spike count residuals (as factor)
+            % Small but slightly non-significant positive correlation with spike timing
+        [b,bint,r,rint,stats]=regress(datamatrix(indgoodspikes,8),[ones(length(indgoodspikes),1) datamatrix(indgoodspikes,5:7)]);
+            % This ignores the neuron,syllable,motif number information and finds much
+            % greater correlations with spike count residuals (subtracted ) and spike
+            % timing ---> of course, this means that much of these relationships are
+            % due to the differences across syllables, motifs, etc.
+        [b,bint,r,rint,stats]=regress(datamatrix(indgoodspikes,8),[ones(length(indgoodspikes),1) datamatrix(indgoodspikes,2:7)]);
+            % spike timing has significant positive correlation if you ignore motif
+        [b,bint,r,rint,stats]=regress(datamatrix(indgood,8),[ones(length(indgood),1) datamatrix(indgood,1:6)]);
+        %  When you include zeros (and include motif #), there is now a significant
+        %  negative correlation with spike count residuals(subtracted)
+
+
+
+
+
+
+
+% 1. PLOT RAW DATA   
+                    clear zk
+                    for i=1:length(Rendition)
+                        j=Rendition(i).sylltype;
+                        zk(i,j)=Rendition(i).neuron;
+                    end
+                    clear numperneuron
+                    for i=1:length(neuron)
+                        for j=1:3
+                        numperneuron(i,j)=length(find(zk(:,j)==i));
+                        end
+                    end
+                    indmax=[0 max(numperneuron')];
+
+                    for z=1:3
+                     figure;hold on;   
+                        for n=1:12 % each neuron indexed differently
+
+                            valstart=0-sum(indmax(1:n));
+                            vals=valstart;
+                            for i=1:length(Rendition)
+                                if Rendition(i).neuron==n
+                                    if Rendition(i).sylltype==z
+                                        %                     if Rendition(i).pitchresiduals>0
+                                        %                         clrvl='r';
+                                        %                     else
+                                        %                         clrvl='k';
+                                        %                     end
+                                        % LABEL BASED ON MOTIF
+                                        if Rendition(i).sylltime>1 & Rendition(i).sylltime<200
+                                            clrvl='g'
+                                        else if Rendition(i).sylltime<650%Rendition(i).sylltime>1 & Rendition(i).sylltime<570
+                                            clrvl='b';
+                                        else if Rendition(i).sylltime<1250%Rendition(i).sylltime>570 & Rendition(i).sylltime<1155
+                                                clrvl='r';
+                                            else if Rendition(i).sylltime<1850%Rendition(i).sylltime>1260 & Rendition(i).sylltime<1730
+                                                    clrvl='k';
+                                                end
+                                            end
+                                            end
+                                        end
+                                        vals=vals-1;
+                                        if ~isempty(Rendition(i).spiketimes)
+                                            g=find(Rendition(i).spiketimes>-300 & Rendition(i).spiketimes<0);
+                                            if ~isempty(g)
+                                                plot(Rendition(i).spiketimes(g),vals,'.','color',clrvl)
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        xlim([-300 0])
+                    end
+
+% 2A: SPIKE COUNT CORRELATIONS --- what is the overall correlation between # of spikes in a burst and pitch
+                clear pitchresids burstresidsFAC burstresidsDIFF
+                count=0;
+                for i=1:length(Rendition)
+                    if Rendition(i).sylltime>340 & Rendition(i).sylltime<1850% & Rendition(i).sylltime<570 % Motif 1 (<570); Motif 2 (570-1260)
+                    if ~isempty(Rendition(i).burstspikecounts)
+                        count=count+1;
+                        pitchresids(count)=Rendition(i).pitchresiduals;
+                        burstresidsFAC(count)=mean(Rendition(i).residburstspikecountsFACTOR);
+                        burstresidsDIFF(count)=mean(Rendition(i).residburstspikecountsDIFF);
+                        whichrends(count)=i;
+                    end
+                    end
+                end
+                corrcoef(pitchresids,burstresidsDIFF)
+                for k=1:length(whichrends)
+                    ak(k)=Rendition(whichrends(k)).sylltype;
+                end
+                corrcoef(pitchresids,burstresidsDIFF)        
+        % WAIT a minute - try this with -100:1 and first motif - R=-0.2266 due completely to missing bursts
+        % BUT...the missing bursts CANNOT be due to syntax because we're only looking at the first motif!!!
+        
+            % R = - 0.1397 (wins=-300:1:0), N=1722
+            % p<0.0000001 (non-directional)
+            % All driven by zeros or outliers?
+            indgood=find(burstresidsFAC>0 & burstresidsFAC<5);
+            corrcoef(burstresidsDIFF(indgood),pitchresids(indgood))
+            % R=-0.0452, N=1424, p=0.088
+            corrcoef(burstresidsFAC(indgood),pitchresids(indgood))
+            % R=-0.0561, N=1424, p=0.034
+                % where burstresids1 is DIFF and burstresids2 is FACTOR
+
+% 2B: SPIKE COUNT CORRELATIONS - LOOK AT INDIVIDUAL NEURONS / SYLLABLES
+                for i=1:length(neuron)
+                    for j=1:numsylls
+                       neuronspikes(i,j).data=[];
+                       pitchT(i,j).data=[];
+                    end
+                end
+            for i=1:length(Rendition)
+                if Rendition(i).sylltime>340 & Rendition(i).sylltime<1850 % Motif 1 (<570); Motif 2 (570-1260)
+                neuronspikes(Rendition(i).neuron,Rendition(i).sylltype).data=[neuronspikes(Rendition(i).neuron,Rendition(i).sylltype).data mean(Rendition(i).residburstspikecountsDIFF) ];
+                pitchT(Rendition(i).neuron,Rendition(i).sylltype).data=[pitchT(Rendition(i).neuron,Rendition(i).sylltype).data Rendition(i).pitchresiduals];
+                end
+            end
+            clear stores nums tstat
+            for i=1:length(neuron)
+                for j=1:numsylls
+                    a=corrcoef(neuronspikes(i,j).data,pitchT(i,j).data);
+                    stores(i,j)=a(2);
+                    nums(i,j)=length(neuronspikes(i,j).data);
+                    tstat(i,j)=stores(i,j)*sqrt((nums(i,j)-2)/(1-stores(i,j)*stores(i,j)));
+                end
+            end
+% 3A: SPIKE TIMING CORRELATIONS
+                clear pitchresids bursttiming
+                count=0;
+                for i=1:length(Rendition)
+                    for j=1:length(Rendition(i).residburstspiketime)
+                        if ~isempty(Rendition(i).residburstspiketime(j)) & Rendition(i).residburstspiketime(j)~=-1000 % flag
+                            count=count+1;
+                            pitchresids(count)=Rendition(i).pitchresiduals;
+                            bursttiming(count)=Rendition(i).residburstspiketime(j);
+                            if bursttiming(count)<-100
+                                i
+                            end
+                        end
+                    end
+                end
+                corrcoef(pitchresids,bursttiming)
+                % 0.1469, n=1680
+        % Currently I treat each burst separately - adds a bit of power - right now
+        % I am collapsing across bursts for each rendition...
+        
+% 3B: SPIKE TIMING CORRELATIONS - LOOK AT INDIVIDUAL NEURONS / SYLLABLES
+           clear neuronspikes pitchT
+                for i=1:length(neuron)
+                    for j=1:numsylls
+                        for k=1:5
+                       neuronspikes(i,j).data(k).entry=[];
+                        end
+                       pitchT(i,j).data=[];
+                    end
+                end
+                for i=1:length(Rendition)
+                    for k=1:size(Rendition(i).burstparams,2)
+                        neuronspikes(Rendition(i).neuron,Rendition(i).sylltype).data(k).entry=[neuronspikes(Rendition(i).neuron,Rendition(i).sylltype).data(k).entry Rendition(i).residburstspiketime(k)];
+                    end
+                    pitchT(Rendition(i).neuron,Rendition(i).sylltype).data=[pitchT(Rendition(i).neuron,Rendition(i).sylltype).data Rendition(i).pitchresiduals];
+                end
+                clear stores nums tstat
+                for i=1:length(neuron)
+                    count=0;
+                    for j=1:numsylls
+                        for k=1:length(neuronspikes(i,j).data)
+                            if ~isempty(neuronspikes(i,j).data(k).entry)
+                                count=count+1;
+                                a=corrcoef(neuronspikes(i,j).data(k).entry,pitchT(i,j).data);
+                                stores(i,count)=a(2);
+                                nums(i,count)=length(neuronspikes(i,j).data(k).entry);
+                                tstat(i,count)=stores(i,count)*sqrt((nums(i,count)-2)/(1-stores(i,count)*stores(i,count)));
+                            end
+                        end
+                    end
+                end
+                mean(abs(tstat(find(tstat~=0))))
+                % average size of tstat is 2.15!!! - each burst has info
+
+  % 3C: SPIKE TIMING CORRELATIONS - MOTIFS/CONTEXT
+    % Note possible confound because I'm taking the previous 300ms
+                clear pitchresids bursttiming
+                count=0;
+                for i=1:length(Rendition)
+                    if Rendition(i).sylltime>340 & Rendition(i).sylltime<1850% & Rendition(i).sylltime<570 % Motif 1 (<570); Motif 2 (570-1260)
+                    for j=1:length(Rendition(i).residburstspiketime)
+                        if ~isempty(Rendition(i).residburstspiketime(j)) & Rendition(i).residburstspiketime(j)~=-1000 % flag
+                            count=count+1;
+                            pitchresids(count)=Rendition(i).pitchresiduals;
+                            bursttiming(count)=Rendition(i).residburstspiketime(j);
+                        end
+                    end
+                    end
+                end
+                corrcoef(pitchresids,bursttiming)
+                % For 1260-1850, which is one motif, R=0.2249, N=181, p=0.002
+        % Currently I treat each burst separately - adds a bit of power - right now
+        % I am collapsing across bursts for each rendition...
+  
+ % 3D: SPIKE TIMING CORRELATIONS - LOOK AT INDIVIDUAL NEURONS / SYLLABLES -
+ % MOTIF INFO
+           clear neuronspikes pitchT
+                for i=1:length(neuron)
+                    for j=1:numsylls
+                        for k=1:5
+                       neuronspikes(i,j).data(k).entry=[];
+                        end
+                       pitchT(i,j).data=[];
+                    end
+                end
+                for i=1:length(Rendition)
+                    if Rendition(i).sylltime>340 & Rendition(i).sylltime<1850 % Motif 1 (<570); Motif 2 (570-1260)
+                    for k=1:size(Rendition(i).burstparams,2)
+                        neuronspikes(Rendition(i).neuron,Rendition(i).sylltype).data(k).entry=[neuronspikes(Rendition(i).neuron,Rendition(i).sylltype).data(k).entry Rendition(i).residburstspiketime(k)];
+                    end
+                    pitchT(Rendition(i).neuron,Rendition(i).sylltype).data=[pitchT(Rendition(i).neuron,Rendition(i).sylltype).data Rendition(i).pitchresiduals];
+                    end
+                end
+                clear stores nums tstat
+                for i=1:length(neuron)
+                    count=0;
+                    for j=1:numsylls
+                        for k=1:length(neuronspikes(i,j).data)
+                            if ~isempty(neuronspikes(i,j).data(k).entry)
+                                if length(neuronspikes(i,j).data(k).entry)>1
+                                count=count+1;
+                                a=corrcoef(neuronspikes(i,j).data(k).entry,pitchT(i,j).data);
+                                stores(i,count)=a(2);
+                                nums(i,count)=length(neuronspikes(i,j).data(k).entry);
+                                tstat(i,count)=stores(i,count)*sqrt((nums(i,count)-2)/(1-stores(i,count)*stores(i,count)));
+                                end
+                            end
+                        end
+                    end
+                end
+                mean(abs(tstat(find(tstat~=0 & ~isnan(tstat)))))
+                % average size of tstat is 2.49!!! - each burst has info
+   
+    
+%%%%        
+        
+clearvars -except folders clusters prefixes
+load /cardinal/HVCAnalysedData/UDsaved021011y50g89.mat
+UDneuron=neuron;
+clearvars -except UDneuron folders clusters prefixes
+load /cardinal/HVCAnalysedData/Dsaved021011y50g89.mat
+Dneuron=neuron;
+clearvars -except UDneuron Dneuron folders clusters prefixes
+% PLOT RRRRRasters!
+neuron=UDneuron;
+pitchtimes=[1/8:1/8:1745/8]+16; % 16ms because of window size
+ptwindows1(1).data=[250:400];
+ptwindows1(2).data=[600:1000];
+ptwindows1(3).data=[700:850];
+figure;hold on
+for thissyllable=1:3
+    subplot(1,3,thissyllable);hold on;
+    ptwin1=ptwindows1(thissyllable).data;
+    vals=1250;
+    for thisfolder=1:length(neuron)%length(neuron)
+        FFm=[];
+        clrrnd=[rand,rand,rand];
+        vals=vals-20;
+        goodclust=clusters{thisfolder*2};
+      % What is the average FF for this folder (i.e. recording period)?
+      count=0;
+      for thissong=1:length(neuron(thisfolder).song)
+      if length(neuron(thisfolder).song(thissong).pitchdata)>thissyllable-1
+      for thisrendition=1:length(neuron(thisfolder).song(thissong).noteons{thissyllable})
+          count=count+1;
+          FFm(count)=mean(neuron(thisfolder).song(thissong).pitchdata{thissyllable}.datt(thisrendition,ptwin1));
+      end
+      end
+      end
+counthigh=0;
+countlow=0;
+        for thissong=1:length(neuron(thisfolder).song)
+          if length(neuron(thisfolder).song(thissong).pitchdata)>thissyllable-1
+              for thisrendition=1:length(neuron(thisfolder).song(thissong).noteons{thissyllable})
+                  if rand<0.05
+                      plot(pitchtimes(ptwin1(1)-100:ptwin1(end)+200),neuron(thisfolder).song(thissong).pitchdata{thissyllable}.datt(thisrendition,ptwin1(1)-100:ptwin1(end)+200))
+                  end
+                  if mean(neuron(thisfolder).song(thissong).pitchdata{thissyllable}.datt(thisrendition,ptwin1))>mean(FFm)
+                      clrvl='r';
+                  else if mean(neuron(thisfolder).song(thissong).pitchdata{thissyllable}.datt(thisrendition,ptwin1))<mean(FFm)
+                      clrvl='k';
+                      end
+                  end
+                  for thisclust=goodclust
+                      if thisclust<length(neuron(thisfolder).song(thissong).spiketimes)+1
+                          thesespikes=neuron(thisfolder).song(thissong).spiketimes{thisclust}...
+                              -neuron(thisfolder).song(thissong).noteons{thissyllable}(thisrendition);
+                          if clrvl=='r'
+                              counthigh=counthigh+1;
+                                highspikes(thissyllable).folders(thisfolder).rendition(counthigh).datt=thesespikes;
+                          else
+                              countlow=countlow+1;
+                                lowspikes(thissyllable).folders(thisfolder).rendition(countlow).datt=thesespikes;
+                          end
+                      end
+                  end
+%                   vals=vals-0.4;
+%                   if ~isempty(find(thesespikes>-4000 & thesespikes<4000))
+%                       %vals=vals-0.4;
+%                       plot(thesespikes(find(thesespikes>-4000 & thesespikes<4000)),vals,'.','color',clrvl)
+%                   end
+              end
+          end
+        end
+    end
+end
+% RESAMPLING
+for thissyllable=1:3
+    for thisfolder=1:length(neuron)
+        wins=-300:1:300;
+        
+        fr_high=[];
+        fr_low=[];
+        for jj=1:length(highspikes(thissyllable).folders(thisfolder).rendition);
+            for ii=1:length(wins)-1
+                fr_high(jj,ii)=length(find(highspikes(thissyllable).folders(thisfolder).rendition(jj).datt>wins(ii) & highspikes(thissyllable).folders(thisfolder).rendition(jj).datt<wins(ii+1)));
+            end
+        end
+        for jj=1:length(lowspikes(thissyllable).folders(thisfolder).rendition);
+            for ii=1:length(wins)-1
+                fr_low(jj,ii)=length(find(lowspikes(thissyllable).folders(thisfolder).rendition(jj).datt>wins(ii) & lowspikes(thissyllable).folders(thisfolder).rendition(jj).datt<wins(ii+1)));
+            end
+        end
+        actualdiff(thissyllable).folders(thisfolder).datt=runningaverage(mean(fr_high),5)-runningaverage(mean(fr_low),5);
+        
+      mhigh=length(highspikes(thissyllable).folders(thisfolder).rendition);
+      mlow=length(lowspikes(thissyllable).folders(thisfolder).rendition);
+      allrenditions=[lowspikes(thissyllable).folders(thisfolder).rendition highspikes(thissyllable).folders(thisfolder).rendition];
+      for mj=1:100
+          mj
+          highrand=ceil(rand(1,mhigh)*(mhigh));
+          lowrand=ceil(rand(1,mlow)*(mlow));
+          randsamphigh=allrenditions(highrand);
+          randsamplow=allrenditions(lowrand);
+        fr_high=[];
+        fr_low=[];
+        for jj=1:mhigh
+            for ii=1:length(wins)-1
+                fr_high(jj,ii)=length(find(randsamphigh(jj).datt>wins(ii) & randsamphigh(jj).datt<wins(ii+1)));
+            end
+        end
+        for jj=1:mlow
+            for ii=1:length(wins)-1
+                fr_low(jj,ii)=length(find(randsamplow(jj).datt>wins(ii) & randsamplow(jj).datt<wins(ii+1)));
+            end
+        end
+        sampdiff(thissyllable).folders(thisfolder).datt(mj,:)=runningaverage(mean(fr_high),5)-runningaverage(mean(fr_low),5);
+      end
+    end
+end
+
+%       mhigh=length(highspikes(thissyllable).folders(thisfolder).rendition);
+%       mlow=length(lowspikes(thissyllable).folders(thisfolder).rendition);
+%       for jj=1
+%       fr_high=[];
+%       fr_low=[];
+%       for ii=1:length(wins)-1
+%           fr_high(ii)=length(find(highspikes(thissyllable).folders(thisfolder).rendition(jj).datt>wins(ii) & highspikes(thissyllable).folders(thisfolder).rendition(jj).datt<wins(ii+1)));
+%           fr_low(ii)=length(find(lowspikes(thissyllable).folders(thisfolder).rendition(jj).datt>wins(ii) & lowspikes(thissyllable).folders(thisfolder).rendition(jj).datt<wins(ii+1)));
+%       end
+%       end
+%     end
+% end
+
+
+
+figure;hold on;
+for thissyllable=1:3
+    for thisfolder=1:length(neuron)
+        wins=-300:1:300;
+        vals=vals-10;
+        fr_high=[];
+        fr_low=[];
+        for ii=1:length(wins)-1
+            fr_high(ii)=length(find(highspikes>wins(ii) & highspikes<wins(ii+1)));
+            fr_low(ii)=length(find(lowspikes>wins(ii) & lowspikes<wins(ii+1)));
+        end
+        plot(runningaverage(wins(1:end-1)+0.5,10),vals+runningaverage(fr_high,10),'r') % 5 gives timing info, 20 gives more...
+        plot(runningaverage(wins(1:end-1)+0.5,10),vals+runningaverage(fr_low,10),'k')
+
+    end
+end
+    xlim([-2000 2000])
+    ylim([700 1550])
+
+frht=runningaverage(fr_high(2800:3200),10);
+frlt=runningaverage(fr_low(2800:3200),10);
+ kl=[]; 
+for ii=1:length(frht)
+    kl_new=frlt(ii)*log2(frlt(ii)/frht(ii));
+    kl=[kl,kl_new];
+end   
+    
+    
+    
+    
+
+clearvars -except folders clusters prefixes
+load /cardinal/HVCAnalysedData/UDsaved021011y50g89.mat
+UDneuron=neuron;
+clearvars -except UDneuron folders clusters prefixes
+load /cardinal/HVCAnalysedData/Dsaved021011y50g89.mat
+Dneuron=neuron;
+clearvars -except UDneuron Dneuron folders clusters prefixes
+
+for i=1:length(UDneuron)
+    ALLneuron(i*2)=UDneuron(i);
+    ALLneuron(i*2-1)=Dneuron(i);
+end
+harmwin=[45 70;80 160;90 130];
+ALLneuron(24).song=[ALLneuron(24).song(1:11) ALLneuron(24).song(13:14)]; % specific to this bird
+
+wins=[-2000:25:2000];
+% Model 1: total number of spikes
+    %%%%% This code does the original analyze - does total number of spikes in
+    %%%%% a given window correlate with pitch in the harmonic stack?
+    [outvarsUD_model1,outdataUD_model1]=analyzeHVCallspikes3(ALLneuron,clusters,wins,harmwin,[1:1:12],1);
+    [outvarsD_model1,outdataD_model1]=analyzeHVCallspikes3(ALLneuron,clusters,wins,harmwin,[1:2:23],1);    
+    [outvarsUD_model2,outdataUD_model2]=analyzeHVCallspikes3(ALLneuron,clusters,wins,harmwin,[2:2:24],2);
+    [outvarsD_model2,outdataD_model2]=analyzeHVCallspikes3(ALLneuron,clusters,wins,harmwin,[1:2:23],2);    
+    [outvarsUD_model3,outdataUD_model3]=analyzeHVCallspikes3(ALLneuron,clusters,wins,harmwin,[2:2:24],3);
+    [outvarsD_model3,outdataD_model3]=analyzeHVCallspikes3(ALLneuron,clusters,wins,harmwin,[1:2:23],3);    
+    
+Bird(1).name='y50g89';
+Bird(1).dataUD=outdataUD_model1;
+Bird(1).dataD=outdataD_model1;
+Bird(1).varsUD=outvarsUD_model1;
+Bird(1).varsD=outvarsD_model1;    
+    Bird(1).dataUD2=outdataUD_model2;
+Bird(1).dataD2=outdataD_model2;
+Bird(1).varsUD2=outvarsUD_model2;
+Bird(1).varsD2=outvarsD_model2;    
+    Bird(1).dataUD3=outdataUD_model3;
+Bird(1).dataD3=outdataD_model3;
+Bird(1).varsUD3=outvarsUD_model3;
+Bird(1).varsD3=outvarsD_model3;    
+    
+    
+    
+    
+figure;hold on;
+subplot(231);hold on;plot([-1000 1500],[0 0],'k')
+plot([0 0],[-2 3],'k')
+hold on;plot(wins,outvarsUD_model1.mn'-outvarsUD_model1.se')
+hold on;plot(wins,outvarsUD_model1.mn'+outvarsUD_model1.se')
+ylim([-2 3])
+subplot(232);hold on;plot([-1000 1500],[0 0],'k')
+plot([0 0],[-2 3],'k')
+hold on;plot(wins,outvarsD_model1.mn'-outvarsD_model1.se')
+hold on;plot(wins,outvarsD_model1.mn'+outvarsD_model1.se')
+ylim([-2 3])
+    
+    
+% Model 2: spikes vs no spikes
+    %%%%% Does the presence of any spikes in a given window correlate with
+    %%%%% pitch in the harmonic stack?
+    outvarsUD_model2=analyzeHVCbinaryspikes(UDneuron,clusters,wins);
+    outvarsD_model2=analyzeHVCbinaryspikes(Dneuron,clusters,wins);
+    %%%%%
+
+% Model 3: total number of spikes (>0)
+    %%%%% If we only consider renditions during which the neuron spiked
+    %%%%% (i.e. ignoring renditions with no spikes), does the total number
+    %%%%% of spikes in a given window correlate with pitch in the harmonic
+    %%%%% stack?
+    %%%%%
+    outvarsUD_model3=analyzeHVCpositivespikes(UDneuron,clusters,wins);
+    outvarsD_model3=analyzeHVCpositivespikes(Dneuron,clusters,wins);
+    %%%%%
+
+

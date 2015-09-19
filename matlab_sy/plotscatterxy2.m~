@@ -1,0 +1,49 @@
+%purpose of this code is to go through sumbs and calculate
+%the offz for each initrun
+%for each control run
+%and for each baseline runs
+%save to a masterstruct suminitshs
+%with initacz, initmuz, initoff, init_bsvl, 
+%basacz,basmuz,basoff,bas_bsvl
+%ctrlacz,ctrlmuz,ctrloff,ctrl_bsvl
+
+   
+% plot([ctrl.ac+ctrl.acer;ctrl.ac-ctrl.acer], [ctrl.mu;ctrl.mu],'Color','b','Linewidth',lw);
+        hold on;
+%         plot([ctrl.ac;ctrl.ac], [ctrl.mu+ctrl.muer;ctrl.mu-ctrl.muer],'Color','b','Linewidth',lw);
+          plot(ctrl.ac, ctrl.mu, 'o','Color','b');
+          hold on;
+%         plot([init.ac+init.acer;init.ac-init.acer],[init.mu;init.mu],'Color','k','Linewidth',lw);
+%         plot([init.ac;init.ac],[init.mu+init.muer;init.mu-init.muer],'Color','k','Linewidth',lw);
+           plot(init.ac, init.mu, 'o','Color','k');  
+            
+plot([-10 10],[-10 10],'k-')
+%         
+%           plot([bas.ac+bas.acer;bas.ac-bas.acer], [bas.mu;bas.mu],'Color','c','Linewidth',lw);
+%           plot([bas.ac;bas.ac], [bas.mu+bas.muer;bas.mu-bas.muer],'Color','c','Linewidth',lw);
+     plot(ctrl.ac, ctrl.mu, 'o','Color','c');
+bas.off=bas.ac-bas.mu;
+ctrl.off=ctrl.ac-ctrl.mu;
+%separate variables into init
+
+initdown=[];
+initup=[];
+for ii=1:length(init.ac)
+    if(init.ac(ii)>0)
+        downtmp=init.ac(ii)-init.mu(ii);
+        initdown=[initdown downtmp]
+    else
+        uptmp=init.ac(ii)-init.mu(ii);
+        initup=[initup uptmp]
+    end
+end
+
+
+
+
+
+
+
+
+
+    

@@ -1,0 +1,35 @@
+function [ffs] = jc_ffnophase505(F_low,F_high,batchFWN,noteFWN,prenoteFWN,postnoteFWN)
+%Sets parameters and runs findwnote4 to extract all instances of the
+%desired note in the specified context.
+Timeshift=0;
+SAMPLING=32000;       
+Note_length=4096;
+UseFit=1;
+ChanSpec='obs0';
+[fvalsstr]=findwnote4(batchFWN,noteFWN,prenoteFWN,postnoteFWN,Timeshift,[F_low F_high],Note_length,UseFit,ChanSpec);
+
+
+for found_note=1:length(fvalsstr)
+    current_note=fvalsstr(found_note).datt;
+    total_bins=length(current_note);
+    Nyquist=SAMPLING/2;
+    %step=Nyquist/a(1); %This is the width (in ms) between bins.
+    mini=round(a(1)+F_low/step);
+    maxi=round(a(1)+F_high/step);
+    %This loop determines the pitch (fundamental frequency) at each time bin by
+    %taking the peak of the autocorrelation function within a range specified
+    %by the user.
+    for current_bin=1:total_bins
+        this_slice=ifdgram(:,current_bin);
+        c=xcov(this_slice);
+        freq_window=c(mini:maxi);
+        [Fmax,Index]=max(freq_window);
+        if Index==1 || Index==length(freq_window)
+            peak=Index;
+        else
+            peak=pinterp([Index-1;Index;Index+1],[freq_window(Index-1);freq_window(Index);freq_window(Index+1)]);
+        end
+        frequencybins(current_bin)=peak+mini-1-a(1);
+    end
+    pitch_data(found_note).pitches=frequencybins;
+end

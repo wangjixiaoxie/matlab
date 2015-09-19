@@ -1,0 +1,10 @@
+dirf('*.cbin','batch')
+findcatch('batch')
+evsonganaly
+edit batch.catch
+
+fvals609Amiss=findwnoteJC('batch609Anotes','b','','',0,[2000 2700],8500,1,'obs0',1);
+for i=1:length(fvals609Amiss)
+    shifted609Amiss(i,:)=fvals609Amiss(i).datt;
+end
+pitch609Amiss=jc_pitchmat1024(shifted609Amiss,1024,1020,2,2000,2700,[1],'obs0',1);

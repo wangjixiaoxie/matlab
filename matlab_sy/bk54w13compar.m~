@@ -1,0 +1,30 @@
+figure
+
+mainpath='/oriole5/bk54w13/'
+dirlist={'screen' 'screen' 'canin' 'canin' 'probin' 'probin'}
+fnlist={'bk54w13_140109_0600.1003.cbin' 'bk54w13_140109_0600.1005.cbin' 'bk54w13_180109_0932.3663.cbin'  'bk54w13_270109_0716-9697.cbin' 'bk54w13_270109_0727.9569.cbin'}
+bndslist=[4.5 8.5; 4 8; 3.7 7.7;3 7; 2.3 6.3]
+
+ln=length(dirlist);
+
+for ii=1:ln
+    exsong.ax=subplot(ln, 1, ii)
+    exsong.path=[mainpath dirlist{ii}]
+    exsong.fn=fnlist{ii}
+    exsong.bnds=bndslist(ii,:)
+    plotcbin(exsong)
+end
+
+exsong.ax=subplot(211)
+exsong.path='/oriole5/r32pu82/screen'
+exsong.fn='r32pu82_030109_0653.1426.cbin'
+exsong.bnds=[10 14]
+plotcbin(exsong)
+
+
+exsong.ax=subplot(212)
+exsong.path='/oriole5/r32pu82/radamagescreen'
+exsong.fn='r32pu82_140109_0846.27.cbin'
+plotcbin(exsong)
+exsong.bnds=[5 9]
+

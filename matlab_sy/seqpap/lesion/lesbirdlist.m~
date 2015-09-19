@@ -1,0 +1,6 @@
+clear bs
+%seq_lesion_birdlist
+bs(1).path='oriole2/bk41bk14'
+bs(2).path='oriole7/dir2/bk67bk44'
+bs(3).path='oriole7/dir1/bk1bk29'
+bs(4).path='oriole7/dir2/r29g89'

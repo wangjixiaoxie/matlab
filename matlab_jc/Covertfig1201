@@ -1,0 +1,17 @@
+for i=1
+   target=200;
+[x,sorted]=sort(Experiment(i).timeACpre);
+t1=[1/length(sorted):1/length(sorted):1];
+baseline=median(Experiment(i).pitchACpre(target,:));
+figure;plot(runningaverage(t1,20),runningaverage(Experiment(i).pitchACpre(target,sorted),20)-baseline,'-')
+[x,sorted2]=sort(Experiment(i).timeAPV);
+t2=[1+1/length(sorted2):1/length(sorted2):2];
+hold on;plot(runningaverage(t2,20),runningaverage(Experiment(i).pitchAPV(target,sorted2),20)-baseline,'-','Color','g')
+[x,sorted3]=sort(Experiment(i).timeAPVwn);
+t3=[2+1/length(sorted3):1/length(sorted3):3];
+hold on;plot(runningaverage(t3,20),runningaverage(Experiment(i).pitchAPVwn(target,sorted3),20)-baseline,'-','Color','r')
+[x,sorted4]=sort(Experiment(i).timeACpost);
+t4=[3+1/length(sorted4):1/length(sorted4):4];
+hold on;plot(runningaverage(t4,20),runningaverage(Experiment(i).pitchACpost(target,sorted4),20)-baseline,'-','Color','k')
+
+end

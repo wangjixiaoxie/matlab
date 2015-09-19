@@ -1,0 +1,52 @@
+function [x,med]=ConsentPlot(s,SAMPLING,N,OVERLAP,ZOOMT,ZOOMF,TL,FL)
+%ConsentPlot(sample,32000,1024,1020,1,3,5,5)
+
+%Note that you will get an error message if the sample is smaller than 1024
+%points.
+
+% Implementation note:
+%The best results will come from calculating an ifdgram for many values of
+%sigma, (.5:.1:3.5) for example, then combining by multiplying together images
+%with neighboring values of sigma, and adding them all together.
+%Rational for this is given in Gardner & Magnasco PNAS 2006.
+
+t=-N/2+1:N/2;
+z=1;
+for a=0.1:0.2:3  %Note that the initial a must be greater than zero
+    sigma=a;
+    sigma=(sigma/1000)*SAMPLING;
+    w=exp(-(t/sigma).^2);
+    dw=(w).*((t)/(sigma^2))*-2;
+
+    q=specgram(s,N,[],w,OVERLAP)+eps; %gaussian windowed spectrogram
+    q2=specgram(s,N,[],dw,OVERLAP)+eps; %deriv gaussian windowed spectrogram
+    [F,T]=size(q);
+    dx=(q2./q)/(2*pi); %displacement according to the remapping algorithm
+    fo=zeros(size(q));
+    to=zeros(size(q));
+    for(k=1:T) to(:,k)=k; end
+    for(n=1:F) fo(n,:)=(.5*n-1)/(F-1); end
+
+    f_est= ((fo-imag(dx))*N)+1; %calculate frequency displacement factors
+    fref=ZOOMF*repmat(1:F,T,1)';
+    F=F*ZOOMF; %rescale the image by the resolution stretching factors.
+    f_e1=ZOOMF*f_est; 
+    g=f_e1;
+    g(f_e1<1 | f_e1>F)=0; %set to zero the points that are mapped out of the image
+
+    g(abs(f_e1-fref)>FL)=0; 
+    [freq,time]=size(g);
+    g(abs(g)<0.001)=0;
+    k=1;
+    for i=1:time
+        for j=1:freq-1 %For each instantaneous frequency estimate at a particular time
+            if (g(j,i)~=0)&&(g(j+1,i)~=0) %if the frequency estimates from neighboring channels that are in lock
+                consent(k)=1/(abs(g(j,i)-g(j+1,i)));
+                k=k+1;
+            end
+        end
+    end
+    med(z)=median(consent);
+    z=z+1;
+end
+x=0.1:0.2:3;

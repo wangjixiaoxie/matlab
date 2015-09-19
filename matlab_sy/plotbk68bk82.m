@@ -1,0 +1,118 @@
+plotperfig=4
+
+% for ii=1:4
+% pathvl{ii}='/doyale4/twarren/bk68bk82/templtest1'
+% end
+% flnm{1}='bk68bk82_170507_1513.77.cbin'
+% flnm{2}='bk68bk82_170507_1513.78.cbin'
+% flnm{3}='bk68bk82_170507_1513.79.cbin'
+% flnm{4}='bk68bk82_170507_1514.83.cbin'
+% 
+% bnds{1}=[3.5 6.25]
+% bnds{2}=[2.5 5]
+% bnds{3}=[3.5 8.5]
+% bnds{4}=[3.5 9.5]
+% 
+% for ii=5:16
+% pathvl{ii}='/doyale4/twarren/bk68bk82/wnon'
+% end
+% flnm{5}='bk68bk82_240507_0923.7007.cbin'
+% flnm{6}='bk68bk82_240507_0938.7194.cbin'
+% flnm{7}='bk68bk82_240507_1003.7520.cbin'
+% flnm{8}='bk68bk82_240507_1110.8396.cbin'
+% bnds{5}=[5.25 10]
+% bnds{6}=[5.75 9.25]
+% bnds{7}=[2.75 6.25]
+% bnds{8}=[3.75 8.75]
+% 
+% flnm{9}='bk68bk82_270507_1907.17911.cbin'
+% flnm{10}='bk68bk82_270507_1907.17912.cbin'
+% flnm{11}='bk68bk82_270507_1908.17914.cbin'
+% flnm{12}='bk68bk82_270507_1914.18017.cbin'
+% bnds{9}=[6.5 12]
+% bnds{10}=[4.75 10.25]
+% bnds{11}=[5 11.25]
+% bnds{12}=[4 10.25]
+% 
+% flnm{13}='bk68bk82_010607_0700.2377.cbin'
+% flnm{14}='bk68bk82_010607_0700.2383.cbin'
+% flnm{15}='bk68bk82_010607_0700.2384.cbin'
+% flnm{16}='bk68bk82_010607_0701.2393.cbin'
+% bnds{13}=[5.25 8]
+% bnds{14}=[3 6]
+% bnds{15}=[11.75 15.75]
+% bnds{16}=[8.25 12.25]
+
+pathvl{1}='/doyale4/twarren/bk68bk82/templtest1'
+flnm{1}='bk68bk82_170507_1513.79.cbin'
+bnds{1}=[3.5 8.5]
+
+pathvl{2}='/doyale4/twarren/bk68bk82/wntest'
+flnm{2}='bk68bk82_230507_1312.16.cbin'
+bnds{2}=[12 16.5]
+
+pathvl{3}='/doyale4/twarren/bk68bk82/wnon'
+flnm{3}='bk68bk82_240507_0923.7007.cbin'
+bnds{3}=[5.25 10]
+
+pathvl{4}=pathvl{3};
+flnm{4}='bk68bk82_270507_1908.17914.cbin'
+bnds{4}=[5 11.25]
+
+maxtime=5.5 
+plot_trig=1
+%for each of the files, run evspect for the max file time, or the end of
+%the file, which ever is shorter.
+
+% algorithm
+% 1. read all the files in
+for ii=1:4%length(flnm)
+    cmd=['cd ' pathvl{ii}];
+    eval(cmd);
+    [dat{ii},fs]=ReadCbinFile(flnm{ii});
+    tmdat(ii)=length(dat{ii})/fs;
+     bgtm=floor((bnds{ii}(1))*fs)
+    if((tmdat(ii)-bnds{ii}(1))>maxtime)
+       
+        dat{ii}=dat{ii}(bgtm:floor(bgtm+(maxtime*fs)))
+    
+    else
+        dat{ii}=dat{ii}(bgtm:length(dat{ii}));
+    end
+
+    if(plot_trig)
+        rd=readrecf(flnm{ii});
+        ttimes{ii}=rd.ttimes/1000-bgtm/32000;
+    end
+
+end
+
+
+
+% 3. loop through mod loop, creating figures as you go. 
+clear ax
+newfig=[1 5 9 13]
+for ii=1:4
+    mdvl=mod(ii,4);
+    if(mdvl==1)
+        figure;
+    end
+    if (mdvl==0)
+        mdvl=4;
+    end
+    ax(ii)=subplot(4,1,mdvl)
+    [sm,sp,t,f]=evspect(dat{ii},fs,[100 10000]);
+    xlim([0 5.5])
+    ylim([100 10000])
+    colormap('hot')
+    title(flnm{ii})
+    axis off;
+    if mdvl==4
+        axis on;
+    end
+    if plot_trig
+        plottrig(ttimes{ii},ax(ii),1000)
+    end
+end
+
+% 4. make the figure with titles, linkaxes.

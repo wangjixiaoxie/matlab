@@ -1,0 +1,16 @@
+function jc_plotabunch501(arrayfileD,arrayfileUD,arrayfileL)
+figure; hold on
+subplot(131);
+for i=3:20
+    plotshiftedD=arrayfileD(i).pitches(1:170)+100*i;
+    plot(plotshiftedD)
+end
+subplot(132);
+for i=3:20
+    plotshiftedUD=arrayfileUD(i).pitches(1:170)+100*i;
+    plot(plotshiftedUD)
+end
+for i=3:20
+    plotshiftedL=arrayfileL(i).pitches(1:170)+100*i;
+    subplot(133); plot(plotshiftedL)
+end

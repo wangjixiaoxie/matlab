@@ -1,0 +1,14 @@
+function createfigure(a1,a2,a3,a4,a5,a6,a7)
+
+figure;hold on;
+
+% Create multiple lines using matrix input to plot
+
+plot(a1,'Color',[0.1 0.1 0.1]);
+plot(a2,'Color',[0.2 0.2 0.2]);
+plot(a3,'Color',[0.3 0.3 0.3]);
+plot(a4,'Color',[1 0.3 0.3]);
+plot(a5,'Color',[1 0.4 0.4]);
+plot(a6,'Color',[1 0.5 0.5]);
+plot(a7,'Color',[1 0.6 0.6]);
+

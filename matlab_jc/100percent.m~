@@ -1,0 +1,314 @@
+% Evren's 30 day experiments
+load /cardinal4/100PercentHitRateExps/Alldata.mat
+
+    % pk72bk90 (Feb 2007)
+    figure;hold on;
+    subplot(211);hold on;
+    tzero1=140;
+    window=[600:650];
+    mpre=mean(mean(pitchPRE2(window,:)));
+    plot((tvPRE-tzero1)/24,mean(pitchPRE(window,:)),'*','Color','b')
+    plot((tvPRE2-tzero1)/24,mean(pitchPRE2(window,:)),'*','Color','b')
+    plot((tv1-tzero1)/24,mean(pitch1(window,:)),'*','Color','r')
+    plot((tv2-tzero1)/24,mean(pitch2(window,:)),'*','Color','g') %/ampon2
+    plot((tv3-tzero1)/24,mean(pitch3(window,:)),'*','Color','g') %/ampon3
+    plot((tv4-tzero1)/24,mean(pitch4(window,:)),'*','Color','g') %/ampon4
+    plot((tvPOST-tzero1)/24,mean(pitchPOST(window,:)),'*','Color','b')
+    ylim([2100 2600])
+    plot([-10 50],[mpre mpre],'k')
+EV100(1).pitchPre1=(pitchPRE(:,9:end));
+EV100(1).pitchPre2=pitchPRE2(:,1:167);
+EV100(1).pitch100wn1=pitchpk72AmponDay1x;
+EV100(1).pitch100wnEnd=pitch1(:,1:97);
+EV100(1).pitch90wn1=pitch2(:,1:96);
+EV100(1).pitch90wn2=pitch2(:,97:end);
+figure;hold on;
+    med=mean([mean(mean(EV100(1).pitchPre1(window,:))) mean(mean(EV100(1).pitchPre2(window,:)))]);
+errorbar([1 2 ],[mean(mean(EV100(1).pitchPre1(window,:)))-med mean(mean(EV100(1).pitchPre2(window,:)))-med],...
+    [std(mean(EV100(1).pitchPre1(window,:))) std(mean(EV100(1).pitchPre2(window,:)))],'k')
+errorbar([3 33],[mean(mean(EV100(1).pitch100wn1(window,:)))-med mean(mean(EV100(1).pitch100wnEnd(window,:)))-med],...
+    [std(mean(EV100(1).pitch100wn1(window,:))) std(mean(EV100(1).pitch100wnEnd(window,:)))],'b')
+errorbar([34 35],[mean(mean(EV100(1).pitch90wn1(window,:)))-med mean(mean(EV100(1).pitch90wn2(window,:)))-med],...
+    [std(mean(EV100(1).pitch90wn1(window,:))) std(mean(EV100(1).pitch90wn2(window,:)))],'r')
+plot([33 34],[mean(mean(EV100(1).pitch100wnEnd(window,:)))-med mean(mean(EV100(1).pitch90wn1(window,:)))-med],'r')
+plot([2 3],[mean(mean(EV100(1).pitchPre2(window,:)))-med mean(mean(EV100(1).pitch100wn1(window,:)))-med],'b')
+plot([0 35],[0 0],'k')
+
+    % or83or71 (May 2009)
+    subplot(212);hold on;
+    figure;hold on;tzero2=2839;
+    mpre=mean(pitchTrig(265,:));
+    plot((tvScreen-tzero2)/24,pitchScreen(265,:),'*') % /screen
+    plot((tvTrig-tzero2)/24,pitchTrig(265,:),'*') % /trigtest   
+    plot((tvAmpon-tzero2)/24,pitchAmpon(265,:),'*','Color','r') %/ampon - 100% hits (~12 days) - april 29-may 10,2009
+    plot((tvAmponCont-tzero2)/24,pitchAmponCont(265,:),'*','Color','g')   %/amponcont - driving learning - may 14 to may 27
+    plot((tvDecay-tzero2)/24,pitchDecay(265,:),'*','Color','k') %/ampon_withcatchtrials - return to 100% hits causes decay/recovery - may 27-31
+    plot((tvAmpoff-tzero2)/24,pitchAmpoff(265,:),'*','Color','b') %/ampoff
+    ylim([2100 2900])
+    plot([-10 50],[mpre mpre],'k')
+    
+% My experiments- JC100.mat
+    % bk50w18 (/cardinal6/bk50w18_100percent)
+
+    % bk100w89
+    
+    % r40g4
+    
+    % w35pk25
+    
+    % bk83bk73
+    
+% Example - r40g4
+    figure;hold on;
+    i=3;
+    med2=median([JC100(i).pitchPre1(JC100(i).targ,:) JC100(i).pitchPre2(JC100(i).targ,:)]);
+        errorbar(-2,median(JC100(i).pitchPre1(JC100(i).targ,:))-med2,std(JC100(i).pitchPre1(JC100(i).targ,:)))
+        errorbar(-1,median(JC100(i).pitchPre2(JC100(i).targ,:))-med2,std(JC100(i).pitchPre2(JC100(i).targ,:)))
+        errorbar(1,median(JC100(i).pitch100wn1(JC100(i).targ,:))-med2,std(JC100(i).pitch100wn1(JC100(i).targ,:)),'Color','r')
+        errorbar(2,median(JC100(i).pitch100wn2(JC100(i).targ,:))-med2,std(JC100(i).pitch100wn2(JC100(i).targ,:)),'Color','r')
+        errorbar(5,median(JC100(i).pitch100wnLast(JC100(i).targ,:))-med2,std(JC100(i).pitch100wnLast(JC100(i).targ,:)),'Color','r')
+        errorbar(6,median(JC100(i).pitch90wn1(JC100(i).targ,:))-med2,std(JC100(i).pitch90wn1(JC100(i).targ,:)),'Color','g')
+        errorbar(7,median(JC100(i).pitch90wn2(JC100(i).targ,:))-med2,std(JC100(i).pitch90wn2(JC100(i).targ,:)),'Color','g')
+        errorbar(8,median(JC100(i).pitch90wnLast(JC100(i).targ,:))-med2,std(JC100(i).pitch90wnLast(JC100(i).targ,:)),'Color','g')
+%%%%
+
+load /cardinal4/100PercentHitRateExps/JC100.mat
+
+% #3 is the best
+figure;hold on;
+for i=1:5
+    subplot(3,2,i);hold on;
+
+    errorbar(1,mean(JC100(i).pitchPre1(JC100(i).targ,:)),std(JC100(i).pitchPre1(JC100(i).targ,:)),'k')
+    errorbar(2,mean(JC100(i).pitchPre2(JC100(i).targ,:)),std(JC100(i).pitchPre2(JC100(i).targ,:)),'k')
+    errorbar(3,mean(JC100(i).pitch100wn1(JC100(i).targ,:)),std(JC100(i).pitch100wn1(JC100(i).targ,:)),'b')
+    errorbar(4,mean(JC100(i).pitch100wn2(JC100(i).targ,:)),std(JC100(i).pitch100wn2(JC100(i).targ,:)),'b')
+    errorbar(5,mean(JC100(i).pitch100wnLast(JC100(i).targ,:)),std(JC100(i).pitch100wnLast(JC100(i).targ,:)),'b')
+    errorbar(6,mean(JC100(i).pitch90wn1(JC100(i).targ,:)),std(JC100(i).pitch90wn1(JC100(i).targ,:)),'r')
+    errorbar(7,mean(JC100(i).pitch90wn2(JC100(i).targ,:)),std(JC100(i).pitch90wn2(JC100(i).targ,:)),'r')
+    errorbar(8,mean(JC100(i).pitch90wnLast(JC100(i).targ,:)),std(JC100(i).pitch90wnLast(JC100(i).targ,:)),'r')
+    ylim([mean(JC100(i).pitchPre1(JC100(i).targ,:))-200 mean(JC100(i).pitchPre1(JC100(i).targ,:))+200])
+end
+
+% GOOD EXAMPLE FIGURE for number 3
+figure;hold on;
+i=3
+    med=mean([JC100(i).pitchPre1(JC100(i).targ,:) JC100(i).pitchPre2(JC100(i).targ,:)]);
+    errorbar(1,-1*(mean(JC100(i).pitchPre1(JC100(i).targ,:))-med),std(JC100(i).pitchPre1(JC100(i).targ,:)),'k')
+    errorbar(2,-1*(mean(JC100(i).pitchPre2(JC100(i).targ,:))-med),std(JC100(i).pitchPre2(JC100(i).targ,:)),'k')
+    errorbar(3,-1*(mean(JC100(i).pitch100wn1(JC100(i).targ,:))-med),std(JC100(i).pitch100wn1(JC100(i).targ,:)),'b')
+    errorbar(4,-1*(mean(JC100(i).pitch100wn2(JC100(i).targ,:))-med),std(JC100(i).pitch100wn2(JC100(i).targ,:)),'b')
+    errorbar(5,-1*(mean(JC100(i).pitch100wnLast(JC100(i).targ,:))-med),std(JC100(i).pitch100wnLast(JC100(i).targ,:)),'b')
+    errorbar(6,-1*(mean(JC100(i).pitch90wn1(JC100(i).targ,:))-med),std(JC100(i).pitch90wn1(JC100(i).targ,:)),'r')
+    errorbar(7,-1*(mean(JC100(i).pitch90wn2(JC100(i).targ,:))-med),std(JC100(i).pitch90wn2(JC100(i).targ,:)),'r')
+    errorbar(8,-1*(mean(JC100(i).pitch90wnLast(JC100(i).targ,:))-med),std(JC100(i).pitch90wnLast(JC100(i).targ,:)),'r')
+% AVERAGE DATA
+for i=1:5
+    med=mean([mean(JC100(i).pitchPre1(JC100(i).targ,:)) mean(JC100(i).pitchPre2(JC100(i).targ,:))]);
+    coef=1-2*isequal(JC100(i).coef,'down');
+    mn1(i)=coef*(mean(JC100(i).pitchPre1(JC100(i).targ,:))-med);
+    sd1(i)=std(JC100(i).pitchPre1(JC100(i).targ,:));
+    mn2(i)=coef*(mean(JC100(i).pitchPre2(JC100(i).targ,:))-med);
+    sd2(i)=std(JC100(i).pitchPre2(JC100(i).targ,:));
+    mn3(i)=coef*(mean(JC100(i).pitch100wn1(JC100(i).targ,:))-med);
+    sd3(i)=std(JC100(i).pitch100wn1(JC100(i).targ,:));
+    mn4(i)=coef*(mean(JC100(i).pitch100wn2(JC100(i).targ,:))-med);
+    sd4(i)=std(JC100(i).pitch100wn2(JC100(i).targ,:));
+    mn5(i)=coef*(mean(JC100(i).pitch100wnLast(JC100(i).targ,:))-med);
+    sd5(i)=std(JC100(i).pitch100wnLast(JC100(i).targ,:));   
+    mn6(i)=coef*(mean(JC100(i).pitch90wn1(JC100(i).targ,:))-med);
+    sd6(i)=std(JC100(i).pitch90wn1(JC100(i).targ,:));
+    mn7(i)=coef*(mean(JC100(i).pitch90wn2(JC100(i).targ,:))-med);
+    sd7(i)=std(JC100(i).pitch90wn2(JC100(i).targ,:));
+    mn8(i)=coef*(mean(JC100(i).pitch90wnLast(JC100(i).targ,:))-med);
+    sd8(i)=std(JC100(i).pitch90wnLast(JC100(i).targ,:));       
+end
+% figure;hold on;
+% errorbar([1 2],[mean(mn1) mean(mn2)],[mean(sd1) mean(sd2)],'k')
+% errorbar([3 4 7],[mean(mn3) mean(mn4) mean(mn5)],[mean(sd3) mean(sd4) mean(sd5)],'b')
+% errorbar([8 9 11],[mean(mn6) mean(mn7) mean(mn8)],[mean(sd6) mean(sd7) mean(sd8)],'r')
+% plot([2 3],[mean(mn2) mean(mn3)],'Color','b')
+% plot([7 8],[mean(mn5) mean(mn6)],'Color','r')
+% plot(1,mean(mn1),'.','Markersize',15,'Color','k')
+% plot(2,mean(mn2),'.','Markersize',15,'Color','k')
+% plot(3,mean(mn3),'.','Markersize',15,'Color','b')
+% plot(4,mean(mn4),'.','Markersize',15,'Color','b')
+% plot(7,mean(mn5),'.','Markersize',15,'Color','b')
+% plot(8,mean(mn6),'.','Markersize',15,'Color','r')
+% plot(9,mean(mn7),'.','Markersize',15,'Color','r')
+% plot(11,mean(mn8),'.','Markersize',15,'Color','r')
+% plot([0 12],[0 0],'-','Color','k')
+% figure;hold on;
+% errorbar([1 2],[mean(mn1) mean(mn2)],[std(mn1)/2 std(mn2)/2],'k')
+% errorbar([3 4 7],[mean(mn3) mean(mn4) mean(mn5)],[std(mn3)/2 std(mn4)/2 std(mn5)/2],'b')
+% errorbar([8 9 11],[mean(mn6) mean(mn7) mean(mn8)],[std(mn6)/2 std(mn7)/2 std(mn8)/2],'r')
+% plot([2 3],[mean(mn2) mean(mn3)],'Color','b')
+% plot([7 8],[mean(mn5) mean(mn6)],'Color','r')
+% plot(1,mean(mn1),'.','Markersize',15,'Color','k')
+% plot(2,mean(mn2),'.','Markersize',15,'Color','k')
+% plot(3,mean(mn3),'.','Markersize',15,'Color','b')
+% plot(4,mean(mn4),'.','Markersize',15,'Color','b')
+% plot(7,mean(mn5),'.','Markersize',15,'Color','b')
+% plot(8,mean(mn6),'.','Markersize',15,'Color','r')
+% plot(9,mean(mn7),'.','Markersize',15,'Color','r')
+% plot(11,mean(mn8),'.','Markersize',15,'Color','r')
+% plot([0 12],[0 0],'-','Color','k')
+
+for i=1:10000
+    draw=ceil(5*(rand(1,5)));
+    permmn1(i)=mean(mn1(draw));
+    draw=ceil(5*(rand(1,5)));
+    permmn2(i)=mean(mn2(draw));
+    draw=ceil(5*(rand(1,5)));
+    permmn3(i)=mean(mn3(draw));
+    draw=ceil(5*(rand(1,5)));
+    permmn4(i)=mean(mn4(draw));
+    draw=ceil(5*(rand(1,5)));
+    permmn5(i)=mean(mn5(draw));
+    draw=ceil(5*(rand(1,5)));
+    permmn6(i)=mean(mn6(draw));
+    draw=ceil(5*(rand(1,5)));
+    permmn7(i)=mean(mn7(draw));
+    draw=ceil(5*(rand(1,5)));
+    permmn8(i)=mean(mn8(draw));    
+end
+figure;hold on;
+errorbar([1 2],[mean(mn1) mean(mn2)],[prctile(permmn1,5) prctile(permmn2,5)]-[mean(mn1) mean(mn2)],[prctile(permmn1,95) prctile(permmn2,95)]-[mean(mn1) mean(mn2)],'k')
+errorbar([3 4 7],[mean(mn3) mean(mn4) mean(mn5)],[prctile(permmn3,5) prctile(permmn4,5) prctile(permmn5,5)]-[mean(mn3) mean(mn4) mean(mn5)],[prctile(permmn3,95) prctile(permmn4,95) prctile(permmn5,95)]-[mean(mn3) mean(mn4) mean(mn5)],'b')
+errorbar([8 9 11],[mean(mn6) mean(mn7) mean(mn8)],[prctile(permmn6,5) prctile(permmn7,5) prctile(permmn8,5)]-[mean(mn6) mean(mn7) mean(mn8)],[prctile(permmn6,95) prctile(permmn7,95) prctile(permmn8,95)]-[mean(mn6) mean(mn7) mean(mn8)],'r')
+plot([2 3],[mean(mn2) mean(mn3)],'Color','b')
+plot([7 8],[mean(mn5) mean(mn6)],'Color','r')
+plot(1,mean(mn1),'.','Markersize',15,'Color','k')
+plot(2,mean(mn2),'.','Markersize',15,'Color','k')
+plot(3,mean(mn3),'.','Markersize',15,'Color','b')
+plot(4,mean(mn4),'.','Markersize',15,'Color','b')
+plot(7,mean(mn5),'.','Markersize',15,'Color','b')
+plot(8,mean(mn6),'.','Markersize',15,'Color','r')
+plot(9,mean(mn7),'.','Markersize',15,'Color','r')
+plot(11,mean(mn8),'.','Markersize',15,'Color','r')
+plot([0 12],[0 0],'-','Color','k')
+
+
+% Trial-over-trial variation does not increase (exploration) --- NO
+    for i=1:5
+        CVPre1(i)=std(JC100(i).pitchPre1(JC100(i).targ,:))/mean(JC100(i).pitchPre1(JC100(i).targ,:));
+        CVPre2(i)=std(JC100(i).pitchPre2(JC100(i).targ,:))/mean(JC100(i).pitchPre2(JC100(i).targ,:));
+        CV100wn1(i)=std(JC100(i).pitch100wn1(JC100(i).targ,:))/mean(JC100(i).pitch100wn1(JC100(i).targ,:));
+        CV100wn2(i)=std(JC100(i).pitch100wn2(JC100(i).targ,:))/mean(JC100(i).pitch100wn2(JC100(i).targ,:));
+        CV100wnLast(i)=std(JC100(i).pitch100wnLast(JC100(i).targ,:))/mean(JC100(i).pitch100wnLast(JC100(i).targ,:));
+    end
+    
+    for i=1:10000
+            draw=ceil(5*(rand(1,5)));
+        permse1(i)=mean(CVPre1(draw));
+        draw=ceil(5*(rand(1,5)));
+        permse2(i)=mean(CVPre2(draw));
+        draw=ceil(5*(rand(1,5)));
+        permse3(i)=mean(CV100wn1(draw));
+        draw=ceil(5*(rand(1,5)));
+        permse4(i)=mean(CV100wn2(draw));
+        draw=ceil(5*(rand(1,5)));
+        permse5(i)=mean(CV100wnLast(draw));
+    end
+    
+        figure;hold on;
+    bar([mean(CVPre1) mean(CVPre2)],'k')
+    bar([3 4 5],[mean(CV100wn1) mean(CV100wn2) mean(CV100wnLast)],'b')
+    plot([1 1],[prctile(permse1,5) prctile(permse1,95)],'k')
+    plot([2 2],[prctile(permse2,5) prctile(permse2,95)],'k')
+    plot([3 3],[prctile(permse3,5) prctile(permse3,95)],'b')
+    plot([4 4],[prctile(permse4,5) prctile(permse4,95)],'b')
+    plot([5 5],[prctile(permse5,5) prctile(permse5,95)],'b')
+
+    
+    figure;hold on;
+    bar([mean(CVPre1) mean(CVPre2)],'k')
+    bar([3 4 5],[mean(CV100wn1) mean(CV100wn2) mean(CV100wnLast)],'b')
+    se1=std(CVPre1)/sqrt(5);
+    plot([1 1],[mean(CVPre1)-se1 mean(CVPre1)+se1],'k')
+    se2=std(CVPre2)/sqrt(5);
+    plot([2 2],[mean(CVPre2)-se2 mean(CVPre2)+se2],'k')
+    se3=std(CV100wn1)/sqrt(5);
+    plot([3 3],[mean(CV100wn1)-se3 mean(CV100wn1)+se3],'b')
+    se4=std(CV100wn2)/sqrt(5);
+    plot([4 4],[mean(CV100wn2)-se4 mean(CV100wn2)+se4],'b')
+    se5=std(CV100wnLast)/sqrt(5);
+    plot([5 5],[mean(CV100wnLast)-se5 mean(CV100wnLast)+se5],'b')
+% Does day-to-day variation change? (long-term stability) --- NO
+    for i=1:5
+        PreChange(i)=mean(JC100(i).pitchPre1(JC100(i).targ,:))-mean(JC100(i).pitchPre2(JC100(i).targ,:));
+        WN1Change(i)=mean(JC100(i).pitch100wn1(JC100(i).targ,:))-mean(JC100(i).pitchPre2(JC100(i).targ,:));
+        WN2Change(i)=mean(JC100(i).pitch100wn2(JC100(i).targ,:))-mean(JC100(i).pitch100wn1(JC100(i).targ,:));
+        WNLastChange(i)=mean(JC100(i).pitch100wnLast(JC100(i).targ,:))-mean(JC100(i).pitch100wn2(JC100(i).targ,:));
+        Ninety1Change(i)=mean(JC100(i).pitch90wn1(JC100(i).targ,:))-mean(JC100(i).pitch100wnLast(JC100(i).targ,:));
+        Ninety2Change(i)=mean(JC100(i).pitch90wn2(JC100(i).targ,:))-mean(JC100(i).pitch90wn1(JC100(i).targ,:));
+    end
+    
+        for i=1:10000
+            draw=ceil(5*(rand(1,5)));
+        permse1b(i)=mean(PreChange(draw));
+        draw=ceil(5*(rand(1,5)));
+        permse2b(i)=mean(WN1Change(draw));
+        draw=ceil(5*(rand(1,5)));
+        permse3b(i)=mean(WN2Change(draw));
+        draw=ceil(5*(rand(1,5)));
+        permse4b(i)=mean(WNLastChange(draw));
+    end
+
+    
+    
+    
+        figure;hold on;
+    bar([mean(abs(PreChange))],'k')
+    bar([2 3 4],[mean(abs(WN1Change)) mean(abs(WN2Change)) mean(abs(WNLastChange))],'b')
+    plot([1 1],[mean(abs(PreChange))-se1 mean(abs(PreChange))+se1],'k')
+    plot([2 2],[mean(abs(WN1Change))-se2 mean(abs(WN1Change))+se2],'b')
+    plot([3 3],[mean(abs(WN2Change))-se3 mean(abs(WN2Change))+se3],'b')
+    plot([4 4],[mean(abs(WNLastChange))-se4 mean(abs(WNLastChange))+se4],'b')
+    
+    figure;hold on;
+    bar([mean(abs(PreChange))],'k')
+    bar([2 3 4],[mean(abs(WN1Change)) mean(abs(WN2Change)) mean(abs(WNLastChange))],'b')
+    se1=std(abs(PreChange))/sqrt(5);
+    plot([1 1],[mean(abs(PreChange))-se1 mean(abs(PreChange))+se1],'k')
+    se2=std(abs(WN1Change))/sqrt(5);
+    plot([2 2],[mean(abs(WN1Change))-se2 mean(abs(WN1Change))+se2],'b')
+    se3=std(abs(WN2Change))/sqrt(5);
+    plot([3 3],[mean(abs(WN2Change))-se3 mean(abs(WN2Change))+se3],'b')
+    se4=std(abs(WNLastChange))/sqrt(5);
+    plot([4 4],[mean(abs(WNLastChange))-se4 mean(abs(WNLastChange))+se4],'b')
+
+% What about the structure of variability? - 2 may change, 1 doesn't
+            3- [200 400]
+            4 - [200 600]
+            5 - [200 400]
+
+            [PC3,SCORE3,LATENT3]=princomp([JC100(3).pitchPre1(200:400,:) JC100(3).pitchPre2(200:400,:) JC100(3).pitch100wn1(200:400,:) JC100(3).pitch100wn2(200:400,:) JC100(3).pitch100wnLast(200:400,:)]');
+            107, 79, 67, 73, 128
+            for i=1:7
+                n3distancesPRE(i)=abs((median(SCORE3(108:107+79,i))-median(SCORE3(1:107,i)))); % 255 (sum)
+                n3distancesWN1(i)=abs((median(SCORE3(186+1:186+67,i))-median(SCORE3(1:107,i)))); % 287
+                n3distancesWN2(i)=abs((median(SCORE3(253+1:253+73,i))-median(SCORE3(1:107,i)))); % 505
+                n3distancesWN3(i)=abs((median(SCORE3(326+1:326+128,i))-median(SCORE3(1:107,i)))); % 305
+            end
+
+
+            [PC4,SCORE4,LATENT4]=princomp([JC100(4).pitchPre1(200:600,:) JC100(4).pitchPre2(200:600,:) JC100(4).pitch100wn1(200:600,:) JC100(4).pitch100wn2(200:600,:) JC100(4).pitch100wnLast(200:600,:)]');
+            91, 137, 109, 126, 154
+            for i=1:7
+                n4distancesPRE(i)=abs(median(SCORE4(92:91+137,i))-median(SCORE4(1:91,i))); % 512
+                n4distancesWN1(i)=abs(median(SCORE4(228+1:228+109,i))-median(SCORE4(1:91,i))); % 867
+                n4distancesWN2(i)=abs(median(SCORE4(337+1:337+126,i))-median(SCORE4(1:91,i))); % 821
+                n4distancesWN3(i)=abs(median(SCORE4(463+1:463+154,i))-median(SCORE4(1:91,i))); % 873
+            end
+
+            % #5
+            [PC5,SCORE5,LATENT5]=princomp([JC100(5).pitchPre1(200:400,:) JC100(5).pitchPre2(200:400,:) JC100(5).pitch100wn1(200:400,:) JC100(5).pitch100wn2(200:400,:) JC100(5).pitch100wnLast(200:400,:)]');
+            159, 214, 157, 113, 129
+            for i=1:7
+                distancesPRE(i)=abs(median(SCORE5(160:159+214,i))-median(SCORE5(1:159,i))); % 455
+                distancesWN1(i)=abs(median(SCORE5(373+1:373+157,i))-median(SCORE5(1:159,i))); % 585
+                distancesWN2(i)=abs(median(SCORE5(530+1:530+113,i))-median(SCORE5(1:159,i))); % 434
+                distancesWN3(i)=abs(median(SCORE5(643+1:643+129,i))-median(SCORE5(1:159,i))); % 416
+            end
+            % columns of PC

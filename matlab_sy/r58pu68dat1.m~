@@ -1,0 +1,96 @@
+%designed to call pitchsyntaxanal, and then inactivanal.m
+
+sumpath='/doya4/pk80r6/'
+strcmd=['cd ' sumpath]
+eval(strcmd);
+if (~exist('datasum','dir'))
+    !mkdir datasum
+end
+matfilename='pathvals1'
+
+extractvals=1
+
+clear pathvl vals
+clear avls
+clear tbinshft
+
+pathvl{1}='/doya4/pk80r6/screen2/'
+catchvl{1}='batch.keep.rand'
+pathvl{2}='/doya4/pk80r6/temptest3/'
+catchvl{2}='batchcomb2'
+pathvl{3}='/doya4/pk80r6/wnoff2/'
+catchvl{3}='batch20.keep.catch.rand'
+pathvl{4}='/doya4/pk80r6/wnoff2/'
+catchvl{4}='batch21.keep.catch.rand'
+pathvl{5}='/doya4/pk80r6/wnon2/'
+catchvl{5}='batch25.keep.catch.rand'
+pathvl{6}='/doya4/pk80r6/wnon2/'
+catchvl{6}='batch27.keep.catch.rand'
+pathvl{7}='/doya4/pk80r6/wnoff3/'
+catchvl{7}='batch.keep'
+pathvl{8}='/doya4/pk80r6/temptest/'
+catchvl{8}='batch10comb.rand'
+pathvl{9}='/doya4/pk80r6/postlesion/'
+catchvl{9}='batch18c.keep.rand'
+pathvl{10}='/doya4/pk80r6/postlesion/'
+catchvl{10}='batch1920comb.keep.rand'
+
+usex(1:10)=0;
+avls.repeatanal(1:10)=0
+avls.analind=[1:10]
+numnotes=2
+notes='ce'
+
+fbins={};
+tbinshft{1}=0.1;
+NFFT(1)=1024
+fbins{1}=[6000,8000];
+clear NT    
+NT{1}='d'
+
+
+PRENT{1}='c';PSTNT{1}='';
+PRENT{2}='';PSTNT{2}='';
+  %%%plotvals
+avls.synind=[1:10]
+avls.translist{1}='e'
+avls.translist{2}='c'
+avls.translist{3}='z'
+avls.translist{4}='i'
+avls.translist{5}='k'
+avls.pitchind=[]
+colvals='rmkbg'
+graphvals.numcol=5
+graphvals.col=colvals
+graphvals.plttext=1
+graphvals.txtht=[3260 3200]
+graphvals.colvals=colvals
+graphvals.pltpnts=1
+
+graphvals.colvals=colvals
+
+avls.pvls=pathvl
+avls.datfile=matfilename;
+avls.cvl=catchvl
+avls.sumpath=sumpath
+avls.mtflnm=matfilename  
+avls.supanal=1
+avls.NT=NT
+avls.NFFT=NFFT
+avls.fbins=fbins
+avls.tshft=tbinshft
+avls.usex=usex
+avls.numnotes=numnotes
+avls.mkfv=[10]
+avls.PRENT=PRENT
+avls.PSTNT=PSTNT
+avls.bnds{1}='2007-09-20 07:00:00'
+avvls.bnds{2}='2007-11-20 07:00:00'
+
+strcmd=['cd ' sumpath 'datasum']
+eval(strcmd)
+
+strcmd=['save ' matfilename '.mat avls graphvals'];
+eval(strcmd);
+
+

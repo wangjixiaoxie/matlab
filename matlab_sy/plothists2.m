@@ -1,0 +1,77 @@
+%plothists
+%very general histogram plotting fxn.  takes histogram struct.
+%with fields of edges, Color, Linestyle, 
+%created 8.29.08 for purposes of inactivation plots.
+%REWRITTEN 10.28.08
+
+function [ax] = plothists(hs);
+    
+    for hnm=1:length(hs)
+       edgred=[];
+        axes(hs(hnm).ax);
+        edg=hs(hnm).edges;
+        vls=hs(hnm).hst;
+        col=hs(hnm).col;
+        ls=hs(hnm).ls;
+        wid=hs(hnm).wid'
+        
+        %redimension edges
+        edgred=edg;
+        vlsred=vls;
+        
+        ind=find(vlsred~=0);
+        if(ind(end)+3<length(vlsred))
+            finalind=ind(end)+3;
+        else
+            finalind=length(vlsred);
+        end
+        if(ind(1)-3>1)
+            startind=ind(1)-3;
+        else
+            startind=1;
+        end
+        
+       ind=startind:finalind;
+        if(hs(hnm).plothist)
+            if (hs(hnm).orient=='norm')
+                stairs(edgred(ind)/3000,vlsred(ind),'Color',col,'Linestyle',ls,'Linewidth',wid);
+                hold on;
+            else
+                %to do this, need to shift the edges vector by one bin
+                %width
+                binwd=edgred(2)-edgred(1);
+                edgred=edgred+binwd
+                stairs(vlsred(ind)/3000,edgred(ind),'Color',col,'Linestyle',ls,'Linewidth',wid);
+                hold on;
+                
+            end
+        end
+        
+         if(hs(hnm).plot_triangles)
+                    plot(hs(hnm).mean/3000,0.35,'Marker','v','Color',col,'MarkerFaceColor',col)
+                end
+        
+%         if(~isempty(hs(hnm).verline))
+%            plot([hs(hnm).verline hs(hnm).verline ],[0 0.8],'k--'); 
+%         end
+%         if(hs(hnm).plotline)
+%             
+%             wid=hs(hnm).lw
+% %             pts=hs(hnm).pts;
+%             marked=hs(hnm).marked;
+%             markx=hs(hnm).markx;
+%             marklnht=hs(hnm).marklnht;
+%             markht=hs(hnm).markht;
+%             
+%             if(hs(hnm).orient=='flip')
+%                 plot([marklnht marklnht], [marked],'Color',col,'Linewidth',wid);
+%                 hold on;
+% %                 plot(marklnht,markx,'Marker',hs(hnm).mark,'Color',col)
+%             
+%             else
+%                 plot([marked],[marklnht marklnht] ,'Color',col,'Linewidth',wid);
+%                 hold on;
+% %                 plot(markx,marklnht,'Marker',hs(hnm).mark,'Color',col)
+%             end   
+%         end
+    end

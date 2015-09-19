@@ -1,0 +1,30 @@
+colordef black
+figure
+
+fs=44100
+pretrig=2
+trig=1
+posttrig=10
+
+
+datsong(1:fs*pretrig)=0;
+datsong(fs*pretrig+1:fs*(pretrig+trig))=1;
+datsong(fs*(pretrig+trig)+1:posttrig*fs)=0;
+
+
+normvec(1)=max(datsong);
+normvec(2)=abs(min(datsong));
+normfactor=max(normvec);
+
+datsong=(1/normfactor)*datsong;
+
+
+
+
+%FINALLY, WRITE TO WAV FILES*/
+wavstring={'trigstim.wav'}
+
+    
+    wavwrite(datsong, fs,16, 'trigstim.wav');
+
+

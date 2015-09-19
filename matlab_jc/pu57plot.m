@@ -1,0 +1,49 @@
+% Experiments 1 and 2
+figure;plot([tvalsBaseline tvalsTRANS tvalsAPV tvalsPOST,tvalsPOST2,tvalsPROBE,tvalsTRANS2,tvalsAPV2,tvalsAPV5,tvalsPOST3,tvalsPOST4],[FFvalsBaseline;FFvalsTRANS;FFvalsAPV;FFvalsPOST;FFvalsPOST2;FFvalsPROBE;FFvalsTRANS2;FFvalsAPV2;FFvalsAPV5;FFvalsPOST3;FFvalsPOST4],'*','Color','k')
+hold on;plot([tvalsBaseline tvalsTRANS tvalsAPV tvalsPOST,tvalsPOST2,tvalsPROBE,tvalsTRANS2,tvalsAPV2,tvalsAPV5],[FFvalsBaseline;FFvalsTRANS;FFvalsAPV;FFvalsPOST;FFvalsPOST2;FFvalsPROBE;FFvalsTRANS2;FFvalsAPV2;FFvalsAPV5],'*','Color','r')
+hold on;plot([tvalsBaseline tvalsTRANS tvalsAPV tvalsPOST,tvalsPOST2,tvalsPROBE,tvalsTRANS2,tvalsAPV2],[FFvalsBaseline;FFvalsTRANS;FFvalsAPV;FFvalsPOST;FFvalsPOST2;FFvalsPROBE;FFvalsTRANS2;FFvalsAPV2],'*','Color','r')
+hold on;plot([tvalsBaseline tvalsTRANS tvalsAPV tvalsPOST,tvalsPOST2,tvalsPROBE,tvalsTRANS2],[FFvalsBaseline;FFvalsTRANS;FFvalsAPV;FFvalsPOST;FFvalsPOST2;FFvalsPROBE;FFvalsTRANS2],'*','Color','b')
+hold on;plot([tvalsBaseline tvalsTRANS tvalsAPV tvalsPOST,tvalsPOST2,tvalsPROBE],[FFvalsBaseline;FFvalsTRANS;FFvalsAPV;FFvalsPOST;FFvalsPOST2;FFvalsPROBE],'*','Color','k')
+hold on;plot([tvalsBaseline tvalsTRANS tvalsAPV tvalsPOST,tvalsPOST2],[FFvalsBaseline;FFvalsTRANS;FFvalsAPV;FFvalsPOST;FFvalsPOST2],'*','Color','k')
+hold on;plot([tvalsBaseline tvalsTRANS tvalsAPV],[FFvalsBaseline;FFvalsTRANS;FFvalsAPV],'*','Color','r')
+hold on;plot([tvalsBaseline tvalsTRANS],[FFvalsBaseline;FFvalsTRANS],'*','Color','b')
+hold on;plot([tvalsBaseline],[FFvalsBaseline],'*','Color','k')
+
+tvalsall=[tvalsBaseline tvalsTRANS tvalsAPV tvalsPOST,tvalsPOST2,tvalsPROBE,tvalsTRANS2,tvalsAPV2,tvalsAPV5,tvalsPOST3,tvalsPOST4];
+pitchvalsall=[FFvalsBaseline;FFvalsTRANS;FFvalsAPV;FFvalsPOST;FFvalsPOST2;FFvalsPROBE;FFvalsTRANS2;FFvalsAPV2;FFvalsAPV5;FFvalsPOST3;FFvalsPOST4];
+wc=40    
+    for i=1:floor(size(pitchvalsall)/wc)
+        start=i*wc-wc+1;
+        last=start+wc-1;
+        val1=[median(pitchvalsall(start:last))];
+        plot([tvalsall(start) tvalsall(last)],[val1 val1],'Color','g','LineWidth',8)
+    end
+    
+    hold on;plot([tvalsAPV(1) tvalsAPV(end)],[3720 3720],'Color','k','LineWidth',4)
+    % Contingencies
+    tvalsAPVsecond=[tvalsAPV2 tvalsAPV5];
+    hold on;plot([tvalsAPVsecond(1) tvalsAPVsecond(130)],[3620 3620],'Color','k','LineWidth',4)
+    hold on;plot([tvalsAPVsecond(131) tvalsAPVsecond(175)],[3590 3590],'Color','k','LineWidth',4)
+    hold on;plot([tvalsAPVsecond(176) tvalsAPVsecond(end)],[3575 3575],'Color','k','LineWidth',4)
+
+%%% ZOOM in on each to print
+
+
+% Experiment 3 - Control
+tvalsREC=timing3(fvsREC);
+tvalsCTLampon=timing3(fvalsCTLampon);
+tvalsCTLpre=timing3(fvalsCTLpre);
+figure;plot([tvalsCTLpre tvalsCTLampon tvalsREC],[median(pitchCTLall(250:300,:)) median(pitchCTLall2(250:300,:))],'*','Color','k')
+hold on;plot([tvalsCTLpre tvalsCTLampon],[median(pitchCTLall(250:300,:))],'*','Color','r')
+plot(tvalsCTLpre,median(pitchCTLall(250:300,1:545)),'*','Color','k')
+tvalsALL=[tvalsCTLpre tvalsCTLampon tvalsREC];
+pitchvalsALL=[median(pitchCTLall(250:300,:)) median(pitchCTLall2(250:300,:))];
+wc=40    
+    for i=1:floor(length(pitchvalsALL)/wc)
+        start=i*wc-wc+1;
+        last=start+wc-1;
+        val1=[median(pitchvalsALL(start:last))];
+        plot([tvalsALL(start) tvalsALL(last)],[val1 val1],'Color','g','LineWidth',8)
+    end
+ % Contingency 
+ hold on;plot([tvalsCTLampon(1) tvalsCTLampon(end)],[3650 3650],'Color','k','LineWidth',4)

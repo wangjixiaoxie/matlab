@@ -1,0 +1,79 @@
+function [OUT]=jcTSA1014(vals,batch)
+
+
+FFstats=vals(:,2);
+
+most=max(vals(:,2)); %most notes in one song
+[vals,trigs]=triglabel(batch,'a',1,1,0,0);
+aa=zeros(length(trigs),most);
+
+counttot=0;
+countESC=0;
+samesong=[];
+nextsong=[];
+
+ones=[];
+twos=[];
+threes=[];
+fours=[];
+
+nextplace=[];
+for k=1:length(trigs)-4
+    for kk=1:most-1
+        if aa(k,kk)~=0
+            counttot=counttot+1;
+        end
+        if aa(k,kk)==1 %if escape
+            countESC=countESC+1;
+            escapes(countESC)=FFstats(counttot);
+            addon=0;
+            for ll=kk+1:8 %the rest of the song
+                addon=addon+1;
+                if aa(k,ll)~=0
+                    samesong=[samesong FFstats(counttot+addon)];
+                else totsong=ll-1;
+                    break
+                end
+            end
+            addnext=0;
+            if k~=length(trigs)
+                for lll=1:7 %the next song
+                    addnext=addnext+1;
+                    if aa(k+1,lll)~=0
+                        nextsong=[nextsong FFstats(counttot+addnext+totsong-kk)];
+                    end
+                end
+            end
+            if k~=length(trigs)
+                if aa(k+1,kk)~=0 %Same position in the next song
+                    nextplace=[nextplace FFstats(counttot+totsong)];
+                end
+            end
+
+            ones=[ones FFstats(counttot+1)];
+            twos=[twos FFstats(counttot+2)];
+            threes=[threes FFstats(counttot+3)];
+            fours=[fours FFstats(counttot+4)];
+        end
+    end
+end
+
+OUT.medsame=median(samesong);
+OUT.medplace=median(nextplace);
+OUT.mednext=median(nextsong);
+OUT.medFF=median(FFstats);
+OUT.medesc=median(escapes);
+OUT.serr=std(nextsong)/sqrt(length(nextsong));
+OUT.medones=median(ones);
+OUT.medtwos=median(twos);
+OUT.medthrees=median(threes);
+OUT.medfours=median(fours);
+hold on;plot(1,OUT.medFF,'*','Color','r');
+plot(1.1,OUT.medsame,'*')
+plot(1.4,OUT.medplace,'*')
+plot(1.7,OUT.mednext,'*')
+plot(2,OUT.medesc,'*','Color','g')
+plot(2.1,OUT.medones,'*')
+plot(2.2,OUT.medtwos,'*')
+plot(2.3,OUT.medthrees,'*')
+plot(2.4,OUT.medfours,'*')

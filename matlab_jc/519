@@ -1,0 +1,19 @@
+% May 2009
+% classification of D vs. UD
+
+% Step 1: find middle of note
+for j=1:10
+    long=size(MKZF(j).pitchPRE,1);
+    steps=round((long-100)/100);
+    cvc=std(MKZF(j).pitchPRE');
+    localCV=[];
+    for i=1:82
+        localCV(i)=mean(cvc(steps*i:steps*i+250));
+    end
+    [a,ind]=min(localCV);
+    start(j)=ind*steps;
+    figure;plot(MKZF(j).pitchPRE(start(j):start(j)+250,:))
+end
+start(6)=480;
+
+    

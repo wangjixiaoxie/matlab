@@ -1,0 +1,63 @@
+%modified 3.20.11 to be a function that goes through avls struct and pulls
+%out relevant delay values.
+[ons offs]=getonsoffs(fv)
+
+       for ii=1:length(fv)
+           crons=fv(ii).ons;
+           croffs=fv(ii).offs;
+           crind=fv(ii).ind;
+           if(crind>1)
+               offs(ii)=crons(crind)-croffs(crind-1);
+               offs(ii)=crons(crind)-croffs(crind-1);
+           else
+                
+
+           end
+      
+
+
+% for fvnum=1:length(fvanal)
+%     for crsyll=1:length(sylls)
+%         
+%         %exclude outliers
+%         inds=find(otdiff{fvnum}{crsyll}>hstbnds(1)&otdiff{fvnum}{crsyll}>hstbnds(2))
+%         
+%         mnout{fvnum}{crsyll}=mean(otdiff{fvnum}{crsyll}(inds));
+%         hstout{fvnum}{crsyll}=hist(otdiff{fvnum}{crsyll},hstbnds);
+%         sterout{fvnum}{crsyll}=std(otdiff{fvnum}{crsyll}(inds))./sqrt(length(inds));
+%         fnum{fvnum}{crsyll}=length(inds);
+%         
+%     end
+% end
+% 
+% %make histograms
+% % e.g.  hstb1=histc(otdiff{2}{1},hstbnds)
+% 
+% mo=mnout
+% so=sterout
+% 
+% figure;
+% 
+% for ii=1:length(fvanal)
+% 
+% axnew(ii)=subplot(length(fvanal),1,ii)
+% stairs(hstbnds,hstout{ii}{1}./sum(hstout{ii}{1}),'r');
+% hold on;
+% stairs(hstbnds,hstout{ii}{2}./sum(hstout{ii}{2}),'k');
+% f=ii;s=1;
+% plot([mo{f}{s}-so{f}{s} mo{f}{s}+so{f}{s}],[.6 .6],'r')
+% 
+% text(70,0.4,num2str(fnum{f}{s}),'Color','r');
+% f=ii;s=2;
+% plot([mo{f}{s}-so{f}{s} mo{f}{s}+so{f}{s}],[.7 .7],'k')
+% text(70,0.6,num2str(fnum{f}{s}),'Color','k');
+% 
+% 
+% %base lines
+% plot([mo{1}{1} mo{1}{1}],[0 1],'r--');
+% plot([mo{1}{2} mo{1}{2}],[0 1],'k--');
+% 
+% axis square
+% 
+% end
+% linkaxes('axnew');

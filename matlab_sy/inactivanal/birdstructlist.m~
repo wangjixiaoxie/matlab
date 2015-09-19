@@ -1,0 +1,129 @@
+%make birdstruct
+% 
+clear bs
+bs(1).path='/oriole6/pk20r49/datasum'
+bs(1).matfilename='pathvals1-analdata.mat'
+bs(1).color=[1 .8 .8]
+bs(1).basruns=[2 5  10 41]
+bs(1).ntind=1;
+bs(1).contrind=[2];
+bs(1).revruns{1}=[38 41]
+bs(1).finbasruns{1}
+
+bs(1).sfact=[1000 1000];
+bs(1).revasympvl=[];
+% bs(1).exsong='figs/
+%very difficult to find a control note in this song.
+
+bs(2).path='/oriole4/pu34/datasum/'
+bs(2).matfilename='pathvals1-analdata.mat'
+bs(2).color='k'
+bs(2).ntind=1;
+bs(2).contrind=[3] ;
+bs(2).basruns=[5 32 70];
+bs(2).revruns{1}=[24 27 30 32]
+bs(2).revruns{2}=[46 52 62 65 70]
+bs(2).sfact=[3000 2000];
+bs(3).path='/oriole4/bk20bk45/datasum'
+bs(3).matfilename='pathvals1-analdata.mat'
+bs(3).color=[0.8 0.8 0.8]
+bs(3).ntind=3;
+bs(3).contrind=[4];
+bs(3).basruns=[6 11 31]
+bs(3).revruns{1}=[29 31]
+bs(3).sfact=[2000 1000];
+
+bs(4).path='/oriole4/bk20bk45/datasum'
+bs(4).matfilename='pathvals1-analdata.mat'
+bs(4).color=[0.6 0.6 0.8]
+bs(4).ntind=1;
+bs(4).contrind=[4];
+bs(4).asympvl=21.3;
+bs(4).basruns=[6 11 ]
+bs(4).revruns{1}=[];
+bs(4).sfact=[1000 1000];
+
+bs(5).path='/oriole6/bk61w42/datasum'
+bs(5).matfilename='pathvals1-analdata.mat'
+bs(5).color=[0.6 0.6 0.8]
+bs(5).ntind=1;
+bs(5).contrind=[3 ];
+bs(5).asympvl=4.4;
+bs(5).basruns=[8 11 14 39]
+bs(5).sfact=[3000 1000];
+
+bs(6).path='/oriole6/bk28w6/datasum'
+bs(6).matfilename='pathvals1-analdata.mat'
+bs(6).color=[0.6 0.6 0.8]
+bs(6).ntind=1;
+bs(6).contrind=[2];
+bs(6).basruns=[5 24];
+bs(6).sfact=[2000 2000];
+
+bs(7).path='/oriole/pk32bk28/datasum'
+bs(7).matfilename='pathvals3-analdata.mat'
+bs(7).color=[0.6 0.6 0.8]
+bs(7).ntind=1;
+bs(7).contrind=[2];
+bs(7).shiftride{1}=[20];
+bs(7).basruns=[3 36]
+bs(7).sfact=[3000 1000];
+
+bs(8).path='/oriole6/bk61w42/datasum'
+bs(8).matfilename='pathvals3-analdata.mat'
+bs(8).color=[0.6 0.6 0.8]
+bs(8).ntind=1;
+bs(8).contrind=[2];
+% bs(8).asympvl=4.3
+bs(8).basruns=[2]
+bs(8).sfact=[3000 1000];
+
+
+
+bs(9).path='/oriole/bk63w43/datasum'
+bs(9).matfilename='pathvals1-analdata.mat'
+bs(9).color=[0.6 0.6 0.8]
+bs(9).ntind=1;
+bs(9).contrind=[3];
+bs(9).basruns=[5 8 11 33]
+bs(9).sfact=[3000 1000];
+
+
+
+bs(10).path='/oriole5/pu57w52/datasum'
+bs(10).matfilename='pathvals1-analdata.mat'
+bs(10).color=[0.6 0.6 0.8]
+bs(10).ntind=1;
+bs(10).contrind=[2];
+bs(10).asympvl=5.8;
+bs(10).basruns=[9 11]
+bs(10).sfact=[3000 1000];
+
+bs(11).path='/oriole5/pu56w26/datasum'
+bs(11).matfilename='pathvals1-analdata.mat'
+bs(11).color=[0.6 0.6 0.8]
+bs(11).ntind=1;
+bs(11).contrind=[2];
+bs(11).basruns=[2]
+bs(11).sfact=[3000 1000];
+
+
+
+% 
+% 
+% bs(10).path='/oriole5/bk15bk14/'
+% bs().matfilename='pathvals3-analdata.mat'
+% bs(8).color=[0.6 0.6 0.8]
+% bs(8).ntind=2;
+% bs(8).contrind=[4];
+% bs(8).basruns=[2 5 7];
+% 
+% 
+% 
+% bs(11).path='/oriole5/bk15bk14/'
+% bs(11).matfilename='pathvals3-analdata.mat'
+% bs(11).color=[0.6 0.6 0.8]
+% bs(11).ntind=1;
+% bs(11).contrind=[4];
+% bs(11).basruns=[2 5 7]
+% 

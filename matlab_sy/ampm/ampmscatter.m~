@@ -1,0 +1,123 @@
+%piloting this just for bk61w42...  
+
+%mornevescatter
+
+%find the matching am/pm pairs
+%do this by going for each am and checking for the appropriate pm.
+
+function [am_pmout,am_muout]=ampmscatter (phsumbs,bs,bsind,ps)
+
+%foram_pmanal.
+ [am_pmout]=findampm_pairs(phsumbs,bsind);
+ 
+ %foram_muanal
+ [am_muout]=findam_mupairs(phsumbs,bsind);
+
+
+ 
+function [am_pmout]=findampm_pairs(phsumbs,bsind)
+    for ii=1:length(bsind)
+        crbsind=bsind(ii);
+        crbs=phsumbs(crbsind);
+        
+        %outruns{1} is shiftruns
+        %outruns{2} is asympruns
+        [outruns]=getruns(crbs)
+        for ii=1:2
+            cr_runs=outruns{ii};
+            [amruns,pmruns]=getampmruns(cr_runs,crbs);
+            am_pmout.amruns=amruns;
+            am_pmout.pmruns=pmruns;
+        end   
+    end
+
+function [am_muout]=findam_mupairs(phsumbs,bsind)
+    for ii=1:length(bsind)
+        crbsind=bsind(ii);
+        crbs=phsumbs(crbsind);
+        
+        %outruns{1} is shiftruns
+        %outruns{2} is asympruns
+        [outruns]=getruns(crbs)
+        for ii=1:2
+            cr_runs=outruns{ii};
+            [amruns,muruns]=getammuvls(cr_runs,crbs);
+            am_muout.amruns=amruns;
+            am_muout.muruns=muruns;
+        end   
+    end
+
+
+function [outruns]=getruns(crbs)
+%get only shift runs including first asymptote run.
+outruns{1}=[];
+outruns{2}=[];
+
+for ii=1:length(crbs.allasympruns)
+    crasymp=crbs.allasympruns{ii};
+    outruns{2}=[outruns{2} ;crasymp]
+    
+    
+    mulistind=find(ismember(crbs.mulist,crasymp));
+    if(~isempty(mulistind))
+        mulim(ii)=mulistind(1);
+    else
+        mulim(ii)=[];
+    end
+        
+end
+for ii=1:length(crbs.allshiftruns)
+    crshift=crbs.allshiftruns{ii};
+    
+    %limit to first asymptote run
+    if(~isempty(mulim(ii)))
+       acinitruns=crbs.aclist(1:mulim(ii),1);
+       acfinruns=crbs.aclist(1:mulim(ii),2);
+       muruns=crbs.mulist(1:mulim(ii));
+       nozeroac=find(acfinruns~=0);
+       nozeromu=find(muruns~=0);
+       acfinruns=acfinruns(nozeroac);
+       mufinruns=muruns(nozeromu);
+       outruns{1}=[outruns{1} ;acinitruns; acfinruns; mufinruns'];
+    end
+end
+        
+function [amruns,pmruns]=getampmruns(cr_runs,crbs)
+%first find the am values.
+amrunsind=find(ismember(cr_runs,crbs.aclist(:,1)));
+amruns=cr_runs(amrunsind);
+
+
+%now look for a pm pair from day before.
+%for each of the amruns, find the aclistind
+for ii=1:length(amruns)
+   aclistind=find(crbs.aclist(:,1)==amruns(ii))
+   if(aclistind-1)
+        pmlistind=aclistind-1;
+        pmruns(ii)=crbs.aclist(pmlistind,2);
+        if(~(pmruns(ii)))
+            pmruns(ii)=crbs.aclist(pmlistind,1)
+        end
+   else
+       pmruns(ii)=0;
+
+
+   end
+end
+
+function [amruns,muruns]=getammuvls(cr_runs,crbs)
+amrunsind=find(ismember(cr_runs,crbs.aclist(:,1)));
+amruns=cr_runs(amrunsind);
+for ii=1:length(amruns)
+    murunsind=find(crbs.mulist==amrunsind(ii));
+    muruns=crbs.mulist(amrunsind);
+end
+
+
+
+
+    %then plot the values with standard error
+
+
+%for am mu scatter
+%loop through the mu and find the matching am.

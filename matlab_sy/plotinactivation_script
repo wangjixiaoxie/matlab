@@ -1,0 +1,28 @@
+%plotinactivation_script
+
+%the purpose of this is to make figures for a basic inactivation/pitchshift
+%figure
+
+
+ %1 
+ %3 
+ %4 is barplot of zscore offset.
+ %5 is barplot of pct offset.
+ 
+ figstoplot=[4 5]
+ 
+ if(find(figstoplot==4)||find(figstoplot==5))
+     modstruct.bsnum=7;
+     modstruct.shftnum=1;
+     modstruct.runs=20
+     [sumplotout,sumplotrevout]=selectinbasruns3(sumbs,init_typ, range, minshift,modstruct)
+ end
+ 
+if (find(figstoplot==4))
+end
+     
+     
+     
+     
+if(find(figstoplot==5))
+end

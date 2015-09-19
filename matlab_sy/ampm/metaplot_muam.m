@@ -1,0 +1,111 @@
+%plot_ammudynamics
+function [ampmstruct,ax]=metaplot_muam(phsumbs)
+%four figure
+tmbnds{1}=[0 0.5];
+tmbnds{2}=[0.5 1];
+tmbnds{3}=[0 1];
+%first figure is shift runs (early)
+ax(1)=subplot(611);
+ps.ax=ax(1);
+ps.osind=1;
+ps.histbnds=[-5:.35:5]
+
+ps.minmuvls=10;
+ps.runs=[1]
+ps.numvls=15;
+ps.calcsd=1;
+ps.combshift=1;
+ps.tvl=1;
+ps.mutmbnds=tmbnds{1};
+ps.type='all';
+ps.plotcol={'k' 'r' 'c'}
+% [ampmstruct(1)]=plotscatter_ampm2(phsumbs,1:11,ps);
+%second figure is shift runs (late)
+
+ps.tvl=2;
+ps.runs=1;
+ps.mutmbnds=tmbnds{2};
+% ps.plotcol='r'
+ps.osind=2;
+ps.ax=subplot(612);
+ps.type='all';
+% %omitting because only 5 vals.
+% ps.omitbs=4;
+% ps.omitrun=29;
+% [ampmstruct(2)]=plotscatter_ampm2(phsumbs,1:11,ps);
+% 
+ps.tvl=3;
+ps.runs=1;
+ps.mutmbnds=tmbnds{3};
+% ps.plotcol='r'
+ps.ax=subplot(613);
+ps.type='all';
+% %omitting because only 5 vals.
+% ps.omitbs=4;
+% ps.omitrun=29;
+% [ampmstruct(3)]=plotscatter_ampm2(phsumbs,1:11,ps);
+
+
+ps.tvl=3;
+ps.runs=3;
+ps.mutmbnds=tmbnds{3};
+% ps.plotcol='r'
+ps.ax=subplot(614);
+ps.type='all';
+% %omitting because only 5 vals.
+% ps.omitbs=4;
+% ps.omitrun=29;
+% [ampmstruct(4)]=plotscatter_ampm2(phsumbs,1:11,ps);
+
+ps.tvl=3;
+ps.runs=1;
+ps.mutmbnds=tmbnds{3};
+% ps.plotcol='r'
+ps.ax=subplot(615);
+ps.type='com'
+% %omitting because only 5 vals.
+% ps.omitbs=4;
+% ps.omitrun=29;
+[ampmstruct(5)]=plotscatter_ampm2(phsumbs,1:11,ps);
+
+ps.tvl=3;
+ps.runs=3;
+ps.mutmbnds=tmbnds{3};
+% ps.plotcol='r'
+ps.ax=subplot(616);
+ps.type='com'
+% %omitting because only 5 vals.
+% ps.omitbs=4;
+% ps.omitrun=29;
+[ampmstruct(6)]=plotscatter_ampm2(phsumbs,1:11,ps);
+
+
+% %third figure is asymp runs (early)
+% ax(2)=subplot(312);
+% ps.ax=ax(2);
+% ps.runs=2;
+% ps.mutmbnds=tmbnds{1};
+% ps.plotcol='k'
+% 
+% [ampmstruct(4)]=plotscatter_ampm2(phsumbs,1:11,ps);
+% 
+% %fourth figure is revruns (late);
+% ps.mutmbnds=tmbnds{2};
+% ps.plotcol='r';
+% [ampmstruct(5)]=plotscatter_ampm2(phsumbs,1:11,ps);
+% 
+% %fifth figure is asymp runs (early)
+% ax(3)=subplot(313);
+% ps.ax=ax(3);
+% ps.tvl=1;
+% ps.runs=3;
+% ps.mutmbnds=tmbnds{1};
+% ps.plotcol='k'
+% [ampmstruct(6)]=plotscatter_ampm2(phsumbs,1:11,ps);
+% 
+% %sixth figure is asymp runs (late)
+% ps.mutmbnds=tmbnds{2};
+% ps.plotcol='r'
+% ps.tvl=2;
+% [ampmstruct(7)]=plotscatter_ampm2(phsumbs,1:11,ps);
+% 

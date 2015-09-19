@@ -1,0 +1,27 @@
+function [ax]=plotoveralleff(sumbs,type)
+ 
+col={'kr'}
+
+
+
+for ii=1:length(sumbs)
+    ntlen=length(sumbs(ii).allnote);
+    if ntlen>2
+        ntlen=2;
+    end
+    for jj=1:ntlen
+        ntvl=sumbs(ii).allnote(jj);
+        effvls=sumbs(ii).combeff(ntvl,:);
+   
+    
+        ind=find(effvls>0);
+    
+        mnvls=mean(effvls(ind));
+        stdvls=std(effvls(ind));
+        xvls=ii*ones(length(ind),1);
+        plot(xvls,effvls(ind),'o','Color',col{jj});
+        hold on;
+        bar(ii,mnvls,'FaceColor','none','EdgeColor', col{jj});
+        plot([ii ii], [mnvls-stdvls mnvls+stdvls],'k');
+    end
+end

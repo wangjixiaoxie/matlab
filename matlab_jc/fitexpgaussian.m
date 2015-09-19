@@ -1,0 +1,1 @@
+function err = fitexpgaussian(lambda,t,y,timeconstant)%   Fitting functions for a exponentially-broadened Gaussian band spectrum.%  T. C. O'Haver, October 23, 2006.global cA = zeros(length(t),round(length(lambda)/2));for j = 1:length(lambda)/2,    A(:,j) = expgaussian(t,lambda(2*j-1),lambda(2*j),timeconstant);endc = A\y';z = A*c;err = norm(z-y');

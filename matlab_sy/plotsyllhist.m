@@ -1,0 +1,117 @@
+figure
+clear maxtrial
+slength=8.331;
+snums=[3 4 10 9 8 7 14 12 11 13]
+subplotvals=[3 4 5 6 7 ]
+%imagevals=[9 10];
+stimnames={'bos' 'm10' 'p10' 'syll1' 'syll2' 'syll3' 'syll4' 'syll5' 'syll6' 'syll7' 'syll8'}
+finstimnames={'bos' 'm10' 'p10' 'd' 'u' }
+zeroind=find(imagevec==0);
+oneind=find(imagevec==1);
+negind=find(imagevec==-1);
+%histbinwid is 5ms.%
+histfs=1/histbinwid
+sylltimes=[(xlist(9)-.5) xlist(10)+1]
+
+histpts=[floor(sylltimes(1)*histfs) floor(sylltimes(2)*histfs)];
+
+
+
+%create stimuli.
+stimsyll(1).hist=stimf(snums(1)).hist;
+stimsyll(1).cnt=stimf(snums(1)).cnt;
+stimsyll(2).hist=stimf(snums(2)).hist;
+stimsyll(2).cnt=stimf(snums(2)).cnt;
+stimsyll(3).cnt=stimf(snums(3)).cnt+stimf(snums(4)).cnt+stimf(snums(5)).cnt+stimf(snums(6)).cnt;
+stimsyll(3).hist=stimf(snums(3)).hist+stimf(snums(4)).hist+stimf(snums(5)).hist+stimf(snums(6)).hist;
+stimsyll(4).cnt=stimf(snums(7)).cnt+stimf(snums(8)).cnt+stimf(snums(9)).cnt+stimf(snums(10)).cnt;
+stimsyll(4).hist=stimf(snums(7)).hist+stimf(snums(8)).hist+stimf(snums(9)).hist+stimf(snums(10)).hist;
+
+
+
+imagevecar{1}=imagevec;
+imagevecar{1}(negind)=1;
+imagevecar{2}=imagevec;
+imagevecar{1}(zeroind)=1;
+imagevecar{1}(oneind)=0;
+
+splen=length(subplotvals)+length(imagevals);
+
+
+
+ax(1:2)=subplot(splen,1,1:2);
+   
+    [sm,sp,t,f]=evsmooth(corpshiftednormg{1},44150,0.01);
+    imagesc(t,f,log(abs(sp)));syn;ylim([0,1e4]);
+    axis([sylltimes(1) sylltimes(2) 0 10000])
+    box off;
+    axis off;
+
+
+
+for kk = 1:length(finstimnames)%length(stimf)
+	
+    
+    
+    
+    
+    ax(subplotvals(kk))=subplot(splen,1,subplotvals(kk));	
+        xv=[histpts(1)/histfs:1/histfs:histpts(2)/histfs]
+		yv=stimsyll(kk).hist(histpts(1):histpts(2))./stimsyll(kk).cnt./histbinwid;
+		maxtrial(snums(kk))=max(yv);
+        
+        
+        plot(xv,yv,[clr(1),'-']);
+        
+        box off;
+        %axis off;
+        ylabel(finstimnames{kk},'Fontsize',16);
+        
+        
+        
+          
+          if (kk~=length(finstimnames))
+           set(gca,'YTickLabel',[]);
+           set(gca,'Ytick',[]); 
+           set(gca,'XTickLabel',[]);
+          set(gca,'Xtick',[]);
+          
+          end
+        
+          if(kk==length(finstimnames))
+              xlabel('Time (s)','Fontsize',16);
+              set(gca,'Fontsize', 14);
+              set(gca,'XTickLabel')
+          end
+end
+
+
+
+%This is to scale the data correctly.
+for kk=1:length(finstimnames)
+    ax(subplotvals(kk))=subplot(splen,1,subplotvals(kk));
+    hold on;
+    maxval=max(maxtrial);
+    plot(sylltimes(1):.05:sylltimes(2), maxval/2, 'r--', 'Linewidth', 2)
+    
+    axis([sylltimes(1) sylltimes(2) 0 maxval]);
+    plot([xlist(9) xlist(9)],[0 maxval], 'r')
+    plot([xlist(10) xlist(10)],[0 maxval], 'r')
+end
+
+
+    box off;
+ %   for ii=1:1%length(imagevals)
+  %      ax(imagevals(ii))=subplot(splen,1,imagevals(ii));
+   %     clim=[[0 0 0] ;[1 1 1]]
+    %    imagesc(imaget,f,imagevecar{ii})
+     %   colormap('gray')
+      %  ax(imagevals(ii))=subplot(splen,1,imagevals(ii));
+       % xlabel('Time (s)','Fontsize',16);
+        %set(gca,'YTickLabel','Fontsize',14);
+        %set(gca,'Xtick',[]);
+        
+        %set(gca,'Ytick',[]);
+        %ylabel('jigstim','Fontsize',14)
+  %  end
+    linkaxes(ax,'x');

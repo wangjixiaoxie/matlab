@@ -1,0 +1,32 @@
+%This function takes as input a 2 column vector with spike times and with
+%trials, which don't need to be unique.  It plots rasters and outputs a
+%vector which maps each trial number to a trial number in the matrix.
+
+
+function [trialvec]=plotrasters(inmatrix,hght,offset)
+
+if(isempty(inmatrix)==0)
+    fs=32000
+    trialvec=unique(inmatrix(:,2));
+
+    for ii=1:length(trialvec)
+    
+        ind=find(inmatrix(:,2)==trialvec(ii));
+        if(isempty(ind))
+    
+        else    
+            numspikes=length(ind);
+            spikes=inmatrix(ind,1)/fs;
+            spikes=spikes';
+            x=[spikes; spikes];
+            
+            y=[ones(1,numspikes)+hght-offset;ones(1,numspikes)+hght+offset];
+            plot(x,y,'r')
+            hold on;
+        end
+    end
+    XLabel('Time')
+    YLabel('Trial')
+box off;
+end
+

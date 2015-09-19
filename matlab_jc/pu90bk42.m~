@@ -1,0 +1,24 @@
+% pu90bk42
+% Screened 05.15.11 - data on /cardinal4
+cleandir4('batch',500,500,5,5);
+
+% decent candidate for syntax learning
+% very solid variability, possible to target 
+
+% (A)(B)(C)DEFFFF
+% (A)(B)CDEGHI
+% (A)(B)CDGHI
+% A is rare
+% B is about 50/50
+% Most common are BCDEFFFF vs. BCDEGHI vs. BCDGHI
+% CDEFFFF vs. CDEGHI vs. CDGHI
+% Target CDEFFFF vs. CDEGHI
+%          71%         29%
+% Seems targetable - should be pretty easy to hit the first F - worth screening
+% Also has targetable high stack notes
+
+%  6.1.11 - transferred to launchpad sound box for screening/learning
+%  6.2.11 - 5:40pm - changed filter settings - segment at 500
+labels=notestats
+length(findstr(labels','cdef')) % 56
+length(findstr(labels=='cdeg'))

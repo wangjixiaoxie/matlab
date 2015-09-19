@@ -1,0 +1,201 @@
+%This will be multiunit.m
+%The idea here will be to go through and plot every data file, removing
+%obvious movement artifact.
+
+%I need to open the data file, plot it, and decide whether to keep it.
+
+
+%What I would like to do is add more points to existing cluster with two
+%different colors.  One color for all previous points, another color for
+%all new points.
+
+%And that when I change the cluster dimension.  It does so for all the
+%points.
+
+
+%modified from doit5 to cluster n clusters at once.
+
+%initialize variables
+cnt=0;
+sr=200;
+prebuff=2;
+postbuff=1;
+
+batchfile='/cobain2/o57pu67/bluetet/batch7'
+outfilefilter={'D:\tim\o57pu67\stim\5767.wav' 'D:\tim\o57pu67\stim\5767rev.wav' 'D:\tim\o57pu67\stim\5767m10.wav' 'D:\tim\o57pu67\stim\5767m5.wav' 'D:\tim\o57pu67\stim\5767p5.wav' 'D:\tim\o57pu67\stim\5767p10.wav' 'D:\tim\o57pu67\stim' 'D:\tim\o57pu67\stim\5767l.wav' 'D:\tim\o57pu67\stim\5767q.wav'}
+%numstim=length(outfilefilter);
+numstim=8
+for ii=1:10
+    for jj=1:4
+        multimat{ii,jj}=[];
+    end
+end
+
+%colorlist={'r' 'g' 'b'}
+structnames={'bos' 'rev'  'm10' 'm5' 'p5' 'p10'  'loud'  'quiet' 'm10tl' 'p10tl'}
+
+
+
+tet_chans=[2:5];song_chan=1;
+d_fs=1000;  %samples per second after resampling  
+smooth_win=5;
+
+%get all the files in the batch file
+fid=fopen(batchfile,'r');
+while (1)
+	fn=fgetl(fid);
+	if (~ischar(fn))
+		break;
+	end
+	if (~exist(fn,'file'))
+		continue;
+	end
+	
+	cnt=cnt+1;
+	fnm{cnt}=fn;
+end
+fclose(fid);
+
+% this goes through and gets the main spike cluster for each file in the
+%batch file
+
+%This loops through all the files in the batch file
+for ifn=1:length(fnm)
+    clear smooth;
+    clear filtdata;
+    clear outdata;
+    clear finaldata;
+    
+    fn=fnm{ifn};
+    %run tetanal on the file get spike times and spkamps
+	fn
+    rd=readrecf(fn);
+    %read in data
+    if(isempty(rd)==0)
+        [data,fs]=tetanaldcns(fn,-2000,song_chan,tet_chans);
+    
+    %This loop assigns data to appropriate data structure
+        inputnum=0;
+    
+        for ii=1:length(outfilefilter) 
+            if (strcmp(rd.outfile,outfilefilter{ii}))
+                inputnum=ii;
+                break;
+            end
+        end
+
+    
+   % pltdat;
+    
+    
+    
+    %R=input('Keep data? 1 for Yes')
+    %if (R==1)
+            filtdata=data(:,2:5); 
+            filtdata=abs(filtdata);
+   
+          len=round(fs*smooth_win/1000);                      
+            h=ones(1,len)/len;
+            for ii=1:4
+                smooth(:,ii)=conv(h, filtdata(:,ii));
+                offset=round((length(smooth(:,ii))-length(filtdata(:,ii)))/2); %get rid of convolution induced offset
+                vec=offset:length(filtdata(:,ii))+offset;
+                outdata(:,ii)=smooth(vec,ii);
+            
+            
+            end
+        %resample
+            step=round(fs/d_fs);
+            d_fs=fs/step;
+        
+            for ii=1:4
+                finaldata(:,ii)=resample(filtdata(:,ii),sr,32000);
+            end    
+        
+            if(ifn==1)
+                    canlength=length(finaldata(:,1));
+            else
+               diff=length(finaldata(:,ii))-canlength;
+                if(abs(diff)<.1*canlength)
+                    %too long
+                    if(diff>=0)
+                        finaldata=finaldata(1:(length(finaldata)-diff),:);
+                    else
+                        finaldata=[finaldata;zeros(-diff,4)];
+            
+                    end
+                end
+            end
+
+            for ii=1:4
+                        multimat{inputnum,ii}=[multimat{inputnum,ii} finaldata(:,ii)];
+           
+                     end
+
+        
+                
+                
+                    
+        
+        
+    end
+
+    %end
+end
+
+
+%Then what you can do is look at the mean multiunit response for the song
+%before *and* after. By collapsing across all time and normalizing.  For
+%different stimuli....
+
+matlength=length(multimat{1,1}(:,1))
+newsr=200;
+vec=[0:1:(matlength-1)]/newsr;
+errvec(:,1)=(std(multimat{1,1},0,2))';
+errvec(:,2)=(std(multimat{2,1},0,2))';
+errvec(:,3)=(std(multimat{1,2},0,2))';
+errvec(:,4)=(std(multimat{2,2},0,2))';
+colordef white
+figure
+ax(1)=subplot(3,1,1)
+
+[sm,sp,t,f]=evsmooth(data(:,song_chan),fs,100);
+imagesc(t,f,log(abs(sp)));syn;ylim([0,1e4]);
+
+stimtoplot=[1 5];
+colors=['r' 'b' 'k'];
+for i=1:length(stimtoplot)
+    for chans=1:2
+        ax(chans+1)=subplot(3,1,chans+1)
+            plot([0:1:(matlength-1)]/newsr,mean(multimat{stimtoplot(i),chans},2),colors(i),'Linewidth',1);hold on;
+            box off;
+            hold on;
+    end
+end
+box off
+legend('bos', 'rev','m10');
+linkaxes(ax(2:chans+1))
+legend boxoff;
+
+%quantification across whole song
+for ii=1:6
+    for jj=1:4
+
+        multimatpresum{ii,jj}=sum(multimat{ii,jj}(1:sr*prebuff,:),1)/prebuff;
+        multimatpostsum{ii,jj}=sum(multimat{ii,jj}(sr*prebuff:matlength-postbuff*sr,:),1)/((matlength-postbuff*sr)/sr-prebuff);
+        multimatrat{ii,jj}=multimatpostsum{ii,jj}./multimatpresum{ii,jj};
+
+        meanrat(ii,jj)=mean(multimatrat{ii,jj});
+        stderrrat(ii,jj)=std(multimatrat{ii,jj}/sqrt(length(multimatrat{ii,jj})));
+    end
+end
+finalmean=mean(meanrat,2);
+finalerr=mean(stderrrat,2);
+
+figure
+
+errorbar(finalmean([1:6]),finalerr([1:6] ),'+','Linewidth',3)
+box off 
+set(gca,'xtick',[1:6]);
+set(gca,'xticklabel',['bos';'rev';'m10';'m5 ';'p5 '; 'p10' ;'m1t';'p1t']); % ';'p10';'l  ';'q  ';'m1t';'p1t']);
+Ylabel('Ratio of song spike rate to presong spike rate') 

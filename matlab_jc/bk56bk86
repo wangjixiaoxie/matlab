@@ -1,0 +1,46 @@
+% b65o7.m
+% 
+
+% segment at 5e4
+
+% previously used for syntax by Tim
+
+% 06.28 at 8:27am - wn on, hit repeats 5 and above using template that also
+    % recognizes note pvs to repeats (so tmp hits 6 and above)
+    % (supposed by go on at 7am but time switch problem)
+    % 10:08am - slight template adjustment (added amplitude threshold)
+% 06.28 at 6pm(?) - changed soundboxes and he stopped singing
+    % also made a mistake with the amplitude threshold
+% 06.29 at 12:30pm - corrected the problem with the amplitude threshold
+% 06.30 - conclusion - only targeted ones decreased
+
+% 07.05 - wn on again - hit repeats 2 and above using same template above
+    % big, rapid learning
+% 07.06 - wn of at end of day
+
+    
+ [timevalsWN2,distntWN2] = jcrepeatdist('a','batchnotes'); % 2.87   
+ [timevalsPost2,distntPost2] = jcrepeatdist('a','batchnotes'); % 2.87   
+
+figure;hold on;
+plot(runningaverage(timevalsPre1,20),runningaverage(distntPre1,20),'b')
+plot(runningaverage(timevalsWN1,20),runningaverage(distntWN1,20),'r')
+plot(runningaverage(timevalsPost1,20),runningaverage(distntPost1,20),'b')
+
+plot(runningaverage(timevalsPre2,20),runningaverage(distntPre2,20),'b')
+plot(runningaverage(timevalsWN2,20),runningaverage(distntWN2,20),'r')
+plot(runningaverage(timevalsPost2,20),runningaverage(distntPost2,20),'b')
+
+
+length(find(distntPRE>1))/length(find(distntPRE>0)) % 0.98
+length(find(distntPRE>2))/length(find(distntPRE>1)) % 0.92
+length(find(distntPRE>3))/length(find(distntPRE>2)) % 0.38 change?
+length(find(distntPRE>4))/length(find(distntPRE>3)) % 0.23 HIT
+length(find(distntPRE>5))/length(find(distntPRE>4)) % 0.21 HIT
+
+
+length(find(distntWN630>1))/length(find(distntWN630>0)) % 0.99
+length(find(distntWN630>2))/length(find(distntWN630>1)) % 0.96
+length(find(distntWN630>3))/length(find(distntWN630>2)) % 0.43 change? NO
+length(find(distntWN630>4))/length(find(distntWN630>3)) % 0.14 HIT - decrease
+length(find(distntWN630>5))/length(find(distntWN630>4)) % 0 HIT - decrease

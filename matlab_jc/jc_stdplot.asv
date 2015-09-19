@@ -1,0 +1,5 @@
+function output=jc_stdplot(input,width)
+long=length(input)-width;
+for i=1:long
+    output(i)=std(input(i:i+width));
+end

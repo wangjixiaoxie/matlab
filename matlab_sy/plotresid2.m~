@@ -1,0 +1,58 @@
+clear ax;
+figure
+for residvl=1:length(residmod)
+    cr_resid=residmod{residvl}
+clear mnvls
+colvec={'k' 'r' 'c' 'm' 'b' 'g' 'g' 'r' 'y'}
+for ii=length(cr_resid.ct_tms)
+    lnct=length(cr_resid.ct_tms{ii});
+    residfb=cr_resid.residfb{ii}
+    residct=cr_resid.residct{ii}
+% lnfb=length(fbtms);
+% if(lnct<lnfb)
+%     ln=lnct
+%     tms=ct_tms
+% else
+%     ln=lnfb
+%     tms=fbtms
+% end
+% 
+% mnct=mean(residct,2);
+
+    for jj=1:lnct 
+        indfb=find(residfb(jj,:)~=0);
+        indct=find(residct(jj,:)~=0);
+        lnindfb=length(indfb);
+        lnindct=length(indct);
+        if(lnindfb>10&lnindct>10)
+            mnvls(jj)=mean(residfb(jj,indfb))-mean(residct(jj,indct));
+%             stevls(ii)=std(residfb(ii,indfb))./sqrt(lnindfb);
+        else
+            mnvls(jj)=0;
+%             stevls(ii)=0;
+        end
+    end
+    
+     
+    
+%      fillx=[tms tms(end:-1:1)]
+%      yvls=[mnvls+stevls]
+%      yvls2=[mnvls-stevls]
+%      filly=[yvls yvls2(end:-1:1)]
+%         
+%      acfillcol=[0.6 0.6 0.6]
+%      fill(fillx,filly,acfillcol,'edgecolor','w');
+%      hold on;
+%     ax(residvl)=subplot(7,1,residvl)
+    if(cr_resid.drxn=='up')
+        plot(cr_resid.fb_tms{ii},mnvls,'Color',colvec{ii},'Linewidth',2);
+        hold on;
+    else
+        plot(cr_resid.fb_tms{ii},-mnvls,'Color',colvec{ii},'Linewidth',2);
+        hold on;
+    end
+    plot([0 0.06],[0 0],'k--')
+end
+end
+% linkaxes(ax);
+   

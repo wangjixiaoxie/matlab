@@ -1,0 +1,13 @@
+function []=plotlines2(lns)
+for ii=1:length(lns)
+    axes(lns(ii).ax);
+    x=lns(ii).xpts;
+    y=lns(ii).ypts;
+    ls=lns(ii).ls;
+    lw=lns(ii).lw;
+    col=lns(ii).col;
+    plot(x, y,'Color',col,'LineStyle',ls, 'Linewidth',lw);
+    if(lns(ii).plotmarker)
+        plot(lns(ii).markloc(1) ,lns(ii).markloc(2),'o','MarkerFac'Markersize',20);
+    end
+end

@@ -1,0 +1,10 @@
+function z=computeksstat(times,spiketimes,rates)
+lastspiketime=0;
+% Integrate between adjacent spikes
+for i=1:length(spiketimes)-1 
+    % Which part of the firing rate function is between the last spike and
+    % the next spike?
+        relevant_rates=rates(times > spiketimes(i) & times < spiketimes(i+1));
+    % Integrate over the relevant part of the firing rate:
+    z(i)=trapz(relevant_rates);
+end

@@ -1,0 +1,15 @@
+function plotbasicKrupNT(CIbaseCTL,CIpost1NT,CIpost2NT,Post1NT,Post2NT,ind,pcCIbase,pcCIfinal,finalpointPC,CIbase,CIfinal,CIpost1,finalpoint,post1,CIpost2,pcCIpost1,pcCIpost2)
+            plot([0.1 0.1],[pcCIbase],'b')
+            plot([3.0 3.0],[pcCIfinal],'b')
+            %plot([3.4 3.4],[pcCIpost1],'b'); % plot([4.9 4.9],[pcCIpost2],'b')
+            plot([0.1 3.0],[0 mean(finalpointPC)],'b')
+            plot([0 0],[CIbase],'r'); % plot([1 1],[CIfirst],'r');%plot([2 2],[CIsecond],'r');%plot([3 3],[CIthird],'r')
+            plot([3 3],[CIfinal],'r')
+            plot([3.5 3.5],[CIpost1],'r');%plot([5 5],[CIpost2],'r')
+            plot([0 3 3.5],[0 mean(finalpoint(ind)) mean(post1(ind)) ],'r')
+            plot([-1 6],[0 0],'k')
+            
+            plot([0.05 0.05],[CIbaseCTL],'k')
+            plot([3.5 3.5],[CIpost2NT],'k')
+            plot([0 3.5],[0 mean(Post2NT)],'k')
+

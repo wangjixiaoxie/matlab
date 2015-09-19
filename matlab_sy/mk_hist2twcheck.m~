@@ -1,0 +1,100 @@
+%clear all;
+clear fnm;
+clear cnt;
+bt='batch';
+
+load 'cobain2/twarren2/w90o24/stim/stimexp2.mat' corpshiftednormg
+numtrials=1000
+stimleng=10;%in seconds
+histbinwid=5.0e-3;%in seconds
+stimleng=ceil(stimleng/histbinwid); % # of bins
+stimnames={'D:\tim\w90o24e2\stim\9024.wav' 'D:\tim\w90o24e2\stim\9024rev.wav' 'D:\tim\w90o24e2\stim\9024m10.wav' 'D:\tim\w90o24e2\stim\9024p10.wav' 'D:\tim\w90o24e2\stim\9024jig.wav' 'D:\tim\w90o24e2\stim\9024jigcomp.wav' 'D:\tim\w90o24e2\stim\9024alt.wav' 'D:\tim\w90o24e2\stim\9024altcomp.wav'};
+stimf=[];fnames=[];cnt=0;
+fid=fopen(bt,'r');
+%stimfiles={
+
+
+%changed by tw so that stimuli always come in the same order, makes it
+%easier for analysis.
+
+
+
+
+
+
+
+
+while (1)
+	fn=fgetl(fid);
+	if (~ischar(fn));
+		break;
+    end
+
+    %read in the rec function.
+    rd=readrecf(fn);
+
+	cnt=cnt+1;
+	%fnames is list of all the stimuli.
+    fnames(cnt).fn=fn;
+    
+	ind=0;
+	
+    %check if the file is a stimulus file which has already been named.
+    for ii = 1:length(stimnames)
+		stimf(ii).outfile=stimnames{ii};
+        
+        if (strcmp(rd.outfile,stimnames))
+			ind=ii;
+			stimf(ind).cnt=stimf(ind).cnt+1;
+		end
+    end
+    
+    
+end
+fclose(fid);
+
+% do for each cluster bound
+NCLUST = length(stimf);
+
+for ii=1%1:NCLUST
+	%clear out the rasters
+	for kk = 1:length(stimf)
+		stimf(kk).hist = zeros([1,stimleng]);
+		stimf(kk).cnt  = 0;
+	end
+
+	for kk = 1:length(fnames)
+		rd=readrecf(fnames(kk).fn);
+		cmd=['load -mat ',fnames(kk).fn,'.clust'];
+		eval(cmd);
+
+		for jj = 1:length(stimnames)
+			if (strcmp(stimf(jj).outfile,rd.outfile))
+				ind=jj;
+                if(stimf(ind).cnt<numtrials)
+                    stimf(ind).cnt = stimf(ind).cnt + 1;
+                    ind1=stimf(ind).cnt;
+                    spkt=clustspk(ii).spkt;
+                    spkt=ceil(spkt./histbinwid);
+		
+        %I know there's a better way to write this.
+                    for ijk = 1:length(spkt)
+                        stimf(ind).hist(spkt(ijk))=stimf(ind).hist(spkt(ijk))+1;
+                    end
+                end
+            
+            end
+		
+        end
+    end
+	clr=['brkgmcy'];
+	eval(['save ',upper(bt),'_CLUST',num2str(ii),'_HIST stimf histbinwid clr']);
+
+	figure;clf;hold on;grid on;
+	for kk = 1:length(stimf)
+		xv=[1:size(stimf(kk).hist,2)]*histbinwid*1e3;
+		yv=stimf(kk).hist./stimf(kk).cnt./histbinwid;
+		plot(xv,yv,[clr(mod(6,kk)+1),'-']);
+	end
+	title(['Cluster #',num2str(ii)],'Interpreter','none');
+end

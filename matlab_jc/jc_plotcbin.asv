@@ -1,0 +1,23 @@
+
+clear fnvl
+clear bnds
+a='50_395527132_4_14_17_7_2.wav'; % Based on the first column of the onset matrix (i.e. the output of jc_findonsets).
+%start=6.55  % Based on the second column of the onset matrix (i.e. the output of jc_findonsets).
+%long=0.055; % Set this once at the beginning.  Make it the same for all instances of the note.  
+finish=start+long;
+fnvl{1}='50_395527132_4_14_17_7_2.wav';
+bnds{1}=[start finish];
+
+for ii=1:length(fnvl)
+%subplot(length(fnvl),1,ii)
+
+[plainsong,fs]=wavread(a);
+
+plainsong=floor(plainsong(bnds{ii}(1)*fs:bnds{ii}(2)*fs));
+[sm,sp,t,f]=evsmooth(plainsong,fs,1); % the last variable (after fs) adjusts the amplitude/power threshold for plotting.  Higher values mean higher thresholds.
+ 
+ colormap('hot')
+ box off;
+ axis on;   
+
+end

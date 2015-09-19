@@ -1,0 +1,155 @@
+function [ff_mat]=ffscreen(note, Fwin_low, Fwin_high,start_time,sample_size);
+
+% function [ff_mat]=ffscreen(note, Fwin_low, Fwin_high,start_time,sample_size);
+% when running melcorr_ff_pinterp or related functions, i want to screen
+% the data to make sure the ff calculations match what your eye tells you.
+% this should be run after pick_notes; therefore, there should be a
+% batchfile of filt files and spect files. 
+
+% messily take code from spect_sheet, obsscreen and melcorr_ff_pinterp
+ 
+% arguments similar to those in melcorr_ff_pinterp (in ms); only use ms from start
+% of syllable (not percent of syllable)
+
+
+ff_mat=[];
+
+%convert to seconds
+sample_size=sample_size/1000;
+start_time=start_time/1000;
+
+mark='';   
+
+%for bandpass
+F_low=500;
+F_high=8000;
+
+% for resampling
+d_Fs=1000;
+
+%window length for smoothing prior to segmentation (in ms)
+sm_win=2;
+
+%set up card_sheet window
+h_main=figure;
+ 
+
+%get name of metafile containing file names
+
+meta_fid = -1;
+metafile = 0;
+
+   disp('select batchfile');
+   [metafile, pathname]=uigetfile('*','select batchfile')
+   meta_fid=fopen([pathname, metafile]);
+   if meta_fid == -1 | metafile == 0
+      disp('cannot open file' )
+      disp (metafile)
+   end
+
+for i=1:10
+
+  %get soundfile name
+   soundfile = fscanf(meta_fid,'%s',1);
+   if isempty(soundfile)
+      disp('End of soundfiles')
+      break
+   end
+
+  data=[];  
+
+    %if song exists, get it,and load song
+   if exist(soundfile) 
+      disp('loading files...');
+      %filetype=eval(['channel',num2str(i)]);
+      [datain, Fs] = soundin('',soundfile,'filt');
+      datain=makerow(datain);
+      %[data] = [data;datain];
+            
+   else
+      disp(['file ', soundfile,' doesn''t exist on this path?']);
+      
+   end
+
+   filt_file=[soundfile];
+   disp('loading filtered song...');
+     [filtsong, Fs] = read_filt(filt_file);
+     default_Fs = Fs;   %if Fs was read, it is the new default value (takes precedence over notefile if discrepant
+   Ten_notes=[]
+        
+    %calculate time indeces for sample points
+    time_d=[0:size(datain,1)-1]*1/Fs;  %vector for time axis
+
+    %plot file
+    % assume spect files are already made from pick_notes    
+    %get soundfile name
+    end_file=findstr('.filt',soundfile);
+    rootfile=soundfile(1:end_file-1);
+    spect_file=[rootfile,'.spect'];
+      if exist(spect_file)     
+        disp('reading spectrogram...')
+        [idx_spect, nfft, spect_win, noverlap, t_min, t_max, f_min, f_max] = read_spect(spect_file);
+        time_spect = [t_min, t_max];
+        freq_spect = [f_min, f_max];  
+      end
+
+   disp('calculating power and smoothing...')
+   %calculate square of signal: proportional to power
+   squared_song = filtsong.^2;
+   
+   %smooth the rectified song
+   len=round(Fs*sm_win/1000);                      
+   h=ones(1,len)/len;
+   smooth=conv(h, squared_song);
+   offset=round((length(smooth)-length(filtsong))/2); %get rid of convolution induced offset
+   smooth=smooth(offset:length(filtsong)+offset);
+   
+      
+    %resample song for more rapid display
+   disp('resampling for display...');
+   step=round(Fs/d_Fs);
+   d_Fs=Fs/step;
+   d_song=smooth(1:step:length(smooth));
+
+      
+   %set initial values of display variables
+   time_d_song=[0:length(d_song)-1]*1000/d_Fs;  %vector for time axis
+   g_xmin=time_d_song(1);                                    %initially display everything
+   g_xmax=time_d_song(length(time_d_song));
+   g_ymin=0;
+   g_ymax=max(d_song)*1.2;
+   % The following wierdness is a workaround because of matlab bug for image display
+   %see disp_spect for a bit more info
+   %basic idea is to invert the spectrogram before displaying and to label y axis with negative 
+   %frequency values
+   g_fmin=(-1)*F_high;
+   g_fmax=0;  
+     
+   %display song
+   if isempty(h_main);
+      h_main=figure;
+   end 
+   set(h_main,'Units', 'inches')
+   set(h_main,'Position', [4.87039 0.305503 8 10]) 
+   
+   %display spectrogram
+   disp('displaying spectrogram...')
+   disp(soundfile);
+   %h_main_spect=gcf;
+   %h_spect_plots(1)=h_main_spect;
+   set(gca,'YDir','r');
+    %initially display all data
+   set(gca,'xlim',[g_xmin g_xmax]);
+   set(gca,'ylim',[g_fmin g_fmax]);
+   %store max and min data values in user data
+   %set(h_main_spect,'userdata',[g_xmin g_xmax g_fmin g_fmax]);
+   %title(soundfile);
+   disp_idx_spect_cardanal(idx_spect, time_spect, freq_spect, -100, 0, 1.0); %see values from spect_sheet
+
+end
+
+
+      
+        
+        
+        

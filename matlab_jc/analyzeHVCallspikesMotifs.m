@@ -1,0 +1,118 @@
+function [outvars,outdata]=analyzeHVCallspikesMotifs(neuron,clusters,wins,harmwin,indfolders,whichMotif)
+% whichMotif=0 - current motif
+% whichMotif=1 - next motif
+% whichMotif=-1 - past motif
+
+neuron=neuron(indfolders);
+for k=1:length(indfolders)
+    clustersnew{k}=clusters{indfolders(k)}();
+end
+
+
+for mls=1:length(wins) % for each perimotor window
+    winstart=wins(mls)-25;
+    winstop=wins(mls)+25;
+mls
+    for numsylls=1:size(harmwin,1) % for each syllable
+        % Analyze - this loop returns:
+        % spikecount{unit #}(rendition)   --- number of spikes in premotor window of the harmonic stack
+        % pitchmean{unit #}(rendition) --- mean pitch in the harmonic stack
+        % for the first syllable, the harmonic part goes from 45-70ms (includes 16ms adjustment - so really 29-54ms)
+        pitchtimes=[1/8:1/8:1745/8]+16; % 16ms because of window size
+        harmstart=harmwin(numsylls,1);
+        harmend=harmwin(numsylls,2);
+        midharm=(harmstart+harmend)/2;
+        neuroncount=0;
+        clear spikecount pitchmean % clear things that get incremented in the loop
+        for thisfolder=1:length(clustersnew) % for the neuron/recording wire
+            goodclust=clustersnew{thisfolder};
+            thissyllable=numsylls; % for each syllable
+            for kj=1:length(goodclust)     % for the cluster
+                thisclust=goodclust(kj);
+                neuroncount=neuroncount+1; % each unit
+                count=0; % each rendition with this unit
+                for thissong=1:length(neuron(thisfolder).song)
+                    if length(neuron(thisfolder).song(thissong).noteons)>thissyllable-1 % almost always true (not sure why it sometimes isn't)
+                        for thisrendition=1:length(neuron(thisfolder).song(thissong).noteons{thissyllable})
+                            timewindow=midharm+winstart:midharm+winstop;
+                            spikevals=neuron(thisfolder).song(thissong).spiketimes{thisclust}...
+                                -neuron(thisfolder).song(thissong).noteons{thissyllable}(thisrendition);
+                            spikecounter=length(find(spikevals>midharm+winstart & spikevals<midharm+winstop));
+                            if whichMotif==0
+                                if ~isempty(spikecounter)
+                                    count=count+1;
+                                    spikecount{neuroncount}(count)=spikecounter;
+                                    pitchvals=neuron(thisfolder).song(thissong).pitchdata{thissyllable}.datt(thisrendition,:);
+                                    pitchmean{neuroncount}(count)=mean(pitchvals(find(pitchtimes>harmstart & pitchtimes<harmend)));
+                                end
+                            else
+                                if whichMotif==-1
+                                    if thisrendition>1
+                                        count=count+1;
+                                        spikecount{neuroncount}(count)=spikecounter;
+                                        pitchvals=neuron(thisfolder).song(thissong).pitchdata{thissyllable}.datt(thisrendition-1,:);
+                                        pitchmean{neuroncount}(count)=mean(pitchvals(find(pitchtimes>harmstart & pitchtimes<harmend)));
+                                    end
+                                else
+                                    if whichMotif==1
+                                        if thisrendition<length(neuron(thisfolder).song(thissong).noteons{thissyllable})
+                                            count=count+1;
+                                            spikecount{neuroncount}(count)=spikecounter;    
+                                            pitchvals=neuron(thisfolder).song(thissong).pitchdata{thissyllable}.datt(thisrendition+1,:);
+                                            pitchmean{neuroncount}(count)=mean(pitchvals(find(pitchtimes>harmstart & pitchtimes<harmend)));
+                                        end
+                                    end
+                                end
+                            end     
+                    end
+                end
+            end
+        end
+        end
+
+            % Only analyze results for the neurons that actually spike in the vicinity
+            % of the harmonic stack note - the variable 'doesspike' evaluates this
+            clear doesspike
+            for neuralunit=1:length(spikecount) % for each 'neuron'
+                doesspike(neuralunit)=sum(spikecount{neuralunit}())>0; % nine units
+            end
+
+            % Calculate correlation coefficients and corresponding t-stats
+            rval=[];tval=[];
+            for neuralunit=1:length(spikecount) % for each 'neuron'
+                if doesspike(neuralunit)
+                    m=corrcoef(pitchmean{neuralunit}(),spikecount{neuralunit}());
+                    r=m(2);
+                    rval(neuralunit)=r;
+                            if r>0.999 % This is to avoid huge tvals
+                                tval(neuralunit)=3;
+                            else
+                                if r<-0.999
+                                    tval(neuralunit)=-3;
+                                else
+                                    tval(neuralunit)=r/sqrt((1-r^2)/(length(spikecount{neuralunit}()-2)));
+                                end
+                            end
+                end
+            end
+
+        rval(doesspike);
+        tval(doesspike);
+        Syll.rval=rval;
+        Syll.tval=tval;
+        Syll.spikecount=spikecount;
+        Syll.pitchmean=pitchmean;
+        outvars.Tmn(numsylls,mls)=mean((Syll.tval(Syll.tval~=0 & ~isnan(Syll.tval))));
+        outvars.Tse(numsylls,mls)=std((Syll.tval(Syll.tval~=0 & ~isnan(Syll.tval))))/sqrt(sum(Syll.tval~=0 & ~isnan(Syll.tval)));
+        outvars.Rmn(numsylls,mls)=mean((Syll.rval(Syll.rval~=0 & ~isnan(Syll.rval))));
+        outvars.Rse(numsylls,mls)=std((Syll.rval(Syll.rval~=0 & ~isnan(Syll.rval))))/sqrt(sum(Syll.rval~=0 & ~isnan(Syll.rval)));        
+        outvars.neuroncountT(numsylls,mls)=sum(Syll.tval~=0 & ~isnan(Syll.tval));
+        outvars.neuroncountR(numsylls,mls)=sum(Syll.rval~=0 & ~isnan(Syll.rval));        
+        outdata(numsylls,mls).tvaldata=tval;
+        outdata(numsylls,mls).rvaldata=rval;
+    end
+end
+
+
+                
+         

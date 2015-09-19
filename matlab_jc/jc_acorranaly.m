@@ -1,0 +1,20 @@
+function [covaried,meancov]=jc_acorranaly(pitch_data)
+
+%Smooth the data with a filter 
+for i=1:length(pitch_data)
+    smoothed(i).pitches=jc_wfilt(pitch_data(i).pitches);
+end
+
+%Align the notes and cut out the part of the note that you are interested in (the stack)
+thresh=jc_getthresh(smoothed(1).pitches,100);
+a=smoothed(1).pitches(thresh+50:thresh+400); % initialize the matrix
+covaried=xcov(a);
+for n=2:length(pitch_data)
+    thresh=jc_getthresh(smoothed(n).pitches,100);
+    a(n,:)=smoothed(n).pitches(thresh+50:thresh+400);   %cut so you get useful info.
+    covaried(n,:)=xcov(a(n,:));
+end
+
+for i=1:length(covaried)
+    meancov(i)=mean(covaried(:,i));
+end

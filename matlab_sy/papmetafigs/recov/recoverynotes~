@@ -1,0 +1,82 @@
+%recovery notes.m
+% 
+% 4 recovery birds which meet criterion of 3-7 days with at least maintained shift of 2.5 standard deviations 
+% of the original mean.  
+% 
+
+%bk63w43
+%divide by two
+max shift - 6453
+20.
+day 1 recov - 37   6793
+day 2 recov - 23   6893
+day 3 recov - 26  6995
+
+initmean - 6970
+
+%pk20r49
+maxshift- 22 - 3543
+day 1 - recov- 3413
+day 2 - reov -3333
+day 3- reov - 3249
+initmean - 3245
+
+%pu57w52
+max shift -7974
+day 1- 7667
+day 2-7330
+day 3- 7247
+
+initmean - 7185
+
+%Evren's two birds - lesion 2.
+mx shift  - 2239
+
+
+initmean - 2361
+rec- 132.3
+rec2 - 95.4
+rec3- 73.5
+
+
+o11bk33
+
+
+
+
+
+% These birds 
+% are : my two recovery birds pk20r49, and bs(10)- pu56w26,
+% 
+%also check out bk63w43 - natural recovery.
+and two of evren's birds: these are lesion bird-2
+% and o11bk33- second shift.
+% 
+% %first bird
+% 2224 - 4th day recovery.
+% 2141- max shift.
+% initial bas- 2244
+% sd=32
+% 80.6 percent recovery
+% 
+% %next bird 
+% lesion bird -2 , load /oriole5/evrenlesiondata/sumdata
+% 
+% shift =173.8
+%rec= 77.0
+%55.7 percent
+
+%bs(10)
+recovery 92.0 percent.
+
+bs(1)
+recovery 100 percent
+
+
+so, mean recovery is mean (100 +92+55.7 +80.6)
+82.1 +/-9.7 %
+
+
+
+
+

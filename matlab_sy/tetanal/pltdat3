@@ -1,0 +1,61 @@
+
+
+
+tet_chans=[3:6];song_chan=1;
+
+flstoplot=[13 15]
+titlelist={'trial 11' 'trial 12' 'trial13' 'trial 15' 'trial17'}
+chanstoplot=[5 6]
+
+
+
+%for ii=1:length(flstoplot)
+ %    fn=fnm(flstoplot(ii)) 
+  %   [data,fs,spkindnew,spkampnew]=tetanal(fn{1},-2000,song_chan,tet_chans);
+   % datar{ii}=data;
+%end
+
+
+
+
+chanstoplot=[5 6]
+a=[1:10]
+
+figure
+
+subplot(5,1,1)
+[sm,sp,t,f]=evsmooth(datar{1}(:,song_chan),fs,100);
+imagesc(t,f,log(abs(sp)));syn;ylim([0,1e4]);
+axis([2 10 1 7000])
+
+
+
+for ii=1:length(flstoplot)
+    indices=find(spk1ind(spksin2clust,2)==flstoplot(ii));
+    spkstoplot=spk1ind(spksin2clust(indices),1);
+    ampstoplot1=spk1amp(spksin2clust(indices,3));
+    ampstoplot2=spk1amp(spksin2clust(indices,4));
+    
+    data=datar{ii};
+    subplot(5,1,2*ii)
+    plot((1:length(data(:,5)))/fs,data(:,5))
+    plot(spkstoplot/fs,ampstoplot1,'r.')
+    
+    hold on;
+    
+    
+  axis([2 10 -10000 10000])
+  subplot(5,1,2*ii+1)
+   plot((1:length(data(:,6)))/fs,data(:,6))
+    plot(spkstoplot/fs,ampstoplot2,'r.')
+   
+   hold on;
+   
+   
+   axis([2 10 -10000 10000])
+end
+
+
+plot(spkind(pp)/fs,spkamp(pp,ii),[clr,sym]);
+
+    

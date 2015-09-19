@@ -1,0 +1,60 @@
+%4.17.10.
+%sumdataraw and sumdatagroup are saved in ~/matlab/papmetafigs/inactiv1
+%sumdata.mat
+
+%Notes on stat output from 
+%sumdata raw gives example values.
+% %EXAMPLE
+% sumdataraw(1)
+ mnvlout: [2.3362 2.3720 2.3382]
+     cvlout: [0.0133 0.0162 0.0076]
+       thyp: 0
+        tvl: 0.7746
+       fhyp: 1
+        fvl: 0.0077
+%UPSHIFT
+% sumdataraw(2)
+% ans = 
+mnvlout: [2.4617 2.4986 2.3898]
+     cvlout: [0.0217 0.0226 0.0032]
+       thyp: 1
+        tvl: 4.5963e-14
+       fhyp: 1
+        fvl: 0
+%DOWNSHIFT
+% % sumdataraw(3)
+ mnvlout: [2.2563 2.2770 2.3211]
+     cvlout: [0.0184 0.0153 0.0063]
+       thyp: 1
+        tvl: 7.6062e-05
+       fhyp: 1
+        fvl: 0.0075
+
+sumdatagroup(1)
+ans = 
+    mnoutpre: 2.3030
+     sterpre: 0.3710
+         pct: [-0.4138 -0.2122 -0.5480 -0.6358 -0.1776 -0.4707 -0.3192]
+        nvls: 7
+      lidvls: 1
+      pctlid: -0.2122
+sumdatagroup(2)
+ans = 
+    mnoutpre: -2.3232
+     sterpre: 0.3148
+         pct: [-0.6090 -0.0095 -0.3944 -0.2437 -0.2479 -0.8095 -0.7552 -0.7375 -0.4378]
+        nvls: 9
+      lidvls: 2
+      pctlid: [-0.0095 -0.7552]
+      
+      sumdata = 
+
+          MX_TM: 4
+      allcombcv: [1x1 struct]
+     meancombcv: [1x1 struct]
+     allcvredxn: 0.7194
+           alln: 23
+    combcvredxn: 0.7094
+          combn: 9
+     lidcvredxn: 0.8665
+           lidn: 3

@@ -1,0 +1,9 @@
+%makesumps
+
+clear ps
+for ii=1:length(shs)
+    for jj=1:length(shs(ii).subruns)
+        ps.exclude{ii}(jj)=0;
+    end
+end
+

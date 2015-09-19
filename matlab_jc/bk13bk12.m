@@ -1,0 +1,105 @@
+% bk13bk12
+% cannulae implanted on 10.08.09 (10:45am to 2:05pm)
+% began singing consistently at 10.09.09 at 5:45pm
+% probes implanted on 10.12.09
+% began singing consistently at 10.14.09 at ~11am
+% 10.15.09 at 11:40am - 2mM apv
+% 10.15.09 at 2:45pm - ACSF
+% 10.16 --- TW sequence shift - Tim has details
+
+% 10.27.09 - implanted at 5pm
+% 10.28.09 - began singing consistently at ~11am
+% 10.29.09 - 2mMapv on at 1uL/min at 10am chick time (10:50am real time)
+%          - templates on at 10:08am chick time
+%          - 12:02pm chick time --> hit B above 3070Hz (top 70%) and C below
+%          2500Hz (bottom 70%)
+%          - 1:28pm --> 3060Hz, 2520Hz
+%          - adjusted between 3060 and 3080Hz and between 2500 and 2520Hz
+%          - 7:00pm --> ampoff/ACSF at 1.5uL/min
+%          - 7:10pm --> ACSF at 0.6uL/min, lights off
+% 11.01.09 - AP5 on at 12:40pm
+%          - WN on below 3110Hz at 2:10pm
+% 11.02.09 - lights off and ACSF on (1.5uL/min) at 11:01am
+%          - 0.6uL/min at 11:30am
+%          - lights on at 2pm
+% 11.03.09 - 4mM apv on at 12:51 at 1uL/min
+%          - down to 0.5uL/min shortly thereafter
+%          - appears to take 
+%          - acsf on at 4:40 at 1.5uL/min
+%       templaC1 - threshold at 2.3 to allow all C's
+%          - MIN at 5 (lower # hits the decision point before the C)
+%          - refrac at 0.5 to avoid hitting later C's
+% 11.05.09 - 9:30am - hit the low stack note (C's) transition - TW modified the template
+%          - 4:00pm - 4mM apv on at 1.0uL/min
+%          - ~5:15pm - switch briefly to acsf b/c possible clog
+%          - thus it looks like apv didn't have an effect until 5:30pm or later
+%          - 7:30pm - acsf back on
+% 11.06.09 - reverse sequence contingency at 1:30pm - hit the high stack notes
+% 11.07.09 - sequence has reversed --- 1:45pm chick time - 4mM apv on at 1.0uL/min
+% 11.09.09 - apv on at 9:50am chick time
+%          - wn on at 1:17pm - folder made much earlier, but he didn't sing
+%          until this time - hit high stack note above 3050Hz
+%          - wn off/acsf on at 1.5uL per min/lights off at 6:33pm chick time
+
+fvals1014DOM=findwnoteJC('batchJCnotes','a','b','',0,[2000 2700],8500,1,'obs0',1);
+fvals1014REC=findwnoteJC('batchJCnotes','a','d','',0,[2000 2700],8500,1,'obs0',1);
+for i=1:length(fvals1014DOM)
+shifted1014DOM(i,:)=fvals1014DOM(i).datt;
+end
+for i=1:length(fvals1014REC)
+shifted1014REC(i,:)=fvals1014REC(i).datt;
+end
+pitch1014REC=jc_pitchmat1024(shifted1014REC,1024,1020,1,2800,3600,[1],'obs0',1);
+pitch1014DOM=jc_pitchmat1024(shifted1014DOM,1024,1020,1,2800,3600,[1],'obs0',1);
+
+fvals1029B=findwnoteJC('batchJCnotes','b','','',0,[2000 2700],8500,1,'obs0',1);
+fvals1028C=findwnoteJC('batchJCnotes','c','','',0,[2000 2700],8500,1,'obs0',1);
+for i=1:length(fvals1029B)
+shifted1029B(i,:)=fvals1029B(i).datt;
+end
+for i=1:length(fvals1029C)
+shifted1029C(i,:)=fvals1029C(i).datt;
+end
+pitch1029B=jc_pitchmat1024(shifted1029B,1024,1020,1,2700,3600,[1],'obs0',1);
+pitch1029C=jc_pitchmat1024(shifted1029C,1024,1020,1,2000,3000,[1],'obs0',1);
+
+398
+323
+figure;hold on
+plot((tvals1029B(26:end-25)),runningaverage(median(pitch1029B(290:355,:)),50),'*')
+plot(tvals1029apvB(26:end-25),runningaverage(median(pitch1029apvB(290:355,:)),50),'*','Color','g')
+plot(tvals1029apvwnB(26:end-25),runningaverage(median(pitch1029apvwnB(290:355,:)),50),'*','Color','r')
+plot(tvals1030acsfB(26:end-25),runningaverage(median(pitch1030acsfB(290:355,:)),50),'*','Color','b')
+
+
+fvals1029B=findwnoteJC('batchJCnotes','b','','',0,[2000 2700],8500,1,'obs0',1);
+fvals1029C=findwnoteJC('batchJCnotes','c','','',0,[2000 2700],8500,1,'obs0',1);
+for i=1:length(fvals1029B)
+shifted1029B(i,:)=fvals1029B(i).datt;
+end
+for i=1:length(fvals1029C)
+shifted1029C(i,:)=fvals1029C(i).datt;
+end
+pitch1029B=jc_pitchmat1024(shifted1029B,1024,1020,1,2700,3600,[1],'obs0',1);
+pitch1029C=jc_pitchmat1024(shifted1029C,1024,1020,1,2000,3000,[1],'obs0',1);
+figure;hold on
+plot((tvals1029C(26:end-25)),runningaverage(median(pitch1029C(334:398,:)),50),'*')
+% plot(tvals1029apvC(16:end-15),runningaverage(median(pitch1029apvC(334:398,:)),30),'*','Color','g')
+% plot(tvals1029apvwnC(16:end-15),runningaverage(median(pitch1029apvwnC(334:398,:)),30),'*','Color','r')
+plot(tvals1030acsfC(26:end-25),runningaverage(median(pitch1030acsfC(334:398,:)),50),'*','Color','b')
+
+figure;hold on
+plot(tvals1029B,(median(pitch1029B(290:355,:))),'*')
+plot(tvals1029apvB,(median(pitch1029apvB(290:355,:))),'*','Color','g')
+plot(tvals1029apvwnB,(median(pitch1029apvwnB(290:355,:))),'*','Color','r')
+plot(tvals1030acsfB,(median(pitch1030acsfB(290:355,:))),'*','Color','b')
+plot(tvals1101apvB,(median(pitch1101apvB(290:355,:))),'*','Color','g')
+plot(tvals1101apvwnB,(median(pitch1101apvwnB(290:355,:))),'*','Color','r')
+plot(tvals1102acsfB,median(pitch1102acsfB(290:355,:)),'*','Color','b')
+
+figure;hold on;
+plot(tvals1109am,pitch1109pre(220,:),'*')
+plot(tvals1109apv,pitch1109apv(220,:),'*','Color','g')
+plot(tvals1109apvwn,pitch1109apvwn(220,:),'*','Color','r')
+plot(tvals1109acsfCovert,pitch1109acsfCovert(220,:),'*','Color','b')
+plot(tvals1110post,pitch1110post(220,:),'*')

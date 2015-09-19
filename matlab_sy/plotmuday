@@ -1,0 +1,52 @@
+%plotmuscdayscript
+%a hack to write plotmeanstdev for a single day.
+
+nnotes=3
+batchfiles=[1 2 3]
+wnon=graphvals.wnon
+
+%put in the white noise
+fillind=[1 .9 .9]
+for ii=1:length(wnon)
+     x1=datenum([wnon{ii}],'yyyy-mm-dd  HH:MM:SS')-subval;
+       x2=datenum([wnoff{ii}],'yyyy-mm-dd  HH:MM:SS')-subval;
+       y1=minbnds{ii};
+       y2=maxbnds{ii};
+       ax=fill([x1 x2 x2 x1], [y1 y1 y2 y2], fillind,'EdgeColor','none')
+           
+           hold on; 
+        
+end
+
+ for ii=1:length(graphvals.timoff)
+           if(~isempty(graphvals.timoff{ii}))
+               x1=datenum([graphvals.date{ii} ' ' graphvals.timon{ii}],'yyyy-mm-dd  HH:MM:SS')-subval
+               x2=datenum([graphvals.date{ii} ' ' graphvals.timoff{ii}], 'yyyy-mm-dd  HH:MM:SS')-subval
+               
+           
+                y1=graphvals.tickht
+                
+                plot([x1 x2], [y1 y1],'r','Linewidth',7)
+           end
+ end
+ 
+ 
+   for ii=length(batchfiles)
+       
+       btnum=batchfiles(ii);
+       muind=find(graphvals.colvals{1}==btnum)
+       acind=find(graphvals.colvals{2}==btnum)
+       if(muind)
+           plot(chkarray{btnum}(:,1)-subval,chkarray{btnum}(:,2),'.','Color',graphvals.col(ii),'MarkerSize',9)
+            hold on;
+       else
+            
+            plot(chkarray{btnum}(:,1)-subval,chkarray{btnum}(:,2),'.','Color',graphvals.col(ii),'MarkerSize',9)
+            hold on;
+       end
+       end
+   end
+
+for ii=1:length(nnotes)
+subplot(ii,1,1);
+

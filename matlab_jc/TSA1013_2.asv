@@ -1,0 +1,44 @@
+function [phits,pescs,pescsHI,phitsNORM,pescsNORM,pescsHINORM,hits,escs]=TSA1013_2(vals,mem)
+fv=vals(:,2);
+songs=vals(:,4);
+meanmem=80;
+posthitcount=0;
+postesccount=0;
+postescHIcount=0;
+for i=mem+1:length(fv)
+    if vals(i-mem,5)==1 %If pvs note was below threshold
+        if vals(i-mem,6)==1 %If pvs note was a wnblast
+            posthitcount=posthitcount+1;
+            hits(posthitcount)=fv(i-mem);
+            phits(posthitcount)=fv(i);
+        else
+            postesccount=postesccount+1;
+            escs(postesccount)=fv(i-mem);
+            pescs(postesccount)=fv(i);
+        end
+    else
+        postescHIcount=postescHIcount+1;
+        pescsHI(postescHIcount)=fv(i);
+    end
+end
+
+posthitcount=0;
+postesccount=0;
+postescHIcount=0;
+for i=meanmem+1:length(fv)
+    last50mean=mean(fv(i-meanmem:i-mem));
+    fvNORM=fv(i)-last50mean;
+    if vals(i-mem,5)==1 %If pvs note was below threshold
+        if vals(i-mem,6)==1 %If pvs note was a wnblast
+            posthitcount=posthitcount+1;
+            phitsNORM(posthitcount)=fvNORM;
+        else
+            postesccount=postesccount+1;
+            pescsNORM(postesccount)=fvNORM;
+        end
+    else
+        postescHIcount=postescHIcount+1;
+        pescsHINORM(postescHIcount)=fvNORM;
+    end
+end
+        

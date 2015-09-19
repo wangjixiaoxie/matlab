@@ -1,0 +1,15 @@
+%metagaussian.m
+%this script calls plotgaussian.m
+
+figure
+ax=subplot(1,1,1);
+xbnds=[-4:.01:4]
+mu=0
+sigma=1;
+col='k'
+lstyl='-'
+flip=0;
+
+plotgaussian(ax,xbnds,mu,sigma,col,lstyl,1)
+hold on;
+plotgaussian(ax,xbnds,mu,sigma/1.5,'r',lstyl,1)

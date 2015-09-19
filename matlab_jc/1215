@@ -1,0 +1,20 @@
+
+n=6;
+exp=11;
+experiment=Alldata2(exp).exp;
+countina=0; countac=0;
+for i=1:length(experiment)
+    if experiment(1).baseline(i)==1 && experiment(1).acsf(i)==1
+        countac=countac+1;
+        Allinact(n).ACSF(countac).rawdata=experiment(i).rawdata;
+        Allinact(n).ACSF(countac).rawpitchcurves=experiment(i).rawpitchcurves;
+        Allinact(n).ACSF(countac).selectedpitchcurves=experiment(i).selectedpitchcurves;
+    else
+        if experiment(1).baseline(i)==1 && experiment(1).acsf(i)==0
+            countina=countina+1;
+            Allinact(n).INA(countina).rawdata=experiment(i).rawdata;
+            Allinact(n).INA(countina).rawpitchcurves=experiment(i).rawpitchcurves;
+            Allinact(n).INA(countina).selectedpitchcurves=experiment(i).selectedpitchcurves;
+        end
+    end
+end

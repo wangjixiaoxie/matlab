@@ -1,0 +1,7 @@
+figure;hold on;
+for i=ind
+    subplot(5,6,i);hold on;
+    plot(Experiment(i).pitchACpre(:,end-30:end),'k')
+    plot(Experiment(i).pitchAPV(:,end-30:end),'r')
+    xlim([1 500])
+end

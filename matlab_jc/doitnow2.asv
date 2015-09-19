@@ -1,0 +1,11 @@
+function [CVL,CVA]=doitnow2(p716lid,f716lid,p716B,f716B,avgnote)
+CVlido1=jc_plotabunch725(p716lid,f716lid,900,avgnote,400,800);
+CVacsf1=jc_plotabunch725(p716B,f716B,900,avgnote,400,800);
+for i=0:4
+    g=CVlido1(i*10+1:(i+1)*10);
+    h=CVacsf1(i*10+1:(i+1)*10);
+    CVL(i+1)=std(g)/mean(g);
+    CVA(i+1)=std(h)/mean(h);
+end
+figure; hold on; plot(CVL); plot(CVA,'r')
+    

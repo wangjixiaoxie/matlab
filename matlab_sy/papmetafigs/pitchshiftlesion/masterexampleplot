@@ -1,0 +1,49 @@
+%master plot of pitchshiftlesion example.
+
+
+%first get data together for evren's bird.
+subplot(211)
+
+
+pth{1}='/oriole7/dir1/bk13w63'
+STDN=datenum(2007,5,17]);
+dat(length(dat)+1).fn='trigtest/BATCHTRAIN_FFVN4';
+dat(length(dat)).sym='ko';
+dat(length(dat)+1).fn='trigtest2/BATCHTRAIN_FFVN4';
+dat(length(dat)).sym='ko';
+dat(length(dat)+1).fn='ampon/BATCHTRAINCATCH_FFVN4';
+dat(length(dat)).sym='ko';
+dat(length(dat)+1).fn='ampon2/BATCHTRAINCATCH_FFVN4';
+dat(length(dat)).sym='ko';
+dat(length(dat)+1).fn='ampon3/BATCHTRAINCATCH_FFVN4';
+dat(length(dat)).sym='ko';
+dat(length(dat)+1).fn='ampon4/BATCHTRAINCATCH_FFVN4';
+dat(length(dat)).sym='ko';
+dat(length(dat)+1).fn='postlesion/screen/BATCHTRAIN_FFVN4';
+dat(length(dat)).sym='ko';
+dat(length(dat)+1).fn='postlesion/trigtest/BATCHTRAIN_FFVN4';
+dat(length(dat)).sym='ko';
+dat(length(dat)+1).fn='postlesion/trigtest2/BATCHTRAIN_FFVN4';
+dat(length(dat)).sym='ko';
+dat(length(dat)+1).fn='postlesion/ampon/BATCHTRAINCATCH_FFVN4';
+dat(length(dat)).sym='ko';
+dat(length(dat)+1).fn='postlesion/ampoff/BATCHTRAIN_FFVN4';
+dat(length(dat)).sym='ko';
+dat(length(dat)+1).fn='postlesion/ampon2/BATCHTRAINCATCH_FFVN4';
+dat(length(dat)).sym='ko';
+dat(length(dat)+1).fn='postlesion/ampoff2/BATCHTRAIN_FFVN4';
+dat(length(dat)).sym='ko';
+
+hold on;
+for ii=1:length(dat)
+	load(dat(ii).fn);
+	sym=dat(ii).sym;
+	plt_freqday(fv,tbinshft,fbins,sym,STDN,1,[0,25],3,1,3000);
+end
+grid on;hold on;yy=ylim;
+title('Bk13W63 Fundamental Freq','FontS',10,'FontW','b');
+set(gca,'FontS',10,'FontW','b');
+xlabel('Time Since PB Start (days)','FontS',10,'FontW','b');
+ylabel('2nd Harmonic Freq (Hz)','FontS',10,'FontW','b');
+xx=xlim;xlim(xx+[-1,1]);
+saveas(gcf,'FREQ.fig','fig');

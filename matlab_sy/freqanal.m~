@@ -1,0 +1,23 @@
+function [mnvl,stdv,htrt]= freqanal(vals, matrixvals,bnds)
+
+    mnvl=[]
+    stdv=[]
+    for ii=1:length(matrixvals)
+        indtmp=find(vals(:,1)>=matrixvals(ii,1)&vals(:,1)<=matrixvals(ii,2))
+        if (bnds)
+            indtmp2=find(vals(indtmp,2)>bnds(1)&vals(indtmp,2)<bnds(2));
+            mnvl(ii)=mean(vals(indtmp(indtmp2),2))
+            stdv(ii)=std(vals(indtmp(indtmp2),2))
+            nnotes(ii)=length(indtmp(indtmp2))
+            indht(ii)=find(vals(indtmp(indtmp2),3)==1)
+            htrt(ii)=length(indht(ii))/nnotes(ii);
+        
+        else
+            mnvl(ii)=mean(vals(indtmp,2))
+            stdv(ii)=std(vals(indtmp,2))
+            nnotes(ii)=length(indtmp)
+            indht(ii)=find(vals(indtmp,3)==1)
+            htrt(ii)=length(indht(ii))/nnotes(ii);
+        
+        end
+    end

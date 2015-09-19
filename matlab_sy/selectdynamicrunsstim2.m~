@@ -1,0 +1,126 @@
+%purpose of this code is to go through sumbs and calculate
+%the offz for each initrun
+%for each control run
+%and for each baseline runs
+%save to a masterstruct suminitshs
+%with initacz, initmuz, initoff, init_bsvl, 
+%modified 9.19.09 to return sumdynall and sumdynasymp
+
+%this option tells whether to plot initind, selected as consecutive mu runs
+%over some threshold.
+function [sumdyn,sumdynasymp,sumdynrev]=selectdynamicruns2(sumbs,minpts,minshift,norm_asymp)
+for runvl=1:3
+    ct=0;
+    clear sumout
+    for bsnm=1:length(sumbs)
+        crbs=sumbs(bsnm)
+    
+    if(runvl==1)
+        runs=[     crbs.shiftruns];
+        
+    elseif(runvl==2)
+        runs=[crbs.asympruns];
+    %for revruns, add one before as well
+    else
+       runs=crbs.revruns;
+      
+    end
+   
+        
+       
+        for shnm=1:length(runs)
+            shiftind=runs{shnm}
+            tmpind=find(ismember(shiftind,crbs.STANRUNS));
+            shiftind=shiftind(tmpind);
+            if(runvl==3)
+                %this is to go back and pull out value from before reverse
+                %shift started.
+                if(~isempty(shiftind))
+                    [out,sortind]=sort(crbs.tmvec(crbs.STANRUNS));
+                    sortruns=crbs.STANRUNS(sortind);
+                    mulistind=find(sortruns==shiftind(1));
+                    shiftind2=[sortruns(mulistind-1); shiftind];
+                end
+            end
+            if(runvl==2)
+                if(~isempty(shiftind))
+                    [out,sortind]=sort(crbs.tmvec(crbs.STANRUNS));
+                    sortruns=crbs.STANRUNS(sortind);
+                    mulistind=find(ismember(sortruns,crbs.shiftruns{shnm}));
+%                     if(mulistind>2)
+                    shiftind2=sortruns(mulistind);    
+%                     end
+                 end
+            end
+            %add baseline runs
+            if(runvl==1)
+                [out,sortind]=sort(crbs.tmvec(crbs.STANRUNS));
+                    sortruns=crbs.STANRUNS(sortind);
+                    basind=find(ismember(sortruns,crbs.basruns));
+                    shind=find(ismember(sortruns,crbs.shiftruns{shnm}));
+                    outind=find(basind==(shind(1)-1));
+                    if(~isempty(outind))
+                        basruns=sortruns(basind(outind));
+                        shiftind2=[basruns sortruns(shind)];
+                    else
+                        shiftind2=[sortruns(shind)];
+                    end
+             end
+                ct=ct+1;
+                overallind=shiftind2;
+                ind=1:length(shiftind2);
+                if(~isempty(overallind))
+                    sumout(ct).acz=crbs.acz(overallind);
+                    sumout(ct).muz=crbs.muz(overallind);
+                    sumout(ct).runs=overallind;
+                    sumout(ct).rawtms=crbs.tmvec(overallind,1)-crbs.baswntime{shnm};
+                    sumout(ct).pct=crbs.pct(overallind);
+                    sumout(ct).ac_pct=crbs.acz(overallind)/crbs.asympvl{shnm};
+                    sumout(ct).mu_pct=crbs.muz(overallind)/crbs.asympvl{shnm};
+                     sumout(ct).asympvl=crbs.asympvl{shnm};
+%                      sumout(ct).asympacpct=sumout(ct).acz/sumout(ct).asympvl
+%                     sumout(ct).asympmupct=sumout(ct).muz/sumout(ct).asympvl;
+ 
+                    sumout(ct).bsnum=bsnm
+                    sumout(ct).drxn=crbs.drxn{shnm}
+                    if(runvl==1)
+                        sumout(ct).adjtms=crbs.adjshifttms{shnm}(tmpind);
+                        %basrun
+                        if(~isempty(outind))
+                            sumout(ct).exadjtms=[0 crbs.tmvec(shiftind2(2:end))-(crbs.tmvec(shiftind(1)))+crbs.exactshifttms{shnm}(1)];
+                        else
+                            sumout(ct).exadjtms=crbs.tmvec(shiftind2)-(crbs.tmvec(shiftind(1)))+crbs.exactshifttms{shnm}(1);
+                        end
+                            
+%                             sumout(ct).muasympdist=crbs.muasympdist{shnm};
+%                             sumout(ct).drxn=crbs.drxn{shnm}
+%                         sumout(ct).acasympdist=crbs.acasympdist{shnm};
+                        sumout(ct).bsnum=bsnm
+                    elseif(runvl==3)
+                        if(~isempty(shiftind))
+                            sumout(ct).adjtms=crbs.tmvec(overallind)-crbs.flrtmvec(overallind(1))+1;
+                            sumout(ct).exadjtms=crbs.tmvec(shiftind2)-floor(crbs.tmvec(shiftind(1)))+1;
+                           
+                        end
+                    else
+                        sumout(ct).adjtms=crbs.asympshifttms{shnm}(tmpind);
+                        sumout(ct).exadjtms=crbs.tmvec(shiftind2)-(crbs.tmvec(shiftind(1)))+1;
+                        
+               
+                    end
+%             end
+                end
+        end
+        
+end
+    if(runvl==2)
+            sumdynasymp=sumout;
+    elseif(runvl==1)
+            sumdyn=sumout;
+    else
+        sumdynrev=sumout;
+    end
+end
+
+        
+

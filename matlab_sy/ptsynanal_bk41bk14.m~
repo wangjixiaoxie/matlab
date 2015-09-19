@@ -1,0 +1,53 @@
+%this script is written to generate pitch contours for bk57w35
+%writes data to a .mat file in directory where data is.
+
+%YOU NEED TO SET MUINDS BELOW
+%calls jc_pitchcontourFV, in ~/matlab
+%      maketimevec2
+clear fv fbins bt smoothamp baspath conbins avls
+avls.baspath='/oriole2/bk41bk14/'
+
+%5-02 and 5-03
+avls.pvls{1}='temptest2/'
+avls.cvl{1}='batchcomb'
+avls.WINDOWSIZE=16;
+
+avls.pvls{2}='temptest3/'
+avls.cvl{2}='batch04.catch.keep'
+
+% avls.pvls{3}='syntest3/'
+% avls.cvl{3}='batch.catch'
+
+avls.pvls{3}='wnonsyn1/'
+avls.cvl{3}='batchcomb'
+
+avls.pvls{4}='wnoff511_840/'
+avls.cvl{4}='batchcomb'
+
+avls.DOCONT_ANAL=0;
+
+
+
+avls.NT{1}='a';
+avls.NT{2}='b';
+% avls.NT{3}='c'
+avls.tbinshft(1)=.025;
+avls.tbinshft(2)=.025
+% avls.tbinshft(3)=.025;
+
+
+avls.fbins{1}=[3000 3500];
+avls.fbins{2}=[2000 3000];
+% avls.fbins{3}=[3000 3500];
+
+
+avls.ANALPTNT=1;
+avls.SEQNT=1;
+
+
+
+avls.NFFT(1)=256;
+avls.NFFT(2)=512;
+% avls.NFFT(3)=256;
+avls.MKFV=[1:4]
+   

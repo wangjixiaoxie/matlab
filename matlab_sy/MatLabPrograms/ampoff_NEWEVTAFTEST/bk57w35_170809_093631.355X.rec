@@ -1,0 +1,21 @@
+File created: Mon, Aug 17, 2009, 09:36:42.70
+
+     begin rec = 0 ms
+     trig time  = 2000 ms
+     rec end = 12871 ms
+
+ADFREQ = 3.2000000e+004
+Chans = 1
+Samples = 411868
+Catch Song = 0
+T Before = 2.0000000e+000
+T After = 1.0000000e+000
+Feedback information:
+
+ 3.1439688e+003 msec : FB # Simulation : Templ = 1
+ 4.3839688e+003 msec : FB # Simulation : Templ = 1
+ 5.6799688e+003 msec : FB # Simulation : Templ = 1
+ 5.8159688e+003 msec : FB # Simulation : Templ = 0
+ 7.3119688e+003 msec : FB # Simulation : Templ = 1
+ 9.6079688e+003 msec : FB # Simulation : Templ = 1
+ 1.1287969e+004 msec : FB # Simulation : Templ = 1

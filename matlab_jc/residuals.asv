@@ -1,0 +1,13 @@
+function normalized=residuals(pitchmatrix)
+pitchdata=pitchmatrix;
+%Get the residuals
+for i=1:size(pitchdata,1);avg(i)=mean(pitch_data(i,:));end
+
+for i=1:length(pitchdata)
+    for j=1:length(pitchdata(1).pitches)
+        normalized(j,i)=matr(j,i)/averaged(j);
+        normalized(j,i)=normalized(j,i)-1;
+    end
+end
+
+

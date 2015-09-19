@@ -1,0 +1,18 @@
+function [toff]=get_trgoff(trigs);
+
+
+dts=[];
+tvl=[];
+for ii=1:length(trigs)
+    
+	dn=fn2datenum(trigs(ii).fn);
+	dts=[dts;dn];
+    
+    if isempty(trigs(ii).toffset)
+        trigs(ii).toffset=-50;
+    end
+	tvl=[tvl;trigs(ii).toffset];
+    
+end
+
+size(toff=[tvl dts];

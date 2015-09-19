@@ -1,0 +1,18 @@
+
+    pd1=jc_PitchData208(AlldataZFlesion(1).rawdataUDpre,1024,1020,0.5,2200,2800,1,'obs0');
+    pd2=jc_PitchData208(AlldataZFlesion(1).rawdataUDpre,1024,1020,1,2200,2800,1,'obs0');
+    pd3=jc_PitchData208(AlldataZFlesion(1).rawdataUDpre,1024,1020,2,2200,2800,1,'obs0');
+    pds1=jc_pitchmat1024(AlldataZFlesion(1).rawdataUDpre,1024,1020,0.5,2200,2800,1,'obs0',1);
+    pds2=jc_pitchmat1024(AlldataZFlesion(1).rawdataUDpre,1024,1020,1,2200,2800,1,'obs0',1);
+    pds3=jc_pitchmat1024(AlldataZFlesion(1).rawdataUDpre,1024,1020,2,2200,2800,1,'obs0',1);
+
+
+
+    pd4=jc_PitchData208(AlldataZFlesion(1).rawdataUDpost,1024,1020,0.5,2200,2800,1,'obs0');
+    pd5=jc_PitchData208(AlldataZFlesion(1).rawdataUDpost,1024,1020,1,2200,2800,1,'obs0');
+    pd6=jc_PitchData208(AlldataZFlesion(1).rawdataUDpost,1024,1020,2,2200,2800,1,'obs0');
+    pds1=jc_pitchmat1024(AlldataZFlesion(1).rawdataUDpost,1024,1020,0.5,2200,2800,1,'obs0',1);
+    pds2=jc_pitchmat1024(AlldataZFlesion(1).rawdataUDpost,1024,1020,1,2200,2800,1,'obs0',1);
+    pds3=jc_pitchmat1024(AlldataZFlesion(1).rawdataUDpost,1024,1020,2,2200,2800,1,'obs0',1);
+
+

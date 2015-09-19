@@ -1,0 +1,41 @@
+figure;plot([timevalsProbein timevalsAPV timevalsAPVwnon timevalsPost timevals1mMAPV timevalsAC426 timevalsAPVwn427],[median(pitchProbein(200:250,:)) median(pitchAPV(200:250,:)) median(pitchAPVwnon(200:250,:)) median(pitchPost(200:250,:)) median(pitch1mMAPV(200:250,:)) median(pitchAC426(200:250,:)) median(pitchAPVwn427(200:250,:))],'*','Color','b')
+hold on;plot([timevalsProbein timevalsAPV timevalsAPVwnon timevalsPost timevals1mMAPV timevalsAC426],[median(pitchProbein(200:250,:)) median(pitchAPV(200:250,:)) median(pitchAPVwnon(200:250,:)) median(pitchPost(200:250,:)) median(pitch1mMAPV(200:250,:)) median(pitchAC426(200:250,:))],'*','Color','g')
+
+% Experiment 1- pu56
+figure;plot([timevalsProbein timevalsAPV timevalsAPVwnon timevalsPost],[median(pitchProbein(200:250,:)) median(pitchAPV(200:250,:)) median(pitchAPVwnon(200:250,:)) median(pitchPost(200:250,:))],'*','Color','k')
+hold on;plot([timevalsProbein timevalsAPV timevalsAPVwnon],[median(pitchProbein(200:250,:)) median(pitchAPV(200:250,:)) median(pitchAPVwnon(200:250,:))],'*','Color','r')
+hold on;plot([timevalsProbein timevalsAPV],[median(pitchProbein(200:250,:)) median(pitchAPV(200:250,:))],'*','Color','b')
+hold on;plot([timevalsProbein],[median(pitchProbein(200:250,:))],'*','Color','k')
+
+medpitchExp1=[median(pitchProbein(200:250,:)) median(pitchAPV(200:250,:)) median(pitchAPVwnon(200:250,:)) median(pitchPost(200:250,:))];
+timevalsExp1=[timevalsProbein timevalsAPV timevalsAPVwnon timevalsPost];
+
+for i=1:floor(size(pitchProbein,2)/50)
+    start=i*50-49;
+    last=start+50;
+    val1=[median(median(pitchProbein(200:250,start:last)))];
+    plot([timevalsProbein(start) timevalsProbein(last)],[val1 val1],'Color','r','LineWidth',8)
+end
+for i=1:floor(size(pitchAPV,2)/50)
+    start=i*50-49;
+    last=start+50;
+    val1=[median(median(pitchAPV(200:250,start:last)))];
+    plot([timevalsAPV(start) timevalsAPV(last)],[val1 val1],'Color','r','LineWidth',8)
+end
+for i=1:floor(size(pitchAPVwnon,2)/50)
+    start=i*50-49;
+    last=start+50;
+    val1=[median(median(pitchAPVwnon(200:250,start:last)))];
+    plot([timevalsAPVwnon(start) timevalsAPVwnon(last)],[val1 val1],'Color','k','LineWidth',8)
+end
+for i=1:floor(size(pitchPost,2)/50)
+    start=i*50-49;
+    last=start+50;
+    val1=[median(median(pitchPost(200:250,start:last)))];
+    plot([timevalsPost(start) timevalsPost(last)],[val1 val1],'Color','r','LineWidth',8)
+end
+hold on;plot([timevalsAPVwnon(1) timevalsAPVwnon(end)],[3550 3550],'k')
+figure;plot([median(pitchProbein(200:250,:)) median(pitchAPV(200:250,:)) median(pitchAPVwnon(200:250,:)) median(pitchPost(200:250,:))],'*','Color','k')
+hold on;plot([median(pitchProbein(200:250,:)) median(pitchAPV(200:250,:)) median(pitchAPVwnon(200:250,:))],'*','Color','r')
+hold on;plot([median(pitchProbein(200:250,:)) median(pitchAPV(200:250,:))],'*','Color','b')
+hold on;plot([median(pitchProbein(200:250,:))],'*','Color','k')

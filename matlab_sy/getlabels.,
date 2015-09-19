@@ -1,0 +1,11 @@
+function lblarray=getlabels(bt)
+
+    files=load_batchf(bt);
+    
+    for ii=1:length(files)
+        fn=files(ijk).name;
+    
+        matfn=(fn,'.cbin');
+        strcmd2=['load ' matfn]
+        lblarray{ii}=labels;
+    end

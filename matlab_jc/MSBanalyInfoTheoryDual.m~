@@ -1,0 +1,20 @@
+% Rationale - bird learns to shift upwards/downwards at the times when there ar the
+    % highest positive correlation between behavior (i.e. pitch)
+    % and outcome (i.e. probability of white noise).  If there is also a
+    % time when there is a high negative correlation (i.e. in dual contingency
+    % experiments), he also shifts in that direction.
+    
+% Dual contingency experiments
+% FRONT & REAR
+    for i=1:8
+        if isequal(DShifts(i).dirA,'up')
+            valu=51;
+        else
+            valu=49;
+        end
+        [ITfirst(i) ITsecond(i)]=ContingSimMSBDual(DShifts(i).toffset-DShifts(i).onset,jc_residuals(DShifts(i).pitchBaseline(DShifts(i).onset:DShifts(i).onset+400,:)),valu);
+        Actualfirst(i)=round(median(DShifts(i).toffset-DShifts(i).onset));
+        Actualsecond(i)=(Actualfirst(i)+192);
+    end
+
+

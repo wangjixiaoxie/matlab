@@ -1,0 +1,18 @@
+function [pts] = calcvec(avls, ntind, indtoplot, ht)
+    %algorithm take the 
+%     
+%     take the avls.acz score
+%     avls.muz score
+%     
+    [acvls]=avls.acz(ntind,indtoplot);
+    [muvls]=avls.muz(ntind,indtoplot);
+    
+%     sum all the differences between acz and muz and divide by number of ind.
+%     start the vector at the avg. ac point.
+%     
+    vecln=(mean(muvls)-mean(acvls)/length(indtoplot);
+    x1=mean(acvls);
+    y1=ht;
+    y2=ht;
+    x2=mean(acvls)+vecln;
+    pts=[x1 y1  x2 y2];

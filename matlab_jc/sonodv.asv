@@ -1,0 +1,9 @@
+function [sonogram]=sonodv(s,SAMPLING,N,OVERLAP,sigma)
+
+t=-N/2+1:N/2;
+%Gaussian and first derivative as windows.
+
+%sigma=(sigma/1000)*SAMPLING;
+w=exp(-(t/sigma).^2);
+sonogram=specgram(s,N,[],w,OVERLAP)+eps; %gaussian windowed spectrogram
+sonogram=abs(flipdim(sonogram,1)); %this is the standard sonogram

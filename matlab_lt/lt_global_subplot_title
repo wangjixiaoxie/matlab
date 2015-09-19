@@ -1,0 +1,4 @@
+
+
+[ax, h]=subtitle(['Transition probability of ' trn_to_plot ' (' transitions_all_days.parameters.phrase ') at edges (context switches and probe trials), bin size: '  num2str(edge_bin_size) ' songs']);
+set(h,'Position',title_pos);

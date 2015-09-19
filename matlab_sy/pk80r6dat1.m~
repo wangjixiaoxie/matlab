@@ -1,0 +1,131 @@
+%designed to call pitchsyntaxanal, and then inactivanal.m
+
+sumpath='/doya4/pk80r6/'
+strcmd=['cd ' sumpath]
+eval(strcmd);
+if (~exist('datasum','dir'))
+    !mkdir datasum
+end
+matfilename='pathvals1'
+
+extractvals=1
+
+clear pathvl vals
+clear avls
+clear tbinshft
+
+%11-8%
+pathvl{1}='/doya4/pk80r6/screen2/'
+catchvl{1}='batch.keep.rand'
+%11-10%
+pathvl{2}='/doya4/pk80r6/temptest3/'
+catchvl{2}='batchcomb2'
+
+pathvl{12}='/doya4/pk80r6/wnon/'
+catchvl{12}='batch13a.keep.catch'
+
+pathvl{13}='/doya4/pk80r6/wnon/'
+catchvl{13}='batch16.keep.catch'
+
+
+%11-20
+pathvl{3}='/doya4/pk80r6/wnoff2/'
+catchvl{3}='batch20.keep.catch.rand'
+
+%11-21
+pathvl{4}='/doya4/pk80r6/wnoff2/'
+catchvl{4}='batch21.keep.catch.rand'
+
+%11-25
+pathvl{5}='/doya4/pk80r6/wnon2/'
+catchvl{5}='batch25.keep.catch.rand'
+%11-27
+pathvl{6}='/doya4/pk80r6/wnon2/'
+catchvl{6}='batch27.keep.catch.rand'
+%12-9
+pathvl{7}='/doya4/pk80r6/wnoff3/'
+catchvl{7}='batch.keep'
+%12-18
+pathvl{8}='/doya4/pk80r6/temptest/'
+catchvl{8}='batch10comb.rand'
+%12-19
+pathvl{9}='/doya4/pk80r6/postlesion/'
+catchvl{9}='batch18c.keep.rand'
+%12-20
+pathvl{10}='/doya4/pk80r6/postlesion/'
+catchvl{10}='batch1920comb.keep.rand'
+%12-21
+pathvl{11}='/doya4/pk80r6/postlesion/'
+catchvl{11}='batch21a.keep.rand'
+
+pathvl{12}='
+catchvl{12}
+
+usex(1:13)=0;
+avls.repeatanal(1:13)=0
+avls.analind=[1:13]
+numnotes=2
+notes='ce'
+
+fbins={};
+tbinshft{1}=0.1;
+tbinshft{2}=.015
+tbinshft{3}=.015
+NFFT(1)=1024
+NFFT(2)=512
+NFFT(3)=512
+fbins{1}=[2500,3600];
+fbins{2}=fbins{1}  
+fbins{3}=fbins{1}
+clear NT    
+NT{1}='d'
+NT{2}='e'
+% NT{3}='e'
+
+PRENT{1}='c';PSTNT{1}='';
+PRENT{2}='d';PSTNT{2}='';
+PRENT{3}='g';PSTNT{3}='';
+%%%plotvals
+avls.synind=[]
+avls.translist{1}='e'
+avls.translist{2}='c'
+avls.translist{3}='z'
+avls.translist{4}='i'
+avls.translist{5}='k'
+%this is for the number of notes
+avls.pitchind=[2]
+colvals='rmkbg'
+graphvals.numcol=5
+graphvals.col=colvals
+graphvals.plttext=1
+graphvals.txtht=[3260 3200]
+graphvals.colvals=colvals
+graphvals.pltpnts=1
+
+graphvals.colvals=colvals
+
+avls.pvls=pathvl
+avls.datfile=matfilename;
+avls.cvl=catchvl
+avls.sumpath=sumpath
+avls.mtflnm=matfilename  
+avls.supanal=1
+avls.NT=NT
+avls.NFFT=NFFT
+avls.fbins=fbins
+avls.tshft=tbinshft
+avls.usex=usex
+avls.numnotes=numnotes
+avls.mkfv=[]
+avls.PRENT=PRENT
+avls.PSTNT=PSTNT
+avls.bnds{1}='2007-09-20 07:00:00'
+avvls.bnds{2}='2007-11-20 07:00:00'
+
+strcmd=['cd ' sumpath 'datasum']
+eval(strcmd)
+
+strcmd=['save ' matfilename '.mat avls graphvals'];
+eval(strcmd);
+
+

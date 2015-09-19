@@ -1,0 +1,13 @@
+diffs=mean(psdvAC)-mean(psdvINA);
+for j=1:50
+    signal=0;
+    t=1:1:350;
+    for i=2:8
+        phase=(350/round(rand*350))*2*pi;
+        magnitude=diffs(i);
+        period=x(i)*8;
+        signal(:,j)=signal+magnitude*cos(1/period*2*pi*t+phase);
+    end
+end
+figure;plot(signal)
+    

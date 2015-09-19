@@ -1,0 +1,34 @@
+function [sumplot]=ploteffcombcorr(sumplot,type)
+    col={'k' 'r'}
+
+ ind=find(abs(sumplot(1).ac)>0)
+ targvls=sumplot(1).targeff(ind);
+ if ~isempty(sumplot(1).contreff)
+     contrvls=sumplot(1).contreff(ind);
+ else
+     contrvls=sumplot(1).targeff(ind);
+ end
+ 
+ if (type=='pct')
+     xvls1=log2(targvls);
+     xvls2=log2(contrvls);
+ elseif (type=='com')
+     xvls1=[(log2(targvls)+log2(contrvls))/2]
+    xvls2=xvls1;
+ end
+     
+        plot(xvls1,sumplot(1).pct(ind),'k.')
+        hold on;
+       
+        if(~isempty(contrvls))
+            plot(xvls2 ,sumplot(1).pct(ind),'r.')
+            plot([xvls1; xvls2],[sumplot(1).pct(ind);sumplot(1).pct(ind)],'k-')
+            meanx=mean([xvls1;xvls2])
+            if 
+        end
+    end
+
+
+
+
+    

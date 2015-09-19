@@ -1,0 +1,104 @@
+% SequenceTrack
+
+tvdom=tvals1001dom;
+tvrec=tvals1001rec;
+sizedom=size(tvdom,2);
+tvall2=[tvals1001dom tvals1001rec];
+[b2,ind2]=sort(tvall2);
+width=60;
+clear tdom1001
+clear probdom1001
+for i=1:(length(tvall2)-width)
+    numdom=length(find(ind2((i-1)+1:i-1+width)<sizedom));
+    tdom1001(i)=tvall2(ind2(i));
+    probdom1001(i)=numdom/width;
+end
+
+
+tvalsWNON1001dom=timing4(fvalsWNON1001dom);
+tvalsWNON1001rec=timing4(fvalsWNON1001rec);
+tvdom=tvalsWNON1001dom;
+tvrec=tvalsWNON1001rec;
+sizedom=size(tvdom,2);
+tvall2=[tvalsWNON1001dom tvalsWNON1001rec];
+[b2,ind2]=sort(tvall2);
+
+clear tdom1001wn
+clear probdom1001wn
+for i=1:(length(tvall2)-width)
+    numdom=length(find(ind2((i-1)+1:i-1+width)<sizedom));
+    tdom1001wn(i)=tvall2(ind2(i));
+    probdom1001wn(i)=numdom/width;
+end
+
+
+tvals930PREdom=timing4(fvals930PREdom);
+tvals930PRErec=timing4(fvals930PRErec);
+tvdom=tvals930PREdom;
+tvrec=tvals930PRErec;
+sizedom=size(tvdom,2);
+tvall=[tvals930PREdom tvals930PRErec];
+[b,ind]=sort(tvall);
+
+clear tdom930
+clear probdom930
+for i=1:(length(tvall)-width)
+    numdom=length(find(ind((i-1)+1:i-1+width)<sizedom));
+    tdom930(i)=tvall(ind(i));
+    probdom930(i)=numdom/width;
+end
+
+tvalsWNON914dom=timing4(fvalsWNON914dom);
+tvalsWNON914rec=timing4(fvalsWNON914rec);
+tvdom=tvalsWNON914dom;
+tvrec=tvalsWNON914rec;
+sizedom=size(tvdom,2);
+tvall=[tvalsWNON914dom tvalsWNON914rec];
+[b,ind]=sort(tvall);
+clear tdomWN914
+clear probdomWN914
+for i=1:(length(tvall)-width)
+    numdom=length(find(ind((i-1)+1:i-1+width)<sizedom));
+    tdomWN914(i)=tvall(ind(i));
+    probdomWN914(i)=numdom/width;
+end
+
+
+tvals911dom=timing4(fvals911dom);
+tvals911rec=timing4(fvals911rec);
+tvdom=tvals911dom;
+tvrec=tvals911rec;
+sizedom=size(tvdom,2);
+tvall=[tvals911dom tvals911rec];
+[b,ind]=sort(tvall);
+clear tdom911
+clear probdom911
+for i=1:(length(tvall)-width)
+    numdom=length(find(ind((i-1)+1:i-1+width)<sizedom));
+    tdom911(i)=tvall(ind(i));
+    probdom911(i)=numdom/width;
+end
+
+tvals914dom=timing4(fvals914dom);
+tvals914rec=timing4(fvals914rec);
+tvdom=tvals914dom;
+tvrec=tvals914rec;
+sizedom=size(tvdom,2);
+tvall=[tvals914dom tvals914rec];
+[b,ind]=sort(tvall);
+clear tdom914
+clear probdom914
+for i=1:(length(tvall)-width)
+    numdom=length(find(ind((i-1)+1:i-1+width)<sizedom));
+    tdom914(i)=tvall(ind(i));
+    probdom914(i)=numdom/width;
+end
+
+
+figure;plot([tdom1001], [probdom1001],'*','Color','b')
+hold on;plot(tdom1001wn,probdom1001wn,'*','Color','r')
+hold on;plot(tdom930,probdom930,'*','Color','b')
+
+hold on;plot(tdomWN914,probdomWN914,'*','Color','r')
+hold on;plot(tdom914,probdom914,'*','Color','b')
+hold on;plot(tdom911,probdom911,'*','Color','b')

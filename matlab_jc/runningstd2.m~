@@ -1,0 +1,12 @@
+function [timeout,SDout]=runningstd2(time,FFinput,window)
+% remove outliers
+p25=prctile(FFinput,25);
+p75=prctile(FFinput,75);
+iqr=p75-p25;
+inds=find(find(FFinput>p25-1.5*iqr & FFinput<p75+1.5*iqr));
+timeout=time(inds);
+input2=FFinput(inds);
+for i=1:length(input2)-window
+    SDout(i)=std(input2(i:i+window));
+end
+timeout(runningmedia

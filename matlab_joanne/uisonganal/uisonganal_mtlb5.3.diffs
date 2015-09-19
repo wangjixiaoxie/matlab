@@ -1,0 +1,1149 @@
+Only in .: .not.mat
+diff -aurbB ./bandpass.m ../uisonganal_old/bandpass.m
+--- ./bandpass.m	Mon May  8 01:48:37 2000
++++ ../uisonganal_old/bandpass.m	Tue May  2 16:35:37 2000
+@@ -42,5 +42,5 @@
+ filtsong=filtfilt(b, a, rawsong);
+  
+ if length(rawsong) ~= length(filtsong) 
+-  disp(['warning! bandpass: input and output file lengths do not match!']);
++  disp(['warning! banpass: input and output file lengths do not match!']);
+ end
+Only in .: bandpass.m~
+diff -aurbB ./batch_setup.m ../uisonganal_old/batch_setup.m
+--- ./batch_setup.m	Mon May  8 01:52:12 2000
++++ ../uisonganal_old/batch_setup.m	Tue Aug 19 16:01:04 1997
+@@ -18,7 +18,7 @@
+             temp = 'n';
+          end
+          disp([' Save notefile? [', temp, ']'])
+-         temp = input('','s');
++         temp = input([],'s');
+          if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes')
+             save_notes = 1;
+          elseif strcmp(temp,'n') | strcmp(temp,'N') | strcmp(temp,'no')
+@@ -34,7 +34,7 @@
+             temp = 'n';
+          end
+          disp([' Save filtered song? [', temp, ']'])
+-         temp = input('','s');
++         temp = input([],'s');
+          if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes')
+             save_filt = 1;
+          elseif strcmp(temp,'n') | strcmp(temp,'N') | strcmp(temp,'no')
+@@ -50,7 +50,7 @@
+             temp = 'n';
+          end
+          disp([' Save spectrogram? [', temp, ']'])
+-         temp = input('','s');
++         temp = input([],'s');
+          if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes')
+             save_spect = 1;
+          elseif strcmp(temp,'n') | strcmp(temp,'N') | strcmp(temp,'no')
+@@ -65,7 +65,7 @@
+             temp = 'n';
+          end
+          disp([' Display data while running? [', temp, ']'])
+-         temp = input('','s');
++         temp = input([],'s');
+          if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes')
+             batch_disp = 1;
+          elseif strcmp(temp,'n') | strcmp(temp,'N') | strcmp(temp,'no')
+@@ -79,7 +79,7 @@
+             temp = 'n';
+          end
+          disp([' Print spectrograms? [', temp, ']'])
+-         temp = input('','s');
++         temp = input([],'s');
+          if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes')
+             batch_print = 1;
+          elseif strcmp(temp,'n') | strcmp(temp,'N') | strcmp(temp,'no')
+@@ -88,8 +88,8 @@
+         
+          %start batch processing
+          disp(' Start batch processing?  [y]')
+-         temp = input('','s');
+-         if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes') | isempty(temp)
++         temp = input([],'s');
++         if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes') | temp == []
+             interact = 0;
+          elseif strcmp(temp,'n') | strcmp(temp,'N') | strcmp(temp,'no') | strcmp(temp,'q') | strcmp(temp,'Q')
+             interact = 1;         
+Only in .: batch_setup.m~
+diff -aurbB ./bird1.batch ../uisonganal_old/bird1.batch
+--- ./bird1.batch	Sun May  7 23:11:59 2000
++++ ../uisonganal_old/bird1.batch	Tue May  2 23:56:53 2000
+@@ -1,2 +1,3 @@
+ bird1UNDIRb.20000325.0001
+ bird1UNDIRb.20000325.0002
++bird1UNDIRb.20000325.0003
+Only in .: bird1.batch~
+Only in ../uisonganal_old: bird1UNDIRb.20000325.0001.filt
+Only in ../uisonganal_old: bird1UNDIRb.20000325.0001.not.mat
+Only in ../uisonganal_old: bird1UNDIRb.20000325.0001.spect
+diff -aurbB ./disp_song.m ../uisonganal_old/disp_song.m
+--- ./disp_song.m	Mon May  8 02:36:58 2000
++++ ../uisonganal_old/disp_song.m	Mon Aug 19 18:21:00 1996
+@@ -17,7 +17,6 @@
+     
+     %plot song
+     h_amp_plot = plot(time_d_song, d_song);
+-    set(h_amp_plot,'Tag','AmpPlot');
+     
+     %plot notes
+     plot([onsets'; onsets'],[ymax*ones(size(onsets'));zeros(size(onsets'))],'m');
+@@ -25,7 +24,7 @@
+     plot([onsets';offsets'],[ymax*ones(size(onsets'));ymax*ones(size(onsets'))],'m');
+     
+     %plot labels
+-       h_labels = text(onsets,ones(size(onsets))*ymax*1.1,labels');
++       h_labels = text(onsets,ones(size(onsets))*ymax*1.1,[labels]);
+     
+     hold off
+     
+Only in .: disp_song.m~
+diff -aurbB ./edit_note.m ../uisonganal_old/edit_note.m
+--- ./edit_note.m	Mon May  8 02:26:16 2000
++++ ../uisonganal_old/edit_note.m	Fri Jul 12 13:59:14 1996
+@@ -1,4 +1,4 @@
+-function edit_note
++function [onsets,offsets,labels]=add_note(onsets,offsets,labels)
+ 
+ %edits notes or interval selected by mouse
+ 
+@@ -21,7 +21,7 @@
+ num_ons_pre = nnz(onsets < left);
+ num_offs_post = nnz(offsets > right);
+ 
+-if  strcmp(char(button),'d')
++if  button == 'd'
+    %if delete command eliminate notes/insert interval
+    %copy leading unaffected notes
+    for i = 1:num_ons_pre
+@@ -70,7 +70,7 @@
+ 
+ onsets=temp_ons;
+ offsets=temp_offs;
+-labels=temp_labs';
++labels=temp_labs;
+   
+ subplot(h_main_amp)
+ disp_song;
+Only in .: edit_note.m~
+diff -aurbB ./get_segvals.m ../uisonganal_old/get_segvals.m
+--- ./get_segvals.m	Mon May  8 02:00:58 2000
++++ ../uisonganal_old/get_segvals.m	Wed Aug  7 19:16:40 1996
+@@ -26,14 +26,14 @@
+   
+   [x,y,action] = ginput(1);
+      
+-  if strcmp(char(action),'d')
++  if strcmp(action,'d')
+     %change min_dur
+     disp(['enter min_dur (in ms): [' num2str(t_min_dur) '] '])
+     [x,y,in]=ginput;
+-    if (isempty(in))   %no number entered 
++    if (in == [])   %no number entered 
+       disp('no change to min_dur')
+     else            %convert to number
+-      in=char(in);
++      in=setstr(in);
+       in=eval(in);
+       if (in == t_min_dur)  %check whether number has been changed
+          disp('no change to min_dur')
+@@ -45,14 +45,14 @@
+     end   
+     
+ 
+-  elseif strcmp(char(action),'i')
++  elseif strcmp(action,'i')
+     %change int_dur
+     disp(['enter int_dur (in ms): [' num2str(t_min_int) '] '])
+     [x,y,in]=ginput;
+-    if (isempty(in))   %no number entered 
++    if (in == [])   %no number entered 
+       disp('no change to min_int')
+     else            %convert to number
+-      in=char(in);
++      in=setstr(in);
+       in=eval(in);
+       if (in == t_min_int)  %check whether number has been changed
+          disp('no change to min_int')
+@@ -63,14 +63,14 @@
+       end 
+     end   
+     
+-  elseif strcmp (char(action),'s')
++  elseif strcmp (action,'s')
+     %change smoothing window
+     disp(['enter sm_win (in ms): [' num2str(t_sm_win) '] '])
+     [x,y,in]=ginput;
+-    if (isempty(in))   %no number entered 
++    if (in == [])   %no number entered 
+       disp('no change to sm_win')
+     else            %convert to number
+-      in=char(in);
++      in=setstr(in);
+       in=eval(in); 
+       if (in == sm_win)  %check whether number has been changed
+          disp('no change to sm_win')
+@@ -81,18 +81,18 @@
+       end
+     end   
+     
+-  elseif strcmp(char(action),'t')
++  elseif strcmp(action,'t')
+     %get new value of threshold from interactive program
+     [threshold, flag] = get_thresh_val;
+     if flag == 1
+        change_flag(thresh_i)=1;
+        return   
+     end
+-  elseif strcmp(char(action), 'q')
++  elseif strcmp(action, 'q')
+     change_flag = [0 0 0 0];
+     return    
+   
+-  elseif strcmp(char(action), 'r')
++  elseif strcmp(action, 'r')
+     min_dur=t_min_dur;
+     min_int=t_min_int;
+     threshold=t_thresh;
+Only in .: get_segvals.m~
+diff -aurbB ./get_thresh_val.m ../uisonganal_old/get_thresh_val.m
+--- ./get_thresh_val.m	Mon May  8 03:18:17 2000
++++ ../uisonganal_old/get_thresh_val.m	Thu Jul 17 14:36:49 1997
+@@ -34,7 +34,7 @@
+    %set the current display to show zoom to .5*amp_max % of data
+    set(h_thresh_amp,'xlim',[g_xmin g_xmax]);
+    set(h_thresh_amp,'ylim',[g_ymin g_ymax*amp_max/2]);
+-   disp_song;
++   disp_song
+ 
+ %draw input threshold
+    h_amp_thresh=line([g_xmin, g_xmax], [threshold, threshold], 'color', [1,0,0]);
+@@ -66,7 +66,7 @@
+ action='null';
+ subplot(h_thresh_amp)
+ 
+-while ~strcmp(char(action),'q') & ~isempty(action) & (action ~= 13)
++while (action ~= 'q') & (action ~= 13)
+ 
+   disp('options are')
+ 
+@@ -85,7 +85,7 @@
+ 
+   [x ,y, action] = ginput(1);
+ 
+-  if strcmp(char(action), 'b')
++  if action == 'b'
+      subplot(h_thresh_amp)
+      title('Select left and right boundaries of baseline interval/return')
+      [left, right, button, flag] = get_xrange;
+@@ -103,7 +103,7 @@
+         h_amp_base(length(h_amp_base)+1)=line([left right], [mean_base mean_base], 'color', [0, 1, 0]);   
+         h_amp_base(length(h_amp_base)+1)=line([left right], [0 0], 'color', [0, 1, 0],'linewidth',3);   
+         %plot line at some number of standard deviations above mean in amp window
+-        if ~isempty(h_amp_sdev)   %first remove old sdev lines
++        if h_amp_sdev ~= [];   %first remove old sdev lines
+            delete(h_amp_sdev)        
+            h_amp_sdev = []; %reset handle value
+         end
+@@ -114,7 +114,7 @@
+         end
+         %plot same in hist window
+         subplot(h_thresh_hist)
+-        if ~isempty(h_hist_sdev)   %first remove old sdev lines
++        if h_hist_sdev ~= [];   %first remove old sdev lines
+            delete(h_hist_sdev)        
+            h_hist_sdev = []; %reset handle value
+         end
+@@ -128,18 +128,18 @@
+      subplot(h_thresh_amp)
+      title('')
+    
+-  elseif strcmp(char(action), 'c')   %reset baseline values, clear standard deviation lines
++  elseif action == 'c'  %reset baseline values, clear standard deviation lines
+      subplot(h_thresh_amp);
+      base=[];
+-     if ~isempty(h_amp_sdev)   %first remove old sdev lines from amp window
++     if h_amp_sdev ~= [];   %first remove old sdev lines from amp window
+         delete(h_amp_sdev)
+         h_amp_sdev = [];
+      end   
+-     if ~isempty(h_amp_base)
++     if h_amp_base ~= [];
+         delete(h_amp_base)
+         h_amp_base = [];         
+      end
+-     if ~isempty(h_hist_sdev)  % remove old sdev lines from hist window
++     if h_hist_sdev ~= [];   % remove old sdev lines from hist window
+         delete(h_hist_sdev)
+         h_hist_sdev = [];
+      end   
+@@ -183,14 +183,14 @@
+         move_right(win_percent)
+      elseif y < ylim(2)      %clicked on amplitude window
+         cur_thresh = max(0, y);   %set current threshold
+-        if ~isempty(h_amp_thresh)   %delete old line
++        if h_amp_thresh ~= [];   %delete old line
+            delete(h_amp_thresh);
+         end
+         %plot new line for current threshold
+         h_amp_thresh = line([g_xmin, g_xmax],[cur_thresh cur_thresh],'color', [1,0,0])
+         %plot line in histogram window
+         subplot(h_thresh_hist);
+-        if ~isempty(h_hist_thresh)   %delete old line
++        if h_hist_thresh ~= [];   %delete old line
+            delete(h_hist_thresh);
+         end
+         %plot new line for current threshold
+@@ -201,16 +201,16 @@
+      disp(['current threshold is ', num2str(cur_thresh)])
+      disp([num2str((cur_thresh-mean_base)/sdev_base),' sd above mean'])
+   
+-  elseif strcmp (char(action),'z')     
++  elseif strcmp (action,'z')     
+       %get input from keyboard or mouse
+       [t,y,key]=ginput(1);        
+-      if strcmp(char(key), 'x')  %zoom on x axis of amplitude plot 
++      if strcmp(key, 'x')  %zoom on x axis of amplitude plot 
+          %display x zoom message and zoom on amplitude x axis
+           subplot(h_thresh_amp);
+           title('X-Zoom mode,select with mouse/ret, q to cancel','color',[0, 1, 1])
+           [xmin, xmax, button, flag] = zoom_x;
+           title('')
+-      elseif strcmp(char(key),'y') %zoom on y axis of amplitude plot
++      elseif strcmp(key,'y') %zoom on y axis of amplitude plot
+          %display y zoom message and zoom on amplitude yaxis
+           subplot(h_thresh_amp);
+           title('Y-Zoom mode,select with mouse/ret, q to cancel','color',[0, 1, 1])
+@@ -219,13 +219,13 @@
+           %also zoom amplitude portion of hist plot
+           subplot(h_thresh_hist);
+           set(h_thresh_hist,'xlim',[ymin*2 ymax*2]);                    
+-      elseif strcmp(char(key), 'h')
++      elseif strcmp(key, 'h')
+          %display x zoom message and zoom on amplitude x axis
+           subplot(h_thresh_hist);
+           title('H-Zoom mode,select with mouse/ret, q to cancel','color',[0, 1, 1])
+           [xmin, xmax, button, flag] = zoom_x;
+           title('')
+-     % elseif strcmp(char(key),'a') 
++     % elseif strcmp(key,'a') 
+          %display y zoom message and zoom on amplitude yaxis
+          % subplot(h_thresh_hist)
+          % title('A-Zoom mode,select with mouse/ret, q to cancel','color',[0, 1, 1])
+@@ -233,17 +233,17 @@
+          % title('')        
+       end    
+          
+-  elseif strcmp (char(action),'u')
++  elseif strcmp (action,'u')
+     %get input from keyboard or mouse
+     [t,y,key]=ginput(1);         
+-    if strcmp(char(key), 'x')             
++    if strcmp(key, 'x')             
+        set(h_thresh_amp,'xlim',[g_xmin g_xmax])
+-     elseif strcmp(char(key),'y')  | strcmp(char(key),'a') 
++     elseif strcmp(key,'y')  | strcmp(key,'a') 
+        set(h_thresh_amp,'ylim',[g_ymin g_ymax])
+        set(h_thresh_hist,'xlim',[g_amin g_amax])
+-     elseif strcmp(char(key),'h') 
++     elseif strcmp(key,'h') 
+        set(h_thresh_hist,'ylim',[g_hmin g_hmax])                
+-     elseif strcmp(char(key),'a') 
++     elseif strcmp(key,'a') 
+        
+     end
+   
+@@ -254,7 +254,7 @@
+ 
+ 
+ %return changed values only if threshold was altered
+-if (isempty(action) | (action == 13)) & (cur_thresh ~= threshold)     
++if (action == 13) & (cur_thresh ~= threshold)     
+     threshold = round(cur_thresh*1000)/1000;  %rounding added so that files can be opened on mac
+     change_flag = 1;
+ else 
+Only in .: get_thresh_val.m~
+diff -aurbB ./get_xrange.m ../uisonganal_old/get_xrange.m
+--- ./get_xrange.m	Mon May  8 02:41:54 2000
++++ ../uisonganal_old/get_xrange.m	Thu Jul 11 18:04:54 1996
+@@ -28,11 +28,10 @@
+ h_left=line([left left],[ymin ymax],'color',[1,1,0],'LineStyle','--');
+ h_right=line([right right],[ymin ymax],'color',[1,0,0],'LineStyle','--');
+ 
+-while ~isempty(button) & ((button == 1) | (button == 2) | (button == 3))
++while (button == 1) | (button == 2) | (button == 3)
+ 
+   [xval,y,button]=ginput(1)
+   
+-  if ~isempty(button)   
+     if (button == 1)
+       left=max(xval,xmin);
+       left=min(left,xmax);
+@@ -42,8 +41,6 @@
+       right=max(right,xmin);
+       set(h_right,'xdata',[right right])     %move line
+     end
+-  end
+-
+ end
+  
+ 
+@@ -52,7 +49,7 @@
+ 
+ if (left == xmin) & (right == xmax)
+    flag  = 0;
+-elseif (left >= right) | strcmp(char(button),'q')   
++elseif (left >= right) | (button == 'q')
+    left=xmin
+    right=xmax
+    flag = 0;
+Only in .: get_xrange.m~
+diff -aurbB ./get_yrange.m ../uisonganal_old/get_yrange.m
+--- ./get_yrange.m	Mon May  8 02:43:18 2000
++++ ../uisonganal_old/get_yrange.m	Thu Jul 11 20:17:58 1996
+@@ -27,11 +27,10 @@
+ h_top=line([xmin xmax],[top top],'color',[1,1,0],'LineStyle','--');
+ h_bottom=line([xmin xmax],[bottom bottom],'color',[1,0,0],'LineStyle','--');
+ 
+-while ~isempty(button) & ((button == 1) | (button == 2) | (button == 3))
++while (button == 1) | (button == 2) | (button == 3)
+ 
+   [x,yval,button]=ginput(1)
+   
+-  if ~isempty(button)
+     if (button == 1)
+       top=max(yval,ymin);
+       top=min(top,ymax);
+@@ -41,10 +40,9 @@
+       bottom=max(bottom,ymin);
+       set(h_bottom,'ydata',[bottom bottom])     %move line
+     end
+-  end
+-
+ end
+ 
++
+ %if quiting, or illegal values, or no change leave values unchanged
+ %and set flag to 0
+ if (bottom == ymin) & (top == ymax)
+@@ -49,7 +47,7 @@
+ %and set flag to 0
+ if (bottom == ymin) & (top == ymax)
+    flag  = 0;
+-elseif (bottom >= top) | strcmp(char(button),'q')
++elseif (bottom >= top) | (button == 'q')
+    bottom=ymin;
+    top=ymax;
+    flag=0;
+Only in .: get_yrange.m~
+diff -aurbB ./label.m ../uisonganal_old/label.m
+--- ./label.m	Mon May  8 02:16:07 2000
++++ ../uisonganal_old/label.m	Fri Aug  9 16:33:03 1996
+@@ -1,4 +1,4 @@
+-function label(onsets,offsets)
++function [labels]=label(onsets,offsets,labels)
+ 
+ %allows modification of note labels
+ 
+@@ -30,7 +30,7 @@
+    %get input from keyboard or mouse
+    [t,y,key]=ginput(1);
+ 
+-   if ~isempty(key) & key == 1
++   if key == 1
+      xlim = get(gca,'xlim'); 
+      if t < xlim(1)
+        move_left(win_percent)
+@@ -50,12 +50,12 @@
+        title('LABEL MODE! (q to quit)','color',[1,1,0])      
+        set(h_labels(note_num),'color',[1 0 0]);
+      end 
+-   elseif strcmp(char(key),'q')
++    elseif strcmp(key,'q')
+      subplot(h_main_amp)
+      [h_amp_plot,h_labels]=disp_song;
+      title('')          
+      break
+-   elseif isempty(key) | key == 13  			%return
++    elseif strcmp(key, 13)  			%return
+      if change_flag == 1
+        change_flag = 0;
+      else
+@@ -67,15 +67,15 @@
+      [h_amp_plot,h_labels]=disp_song;
+      title('LABEL MODE! (q to quit)','color',[1, 1, 0])      
+      set(h_labels(note_num),'color',[1 0 0]);        
+-   elseif key == 8 | key == 127    %backspace or delete
++    elseif strcmp(key, 8) | strcmp(key, 127)    %backspace or delete
+      note_num=max(1,note_num-1);
+      subplot(h_main_amp)
+      [h_amp_plot,h_labels]=disp_song;
+      title('LABEL MODE! (q to quit)','color',[1, 1, 0])      
+      set(h_labels(note_num),'color',[1 0 0]);         
+    else       
+-     labels(note_num)=char(key);
++        labels(note_num)=setstr(key);
+      note_num=min(note_num+1,length(labels));
+      change_flag=1;       
+    end
+- end
++end
+Only in .: label.m~
+diff -aurbB ./make_current.m ../uisonganal_old/make_current.m
+--- ./make_current.m	Mon May  8 02:56:22 2000
++++ ../uisonganal_old/make_current.m	Fri Aug  9 20:06:30 1996
+@@ -76,8 +76,7 @@
+           disp('make_current: Warning! unable to load notefile')
+        end     
+     %retrieve d_song and time_d_song from amplitude axis
+-%     h_amp_plot = userdata(ih_amp_plot);
+-     h_amp_plot = findobj(h_main_amp,'Tag','AmpPlot');
++     h_amp_plot = userdata(ih_amp_plot);
+      d_song = get(h_amp_plot,'ydata');
+      time_d_song = get(h_amp_plot,'xdata');
+     %update current status
+Only in .: make_current.m~
+Only in ../uisonganal_old/matprint: cinvert.m
+diff -aurbB ./matprint/print2.m ../uisonganal_old/matprint/print2.m
+--- ./matprint/print2.m	Sun May  7 03:13:11 2000
++++ ../uisonganal_old/matprint/print2.m	Mon Jul 15 14:10:46 1996
+@@ -462,14 +462,14 @@
+         % Invert B&W color properties of Figure and child objects
+         if strcmp( 'on', get(window,'InvertHardcopy') )
+                 invertedColor = 1;
+-%                cinvert( window );
++                cinvert( window );
+         else
+                 invertedColor = 0;
+         end
+ 
+         % if not color, set lines and text to a color contrasting background
+     if ( colorDevs(devIndex ) == 'M' )
+-%                lineTextColors = blt( window, get(window,'color') );
++                lineTextColors = blt( window, get(window,'color') );
+         else
+                 lineTextColors = [];
+         end
+@@ -543,12 +543,12 @@
+ if ~prtSim
+         % set color of lines and text back to what they were
+         if ~isempty( lineTextColors )
+-%                blt( window, get(window,'color'), lineTextColors);
++                blt( window, get(window,'color'), lineTextColors);
+         end
+ 
+         % Invert back the W&B color properties of Figure and child objects
+         if invertedColor
+-%                cinvert( window );
++                cinvert( window );
+         end
+ 
+         % Reconstruct figure the way it was.
+Only in ./matprint: print2.m~
+diff -aurbB ./move_left.m ../uisonganal_old/move_left.m
+--- ./move_left.m	Mon May  8 03:01:27 2000
++++ ../uisonganal_old/move_left.m	Fri Jul 12 12:28:39 1996
+@@ -16,4 +16,4 @@
+ xmin=max(g_xmin,xmin-percent_win*win_size);
+ xmax=xmin+win_size;
+ xlim=[xmin xmax];
+-set(gca,'xlim',xlim);
++set(gca,'xlim',xlim)
+Only in .: move_left.m~
+diff -aurbB ./move_right.m ../uisonganal_old/move_right.m
+--- ./move_right.m	Mon May  8 03:01:42 2000
++++ ../uisonganal_old/move_right.m	Tue Aug 19 16:36:01 1997
+@@ -22,4 +22,4 @@
+   move_flag = 1;
+ end 
+ xlim=[new_xmin new_xmax];
+-set(gca,'xlim',xlim);
++set(gca,'xlim',xlim)
+Only in .: move_right.m~
+diff -aurbB ./print_song.m ../uisonganal_old/print_song.m
+--- ./print_song.m	Mon May  8 02:52:47 2000
++++ ../uisonganal_old/print_song.m	Tue Aug 13 20:40:19 1996
+@@ -26,5 +26,4 @@
+ 
+ 
+ %call print dialog box
+-%uiprint_sa;
+-printdlg;
+\ No newline at end of file
++uiprint_sa;
+Only in .: print_song.m~
+diff -aurbB ./read_rawfile42c.m ../uisonganal_old/read_rawfile42c.m
+--- ./read_rawfile42c.m	Mon May  8 02:18:10 2000
++++ ../uisonganal_old/read_rawfile42c.m	Fri Nov 19 18:12:49 1999
+@@ -27,7 +27,7 @@
+ 
+ %adstring = fgets(fid,8);
+ adstring = fread(fid,8,'uchar');
+-adstring=char(adstring);
++adstring=setstr(adstring);
+ adstring=adstring';
+ if strcmp(adstring,'AD_FREQ:'),   
+   % it's an msong file or a songfilt stim file
+Only in .: read_rawfile42c.m~
+diff -aurbB ./read_song.c ../uisonganal_old/read_song.c
+--- ./read_song.c	Tue May  2 23:40:05 2000
++++ ../uisonganal_old/read_song.c	Tue May  2 23:26:36 2000
+@@ -20,7 +20,7 @@
+ 		 mexErrMsgTxt("Three output arguments are required.");
+ 	 if (nrhs != 1)
+ 		 mexErrMsgTxt("read_song requires name of song file.");
+-	 if ( ! mxIsChar(prhs[0]) )
++	 if ( ! mxIsString(prhs[0]) )
+ 		 mexErrMsgTxt("read_song requires name of song file.");
+ 
+     mxGetString(prhs[0],fname,80);
+@@ -30,8 +30,8 @@
+ 		 mexErrMsgTxt("Cannot open song data file\n");
+ 
+     /* Allocate two scalars */
+-/*    if ( plhs[0] != NULL ) mxDestroyArray(plhs[0]);
+-    if ( plhs[1] != NULL ) mxDestroyArray(plhs[1]); */
++    if ( plhs[0] != NULL ) mxFreeMatrix(plhs[0]);
++    if ( plhs[1] != NULL ) mxFreeMatrix(plhs[1]);
+     plhs[0] = mxCreateDoubleMatrix(1, 1, mxREAL);
+     plhs[1] = mxCreateDoubleMatrix(1, 1, mxREAL);
+     psamp = mxGetPr(plhs[0]);
+@@ -60,8 +60,8 @@
+     {
+ 	    fclose(f_in);
+        mxFree((void *)buffer);
+-/*       mxDestroyArray(plhs[0]);
+-       mxDestroyArray(plhs[1]); */
++       mxDestroyArray(plhs[0]);
++       mxDestroyArray(plhs[1]);
+        mexErrMsgTxt("Error reading songfile.");
+ 	 }
+ 	 fclose(f_in);
+Only in .: read_song.c~
+Only in .: segment.m~
+diff -aurbB ./soundin.m ../uisonganal_old/soundin.m
+--- ./soundin.m	Mon May  8 02:58:27 2000
++++ ../uisonganal_old/soundin.m	Tue Aug  3 12:03:24 1999
+@@ -27,7 +27,7 @@
+   [Fs, nframes, rawsong] = read_song([pathname, soundfile]);
+ elseif strcmp(filetype,'f')    %foosong/gogo file
+   [rawsong, Fs] = read_rawfile42c([pathname, soundfile],'short');
+-else                      %unknown filetype
++    else                      %unknown filetype
+   disp('soundin: cannot open this file type')  
+ end
+ 
+Only in .: soundin.m~
+diff -aurbB ./spect/deltaprods.m ../uisonganal_old/spect/deltaprods.m
+--- ./spect/deltaprods.m	Sun May  7 20:03:24 2000
++++ ../uisonganal_old/spect/deltaprods.m	Thu Jan 14 17:08:16 1999
+@@ -1,7 +1,7 @@
+ function [best_freq, best_idx, ratio_prods, ratio_freq_scale]=deltaprods(spectrum,f_step);
+ 
+ %Note: function deltaprods assumes that first bin of spectrum represents a frequency of f_step, NOT 0.
+-% ratio_prods has 2 columns, the first contains diff_prods
++% ratio_prods has 2 columsn, the first contains diff_prods
+ %  the second contains percent_harm,  see below for how these are calculated
+ 
+ plot_flag=0; %set to 1 or 2 for debugging & display
+Only in ./spect: deltaprods.m~
+diff -aurbB ./spect/psd_get_xrange.m ../uisonganal_old/spect/psd_get_xrange.m
+--- ./spect/psd_get_xrange.m	Sun May  7 18:47:30 2000
++++ ../uisonganal_old/spect/psd_get_xrange.m	Thu Oct 29 21:27:28 1998
+@@ -34,11 +34,10 @@
+ h_left=line([left left],[ymin ymax],'color',[1,1,0],'LineStyle','--');
+ h_right=line([right right],[ymin ymax],'color',[1,0,0],'LineStyle','--');
+ 
+-while ~isempty(button) & ((button == 1) | (button == 2) | (button == 3))
++while (button == 1) | (button == 2) | (button == 3)
+ 
+    [xval,y,button]=ginput(1)
+    
+-   if ~isempty(button)
+      if (button == 1)
+        left=max(xval,xmin);
+        left=min(left,xmax);
+@@ -57,7 +56,6 @@
+        right=max(right,xmin);
+        set(h_right,'xdata',[right right])     %move line
+      end
+-   end
+ end
+ 
+ 
+@@ -66,7 +64,7 @@
+ 
+ if (left == xmin) & (right == xmax)
+    flag  = 0;
+-elseif (left >= right) | strcmp(char(button),'q')
++elseif (left >= right) | (button == 'q')
+    left=xmin
+    right=xmax
+    flag = 0;
+Only in ./spect: psd_get_xrange.m~
+diff -aurbB ./spect/psdanal.m ../uisonganal_old/spect/psdanal.m
+--- ./spect/psdanal.m	Mon May  8 03:28:19 2000
++++ ../uisonganal_old/spect/psdanal.m	Sat Nov  7 15:57:45 1998
+@@ -1,5 +1,4 @@
+-function [best_freq, best_aratio,best_pratio, ampspect, f_centers]=psdanal(song,Fs);
+-%function [best_freq, best_aratio,best_pratio, modulation, ampspect, f_centers]=psdanal(song,Fs);
++function [best_freq, best_aratio,best_pratio, modulation, ampspect, f_centers]=psdanal(song,Fs);
+ 
+ %psdanal takes segment of song and sample rate and displays psd as
+ % well as other stuff such as estimate of ff.  Much of this
+@@ -122,7 +121,7 @@
+   hold on
+   h_p_data=plot(ratio_freq_scale,percent_harm,'m');
+   h_f_line=plot([best_freq, best_freq],[0, best_aratio],'r');
+-  title(['best aratio = ',num2str(best_aratio)]);
++  title(['best_aratio = ',num2str(best_aratio)]);
+   h_spect_plot=subplot(2,1,2);
+   plot(f_centers,ampspect,'y');
+   hold on;
+Only in ./spect: psdanal.m~
+diff -aurbB ./spect/psdupdate.m ../uisonganal_old/spect/psdupdate.m
+--- ./spect/psdupdate.m	Sun May  7 20:15:05 2000
++++ ../uisonganal_old/spect/psdupdate.m	Mon Nov  2 17:59:07 1998
+@@ -1,7 +1,7 @@
+ function psdupdate(h_figure,best_freq)
+ 
+ %this function is called by clicking on the best_ratios window of psdanal plot
+-% it updates the frequency display and  prints values to screen or file...
++% it updates the frequency display and  prints value sto screen or file...
+ % It is assumed that figure userdata has handles to subplots
+ %and that subplot userdata has handles to frequency lines.
+ 
+@@ -31,7 +31,7 @@
+  [y, bf_ind]=min(abs(ratio_freq_vals-best_freq));
+  best_aratio=diff_prods(bf_ind);
+  best_pratio=percent_harm(bf_ind);
+- title(['best aratio = ',num2str(best_aratio)]);
++ title(['best_aratio = ',num2str(best_aratio)]);
+ 
+ %move frequency lines on spect_plot
+   subplot(h_spect_plot);
+Only in ./spect: psdupdate.m~
+diff -aurbB ./uibatch.m ../uisonganal_old/uibatch.m
+--- ./uibatch.m	Mon May  8 01:54:01 2000
++++ ../uisonganal_old/uibatch.m	Tue Aug 19 15:55:44 1997
+@@ -5,8 +5,8 @@
+ 
+  %save current data before starting?
+          disp('Save current note data before starting? [y]')
+-         temp = input('','s');
+-         if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes') | isempty(temp)
++         temp = input([],'s');
++         if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes') | temp == []
+             save_data(note_file, path_notefile, Fs, onsets, offsets, labels, threshold, min_int, min_dur, sm_win)                 
+          end
+  
+@@ -23,7 +23,7 @@
+             temp = 'n';
+          end
+          disp([' Save notefile? [', temp, ']'])
+-         temp = input('','s');
++         temp = input([],'s');
+          if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes')
+             save_notes = 1;
+          elseif strcmp(temp,'n') | strcmp(temp,'N') | strcmp(temp,'no')
+@@ -39,7 +39,7 @@
+             temp = 'n';
+          end
+          disp([' Save filtered song? [', temp, ']'])
+-         temp = input('','s');
++         temp = input([],'s');
+          if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes')
+             save_filt = 1;
+          elseif strcmp(temp,'n') | strcmp(temp,'N') | strcmp(temp,'no')
+@@ -55,7 +55,7 @@
+             temp = 'n';
+          end
+          disp([' Save spectrogram? [', temp, ']'])
+-         temp = input('','s');
++         temp = input([],'s');
+          if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes')
+             save_spect = 1;
+          elseif strcmp(temp,'n') | strcmp(temp,'N') | strcmp(temp,'no')
+@@ -70,7 +70,7 @@
+             temp = 'n';
+          end
+          disp([' Display data while running? [', temp, ']'])
+-         temp = input('','s');
++         temp = input([],'s');
+          if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes')
+             batch_disp = 1;
+          elseif strcmp(temp,'n') | strcmp(temp,'N') | strcmp(temp,'no')
+@@ -84,7 +84,7 @@
+             temp = 'n';
+          end
+          disp([' Print spectrograms? [', temp, ']'])
+-         temp = input('','s');
++         temp = input([],'s');
+          if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes')
+             batch_print = 1;
+          elseif strcmp(temp,'n') | strcmp(temp,'N') | strcmp(temp,'no')
+@@ -93,8 +93,8 @@
+ 
+          %start batch processing
+          disp(' Start batch processing?  [y]')
+-         temp = input('','s');
+-         if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes') | isempty(temp)
++         temp = input([],'s');
++         if strcmp(temp,'y') | strcmp(temp,'Y') | strcmp(temp,'yes') | temp == []
+             interact = 0;
+          elseif strcmp(temp,'n') | strcmp(temp,'N') | strcmp(temp,'no') | strcmp(temp,'q') | strcmp(temp,'Q')
+             interact = 1;         
+Only in .: uibatch.m~
+diff -aurbB ./uimove.m ../uisonganal_old/uimove.m
+--- ./uimove.m	Mon May  8 03:02:26 2000
++++ ../uisonganal_old/uimove.m	Wed Aug  7 18:52:43 1996
+@@ -8,13 +8,13 @@
+ xlim = get(h_main_amp,'xlim'); 
+ 
+ if strcmp(option,'left')
+-    move_left(win_percent);
++    move_left(win_percent)
+     subplot(h_main_spect);
+-    move_left(win_percent);
++    move_left(win_percent)
+     subplot(h_main_amp);   
+ elseif strcmp(option,'right')         
+-    move_right(win_percent);
++    move_right(win_percent)
+     subplot(h_main_spect);
+-    move_right(win_percent);
++    move_right(win_percent)
+     subplot(h_main_amp);
+ end
+Only in .: uimove.m~
+Only in .: uiprint_sa.m~
+diff -aurbB ./uipsdanal.m ../uisonganal_old/uipsdanal.m
+--- ./uipsdanal.m	Mon May  8 03:29:00 2000
++++ ../uisonganal_old/uipsdanal.m	Mon Nov  2 17:32:30 1998
+@@ -17,7 +17,7 @@
+ %get x_range for analysis
+  %display spect selection message on amplitude
+  subplot(h_main_amp);
+- title('spectral analysis, select L/R boundaries with mouse/ret, q to cancel','color',[0, 1, 1])
++ title('spectral analysis,select L/R boudaries with mouse/ret, q to cancel','color',[0, 1, 1])
+  [left,right,button,flag, percent_from_start, ms_from_start, psd_label]=psd_get_xrange;
+  title('');
+ 
+@@ -27,7 +27,7 @@
+   %get relevant piece of song
+ 
+   %case 1 's' pushed -> sample_size msec centered on right cursor
+-  if strcmp(char(button), 's')    
++  if button==115    
+     right=left+.5*sample_size;
+     left=left-.5*sample_size;
+     disp(['sampled ',num2str(sample_size),' msec centered on left cursor']);
+@@ -46,8 +46,7 @@
+   
+ 
+   %now run psdanal
+-%  [best_freq, best_aratio,best_pratio, modulation, ampspect, f_centers]=psdanal(song_seg,Fs);
+-  [best_freq, best_aratio,best_pratio, ampspect, f_centers]=psdanal(song_seg,Fs);
++  [best_freq, best_aratio,best_pratio, modulation, ampspect, f_centers]=psdanal(song_seg,Fs);
+ 
+ 
+   %within psdanal or upon return need to reset active window to uisonganal window.
+Only in .: uipsdanal.m~
+Only in .: uiresegment.m~
+Only in .: uiscale.m~
+diff -aurbB ./uisonganal.m ../uisonganal_old/uisonganal.m
+--- ./uisonganal.m	Mon May  8 02:52:17 2000
++++ ../uisonganal_old/uisonganal.m	Tue May  2 16:39:24 2000
+@@ -54,14 +54,14 @@
+      ih_path_notefile = 7;
+      ih_path_filtfile = 8;
+      ih_path_spectfile = 9;
+-   %handles to amplitude plot
++   %handles to amp plitude plot
+      ih_amp_plot = 10;
+      
+      
+    %interactive or batch mode?
+    interact = 1;
+    
+-   %display data during batch processing?
++   %dispaly data during batch processing?
+    batch_disp = 1;
+    
+    %print in batch mode?
+@@ -436,7 +436,7 @@
+      %print & shift until done with spectrogram
+        more = 1;
+        while more == 1
+-         print -dps2 -noui
++         print -ps
+          subplot(h_main_amp);
+          more = move_right(win_percent);
+          subplot(h_main_spect);
+Only in .: uisonganal.m~
+Only in .: uisonganal_mtlb5.3.diffs
+diff -aurbB ./uisongcontrols.m ../uisonganal_old/uisongcontrols.m
+--- ./uisongcontrols.m	Mon May  8 02:34:14 2000
++++ ../uisonganal_old/uisongcontrols.m	Mon Dec  6 18:30:27 1999
+@@ -44,10 +44,9 @@
+   %-------------------------------------------------------------
+      h_print = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position', print_position,...
++                    'units','normalized',...
+                     'string','p',...
+-		    'TooltipString', 'Print',...
+                     'callback','make_current(get(0,''pointerwindow''),1); print_song');
+ 
+   %-------------------------------------------------------------
+@@ -55,10 +54,9 @@
+   %-------------------------------------------------------------
+     h_scale = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position',scale_position,...
++                    'units','normalized',...
+                     'string','s',...
+-		    'TooltipString', 'Scale',...
+                     'callback','make_current(get(0,''pointerwindow''),1); uiscale');
+ 
+   %-------------------------------------------------------------
+@@ -66,22 +64,20 @@
+   %-------------------------------------------------------------
+     h_edit = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position',edit_position,...
++                    'units','normalized',...
+                     'string','e',...
+-		    'TooltipString', 'Edit notes',...
+                     'callback',['make_current(get(0,''pointerwindow''),1);',...
+-                                'edit_note;']);
++                                '[onsets, offsets, labels] = edit_note(onsets, offsets, labels);']);
+ 
+   %-------------------------------------------------------------
+   % label button 
+   %-------------------------------------------------------------
+     h_label = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position',label_position,...
++                    'units','normalized',...
+                     'string','l',...
+-		    'TooltipString', 'Label notes',...
+                     'callback','uisongcontrols(''label'')');
+                                   
+ 
+@@ -90,10 +86,9 @@
+   %-------------------------------------------------------------
+     h_zx = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position',zoom_x_position,...
++                    'units','normalized',...
+                     'string','zx',...
+-		    'TooltipString', 'Zoom X',...
+                     'callback','make_current(get(0,''pointerwindow''),1); uizoom(''x'')');
+ 
+   %-------------------------------------------------------------
+@@ -101,10 +96,9 @@
+   %-------------------------------------------------------------
+     h_zy = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position',zoom_y_position,...
++                    'units','normalized',...
+                     'string','zy',...
+-		    'TooltipString', 'Zoom Y',...
+                     'callback','make_current(get(0,''pointerwindow''),1); uizoom(''y'')');
+ 
+   %-------------------------------------------------------------
+@@ -112,10 +106,9 @@
+   %-------------------------------------------------------------
+     h_ux = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position',unzoom_x_position,...
++                    'units','normalized',...
+                     'string','ux',...
+-		    'TooltipString', 'Unzoom X',...
+                     'callback','make_current(get(0,''pointerwindow''),1); uizoom(''ux'')');
+ 
+   %-------------------------------------------------------------
+@@ -123,10 +116,9 @@
+   %-------------------------------------------------------------
+     h_uy = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position',unzoom_y_position,...
++                    'units','normalized',...
+                     'string','uy',...
+-		    'TooltipString', 'Unzoom Y',...
+                     'callback','make_current(get(0,''pointerwindow''),1); uizoom(''uy'')');
+ 
+   %-------------------------------------------------------------
+@@ -134,10 +126,9 @@
+   %-------------------------------------------------------------
+     h_resegment = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position', resegment_position,...
++                    'units','normalized',...
+                     'string','r',...
+-		    'TooltipString', 'Resegment notes',...
+                     'callback','make_current(get(0,''pointerwindow''),2); uiresegment');
+ 
+   %-------------------------------------------------------------
+@@ -145,10 +136,9 @@
+   %-------------------------------------------------------------
+     h_mv_left = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position', move_left_position,...
++                    'units','normalized',...
+                     'string','<<',...
+-		    'TooltipString', 'Scroll left',...
+                     'callback','make_current(get(0,''pointerwindow''),1); uimove(''left'')');
+ 
+ 
+@@ -157,10 +147,9 @@
+   %-------------------------------------------------------------
+     h_mv_right = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position', move_right_position,...
++                    'units','normalized',...
+                     'string','>>',...
+-		    'TooltipString', 'Scroll right',...
+                     'callback','make_current(get(0,''pointerwindow''),1); uimove(''right'')');
+ 
+ 
+@@ -170,10 +159,9 @@
+   %make current always saves current notedata, so next saves data before opening new window
+     h_next = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position', next_position,...
++                    'units','normalized',...
+                     'string','n',...
+-		    'TooltipString', 'Next song file',...
+                     'callback','uisongcontrols(''next'')');
+ 
+ 
+@@ -183,10 +171,9 @@
+   %make current always saves current notedata, so close saves data before closing window
+     h_close = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position', close_position,...
++                    'units','normalized',...
+                     'string','c',...
+-		    'TooltipString', 'Close',...
+                     'callback','uisongcontrols(''close'')');
+                     
+                     
+@@ -197,10 +184,9 @@
+   
+     h_batch = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position', batch_position,...
++                    'units','normalized',...
+                     'string','b',...
+-		    'TooltipString', 'Batch',...
+                     'callback','uisongcontrols(''batch'')');
+                                         
+                     
+@@ -210,15 +196,14 @@
+   
+     h_psd = uicontrol(gcf,...
+                     'style','pushbutton',...
+-                    'units','normalized',...
+                     'position', psd_position,...
++                    'units','normalized',...
+                     'string','p',...                    
+-		    'TooltipString', 'PSD analysis',...
+  		    'callback','make_current(get(0,''pointerwindow''),1); uipsdanal');
+ 
+ elseif strcmp(action,'label')
+    make_current(get(0,'pointerwindow'),1);
+-   label(onsets, offsets);
++   [labels] = label(onsets, offsets, labels);
+ 
+ elseif strcmp(action,'next')
+    make_current(get(0,'pointerwindow'),1);
+Only in .: uisongcontrols.m~
+diff -aurbB ./uispectcontrols.m ../uisonganal_old/uispectcontrols.m
+--- ./uispectcontrols.m	Mon May  8 02:54:43 2000
++++ ../uisonganal_old/uispectcontrols.m	Fri Aug 16 19:16:19 1996
+@@ -23,12 +23,11 @@
+   %-------------------------------------------------------------
+     h_floor = uicontrol(gcf,...
+                     'style','slider',...
+-                    'units','normalized',...
+                     'position', floor_position,...
++                    'units','normalized',...
+                     'min',-100,...
+                     'max', 0,...
+                     'value', spect_floor,...
+-		    'TooltipString', 'Set spectrum floor',...
+                     'callback','uispectcontrols(''remap'')');
+                     
+ 
+@@ -37,12 +36,11 @@
+   %-------------------------------------------------------------
+     h_ceil = uicontrol(gcf,...
+                     'style','slider',...
+-                    'units','normalized',...
+                     'position', ceil_position,...
++                    'units','normalized',...
+                     'min',-100,...
+                     'max', 0,...
+                     'value', spect_ceil,...
+-		    'TooltipString', 'Set spectrum ceiling',...
+                     'callback','uispectcontrols(''remap'')');                    
+ 
+ 
+@@ -51,12 +49,11 @@
+   %-------------------------------------------------------------
+     h_range = uicontrol(gcf,...
+                     'style','slider',...
+-                    'units','normalized',...
+                     'position', range_position,...
++                    'units','normalized',...
+                     'min', 0,...
+                     'max', 4.0,...
+                     'value', spect_range,...
+-		    'TooltipString', 'Set spectrum range',...
+                     'callback','uispectcontrols(''remap'')');
+                     
+  
+Only in .: uispectcontrols.m~
+diff -aurbB ./wavread16.m ../uisonganal_old/wavread16.m
+--- ./wavread16.m	Mon May  8 01:45:16 2000
++++ ../uisonganal_old/wavread16.m	Tue Jun  6 13:55:30 1995
+@@ -30,8 +30,7 @@
+ %	wavefile=[wavefile,'.wav'];
+ %end
+ 
+-[fid,msg]=fopen(wavefile,'r','l');
+-%fid=fopen(wavefile,'r');
++fid=fopen(wavefile,'rb','l');
+ if fid ~= -1 
+ 	% read riff chunk
+ 	header=fread(fid,4,'uchar');		% 'RIFF'
+@@ -63,6 +62,5 @@
+ end     
+ 
+ if fid == -1
+-  disp(msg);
+-  error(['Can''t open .WAV file for input: ' wavefile]);
++	error('Can''t open .WAV file for input!');
+ end;
+Only in .: wavread16.m~
+Only in .: win_spect.m

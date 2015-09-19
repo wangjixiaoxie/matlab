@@ -1,0 +1,27 @@
+tvallacsf1=[tvalsacsf1A tvalsacsf1B];
+numsall2=[zeros(1,length(tvalsacsf1A)) ones(1,length(tvalsacsf1B))];
+[b2,ind2]=sort(tvallacsf1);
+numsortedacsf1=numsall2(ind2);
+figure;plot(runningaverage(tvallacsf1,80),runningaverage(numsortedacsf1,80),'*')
+
+tvallacsf=[tvalsacsfA tvalsacsfB];
+numsall2=[zeros(1,length(tvalsacsfA)) ones(1,length(tvalsacsfB))];
+[b2,ind2]=sort(tvallacsf);
+numsortedacsf=numsall2(ind2);
+hold on;plot(runningaverage(tvallacsf,80),runningaverage(numsortedacsf,80),'*')
+
+tvallapv=[tvalsapvA tvalsapvB];
+numsall2=[zeros(1,length(tvalsapvA)) ones(1,length(tvalsapvB))];
+[b2,ind2]=sort(tvallapv);
+numsortedapv=numsall2(ind2);
+hold on;plot(runningaverage(tvallapv,80),runningaverage(numsortedapv,80),'*','Color','r')
+
+
+figure;subplot(211);hold on;
+plot(tvalsacsf1A,pitchacsf1A(250,:),'*')
+plot(tvalsapvA,pitchapvA(250,:),'*','Color','r')
+plot(tvalsacsfA,pitchacsfA(250,:),'*')
+subplot(212);hold on;
+plot(runningaverage(tvallacsf1,80),runningaverage(numsortedacsf1,80),'*')
+plot(runningaverage(tvallacsf,80),runningaverage(numsortedacsf,80),'*')
+plot(runningaverage(tvallapv,80),runningaverage(numsortedapv,80),'*','Color','r')

@@ -1,0 +1,18 @@
+% Requires some input vector d5 that contains the chunk of the syllable of
+% which you want to take the fft.  Code is taken directly from the matlab
+% help menu describing the function fft.
+samp=44100; % assumes sampling rate is 44100
+window=441;
+window_shift=220;
+window_left=0-window_shift;
+for i=1:6
+    window_left=window_left+window_shift;
+    window_right=window_left+window;
+    chunk=d5(window_left:window_right);
+    NFFT = 2^nextpow2(length(chunk)); % Next power of 2 from length of y
+    Y = fft(chunk,NFFT)/length(d5);
+    f = samp/2*linspace(0,1,NFFT/2); %fs=44100
+
+    % Plot single-sided amplitude spectrum.
+    subplot(2,3,i); plot(f,2*abs(Y(1:NFFT/2))) 
+end

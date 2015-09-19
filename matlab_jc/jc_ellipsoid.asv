@@ -1,0 +1,5 @@
+function jc_ellipsoid(scores)
+
+
+[x,y,z] = ellipsoid(xc,yc,zc,xr,yr,zr);
+surf1(x,y,z)

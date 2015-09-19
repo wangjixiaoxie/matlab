@@ -1,0 +1,18 @@
+File created: Thu, Aug 13, 2009, 19:09:04.45
+
+     begin rec = 0 ms
+     trig time  = 2000 ms
+     rec end = 8935 ms
+
+ADFREQ =   32000
+Chans = 1
+Samples = 285926
+Catch Song = 0
+T Before = 2.0000000000E+0
+T After = 1.0000000000E+0
+Feedback information: 
+
+3.375938E+3 msec: FB # TrigPulse 1 : Templ = 1
+4.776188E+3 msec: catch # TrigPulse 1 : Templ = 1
+6.095875E+3 msec: catch # TrigPulse 1 : Templ = 1
+7.375937E+3 msec: catch # TrigPulse 1 : Templ = 1

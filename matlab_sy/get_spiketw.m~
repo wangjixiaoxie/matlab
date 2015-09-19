@@ -1,0 +1,26 @@
+%clear all;
+
+tet_chans=2:5;
+song_chan=1;
+bt='batch';
+TH=ge
+fid=fopen(bt,'r');
+while (1)
+	fn=fgetl(fid);
+	if (~ischar(fn));
+		break;
+	end
+	if (~exist(fn,'file'))
+		continue;
+	end
+	disp(fn);
+    teststr=strcat(fn,',spk');
+   %if(~exist(teststr))
+        [data,fs,spkind,spkamp, waves]=tetanaltw(fn,TH,song_chan,tet_chans);
+        waves=int16(waves);
+        spkt=spkind/fs;
+        spkt=uint32(spkt);
+        eval(['save ',fn,'.spk spkt spkamp waves']);
+    %end
+    end
+fclose(fid);

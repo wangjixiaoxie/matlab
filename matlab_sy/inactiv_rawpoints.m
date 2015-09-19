@@ -1,0 +1,241 @@
+%inactiv_rawpoints
+%written 10.6 in order to show each day's raw data which goes into overall
+%stats.
+
+% 
+% ps.ax=subplot(1,8,5:8);
+% ps.marksize=14;
+% ps.rawvl='adj';
+% ps.ntvl=1;
+% ps.indtoplot=4;
+% ps.col=col; this is a three cell array, where first two values are acsf
+% colors and third value is muscimol color.
+
+
+%modified to change x time scale to hours 
+%modified to draw a line for time of muscimol run.
+
+
+function [sumdata,mnvl]=inactiv_rawpoints(avls,ps,sfact)
+%control of the subplots,ppf is plotsperfigu
+ax=ps.ax
+if exist('sfact')
+    sfct=sfact
+else 
+    sfct=1;
+end
+if(ps.SERIAL)
+    SERIAL=1;
+else
+    SERIAL=0
+end
+
+if(isfield(ps,'PLOTNEXTDAY'))
+    if(ps.PLOTNEXTDAY)
+        PLOTNEXTDAY=1;
+    else
+        PLOTNEXTDAY=0;
+    end
+else
+    PLOTNEXTDAY=0;
+end
+
+%1st column is raw data
+%2nd column is histogram.
+if ps.STIM
+    if ps.rawvl=='raw'
+        dvls=avls.ptvls{ps.indtoplot}
+        ctind=avls.crctind{ps.indtoplot}
+        if(isfield(avls,'crfbindlim'))
+            fbind=avls.crfbindlim{ps.indtoplot}
+        else
+            fbind=avls.crfbind{ps.indtoplot}
+        end
+        if(ps.plotpre)
+        dvls_prepost=avls.ptvls{ps.prepost_indplot}
+        end
+    else 
+        dvls=avls.ptvls{ps.ntvl}   
+        
+    end 
+else
+    if ps.rawvl=='raw'
+        dvls=avls.rawvls{ps.ntvl}
+        dvlsadj=avls.adjvls{ps.ntvl};
+    else 
+        dvls=avls.adjvls{ps.ntvl}   
+        dvlsadj=avls.adjvls{ps.ntvl}
+    end
+end
+muind=ps.indtoplot
+axes(ps.ax);
+         %need to create a zero reference time. this should be start of the mutimevec-the offset. if no timevec, 
+      %this can be halfway between the acsf start_time and end_time.
+     if ps.STIM
+         rtm=min(dvls(:,1))
+     else
+% %         if(avls.mulist(muind)) 
+%             rtm=avls.tmvc(avls.mulist(muind))-avls.muoffset; 
+%         else
+            rtm=avls.tmvc(avls.aclist(muind),1) 
+%         end
+     end
+        minvl=[];maxvl=[];
+     if(ps.STIM||ps.plotpre)
+         numplots=1;
+     else
+         numplots=3;
+     end
+        
+        for jj=1:numplots
+            
+            if(ps.STIM)
+                  if(SERIAL)
+               [ctvls,stimvls,prevls]=mkserialvals(dvls,ctind,fbind,dvls_prepost);
+               
+            else
+                %need to normalize to rtm
+                ctvls=dvls(ctind,:);
+                stimvls=dvls(fbind,:);
+                prevls=dvls_prepost;
+            end         
+                
+                plot((stimvls(:,1)-rtm)*24,stimvls(:,2)/sfct,'o','Color',[1 .2 .2],'MarkerSize',ps.marksize+3,'MarkerFaceColor',[1 .2 .2],'MarkerEdgeColor','none')
+                hold on;
+                plot((ctvls(:,1)-rtm)*24,(ctvls(:,2))/sfct,'o','Color',ps.col{1},'MarkerSize',ps.marksize+2,'MarkerFaceColor','none','MarkerEdgeColor',ps.col{1})
+                            hold on;
+                            
+                            if(ps.plotpre)
+                               preinitind=find(prevls(:,1)<stimvls(1,1));
+                               preinitind=preinitind(end-19:1:end);
+                               pstinitind=find(prevls(:,1)>stimvls(1,1));
+                               pstinitind=pstinitind(1:20);
+                               plot((prevls(preinitind,1)-rtm)*24,prevls(preinitind,2)/sfct,'o','Color','k','MarkerSize',ps.marksize+2,'MarkerFaceColor','none','MarkerEdgeColor','k')
+                               plot((prevls(pstinitind,1)-rtm)*24,prevls(pstinitind,2)/sfct,'o','Color','k','MarkerSize',ps.marksize+2,'MarkerFaceColor','none','MarkerEdgeColor','k')
+                            end
+                            avls.initmean{ps.ntvl}=avls.mnbas;
+                            if(ps.plot_triangles)
+                                for ii=1:3
+                                    if(ii==1)
+                                        mnvl(ii)=mean(dvls(ctind,2));
+                                        cv_vl(ii)=std(dvls(ctind,2))./mnvl(ii)
+                                    elseif(ii==2)
+                                        mnvl(ii)=mean(dvls(fbind,2));
+                                        cv_vl(ii)=std(dvls(fbind,2))./mnvl(ii);
+                                    else
+                                        mnvl(ii)=mean([prevls(preinitind,2);prevls(pstinitind,2)]);
+                                        cv_vl(ii)=std([prevls(preinitind,2);prevls(pstinitind,2)])./mnvl(ii)
+                                    end
+                                        sumdata.mnvlout(ii)=mnvl(ii)/3000;
+                                        sumdata.cvlout(ii)=cv_vl(ii);
+                                        
+                                        plot(ps.triangle_xvl,mnvl(ii)/3000,'Marker','<','Color',ps.col{ii},'MarkerFaceColor',ps.col{ii},'MarkerEdgeColor',ps.col{ii},'MarkerSize',5)
+                                    
+                                    end
+                             end
+            
+            %NOT STIM
+            else
+                 if(jj<3)
+                    ind=avls.aclist(muind,jj)
+                else
+                    ind=avls.mulist(muind);
+                 end
+ 
+                if(ind)
+                    %check to make sure not empty matrix
+                    if(~isempty(dvls{ind}))
+                            plot((dvls{ind}(:,1)-rtm)*24,(dvls{ind}(:,2))/sfct,'o','Color',ps.col{jj},'MarkerSize',ps.marksize+1,'MarkerFaceColor',ps.col{jj},'MarkerEdgeColor','none')
+                            hold on;
+                            minvl=[minvl min(dvls{ind}(:,2))];
+                            maxvl=[maxvl max(dvls{ind}(:,2))];
+                            hold on;
+                            empty=0;
+                            
+                            if((jj==1)&PLOTNEXTDAY)
+                                nxtind=ps.nextdayind;
+                                plot((dvls{nxtind}(:,1)-rtm)*24,(dvls{nxtind}(:,2))/sfct,'o','Color',ps.col{1},'MarkerSize',ps.marksize,'MarkerFaceColor',ps.col{1},'MarkerEdgeColor','none')
+                            end
+                            
+                            if(ps.plot_triangles)
+                                mnvl=mean(dvlsadj{ind}(:,2));
+                                cv_vl=std(dvlsadj{ind}(:,2))./mnvl;
+                                sumdata.mnvlout(jj)=mnvl/3000;
+                                sumdata.cvlout(jj)=cv_vl;
+                                statvls{jj}=dvlsadj{ind}(:,2);
+                                if(jj~=2)
+                                plot(ps.triangle_xvl,mnvl/3000,'Marker','<','MarkerEdgeColor',ps.col{jj},'MarkerFaceColor',ps.col{jj},'MarkerSize',4)
+                                end
+                                end
+                    else
+                        empty=1
+                    end
+                end
+
+              
+            end
+        end
+        
+        %calcstatvls
+        if(~ps.STIM)
+%         [sumdata.thyp,sumdata.tvl,sumdata.fhyp,sumdata.fvl]=calctftest(statvls{1},statvls{3});
+        end
+        
+       over_mn=min([avls.initmean{ps.ntvl} min(minvl)]);
+       over_mx=max([avls.initmean{ps.ntvl} max(maxvl)]);
+if(isfield(ps,'initmean'))
+       plot([-50 200], [ps.initmean(ps.ntvl)/sfct ps.initmean(ps.ntvl)/sfct],'k--','Linewidth',1);
+else
+     plot([-50 200], [avls.initmean{ps.ntvl}/sfct avls.initmean{ps.ntvl}/sfct],'k--','Linewidth',1);
+end
+       hold on;
+       
+       hold on;
+       
+       if (ps.plotextra)
+           
+           %this is line for length of inactivation run.
+           yvl=(avls.initmean{ps.ntvl}/sfct)*1.05;
+           xvl_dead=[(avls.rawtimes(avls.mulist(muind),1)-rtm)*24] 
+           xvl=[xvl_dead (avls.tmvc(avls.mulist(muind),2)-rtm)*24]
+           xvl2=[(avls.adjtimes(avls.mulist(muind),1)-rtm)*24 (avls.adjtimes(avls.mulist(muind),2)-rtm)*24]
+           xvl3=[(avls.adjtimes(avls.aclist(muind,2),1)-rtm)*24  (avls.adjtimes(avls.aclist(muind,2),2)-rtm)*24];
+           
+           %horizontal line for mu times.
+           plot(xvl,[yvl yvl],'m')
+           plot(xvl2,[yvl yvl],'g')
+           plot(xvl3,[yvl yvl],'m')
+           plot(xvl_dead,yvl,'kv','MarkerSize',5)
+           %three vertical lines for stdv.
+           mnvls=avls.mnvl{ps.ntvl}([avls.aclist(muind,:) avls.mulist(muind)])
+           stdvls=avls.stdv{ps.ntvl}([avls.aclist(muind,:) avls.mulist(muind)])
+           plot([-.1 0 .1;-.1 0 .1], [[mnvls/sfct-stdvls/sfct]; [mnvls/sfct+stdvls/sfct]],'k-')
+       end
+    function [ctvls,stimvls,prevls]=mkserialvals(dvls,ctind,fbind,dvls_prepost)
+        combind=[ctind fbind]
+        typind=[ones(1,length(ctind)) zeros(1,length(fbind))]
+        [y,ind]=sort(combind);
+        ctlst=find(typind==1);
+        fblst=find(typind==0);
+        
+        [yct,indct]=intersect(ind,ctlst);
+        [yfb,indfb]=intersect(ind,fblst);
+        ctvls=([indct' dvls(ctind,2)])
+        stimvls=([indfb' dvls(fbind,2)])
+        
+        preind=find(dvls_prepost(:,1)<dvls(1,1));
+        pstind=find(dvls_prepost(:,1)>dvls(end,1));
+        
+        if(length(preind)>20)
+            preind=preind(end-19:end);
+        end
+        if(length(pstind)>20)
+            pstind=pstind(end-19:end);
+        end
+        pretms=-20:1:-21+length(preind)
+        psttms=length(combind)+1:1:length(combind)+length(pstind);
+        prevls(:,1)=[pretms psttms]
+        prevls(:,2)=[dvls_prepost(preind,2); dvls_prepost(pstind,2)]
+        
+        
+        

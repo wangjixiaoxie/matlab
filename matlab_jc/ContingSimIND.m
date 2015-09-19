@@ -1,0 +1,18 @@
+function indices=ContingSimIND(toffsets,pitch,cont)
+
+
+
+indices=[];
+    for i=1:length(toffsets)
+        offset=round(toffsets(i)); %round(mean(toffsets)+0.8*std(toffsets)*randn);
+        ffs=(pitch(offset,:)); % estimate of pitch within the window
+        L=prctile(ffs,cont);
+        if cont>50
+            ind=find(ffs>L);
+        else
+            ind=find(ffs<L);
+        end
+        if ~isempty(ind)
+            indices=[indices ind];
+        end
+    end

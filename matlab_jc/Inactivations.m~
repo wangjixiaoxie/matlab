@@ -1,0 +1,166 @@
+Inactivations
+
+RA - AP5 testing
+
+% RA attempts. January 2009.
+% 
+% 1. r32pu82 (implanted approx. 1/6)
+% Bird sings normally with probe acsf. Then 30mM apV (not properly phed??)
+% causes bird to stop singing. Song stays degraded, see r32pu82compar.m, for weeks.
+% Probe removed - putting probe back in ~1/27 causes further degradation.
+% 
+% 
+% 2. bk54w13 (implanted approx. 1/13)
+% Bird stops singing with probe acsf. Song stays degraded after probe removal, see bk54w13compar.m
+% 
+% 
+% 3. r36pu51. (implanted approx. 1/12) Bad surgery...
+% 
+% 4. o31bk41. (JC -implanted 1/20)....First morning after acsf in probe, 
+% bird very sick-looking. Probes are not functioning correctly. 
+% Main tube popped out of liquid switch, indicating possible clog. 
+% Trauma caused by leaking acsf, or by physical damage???
+%           surgery on 1/20/09 from 11am to 6pm
+%           canin - sang 2-4 times on 1/21/09
+%           procedure from 5pm to 6pm on 1/21/09 to add more epoxy -
+%               accidentally put epoxy in eye and he got really pissed off
+%               and stopped singing
+%           1/25/09 ~2pm- put female bird in his cage and he resumed singing
+%           1/26/09 ~11am - removed bird and he kept singing
+%           1/27/09 - dead in the morning
+% 
+% 
+% 5. pu57w52 (JC) --- SEE pu57plot.m
+%           /cardinal4/My_birds/Inactivations/pu57w52
+%           surgery on 1/29/09 from 11am to 3pm
+%               canin 1200microns above really noisy RA
+%                       1050microns above shell of RA
+%               32degrees (20degrees tilted forward more than normal)
+%               2.15microns lateral of caudal y0, 
+%               0.51microns caudal of caudal y0
+%           
+%           segment at 30;5;100;2
+%           started singing on 1/30/09 around 8pm - dipper
+%           **note did not change its pitch CV after surgery but mean pitch 
+%               increased significantly 
+%           2.2.09 at 4:30pm - probe in
+%           2.3.09 at dawn - started singing - qualitatively same song
+%               but downward perturbation in mean pitch
+%           2.4.09 at 10:42am - 2mM AP5
+%           2.4.09 at 3:03pm - ACSF
+%               6pm - data suggests that AP5 caused reversible decreases in
+%                   amplitude and repeat number
+%           2.5.09 - didn't sing much
+%           2.6.09 - singing again in the morning
+%           2.6.09 @ 10:04am - back on AP5 at 2mM until ~1:50pm
+%           2.6.09 --- this AP5 run decreases variation as expected!!!
+%               due to xls-ization or AP5? Check for reversibility.
+%               not completely reversed - try higher []=4mM tomorrow
+%           2.7.09 --- AP5 from 12pm to 4:14pm
+%           2.8.09 --- AP5 from 9:55am to 1pm (comp time)
+%           2.9.09 --- AP5 from 9:40am (real time) to 1:15pm
+%           2.9.09 --- wnon at ~6pm - 7260Hz
+%           2.10.09 --- 1:40pm --- 7410Hz
+%        %%%%%%
+%       COVERT LEARNING
+%        %%%%%%
+%       See 225.m for graphing instructions
+%         Shift up 
+%           22209_baseline - baseline
+%           224_APV_2mM - TRANS=="transition" - 2mM APV in bird but ampoff
+%           224_APVwnon - 2mM APV in bird and ampon
+%           225_ACSFampoff1 - ampoff and wn offf
+%           225_ACSFampoff
+%           probe got clogged
+%         Shift down
+%           302_probein - new probe - baseline
+%           305_APV_2mM - transition - 2mM APV in bird but ampoff
+%           305_APVwnon - 2mM APV in bird and ampon
+%               hit above 3590Hz, then above 3575Hz
+%           305_APV_5mM_wnon - 5mM APV in bird and ampon - increased APV
+%               because appeared to be a shift
+%           306_ACSFwnoff
+%           removed probe on Monday March 9th
+%         Control - shift down without APV
+%           contingency=hit above 3575Hz
+%           shift for 24hours - 12:30pm to 12:30pm
+%           30909_screen - baseline
+%           31309_ampon - start
+%           31409_ampoff - end
+%          
+% 6. pu56w26 (Tim surgery 2.6.09) - SEE pu56plotB.m
+%           Some baseline data in cardinal4/My_birds/Inactivations
+%           Most data in cardinal5/pu56w26/exp2
+%       ALL times are computer (grebe) times
+%
+%           4.20.09 - singing with probes in
+%       %% Exp1 - 2mM AP5 shift down - 4.23.09 to 4.24.09
+%          4.23.09
+%           10:22am computer time - 2mM AP5 at 1.5uL/min
+%           11:30am - switched template
+%           12:24 - amp on - hit above 3550Hz
+%           1pm - amp off for ~10 minutes - worried about degradation
+%          4.24.09
+%           10:20am - hit above 3520Hz
+%           12:01pm - door open, ampoff
+%           12:05pm - ACSF on at 1.5uL/min
+%           12:14pm - 3uL/min
+%           12:29pm - 1.5uL/min
+%           12:42pm - door closed
+%       4.26.09 - no WN, but AP5 on at 1mM from 1:30 to 4:30pm to test [] 
+%       
+%       %% Exp2 - 1mM AP5 shift up - 4.27.09 to 4.28.09
+%          4.27.09
+%           8:55am - 1mM AP5 on at 1.5uL/min
+%           9:05am - 1uL/min
+%           10:27am - AMP ON - hit below 3650Hz
+%           1:20pm - cntrng changed from MIN=4 to MIN=3
+%           5pm - 3640Hz - new AP5 syringe
+%           5:15 pm - 3600Hz
+%          4.28.09
+%           9:35am - 3670Hz
+%           11:10am - door open, ampoff
+%           11:21am - ACSF on at 1.5uL/min
+%           11:51am - ACSF on at 0.6uL/min - door closed
+%       %% Exp3 - 0.67mM AP5 shift down - 4.30.09 to 5.1.09
+%          4.30.09
+%           12:03pm - AP5 on at 0.6mM
+%           3:01pm - wn on - hit above 3550Hz
+%           7:16pm - above 3650Hz
+%          5.1.09
+%           9:20am - above 3600Hz
+%           11:40am - above 3550Hz
+%           1:35pm - wn off, door open, ACSF on
+%           2:10pm - door closed
+%       %% Exp4 - 0.67mM AP5 shift up - 5.5.09 to 5.6.09
+%           5.5.09
+%           10:15am - AP5 on
+%           3690Hz - 3670Hz - 3750Hz ---> check config fiels
+%         
+
+% 7. w21o2 (JC)
+%           screen on 3/16/09 starting at 11am - it has a stack note
+%           
+% 8. w16o36 
+%           BF long stacks - 177 days old on 5.19.09
+%           5.19.09 - implanted
+%           deceased
+% 9. or32bk42
+%           BF medium stacks
+%           5.21.09 - implanted
+%           deceased
+% 9. b10o7
+%           BF medium stacks
+%           **brain was further below skull than expected
+%           **problems with noise in recording led to uncertainty in cannulae
+%           placement - R (forward of coordinates by 0.3mm down 1950 -- 1050 above 3000)
+%           - L (centered on coordinates anddown 1440)
+%           % bird was very happy after surgery - perched immediately
+%
+% 9. w5r22
+%           Zebra Finch
+%           Surgery went great and bird recovered by the following morning
+%           Centered on coordinates (possibly slightly rostral to miss
+%           blood vessels).
+%           * recorded on right side
+%           *RA from 2150 to 2850 microns - probe down ~1200-1400 microns

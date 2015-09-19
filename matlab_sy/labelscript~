@@ -1,0 +1,8 @@
+%labelscript
+%still to check out, make sure lengthcheck is good, what is the eval error
+%I'm getting on the test run?
+
+changelabelbatch(avls,'','b','','b')
+changelabelbatch(avls,'','bb','','a')
+changelabelbatch(avls,'','a','','a',150)
+changelabelbatch(avls,'','aa','','a',150)

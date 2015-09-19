@@ -1,0 +1,1 @@
+function err = fitpearson(lambda,t,y,shapeconstant)%   Fitting functions for a Pearson 7 band spectrum.% T. C. O'Haver (toh@umd.edu),   Version 1.3, October 23, 2006.global cA = zeros(length(t),round(length(lambda)/2));for j = 1:length(lambda)/2,    A(:,j) = pearson(t,lambda(2*j-1),lambda(2*j),shapeconstant)';endc = A\y';z = A*c;err = norm(z-y');

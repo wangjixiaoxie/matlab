@@ -1,0 +1,67 @@
+%% uses matlab code regress() but automatically adds 1 to X and formats X and Y. Also plots automatically
+function [b,bint,r,rint,stats,SummaryStats]=lt_regress(Y,X_no_ones,plotON,plotB_error)
+
+% Y and X are vectors (can be columns or rows, currently only 1D) (do not
+% add 1s to X)
+% plotON =1 plots data with best fit line.
+% plotB_error=1 plot 95% CI of line.
+% outputs: same as for regress()
+
+%% DEFAULTS
+if ~exist('plotB_error','var');
+    plotB_error=0;
+end
+
+%% put inputs into columns
+% assume they are 1d vectors
+
+if size(Y,2)>size(Y,1);
+    Y=Y';
+end
+
+if size(X_no_ones,2)>size(X_no_ones,1);
+    X_no_ones=X_no_ones';
+end
+
+%% put ones in front of X
+
+X=[ones(length(X_no_ones),1), X_no_ones];
+
+
+%% perform regression
+
+[b,bint,r,rint,stats]=regress(Y,X);
+
+%% put some useful stuff into a summary structure
+
+SummaryStats.slope=b(2);
+SummaryStats.intercept=b(1);
+SummaryStats.R2=stats(1);
+SummaryStats.p=stats(3);
+
+
+%% plot if desired
+if plotON==1;
+%     lt_figure; hold on;
+%     title('raw data + linear regression best fit (95% CI)')
+    % plot data
+    plot(X(:,2),Y, 'ok');
+    
+    % plot regression lines (with error)
+    plot(xlim,b(1) + b(2).*xlim,'-r','LineWidth',2);
+    
+    if plotB_error==1;
+    plot(xlim,bint(1,1) + bint(2,1).*xlim,'-r');
+    plot(xlim,bint(1,2) + bint(2,2).*xlim,'-r');
+    end
+    
+    % plot summary stats
+    Xlim=xlim;
+    Ylim=ylim;
+    
+    text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-(Ylim(2)-Ylim(1))/10,['p=' num2str(SummaryStats.p)],'FontSize',13,'FontWeight','bold','Color','b');
+    text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-2*(Ylim(2)-Ylim(1))/10,['R2=' num2str(SummaryStats.R2)],'FontSize',13,'FontWeight','bold','Color','b');
+end
+    
+    
+    

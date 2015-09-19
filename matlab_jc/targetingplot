@@ -1,0 +1,17 @@
+function 
+for i=1:length(Alldata)
+    ons=Alldata(i).startnote;
+    offs=Alldata(i).endnote;
+    exp=Alldata(i).exp;
+    count=0;
+    x=[];
+    y=[];
+    for j=1:length(exp)
+        if exp(1).acsf(j)==1
+            count=count+1;
+            x(count)=(exp(1).tfromwnonend(j)+exp(1).tfromwnonbegin(j))/2;
+            y(count)=mean(mean(exp(j).selectedpitchcurves(ons+80:offs-80,:)'));
+        end
+    end
+    figure;plot(x,y)
+end

@@ -1,0 +1,114 @@
+%this script is written to generate pitch contours for bk57w35
+%writes data to a .mat file in directory where data is.
+
+%YOU NEED TO SET MUINDS BELOW
+%calls jc_pitchcontourFV, in ~/matlab
+%      maketimevec2
+clear fv fbins bt smoothamp baspath conbins avls
+avls.baspath='/oriole7/dir2/pu19bk81/'
+%need to label 1101 through 1110 for stable window analysis
+
+
+%prelesionpt
+avls.pvls{1}='screen/'
+avls.cvl{1}='batch23.rand'
+avls.pvls{2}='screen/'
+avls.cvl{2}='batch24.keep'
+avls.pvls{3}='screen/'
+avls.cvl{3}='batch25.rand'
+
+
+avls.pvls{4}='screen/'
+avls.cvl{4}='batch26.rand'
+avls.WINDOWSIZE=15;
+
+%prelesionsyn
+avls.pvls{5}='screen/27files'
+avls.cvl{5}='batch.keep.rand'
+avls.pvls{6}='screen/'
+avls.cvl{6}='batch28.rand'
+avls.pvls{7}='screen/'
+avls.cvl{7}='batch29.rand'
+avls.pvls{8}='screen2/'
+avls.cvl{8}='batch30.keep'
+
+
+%wn on, 4-01->404
+avls.pvls{9}='wnoncont_040411/'
+avls.cvl{9}='batch04.catch'
+
+avls.pvls{10}='wnoff/'
+avls.cvl{10}='batch06.catch'
+
+avls.pvls{11}='wnoncont)/'
+avls.cvl{11}='batch06.catch'
+
+avls.pvls{12}='wnoff/'
+avls.cvl{12}='batch06.catch'
+
+
+for ii=1:8
+    avls.EV4(ii)=1
+end
+for ii=9:10
+    avls.EV4(ii)=0
+end
+
+
+for ii=1:2
+    avls.PRENT{ii}=''
+end
+
+%
+avls.bastms{1}={'2007-5-19' '2007-5-21'}
+avls.wntms{1}={'2011-4-01' '2011-4-04'},
+avls.rectms{1}={'2011-4-5' '2011-4-07'}
+avls.offset_dys(1)=[3];
+
+
+avls.stabwin={'2011-03-25' '2011-03-30'}
+% 
+% 
+% avls.seq_days{1}={'2011-1-21' '2011-1-24'}
+% avls.seq_start(1)=1;
+% avls.seq_days{2}={'2011-2-25' '2011-2-27'}
+% avls.seq_start(2)=1;
+% avls.pt_days{1}={'2010-12-01' '2010-12-04'}
+% avls.pt_start(1)=1;
+% avls.pt_days{2}={'2011-2-21' '2011-2-24'}
+% avls.pt_start(2)=1;
+% 
+
+
+avls.MKFV=[1:10]
+avls.SEQIND=[1:10]
+avls.PTIND=[9:10]
+
+avls.ANALPTNT=1;
+avls.SEQTRGNT{1}=1;
+avls.ALLSEQNT=[1 2 ]
+avls.SPLITDAY=1;
+avls.LEARNANALIND=1;
+for ii=1:length(avls.pvls)
+     avls.SEC(ii)=0; 
+end
+avls.NT{1}='e';
+avls.NT{2}='a';
+% avls.NT{3}='c';
+% avls.NT{4}='i';
+% 
+% avls.NFFT(1)=256;
+% avls.NFFT(2)=512;
+avls.NFFT(1)=256;
+avls.NFFT(2)=256;
+avls.fbins{1}=[3000 3500];
+avls.fbins{2}=[2000 3000];
+
+avls.tbinshft(1)=.025;
+avls.tbinshft(2)=.025
+avls.tbinshft(3)=.025;
+
+avls.DOCONTPTANAL=0;
+avls.DOCONTSYNANAL=0;
+avls.SPLITDAY=1;
+avls.LESIONDATE={'2011-02-01'}   

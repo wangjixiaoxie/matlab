@@ -1,0 +1,141 @@
+function []=plotexhistinactiv2(avls,ps)
+   if(isfield(ps,'FLIP'))
+       if(ps.FLIP)
+            FLIP=1;
+        else
+            FLIP=0
+        end
+    else
+        FLIP=0;
+    end
+    
+    if(isfield(ps,'SCALEHIST'))
+        if(ps.SCALEHIST)
+            SCALEHIST=1;
+        else
+            SCALEHIST=0;
+        end
+    else
+        SCALEHIST=0;
+    end    
+
+
+
+
+if(isfield(ps,'STIM'))
+        if(ps.STIM)
+            STIM=1;
+        else
+            STIM=0;
+        end
+    else
+        STIM=0;
+    end
+    dht=ps.distht;
+    arht=ps.arrowht;
+    ntind=ps.ntind;
+        for indnum=1:length(ps.indtoplot)
+            crind=ps.indtoplot(indnum);
+            
+            axes(ps.ax);
+             if(~STIM)
+            
+                crind=avls.mulist(crind);
+                crvls{1}=avls.hstacpre{ntind}{crind};
+                crvls{2}=avls.hstmu_comb{ntind}{crind};
+                crvls{3}=avls.hstacpst{ntind}{crind};
+                
+                indvl=find(avls.mulist==crind);
+                acind=avls.aclist(indvl,1);
+                muind=avls.mulist(indvl);
+                cracvls=avls.adjvls{ntind}{acind}(:,2);
+                crmuvls=avls.adjvls{ntind}{muind}(:,2);
+                lnvls{1}=length(cracvls);
+                lnvls{2}=length(crmuvls);
+             else
+                 cracvls=avls.ptvls{crind}(avls.crctind{crind},2);
+                 crmuvls=avls.ptvls{crind}(avls.crfbindlim{crind},2);
+                 credges=avls.HST_EDGES;
+                 lnvls{1}=length(cracvls);
+                 lnvls{2}=length(crmuvls);
+                 
+                 crvls{1}=histc(cracvls,credges)./length(cracvls);
+                 crvls{2}=histc(crmuvls,credges)./length(crmuvls);
+
+             end
+            
+             for vlnum=1:length(crvls)
+                 crvls{vlnum}=crvls{vlnum}(1:end-1);
+             end
+            
+            
+            
+            crmn{1}=mean(cracvls);
+            crmn{2}=mean(crmuvls);
+            if(~STIM)
+            else
+                credges=avls.HST_EDGES(1:end-1);
+                %correct hist
+               
+            end
+             credgediff=credges(2)-credges(1);
+%                 credges=credges+.5*credgediff;
+            crste{1}=std(cracvls)./sqrt(length(cracvls));
+            crste{2}=std(crmuvls)./sqrt(length(crmuvls));
+%             crctind=avls.crctind{crind};
+%             crfbind=avls.crfbind{crind};
+%             
+%             crctste=stdct./sqrt(length(crctind));
+%             crfbste=stdfb./sqrt(length(crfbind));
+            %plot catch value
+%             if(ps.plotpre)
+%              
+%                 numvls=1;
+%             else
+%                 if(isfield(ps,'omitpost'))
+%                     if(ps.omitpost)
+%                         numvls=[1 2];
+%                     else
+%                         numvls=[1 2 3];
+%                     end
+%                 else
+%                     numvls=[1 2 3]
+%                 end
+%             end
+            numvls=[1 2]
+            for ii=numvls
+                stairs(credges/3000,crvls{ii},'Color',ps.col{ii},'Linewidth',2)
+                hold on;
+            %    plot([mnbas+stdbas mnbas+stdbas], [0 1], 'c--')
+            %    plot([mnbas-stdbas mnbas-stdbas], [0 1], 'c--')
+                if(ii==1)
+            plot([ps.initmean/3000 ps.initmean/3000],[0 1],'k--','Linewidth',2)
+                end    
+            text(credges(end-3)/3000,max(crvls{2})-(ii/10),['n=' num2str(lnvls{ii})],'Color',ps.col{ii});
+                if(ps.plot_triangles)
+                    plot(crmn{ii}/3000,dht,'Marker','v','Color',ps.col{ii},'MarkerFaceColor',ps.col{ii})
+                end
+            
+%                 text(2.225,0.5,['catch=' num2str(length())],'Color','k');
+%                 if(ii<3)
+%                     plot([(crmn{ii}-crste{ii})/3000 (crmn{ii}+crste{ii})/3000],[dht dht],'k','Linewidth',3)
+%                     
+%                 end
+            end
+             %this is for the stim trial
+            
+           
+  
+       origarrow=[ps.initmean/3000 arht(1) crmn{1}/3000  arht(1)]
+       shiftarrow=[crmn{1}/3000 arht(2) crmn{2}/3000  arht(2)]
+   
+%    ps.plotshiftarrow=1;
+%    ps.plotrevarrow=1;
+
+if(isfield(ps,'axbnds'))
+    axis(ps.axbnds);
+end
+% plotarrows(origarrow,shiftarrow,ps);
+   
+   
+   end

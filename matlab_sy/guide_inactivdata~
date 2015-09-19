@@ -1,0 +1,120 @@
+%guide to inactivation analysis
+%
+% 
+% basic analysis.
+% First each bird has a dat file, which initializes variables.
+% 
+% Then PITCHSYNTAXANAL<X>(AVLS)  does basic pitch analysis and organization across files.
+%     pitchsyntaxanal2 is standard, pitchsyntaxanal3 has added capacity to realign notes according to template.
+% load pathvals<X>-analdata.mat
+% INACTIVANAL3(AVLS,GRAPHVALS) does additional plotting.
+
+for plotting.
+Most basic plotting program (raw data, and stdev bars is PLOTMEANSTDEV2.)
+
+    inactivplot4 is old!!!
+    INACTIVPLOT4 plots arrows for one day.
+
+    (inactivplot4 takes a plotstruct as an argument with details of how to plot.  
+    Example is defined in inactiv_fig4script.m
+
+    INACTIVPLOT4META calls across birds.
+
+MUMETA_COMPAR is meta file for summary plots.
+It calls INACTIVPLOTCOMPAR.
+
+
+PLOTGAUSSIAN, called by METAGAUSSIAN makes gaussians in initial plot.
+
+
+INACTIVPLOT3C is basic fxn for plotting raw data examples.
+
+PLOT_TMCOURSE plots data across days.    
+
+inactiv_figEXAMPLEscript.m plots example data for pu34
+    calls plothsts
+        inactivplotcomparsingle
+        inactivrawpts plots rawdata.
+FOR SUMMARY DATA.
+check out INACTIVPLOTSUM
+          INACTIVPLOTRE
+
+Important Colors - good black [0 0 0]
+                        blue (inactiv)  [0.4 0.4 1]
+
+
+SHIFTANAL3 does metalevel analyses across birds
+SHIFTANAL4
+
+shiftanal8 - latest version
+
+
+shf
+
+[shsall,sumshs,sumbs]=shiftanal8(bs,1:9)
+[sumplot]=selectinbasruns5(sumbs,1 ,1:5 ,1.5)
+[sumdyn]=selectdynamicruns2- find the diminishment runs.
+
+PLOTDYNMETASCRIPT CALLS BELOW
+plotdynamics3(sumdyn).
+
+
+
+[stats]=calcsumplotstats(sumplot)
+
+2.  %baseline variability effect
+
+INACTIVEXPU34BAS, plots raw data for pu34.
+
+PLOTBAS - plotsbaseline scatter
+function [sumstats]=plotscatterbas(sumbs);
+%this creates the scatter plot for baseline figure
+
+
+3. %Example figure - bk61w42
+INACTIVEXBK61W42.
+
+
+%this creates the summary figures for plotbarinitind3
+PLOTBARINITIND3(sumplot,'bar')
+plotdynamics3(sumdyn)...
+plotscatteffpctchange
+
+PLOTSCATTERXY3
+
+
+INACTIV_DYNAMICS, plots time course.
+
+contouranal - plots an example contour for bk61w42
+
+
+%STIMANAL added 6.27, modified 9.07
+standard analysis.  
+set parameters, i.e. contouranalbk48w74b.m
+contouranal(avls)
+stimanal(avls)
+stimanalvardelay
+plotstimcontour2
+plotstimexample.m
+metstimanal takes sumstructlist struct to make sumbs.
+plotbarstim-takes sumbs, to make basic bar plot.
+
+
+contourana2l.m - makes contours.
+stimanalscript2 - does analysis of contours
+plotstimcrountour.m - plots contours
+variabledelaystimanal.m -- analysis of variable stim exps.
+
+****getresiduals2*** takes sps (short stim struct set up in 
+
+
+
+
+
+%FIGURE GUIDE..
+%MASTERSCRIPTS.
+
+
+
+PLOTHISTORYFIGSCRIPT.M
+

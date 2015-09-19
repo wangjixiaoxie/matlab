@@ -1,0 +1,30 @@
+%% Need to finish.  problem at the end in writing a variable on the LHS using what I type in input/.
+
+one_or_zero=1;
+if exist('template_parameters','var')==1;
+    yes_or_no=input('variable template_parameters exists. enter y to continue (overwrite); n to exit. ','s');
+    if yes_or_no=='n';
+        one_or_zero=0;
+    end
+end
+
+if one_or_zero==1;
+    load('/home/lucas/data/song/pu13bk43/template_parameters.mat')
+    
+disp('keyboard mode. modify template variable. then type "return" to save as .mat in the bird folder')
+
+keyboard
+
+save('template_parameters', 'template_parameters');
+
+movefile('template_parameters.mat', '/home/lucas/data/song/pu13bk43')
+end
+
+
+
+
+
+%     name_of_old_template=input('name of old template (e.g. pu13bk43b_1)','s');
+%     new_column_parameters=input('enter parameters for your new column (i.e. {[min max thr] "(and/or)" "NOT logic? (y or n)" "birdtaf? (y or n)"})');
+%     name_of_new_template=input('name of new template (e.g. pu13bk43b_2)');
+%     template_parameters.

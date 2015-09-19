@@ -1,0 +1,23 @@
+% TSA720
+pitchTSAhar1=jc_pitchmat1024(shiftedTSA,1024,1020,1,1800,2700,[1],'obs0',1);
+figure;plot(median(pitchTSAhar1(390:425,:)),'*')
+% Look for a bimodal distribution
+figure;hist(std(pitchTSAhar1(550:700,:)))
+indE=find((std(pitchTSAhar1(550:700,:))<100));
+figure;plot(pitchTSAhar1(:,indE))
+
+%%%%
+for i=31:40
+    res=pitchTSAhar1(410:490,i)-median(pitchTSAhar1(410:490,i-20:i-1)')';
+    for j=i-30:i
+        if isempty(find(indE==j))
+            Hit=pitchTSAhar1(410:490,j)-median(pitchTSAhar1(410:490,i-20:i-1)')';
+            % Does it go away from the hits?  If so, these should be
+            % negative values.
+            errorHit=res./Hit;
+        else
+            Esc=pitchTSAhar1(410:490,j)-median(pitchTSAhar1(410:490,i-20:i-1)')';
+            errorEsc=res./Esc;
+        end
+    end
+end

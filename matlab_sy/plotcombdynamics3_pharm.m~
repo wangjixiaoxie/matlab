@@ -1,0 +1,327 @@
+%rewritten extensively 4.16.09,
+%to incorporate new figure requirements.
+
+%takes sumdyn,
+%and a ps (plotstruct).
+%ps.minx - minimum x value to include
+%ps.maxx - maximum x value to include.
+%ps.col,  col={ 'k' 'r','c'}
+%ps.colvec
+%ps.type, (pct or off or dis)
+%ps.addx
+%ps.excludebs
+%ps.plotavg=1
+%ps.comb
+%ps.normeff=0
+%ps.plot_type, 1 is for shift, 2 is for asymp, 3 is for rev.
+
+
+function [ctinds,meanmu,meanac]=plotcombdynamics2_pharm(sumdynin,sumbs,ps)
+% tm_matrix=1:.2:ps.maxx
+if(ps.plotsum)
+axes(ps.ax);
+end
+axis(ps.plotbnds);
+if(isfield(ps,'maxsd'))
+    maxsd=ps.maxsd;
+else
+    maxsd=100
+end
+    sdynln=length(sumdynin)
+    bsindcomb=[];
+    sumdyncomb=[];
+    ctinds=[];
+    outstruct=[];   
+    fixct=0;
+   
+    ct=1;
+    ln=ps.maxx
+    if(ps.roundtimes)
+            tmdiff=1;
+             
+            outvlaczcomb=zeros(sdynln,ln+1);
+            outvlmuzcomb=zeros(sdynln,ln+1);
+        
+    else
+        
+            tmdiff=.1;
+            outvlaczcomb=zeros(sdynln,(ln+1)*tmdiff);
+            outvlmuzcomb=zeros(sdynln,(ln+1)*tmdiff);
+    end
+    
+    
+    for ii=1:length(sumdynin) 
+        smcr=sumdynin(ii);
+        shiftind=find(smcr.exadjtms>0)
+            shiftind2=find(abs(smcr.acz)>1);
+            shiftind=intersect(shiftind,shiftind2);
+%         aczvl(basind)=0;
+%         muzvl(basind)=0;
+        crsumbs=sumbs(smcr.bsnum);
+        
+        %series of if statements to exclude runs where mu concentration
+        %changed.
+        if(isfield(ps,'excludebs'))
+            if(smcr.bsnum==ps.excludebs)
+                if(intersect(smcr.shnum,ps.excludeshnum))
+                    keep=0
+                else
+                    keep=1;
+                end
+            else
+                    keep=1;
+            end
+        else
+            keep=1;
+        end
+
+    if(keep)
+            if(~isempty(smcr.acz))
+                if(ps.plot_type=='pct')
+                    aczvl=smcr.pct(shiftind);
+                    muzvl=100-smcr.pct(shiftind);
+               
+                elseif(ps.plot_type=='mop') 
+                    aczvl=smcr.acz(shiftind)-smcr.muz(shiftind)
+                    muzvl=smcr.muz(shiftind)
+                end
+            if(ps.flip)
+                if(smcr.drxn=='do')
+                    if(ps.plot_type~='pct')
+                    aczvl=-aczvl
+                    muzvl=-muzvl
+                    end
+                end
+            end
+            end
+
+
+            if(ps.roundtimes)
+            %this averages values on the same day
+                adjtms=ceil(smcr.exadjtms(shiftind));
+                if(~isempty(adjtms))
+                [adjtms,aczvl,muzvl]=adj_vls(adjtms,aczvl,muzvl)
+                end
+            
+                lncomb=ln;
+                combvls=[0:tmdiff:lncomb]
+            else
+                adjtms=smcr.exadjtms(shiftind);
+           
+                lncomb=(ln)*tmdiff;
+                combvls=[0:tmdiff:lncomb]
+            end
+        
+        if(ps.plotfixedpoints)
+           fixct=fixct+1;
+           for crtmwin=1:length(ps.tmwins)
+               crtms=ps.tmwins{crtmwin};
+               [vls,matchinds]=intersect(adjtms,crtms);
+              if(~isempty(matchinds))
+               meanmu(fixct,crtmwin)=mean(calcmeanstder2(muzvl(matchinds)));
+               meanac(fixct,crtmwin)=mean(calcmeanstder2(aczvl(matchinds)));
+              else
+                  meanmu(fixct,crtmwin)=NaN;
+                  meanac(fixct,crtmwin)=NaN;
+                  
+              end
+           end
+            
+           notnaind=find(~isnan(meanmu(fixct,:)));
+            nomatchvls=find(~ismember([1 length(ps.tmwins)],notnaind));
+           
+           if(isempty(nomatchvls))
+           ctinds=[ctinds fixct];
+               axes(ps.axmot)
+           plotinds=ps.xvls;
+           plot([plotinds(notnaind)],[meanmu(fixct,notnaind)],'Color',ps.mu_col,'Marker','o','MarkerSize', 4);
+            hold on;
+            if(ps.plotlman)
+            axes(ps.axlman);
+            plot([plotinds(notnaind)],[meanac(fixct,notnaind)],'color','r','Marker','o','MarkerSize', 4);
+            end
+            hold on;
+            
+           end
+       end
+        
+        
+        
+        
+        
+       if(ps.interptozero)
+            tm_matrix=[0:tmdiff:ps.maxx];
+            startvl=1;
+       else
+           tm_matrix=[min(adjtms):tmdiff:ps.maxx]
+           
+       end
+       
+    if(~isempty(adjtms))
+        if((max(adjtms)>=ps.minx)&(length(adjtms)>1)&(max(aczvl+muzvl)<maxsd))
+    [acvls]=interp1(adjtms,aczvl,tm_matrix);
+    [muvls]=interp1(adjtms,muzvl,tm_matrix);
+        %which values to fill??
+        %assume outvlaczcomb starts at 0 and each value is 
+        %tmdiff, then to get the right value
+        %if tm_matrix==0, then startvl=1,
+        %if tm_matrix=.4/tmdiff=0.1, then startvl=5;
+        %so formula is tm_matrix(1)/tmdiff+1;
+        
+        startvl=tm_matrix(1)/tmdiff+1;
+        outvlaczcomb(ct,startvl:length(combvls))=acvls
+        outvlmuzcomb(ct,startvl:length(combvls))=muvls
+        ct=ct+1;
+            if(ps.plotraw)
+                adjtms=smcr.exadjtms(shiftind);
+%             plot([0:ln-1],outvlaczcomb(ct-1,:),'Color',ps.ac_col,'Linewidth',2)
+                tmsind=find(adjtms<=ps.maxx);
+                [out,sortind]=sort(adjtms(tmsind));
+                tmsind=tmsind(sortind);
+                plot(tm_matrix,acvls,'Color',ps.exacfillcol,'Linewidth',2)
+                hold on;
+         
+%                 plot(tm_matrix,acvls,'o','MarkerSize',5,'MarkerFaceColor',ps.ac_col)
+%                 plot(tm_matrix,muvls,'o','MarkerSize',5,'MarkerFaceColor',ps.mu_col)
+%             hold on;
+                plot(tm_matrix,muvls,'Color',ps.exmufillcol,'Linewidth',2)
+%             plot([0:ln-1],outvlmuzcomb(ct-1,:),'Color',ps.mu_col,'Linewidth',2)
+             end
+%     end
+        
+        end
+    end
+    end
+    end
+
+ [outmumn]=calcmeanstder2(meanmu(ctinds,:));
+ [outacmn]=calcmeanstder2(meanac(ctinds,:));
+ 
+ plotinds=ps.xvls;
+ for ii=1:length(plotinds)
+     axes(ps.axmot)
+ plot([plotinds(ii)-.2 ;plotinds(ii)+.2],[outmumn(ii);outmumn(ii)],'Color',ps.mu_col,'Linewidth',4);
+  axes(ps.axlman)
+ plotinds=ps.xvls;
+ if(ps.plotlman)
+ plot([plotinds(ii)-.2;plotinds(ii)+.2],[outacmn(ii);outacmn(ii)],'Color','r','Linewidth', 4);
+ end
+ end
+ inds=[1:length(combvls)]
+% figure
+ [outacmn,outacstd]=calcmeanstder2(outvlaczcomb(inds,:));
+[outmumn,outmustd]=calcmeanstder2(outvlmuzcomb(inds,:));
+
+% figure
+rvacmn=[outacmn]
+rvmumn=[outmumn]
+rvacer=[outacstd]
+rvmuer=[outmustd]
+
+% if(isfield(ps,'plotbnds'))
+%   
+%     inds=1:length(tm_matrix);
+% end    
+    xvec=combvls;
+    startind=find(combvls==ps.minx);
+    endind=find(combvls==ps.maxx);
+    inds=startind:tmdiff:endind;
+    xvec=xvec(inds);
+    fillx=[xvec xvec(end:-1:1)]
+
+    muvec=[rvmumn(inds)+rvmuer(inds)]
+    muvec2=[rvmumn(inds)-rvmuer(inds)]
+    filly=[muvec muvec2(end:-1:1)]
+
+    acvec=[rvacmn(inds)+rvacer(inds)]
+acvec2=[rvacmn(inds)-rvacer(inds)]
+filly2=[acvec acvec2(end:-1:1)]
+
+if(~isfield(ps,'mufillcol'))
+    mufillcol=[0.82 0.82 0.82]
+    acfillcol=[0.92 0.96 0.98]
+else
+    mufillcol=ps.mufillcol
+    acfillcol=ps.acfillcol
+end
+
+% %     mupts=mumean(1:length(indvl))
+%     acpts=acmean(1:length(indvl))
+%     yvec=[avls.initmean{notevl}*ones(length(mupts),1);mupts(end:-1:1)']
+ 
+% figure
+% figure
+    hold on;
+%     fill(xvec,yvec,acfillcol);
+% filly([1 end])=0
+% % filly2([1 end])=0
+% indy=find(~isnan(filly)); 
+% indy2=find(~isnan(filly2)); 
+% if(ps.ploter)
+%     fill(fillx(indy),filly(indy),mufillcol,'edgecolor','w');
+%     fill(fillx(indy2),filly2(indy2),acfillcol,'edgecolor','w');
+% end
+%     plot([xvec], rvacmn(inds),'Color',ps.ac_col,'Linewidth',3)
+% hold on;
+% plot([xvec],rvmumn(inds),'Color',ps.mu_col,'Linewidth',3)
+% 
+% plot(xvec,rvmumn(inds)+rvacmn(inds),'k--','Linewidth',3)
+
+
+function [normout]=normvls(vls,norm)
+    if(norm)
+        normout=vls./vls(1);
+    else
+        normout=vls;
+    end
+
+function [yvl,yvl2,equalflag]=geteffvl(smcr,indx,ps);
+     if(ps.comb&ps.normeff)
+          %first normalize each
+          normtargeff=norm_onevls(smcr.targeff(indx));
+          normctrleff=norm_onevls(smcr.contreff(indx));
+          yvl=mean([normtargeff;normctrleff]);
+          yvl2=yvl;
+          equalflag=1;
+     elseif(~ps.comb&~ps.normeff)
+            yvl=smcr.targeff(indx);
+            yvl2=smcr.contreff(indx);
+            equalflag=0;
+     elseif(ps.comb&~ps.normeff)
+            yvl=mean([smcr.targeff(indx); smcr.contreff(indx)]);
+            yvl2=yvl;
+            equalflag=1;
+     elseif(~ps.comb&ps.normeff)
+             yvl=norm_onevls(smcr.targeff(indx));
+             yvl2=norm_onevls(smcr.contreff(indx));
+             equalflag=0;
+     end
+                
+function [yout]=norm_onevls(yin);
+    yout=yin/mean(yin);
+    
+    
+    function [slope]= calcslope(xin,yin);
+        
+        s=polyfit(xin,yin',1);
+        slope=s(1);
+     
+ %find matching adjtms
+ %say that adjtms input is 12334556
+ function[out_tms,outaczvl,outmuzvl]=adj_vls(adjtms,aczvl,muzvl)
+     
+     %uniquetms=123456
+     %ind=123568
+     [uniquetms,ind]=unique(adjtms);
+     for ii=1:length(uniquetms)
+         ind=find(adjtms==uniquetms(ii))
+         out_tms(ii)=uniquetms(ii);
+         outaczvl(ii)=mean(aczvl(ind));
+         outmuzvl(ii)=mean(muzvl(ind));
+     end
+     
+    
+       
+      
+     
+     

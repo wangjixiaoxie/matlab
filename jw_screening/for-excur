@@ -1,0 +1,3 @@
+[ht(w),pt(w)]= ttest2(vals(1:count),valshuff(1:count),'Vartype','unequal','Tail','right'); % right tail means test equality against alt hyp that first vector's pop mean is > second vector's pop mean
+
+[hks(w),pks(w)] = kstest2(vals(1:count),valshuff(1:count),'Tail','smaller'); % smaller means test equality against alt hyp that data vals are larger than shuff vals ("smaller" because cdf of data is smaller than for shuff if data vals tend larger than shuff's / rightward shift)

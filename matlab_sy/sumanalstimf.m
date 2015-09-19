@@ -1,0 +1,43 @@
+%sumanalstimf.m 
+%aim here is to compare total number of spikes in response across the
+%entire song, for each stimulus.  (I.e. stupid analysis)
+%first sum across rows of histdist, then sum across columns
+%save result in stimf.mat as stimf(clustnum, stim).meansongspks,
+%.stdsongspks
+
+figure
+
+stim=[1:4]
+song_bnds=[5 15];
+
+
+
+    
+    for stmnum=1:length(stim)
+        stimf(stmnum).ratlist=[];
+        %loop through each spike value, and come up with a ratio, write this to stimf structure, and then 
+        % outside of this loop calculate the mean and stderror of this
+        % ratio.
+        for trnm=1:length(stimf(stmnum).outind); 
+            spks=[stimf(stmnum).spkarray{trnm}];
+            preind=find(spks>0&spks<5);
+            postind=find(spks>5&spks<15);
+            if(preind>0)
+                rat=length(postind)/length(preind)*(1/2);
+                stimf(stmnum).ratlist=[stimf(stmnum).ratlist rat]
+            end
+            
+    end
+    end
+    
+    stimnames={'bos' 'rev' 'm10' 'p10'}
+    for stmnum=1:4
+        mnval(stmnum)=mean(stimf(stmnum).ratlist);
+        stdval(stmnum)=std(stimf(stmnum).ratlist);
+    end
+    
+    errorbar(1:4,mnval, stdval,'+');
+    box off;
+    ylabel('spike rate in song/spike rate presong');
+     set(gca,'xticklabel',['bos';'rev';'m10';'p10';],'Fontsize',16);
+     set(gca,'xtick',[1:4]);

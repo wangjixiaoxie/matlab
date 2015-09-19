@@ -1,0 +1,26 @@
+bos='D:\tim\o57pu67\stim\5767.wav'
+rev=       'D:\tim\o57pu67\stim\5767rev.wav'
+numbos=3;
+numrev=3
+ff=dir('*.cbin');
+
+i=1;
+
+    fn=ff(end-i).name
+    rd=readrecf(fn)
+    if (strcmp(rd.outfile,bos))
+        fn   
+    elseif
+        fn=fn
+    else
+       fn=ff(end-i).name
+        i=i+1;
+    end
+    
+end
+[data,fs,spkindnew,spkampnew]=tetanaldc(fn,-1500,song_chan,tet_chans);
+spkind=spkindnew;
+spkamp=spkampnew;
+pltdat;
+
+pltscat;

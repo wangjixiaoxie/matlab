@@ -1,0 +1,22 @@
+function [x,psdvalues]=jcPSD(pitch,fs)
+% x gives the period of the sinusoids that make up the signal
+    % note that the relationship between period of pitch variability and
+    % timescale of pitch variability is unclear
+% psdvalues gives the total spectral power at each frequency.  THIS IS NOT
+    % THE SPECTRAL DENSITY - it needs to be normalized by frequency to get
+    % that.
+
+pitchN=pitch-mean(pitch);
+    acorrinstance=xcorr(pitchN);
+    L=length(acorrinstance);
+    NFFT=2^nextpow2(L);
+    % no normalization for bandwidth
+    psda=fft(acorrinstance,NFFT);
+    psdvalues=2*abs(psda(1:NFFT/2));
+    
+long=max(size((psdvalues)));
+x(1)=100; % DC component
+for i=1:long-1
+    x(i+1)=2*(1/(fs*(i/long)))*1000;
+end
+
