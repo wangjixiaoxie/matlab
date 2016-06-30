@@ -1,4 +1,10 @@
 function [SeqDepPitch_AcrossBirds, PARAMS] = lt_seq_dep_pitch_ACROSSBIRDS_ZSCORE(SeqDepPitch_AcrossBirds, PARAMS)
+%% LT 5/18/16 - ADDED EXTRACTION OF LEARNING AT END OF SINGLE TARGET WN PERIOD
+
+
+
+%% LT 5/6/16 - NOTE, this is not accurate. LMAN experiments uses zscore within entire window, not just time window. is minor problem.This code is obsolete anyways.
+
 %% LT 8/13/15 - Analyzes z-scored learning data.
 % e.g. params:
 % PARAMS.zscore.zthresh_learning=1; % take 1st N days after target passes this value of shift (will take max of default day (see below) or this day)
@@ -10,6 +16,8 @@ function [SeqDepPitch_AcrossBirds, PARAMS] = lt_seq_dep_pitch_ACROSSBIRDS_ZSCORE
 
 %% PARAMS
 NumBirds=length(SeqDepPitch_AcrossBirds.birds);
+
+
 
 
 %% EXTRACT Z-SCORED LEARNING METRICS
@@ -37,6 +45,7 @@ for i=1:NumBirds;
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}=rmfield(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}, 'Data_ZSCORE');
         end
         
+        
         % ===== TARGET: WHEN DOES IT PASS CRITERIA FOR LEARNING?
         targsyl=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targsyl;
         
@@ -48,8 +57,9 @@ for i=1:NumBirds;
         MinDay=WNday1+default_min_day-1;
         MaxDay=WNday1+max_day-1; % convert from WN day to all day inds
         
-        % === 1st WN day no data? if so how many consecutive days
+        % ================= 1st WN day no data? if so how many consecutive days
         % (including wn day 1) without data? - add that to WN window
+        num_empty_days=0;
         if PARAMS.zscore.account_for_NoData==1;
             NoDataDays=find(cellfun(@isempty, SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(targsyl).FFvals));
             
@@ -71,34 +81,56 @@ for i=1:NumBirds;
                     
                 end
                 
-                disp(['ADDED ' num2str(num_empty_days) ' (i.e. missing starting WN days) to ' birdname '-' exptname]);
-                MinDay=MinDay+num_empty_days;
-                MaxDay=MaxDay+num_empty_days;
             end
         end
-                
+        
+        % ---- ad hoc, rd23 and rd28 did not label day 1 because poor
+        % learning (should not count as late start days)
+        if strcmp(birdname, 'rd23gr89') & strcmp(exptname, 'SeqDepPitchLMAN2')
+            num_empty_days=0;
+        elseif strcmp(birdname, 'rd28pu64') & strcmp(exptname, 'SeqDepPitchLMAN2')
+            num_empty_days=0;
+        end
+        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.NumEmptyDays_StartWN_FromZscoreCode=num_empty_days;
+        
+        if num_empty_days>0
+        disp(['ADDED ' num2str(num_empty_days) ' (i.e. missing starting WN days) to ' birdname '-' exptname]);
+        end
+        MinDay=MinDay+num_empty_days;
+        MaxDay=MaxDay+num_empty_days;
+        % ===============================================
+        
         % ===
         % make sure WN duration for this experiment was long enough to even
         % have data within the desired day window
         if length(Zvals)<MaxDay;
-            disp('PROBLEM - not enough WN days to even contain the day window you asked for');
+            disp(['PROBLEM - ' birdname '-' exptname ' not enough WN days to even contain the day window you asked for']);
             
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.TargPassLearnThresh.DayInds=nan;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.EndOfSingleTargEpoch.DayInds=nan;
+            
             continue;
         end
         
             
-            
-            
         FirstDay_PassThresh=find(abs(Zvals(MinDay:MaxDay))>zthresh_learning, 1)+MinDay-1; % over all days
+      
+        if (0); % OLD - gave nan
+            % If is empty, then no day in this window passes threshold. don't
+            % give a value;
+            if isempty(FirstDay_PassThresh);
+                % then is problem
+                disp(['PROBLEM - ' birdname '-' exptname ' does not pass learning threshold within days window [giving days, but no data]']);
+                FirstDay_PassThresh=nan;
+            end
+        end
         
         % If is empty, then no day in this window passes threshold. don't
         % give a value;
         if isempty(FirstDay_PassThresh);
                     % then is problem
-            disp(['PROBLEM - ' birdname '-' exptname ' does not pass learning threshold within days window']);
-            FirstDay_PassThresh=nan;
-    
+            disp(['PROBLEM - ' birdname '-' exptname ' does not pass learning threshold within days window [giving days, but no data!!]']);
+            FirstDay_PassThresh= MinDay;
         end
         
         
@@ -114,8 +146,34 @@ for i=1:NumBirds;
         
         % make sure does not go past WN days
         WNday_last=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.WNTimeOffInd;
+        LastDayWithData=length(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(targsyl).FFvals);
+        LastPotentialDayList=[WNday_last LastDayWithData]; % will take minimum day.
+        % === make sure is not bleeding into start of same-dir or bidir
+        % experiments
+        if isfield(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES, 'MultiDir_OneDayBeforeStart_Ind');
+            % then has multidir.
+            multidir_onedaybeforestart=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.MultiDir_OneDayBeforeStart_Ind;
+            % -- cut WNday last if goes past this day.
+            LastPotentialDayList=[LastPotentialDayList multidir_onedaybeforestart];
+        end
+        if isfield(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES, 'SameDir_OneDayBeforeStart_Ind');
+            % then has multidir.
+            samedir_onedaybeforestart=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.SameDir_OneDayBeforeStart_Ind;
+            % -- cut WNday last if goes past this day.
+            LastPotentialDayList=[LastPotentialDayList samedir_onedaybeforestart];
+        end
+        LastPotentialDay=min(LastPotentialDayList); % should not take data if it is after the minimum of these days
         
-        if FirstDay_PassThresh+N_days_post_thresh-1>WNday_last;
+        if strcmp(birdname, 'rd28pu64') & strcmp(exptname, 'SeqDepPitchLMAN2');
+            LastPotentialDay=20; % since after this start two same-dir, but I have not put it into params. (since is not all samedir, just 2)
+        end
+        
+%         if strcmp(birdname, 'rd28pu64') & strcmp(exptname, 'SeqDepPitchLMAN2');
+%             LastPotentialDay=20; % since after this start two same-dir, but I have not put it into params. (since is not all samedir, just 2)
+%         end
+%         
+
+        if FirstDay_PassThresh+N_days_post_thresh-1>LastPotentialDay;
             % then is problem, not enough days
             disp(['PROBLEM - ' birdname '-' exptname ' passes thr after WN is over']);
             FirstDay_PassThresh=nan;
@@ -129,30 +187,36 @@ for i=1:NumBirds;
 %             FirstDay_PassThresh=nan;
 %         end            
 
-        % make sure enough days overall
-        if FirstDay_PassThresh+N_days_post_thresh-1>length(Zvals);
-            disp(['PROBLEM - ' birdname '-' exptname ' simply does not have enough days post pass-threshold']);
-            
-            FirstDay_PassThresh=nan;
-        end   
-        
-        % make sure no day has nans
-        if ~isnan(FirstDay_PassThresh)
-        for j=FirstDay_PassThresh:FirstDay_PassThresh+N_days_post_thresh-1;
-            if isnan(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(targsyl).meanFF_zscore(j));
-                disp(['PROBLEM - ' birdname '-' exptname ' one day in learning window has nan']);
-               FirstDay_PassThresh=nan;
-            end
+% make sure enough days overall
+if FirstDay_PassThresh+N_days_post_thresh-1>length(Zvals);
+    disp(['PROBLEM - ' birdname '-' exptname ' simply does not have enough days post pass-threshold']);
+    
+    FirstDay_PassThresh=nan;
+end
+
+% make sure at least one day is not nan (i.e. has learning)
+one_day_has_notnan=0;
+if ~isnan(FirstDay_PassThresh)
+    for j=FirstDay_PassThresh:FirstDay_PassThresh+N_days_post_thresh-1;
+        if ~isnan(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(targsyl).meanFF_zscore(j));
+            one_day_has_notnan=1;
         end
-        end
-        
-        
-        % ======== OUTPUT DATA TO STRUCTURE
-        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.TargPassLearnThresh.DayInds=FirstDay_PassThresh:FirstDay_PassThresh+N_days_post_thresh-1;
-        
-        % ------ GO TO NEXT EXPERIMENT IF FIRST DAY IS NAN - i.e. doesn't
-        % pass criterion
+    end
+end
+if      one_day_has_notnan==0
+    disp(['PROBLEM - ' birdname '-' exptname ' all days in learning window are nan']);
+%     FirstDay_PassThresh=nan;
+end
+
+
+% ======== OUTPUT DATA TO STRUCTURE
+SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.TargPassLearnThresh.DayInds=FirstDay_PassThresh:FirstDay_PassThresh+N_days_post_thresh-1;
+SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.EndOfSingleTargEpoch.DayInds=LastPotentialDay-1:LastPotentialDay;
+
+% ------ GO TO NEXT EXPERIMENT IF FIRST DAY IS NAN - i.e. doesn't
+% pass criterion
         if isnan(FirstDay_PassThresh);
+            disp(['---- SKIPPING getting z-score for ' birdname '-' exptname ' (since FirstDay_PassThresh=nan)'])
             continue;
         end
         
@@ -177,19 +241,36 @@ for i=1:NumBirds;
         for j=1:length(syls_unique);
             syl=syls_unique{j};
             
+            
             ffvals=[];
             tvals=[];
-            for k=Days;
-            % ----- Collect all ffvals and convert each to a z-score
-            ffvals=[ffvals cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).FFvals{k})];
-            tvals=[tvals cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).Tvals{k})];
+            
+            if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.LMANinactivated==1
+                for k=Days;
+                    % ----- Collect all ffvals and convert each to a z-score
+                    ffvals=[ffvals SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).FFvals_WithinTimeWindow{k}];
+                    tvals=[tvals SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).Tvals_WithinTimeWindow{k}];
+                end
+                
+                % --- convert to z-score rel to baseline.
+                baseline_meanFF=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_WithinTimeWindow;
+                baseline_stdFF=std(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_WithinTimeWindow);
+                
+                Zvals=(ffvals-baseline_meanFF)./baseline_stdFF;
+                
+            else
+                for k=Days;
+                    % ----- Collect all ffvals and convert each to a z-score
+                    ffvals=[ffvals cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).FFvals{k})];
+                    tvals=[tvals cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).Tvals{k})];
+                end
+                
+                % --- convert to z-score rel to baseline.
+                baseline_meanFF=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF;
+                baseline_stdFF=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).stdFF;
+                
+                Zvals=(ffvals-baseline_meanFF)./baseline_stdFF;
             end
-            
-            % --- convert to z-score rel to baseline.
-            baseline_meanFF=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF;
-            baseline_stdFF=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).stdFF;
-            
-            Zvals=(ffvals-baseline_meanFF)./baseline_stdFF;
             
             % ========= OUTPUT DATA - Save z-score values
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.TargPassLearnThresh.DATA.(syl).FFvals=ffvals;
@@ -199,85 +280,77 @@ for i=1:NumBirds;
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.TargPassLearnThresh.DATA.(syl).Tvals=tvals;
             
         end
+        
+        % ==== DO THE SAME, but for the last 2 days of WN single target
+        Days=LastPotentialDay-1:LastPotentialDay;
+%         disp(['--- LASTWNDAYS: ' birdname '-' exptname ': ' num2str(Days)])
+        for j=1:length(syls_unique);
+            syl=syls_unique{j};
+            
+            
+            ffvals=[];
+            tvals=[];
+            
+            if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.LMANinactivated==1
+                for k=Days;
+                    % ----- Collect all ffvals and convert each to a z-score
+                    ffvals=[ffvals SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).FFvals_WithinTimeWindow{k}];
+                    tvals=[tvals SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).Tvals_WithinTimeWindow{k}];
+                end
+                
+                % --- convert to z-score rel to baseline.
+                baseline_meanFF=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_WithinTimeWindow;
+                baseline_stdFF=std(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_WithinTimeWindow);
+                
+                Zvals=(ffvals-baseline_meanFF)./baseline_stdFF;
+                
+            else
+                for k=Days;
+                    % ----- Collect all ffvals and convert each to a z-score
+                    ffvals=[ffvals cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).FFvals{k})];
+                    tvals=[tvals cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).Tvals{k})];
+                end
+                
+                % --- convert to z-score rel to baseline.
+                baseline_meanFF=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF;
+                baseline_stdFF=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).stdFF;
+                
+                Zvals=(ffvals-baseline_meanFF)./baseline_stdFF;
+            end
+            
+            % -- make sure is not empty
+            assert(~isempty(Zvals), 'EMPTY! - no data in last WN days. should edit to move window back until get days with data');
+
+
+            % ========= OUTPUT DATA - Save z-score values
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.EndOfSingleTargEpoch.DATA.(syl).FFvals=ffvals;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.EndOfSingleTargEpoch.DATA.(syl).Zvals=Zvals;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.EndOfSingleTargEpoch.DATA.(syl).mean_Zscore=mean(Zvals);
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.EndOfSingleTargEpoch.DATA.(syl).sem_Zscore=lt_sem(Zvals);
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.EndOfSingleTargEpoch.DATA.(syl).Tvals=tvals;
+            
+        end
+        
+        % === calc shift rel targ
+        targsyl=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targsyl;
+        targshift=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.EndOfSingleTargEpoch.DATA.(targsyl).mean_Zscore;
+        
+        for j=1:length(syls_unique);
+            syl=syls_unique{j};
+            
+            sylshift=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.EndOfSingleTargEpoch.DATA.(syl).mean_Zscore;
+            
+            sylshift_reltarg=sylshift/targshift;
+            
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.EndOfSingleTargEpoch.DATA.(syl).Generalization_zscore=sylshift_reltarg;
+        end
+        
     end
 end
 
 disp('NOTE: if any PROBLEM came, up the experiment was given a nan for FirstDay_PassThresh');
        
 
-
-%% Plot learning across days - zscored
-
-count=1;
-SubplotsPerFig=6;
-subplotrows=2;
-subplotcols=3;
-fignums_alreadyused=[];
-hfigs=[];
-
-
-for i=1:NumBirds;
-    numexperiments=length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
-    birdname=SeqDepPitch_AcrossBirds.birds{i}.birdname;
-    
-    for ii=1:numexperiments;
-        exptname=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.ExptID;
-        [fignums_alreadyused, hfigs, count]=lt_plot_MultSubplotsFigs(SubplotsPerFig, subplotrows, subplotcols, fignums_alreadyused, hfigs, count);     
-        title([birdname '-' exptname]);
-        
-        syls_unique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
-        plotcols=lt_make_plot_colors(length(syls_unique), 0, 0);
-        hplot=[];
-        for j=1:length(syls_unique);
-            syl=syls_unique{j};
-            
-            
-            
-            % ================ GATHER Z-SCORE LEARNING
-            Zvals=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).meanFF_zscore;
-            
-            
-            % +++++++++++++++++++
-            % ==== PLOT
-            hplot(j)=plot(1:length(Zvals), Zvals, 'Color',plotcols{j});
-            lt_plot(1:length(Zvals), Zvals, {'Color',plotcols{j}});
-        end
-        
-        legend(hplot, syls_unique);
-        line(xlim, [1.5 1.5])
-        line(xlim, [-1.5 -1.5])
-        
-        line(xlim, [2 2])
-        line(xlim, [-2 -2])
-        
-        % baseline
-        WNonday=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.WNTimeOnInd;
-        line([WNonday-0.5 WNonday-0.5], ylim, 'Color' ,'r');
-        
-        % day I called consol start
-        try
-        day1=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.ConsolStartInd;
-        day2=day1+SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.Consol_DayBins-1;
-        
-        line([day1-0.5 day1-0.5], ylim);
-        line([day2+0.5 day2+0.5], ylim);
-        catch err
-        end
-    end
-end
-
-
-
-
-
-
-
-
-
-
-            
-            
-    
 
 
 

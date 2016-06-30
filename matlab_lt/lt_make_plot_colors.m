@@ -8,7 +8,7 @@
 function plot_color = lt_make_plot_colors(num_col,graded,graded_color)
 
 if graded==1;
-    StartCol=0.25*graded_color;
+    StartCol=0.35*graded_color;
     ColIncrements=(graded_color-StartCol)./num_col;
     for i=1:num_col;
         plot_color{i}=StartCol+ColIncrements.*(i-1);

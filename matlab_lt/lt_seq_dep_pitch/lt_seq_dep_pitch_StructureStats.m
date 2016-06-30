@@ -1,8 +1,31 @@
 function [Params, AllDays_StructStatsStruct]=lt_seq_dep_pitch_StructureStats(Params, AllDays_RawDatStruct, DoLMAN, AllDays_PlotLearning)
+%% LT 6/7/16 - power instead of amplitude
+usePower=0; % for all measures using spectral amplitude, converted to power.
+% note: using 1 actually got less separation (for what are clearly diff
+% types - i.e. more clustered together). so use 0. not sure why using
+% amplitude (0) is better...
+
+
+
+%% LT 5/7/16 - Completed DoLMAN
+% Saves a completely separate structure that only contains LMAN data. (if
+% DoLMAN =0, then is as previous: only saves PBS data (is good: only within
+% time window data if is LMAN experiment)
+
+
+
+%% LT 12/29/15 - automatically detects whether this is LMAN experiment. If it is, only takes PBS data within time window (i.e. as determined from AllDays_PlotLearning structure)
+% NEED TO INPUT BOTH STRUCTURES AllDays_RawDatStruct and
+% AllDays_PlotLearning.  
+
 %% LT 8/5/15 - LMAN musc data analysis added
 % requires AllDays_PlotLearning to get the actual musc data within time window
 % DoLMAN=1; then does both musc and pbs data in one run (default is 0)
 
+            % NOTE: NOT DONE. Currently: if this is LMAN data, then this code DOES only take PBS
+            % (but takes all PBS, not just in time window).
+            
+            
 
 
 %% LT 4/28/15 - copied to "OLD" and continueing here with changes:
@@ -36,8 +59,19 @@ NumDays=datenum(Params.SeqFilter.LastDay)-datenum(Params.SeqFilter.FirstDay)+1;
 fs=Params.DayRawDat.fs;
 
 %% For similar syls, compare pitch
+clear AllDays_StructStatsStruct
+
+if DoLMAN==0
+datafield='data';
+elseif DoLMAN==1
+    datafield='data_MUSC';
+else
+    disp('ERROR, what is DOLMAN?');
+    dafcaearawcae;
+end
 
 
+%% BASELINE STUFF (OBSOLETE) (PITCH)
 % 1) For all syls, get baseline pitch stats, combining all renditions
 for i=1:length(SylFieldsAll);
     syl=SylFieldsAll{i};
@@ -46,7 +80,7 @@ for i=1:length(SylFieldsAll);
     X=[];
     for ii=Params.SeqFilter.BaselineDays;
         try % in case day lacks data
-            X=[X cell2mat(AllDays_RawDatStruct{ii}.data.(syl)(:,1))']; % collect all data points from baseline days
+            X=[X cell2mat(AllDays_RawDatStruct{ii}.(datafield).(syl)(:,1))']; % collect all data points from baseline days
         catch err
         end
     end
@@ -103,28 +137,70 @@ set(gca,'XTickLabel',SylFieldsAll)
 
 ticID=tic;
 
+
 for i=1:length(SylFieldsAll); % for each syllable
     syl=SylFieldsAll{i};
     
     c=1; % counter for rends for given syl
     FeatVect=[];
     for ii=1:NumDays; % for each day
-        if ~isempty(AllDays_RawDatStruct{ii}) % chekc if day has data
+        if ~isempty(AllDays_RawDatStruct{ii}); % chekc if day has data
             
             % check if day has syl
-            if ~isfield(AllDays_RawDatStruct{ii}.data, syl);
+            if ~isfield(AllDays_RawDatStruct{ii}.(datafield), syl);
                 continue; 
             end
             
-            NumRends=size(AllDays_RawDatStruct{ii}.data.(syl),1); % how many renditions?
+            % check if this is LMAN experiment - if so, will get PBS data
+            % in time window.
+            if isfield(AllDays_RawDatStruct{ii}, 'data_MUSC');
+                IsThisLMANExpt=1;
+            else
+                IsThisLMANExpt=0;
+            end
+            
+            if IsThisLMANExpt==1
+                % then use all raw dat, as some windows blurred
+                datafield='data_WithOutlier';
+            end
+            
+                NumRends=size(AllDays_RawDatStruct{ii}.(datafield).(syl),1); % how many renditions?
             
             for iii=1:NumRends; % for each rendition on that day
-                
-                % 1) calculate feature vector for this rendition - based on
-                % Wohlgemuth et al., 2010, and Sakata 2006
-                
-                % First, get raw sound data and smooth it/bandpass it
-                Dat=AllDays_RawDatStruct{ii}.data.(syl){iii,3}; % raw sound data
+                            
+                %  ===== IF THIS IS LMAN DATA THEN FOR EACH REND
+                %  MUST CHECK WHETHER IT IS WITHIN TIME WINDOW, USING PLOT
+                %  LEARNING STRUCTURE
+                if IsThisLMANExpt==1;
+                    TimeOfSong=AllDays_RawDatStruct{ii}.(datafield).(syl){iii, 6};
+                    
+                    if DoLMAN==1
+                        % then check this rend vs. DataMatrix_MUSC
+                        if ~any(AllDays_PlotLearning.DataMatrix_MUSC.(syl).Tvals_WithinTimeWindow{ii}==TimeOfSong);
+                            % then this rend is not within time window;
+                            disp(['threw out day ' num2str(ii) '; rend: ' num2str(iii) '/' num2str(NumRends) ', because not in LMAN time window']);
+                            continue;
+%                         else
+%                             disp(['kep day ' num2str(ii) '; rend: ' num2str(iii) '/' num2str(NumRends)])
+                        end
+                        
+                    else
+                        % then check against DataMatrix
+                        if ~any(AllDays_PlotLearning.DataMatrix.(syl).Tvals_WithinTimeWindow{ii}==TimeOfSong);
+                            % then this rend is not within time window;
+                            disp(['threw out day ' num2str(ii) '; rend: ' num2str(iii) '/' num2str(NumRends) ', because not in LMAN time window']);
+                            continue;
+                        end
+                        
+                    end
+                end
+                    
+                    % =====
+                    % 1) calculate feature vector for this rendition - based on
+                    % Wohlgemuth et al., 2010, and Sakata 2006
+                    
+                    % First, get raw sound data and smooth it/bandpass it
+                    Dat=AllDays_RawDatStruct{ii}.(datafield).(syl){iii,3}; % raw sound data
                 % Process
                 Dat=bandpass(Dat,fs,500,10000,'hanningfir'); % bandpass
                 Dat_sq=Dat.^2; % squared
@@ -162,7 +238,7 @@ for i=1:length(SylFieldsAll); % for each syllable
                 
                 
                 % EXTRACT SYL WINDOWED sound data (removing pre and post stuff);
-                Dur=AllDays_RawDatStruct{ii}.data.(syl){iii,10}; % syl dur
+                Dur=AllDays_RawDatStruct{ii}.(datafield).(syl){iii,10}; % syl dur
                 if onset+floor(fs*Dur/1000)>length(Dat); % problem - not enough data
                     disp(['Problem for syl ' syl ' on day ' num2str(ii) ', rendition ' num2str(iii) ' - raw dat too short, will throw out.']);
                     continue
@@ -175,11 +251,11 @@ for i=1:length(SylFieldsAll); % for each syllable
                 % EXTRACT FEATURES --------------------------------------
                 
                 % DURATION
-                Dur=AllDays_RawDatStruct{ii}.data.(syl){iii,10}; % in ms
+                Dur=AllDays_RawDatStruct{ii}.(datafield).(syl){iii,10}; % in ms
                 
                 
                 % FF
-                FF=AllDays_RawDatStruct{ii}.data.(syl){iii,1}; % FF calculated based flat pitch window
+                FF=AllDays_RawDatStruct{ii}.(datafield).(syl){iii,1}; % FF calculated based flat pitch window
                 
                 
                 % SPECTRAL ENTROPY
@@ -192,6 +268,10 @@ for i=1:length(SylFieldsAll); % for each syllable
                 Fsp=Fsp(Fsp>300);
                 % get norm
                 Spectrum=abs(Spectrum);
+                % --- square to get power
+                if (usePower==1)
+                   Spectrum=Spectrum.^2; 
+                end
                 % Normalize
                 Spectrum=Spectrum/sum(Spectrum);
                 
@@ -216,6 +296,11 @@ for i=1:length(SylFieldsAll); % for each syllable
                 Sp=Sp(Fsp>300,:);
                 Fsp=Fsp(Fsp>300);
                 
+                % --- square to get power
+                if (usePower==1)
+                Sp=Sp.^2;
+                end
+                
                 Sp=Sp/sum(sum(Sp)); % normalize
                 
                 % Get entropy
@@ -235,6 +320,11 @@ for i=1:length(SylFieldsAll); % for each syllable
                 % take halves and absolute
                 sd1=abs(Sp(:,1));
                 sd2=abs(Sp(:,2));
+                
+                if usePower==1
+                    sd1=sd1.^2;
+                    sd2=sd2.^2;
+                end
                 
                 % Amplitude modulation
                 sum1=sum(sd1);
@@ -272,12 +362,12 @@ for i=1:length(SylFieldsAll); % for each syllable
                 
                 
                 % 2) extract desired raw data
-                AllDays_StructStatsStruct.IndivSyls.(syl).AllRends.Info.datenum(c)=AllDays_RawDatStruct{ii}.data.(syl){iii,6}; % datenum
+                AllDays_StructStatsStruct.IndivSyls.(syl).AllRends.Info.datenum(c)=AllDays_RawDatStruct{ii}.(datafield).(syl){iii,6}; % datenum
                 AllDays_StructStatsStruct.IndivSyls.(syl).AllRends.Info.dayInd(c)=ii; % day Index
-                AllDays_StructStatsStruct.IndivSyls.(syl).AllRends.Info.filename{c}=AllDays_RawDatStruct{ii}.data.(syl){iii,5}; % filename
-                AllDays_StructStatsStruct.IndivSyls.(syl).AllRends.Info.labels{c}=AllDays_RawDatStruct{ii}.data.(syl){iii,7}; % filename
-                AllDays_StructStatsStruct.IndivSyls.(syl).AllRends.Info.notepos(c)=AllDays_RawDatStruct{ii}.data.(syl){iii,8}; % filename
-                AllDays_StructStatsStruct.IndivSyls.(syl).AllRends.Info.trig(c)=AllDays_RawDatStruct{ii}.data.(syl){iii,9}; % filename
+                AllDays_StructStatsStruct.IndivSyls.(syl).AllRends.Info.filename{c}=AllDays_RawDatStruct{ii}.(datafield).(syl){iii,5}; % filename
+                AllDays_StructStatsStruct.IndivSyls.(syl).AllRends.Info.labels{c}=AllDays_RawDatStruct{ii}.(datafield).(syl){iii,7}; % filename
+                AllDays_StructStatsStruct.IndivSyls.(syl).AllRends.Info.notepos(c)=AllDays_RawDatStruct{ii}.(datafield).(syl){iii,8}; % filename
+                AllDays_StructStatsStruct.IndivSyls.(syl).AllRends.Info.trig(c)=AllDays_RawDatStruct{ii}.(datafield).(syl){iii,9}; % filename
                 
                 
 
@@ -331,7 +421,9 @@ RunTime=toc(ticID);
 
 
 %% PLOT FEATURE VALUES TO VISUALIZE
-
+if (0)
+    % NOTE: issue: for MUSC experimesnt (PBS or MUSC data) takes from with
+    % outliers, so example might not be actual data
 SylFieldsAll=fieldnames(AllDays_StructStatsStruct.IndivSyls);
 fs=Params.DayRawDat.fs;
 
@@ -340,6 +432,14 @@ for i=1:length(SylFieldsAll);
     
     FV=AllDays_StructStatsStruct.IndivSyls.(syl).AllRends.FeatVect;
     
+    if isempty(FV);
+        continue;
+    end
+       
+    if isempty(AllDays_RawDatStruct{1}.(datafield).(syl));
+        continue; 
+    end
+    
     figure; hold on;
     
     % PLOT example amplitude profile and spectrogram
@@ -347,8 +447,8 @@ for i=1:length(SylFieldsAll);
     subplot(1,2,1); hold on;
     title('Example amplitude contour');
     
-    Dur=AllDays_RawDatStruct{1}.data.(syl){1,10}; % in ms   
-    Dat=AllDays_RawDatStruct{1}.data.(syl){1,3}; % choose the first rendition as example
+    Dur=AllDays_RawDatStruct{1}.(datafield).(syl){1,10}; % in ms   
+    Dat=AllDays_RawDatStruct{1}.(datafield).(syl){1,3}; % choose the first rendition as example
     Dat=bandpass(Dat,fs,500,10000,'hanningfir'); % bandpass
     Dat_sq=Dat.^2; % squared
     
@@ -419,7 +519,7 @@ for i=1:length(SylFieldsAll);
     
 end
 
-
+end
 
 
 %% List sample sizes for all syls
@@ -446,25 +546,47 @@ Params.StructureStats.savedir=Params.SeqFilter.savedir; % obsolete
 
 cd(Params.SeqFilter.savedir);
 
-save('AllDays_StructStatsStruct','AllDays_StructStatsStruct');
-save('Params.mat','Params');
-
-%     write a text file that tells you when files were made
-fid1=fopen(['DONE_StructureStats_' tstamp '.txt'],'w');
-fclose(fid1);
-
-
-try 
-    cd FIGURES/StructureStats
-catch err
-      mkdir FIGURES/StructureStats
-      cd FIGURES/StructureStats
+if DoLMAN==1
+    save('AllDays_StructStatsStruct_MUSC','AllDays_StructStatsStruct');
+    save('Params.mat','Params');
+    
+    %     write a text file that tells you when files were made
+    fid1=fopen(['DONE_StructureStatsMUSC_' tstamp '.txt'],'w');
+    fclose(fid1);
+    
+    
+    try
+        cd FIGURES/StructureStats_MUSC
+    catch err
+        mkdir FIGURES/StructureStats_MUSC
+        cd FIGURES/StructureStats_MUSC
+    end
+    
+    lt_save_all_figs
+else
+    save('AllDays_StructStatsStruct','AllDays_StructStatsStruct');
+    save('Params.mat','Params');
+    
+    %     write a text file that tells you when files were made
+    fid1=fopen(['DONE_StructureStats_' tstamp '.txt'],'w');
+    fclose(fid1);
+    
+    
+    try
+        cd FIGURES/StructureStats
+    catch err
+        mkdir FIGURES/StructureStats
+        cd FIGURES/StructureStats
+    end
+    
+    lt_save_all_figs
+    
+    
 end
 
-lt_save_all_figs
 
 cd ../../
-  
+
 
 
 

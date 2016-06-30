@@ -24,7 +24,7 @@ eval(['!mv ' batchnameOLD ' ' batchname]);  % renames batch.catch to batch.CATCH
    
 
 % cleans batch file to contain only suspected songs
-cleandirAuto(batchname,1000,4,4)
+lt_cleandirAuto(batchname,1000,4,4)
 batchname = [batchname '.keep'];
 
 % so you can examine how many songs are in the final batch file

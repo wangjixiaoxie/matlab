@@ -12,7 +12,7 @@ for i=1:NumBirds;
     for ii=1:numexperiments;
         
         syls_unique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
-
+        
         for j=1:length(syls_unique);
             syl=syls_unique{j};
             num_days=length(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).HitRateStatus);
@@ -51,9 +51,10 @@ counter2=0;
 
 for i=1:NumBirds;
     NumExperiments=length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
+    birdname=SeqDepPitch_AcrossBirds.birds{i}.birdname;
     
     for ii=1:NumExperiments;
-        
+        exptname=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.ExptID;
         % ============================ what motifs are in this expt?
         motifs=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.SeqFilter.SylLists.FieldsInOrder;
         SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.motifs=motifs;
@@ -75,7 +76,7 @@ for i=1:NumBirds;
                 if tmp==1;
                     targsyl_pre=nan;
                 else
-                targsyl_pre=targsyl(tmp-1);
+                    targsyl_pre=targsyl(tmp-1);
                 end
             end
         catch err
@@ -126,145 +127,215 @@ for i=1:NumBirds;
         % ======================================================
         
         % ============================ EXTRACT INFO for each syl.
-        SylFields_Unique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.SylFields_Unique;
-       
-            for j=1:length(SylFields_Unique);
-                
-                % -- extract individual syllables
-                syl=SylFields_Unique{j};
-                
-                % what is the syl (ignoring context)?
-                if length(syl)>1
-                    % where is the upper case?
-                    upperind=regexp(syl,'[A-Z]');
-                    single_syl=lower(syl(upperind));
-                else
-                    % then could be either upper or lower
-                    single_syl=lower(syl);
+        SylFields_Unique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
+        
+        for j=1:length(SylFields_Unique);
+            
+            % -- extract individual syllables
+            syl=SylFields_Unique{j};
+            
+            % what is the syl (ignoring context)?
+            if length(syl)>1
+                % where is the upper case?
+                upperind=regexp(syl,'[A-Z]');
+                single_syl=lower(syl(upperind));
+            else
+                % then could be either upper or lower
+                single_syl=lower(syl);
+            end
+            
+            
+            % is this the target?
+            if strcmp(targsyl,syl)==1;
+                is_target=1;
+            else
+                is_target=0;
+            end
+            
+            
+            % is that syl similar or different to target?
+            if strcmp(single_syl,single_syl_targ)==1;
+                similar_to_targ=1;
+            else
+                similar_to_targ=0;
+            end
+            
+            
+            % === Acoustic features
+            % --- Euclidian distance from target (PCA space)
+            fv_PCA_mean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_StructureStats.data.(syl).fv_baseline_PCAscore_mean;
+            eucldist_from_targ_PCA=sqrt(sum((fv_PCA_mean-fv_PCAscore_target_mean).^2));
+            
+            fv_zscore_mean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_StructureStats.data.(syl).fv_baseline_zscore_mean;
+            eucldist_from_targ_zscore=sqrt(sum((fv_zscore_mean-fv_zscore_target_mean).^2));
+            
+            
+            % =======================MOTIF RELATED STATS
+            % ID the motif
+            motif_num=nan;
+            for iii=1:length(motifs);
+                if any(strcmp(motifs{iii}, syl));
+                    % then this is the motif
+                    motif_num=iii;
                 end
+            end
+            
+            if isnan(motif_num);
+                % then this is a syl without defined motif
+                % set all outputs to nan
+                is_in_defined_motif=0;
+                pre_syl=nan;
+                presyl_similar_to_targ_presyl=0;
+                post_syl=nan;
+                postsyl_similar_to_targ_postsyl=nan;
+                distance_from_targ=nan;
+                two_syl_back=nan;
+                
+            else
+                % then this syllable has a defined motif
+                is_in_defined_motif=1;
+                
+                syls_in_motif=motifs{motif_num};
+                
+                % what is this syl's position in motif;
+                syl_pos_in_motif=find(strcmp(syls_in_motif, syl));
+                
+                % what is preceding syl?
+                % --- first try to get based on syl name
+                %                 if length(syl)>1;
+                %                     indCaps=regexp(syl, '[A-Z]');
+                %                     preceding_syl=lower(syl(indCaps-1));
+                %                 elseif syl_pos_in_motif==1;
+                %                     % --- then try to extract using motif
+                %                     % then this is the first syl
+                %                     preceding_syl=nan;
+                %                 else
+                %                     preceding_syl=syls_in_motif{syl_pos_in_motif-1};
+                %                 end
+                %
                 
                 
-                % is this the target?
-                if strcmp(targsyl,syl)==1;
-                    is_target=1;
+                pre_syl=nan;
+                % first choice
+                indCaps=regexp(syl, '[A-Z]');
+                if indCaps>1;
+                    pre_syl=lower(syl(indCaps-1));
                 else
-                    is_target=0;
-                end
-                
-                
-                % is that syl similar or different to target?
-                if strcmp(single_syl,single_syl_targ)==1;
-                    similar_to_targ=1;
-                else
-                    similar_to_targ=0;
-                end
-                                
-                
-                % === Acoustic features
-                % --- Euclidian distance from target (PCA space)
-                fv_PCA_mean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_StructureStats.data.(syl).fv_baseline_PCAscore_mean;
-                eucldist_from_targ_PCA=sqrt(sum((fv_PCA_mean-fv_PCAscore_target_mean).^2));
-                
-                fv_zscore_mean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_StructureStats.data.(syl).fv_baseline_zscore_mean;
-                eucldist_from_targ_zscore=sqrt(sum((fv_zscore_mean-fv_zscore_target_mean).^2));
-               
-                
-                % === MOTIF RELATED STATS
-                % ID the motif
-                motif_num=nan;
-                for iii=1:length(motifs);
-                    if any(strcmp(motifs{iii}, syl));
-                        % then this is the motif
-                        motif_num=iii;
-                    end
-                end
-                
-                if isnan(motif_num);
-                    % then this is a syl without defined motif
-                    % set all outputs to nan
-                    is_in_defined_motif=0;
-                    preceding_syl=nan;
-                    presyl_similar_to_targ_presyl=nan;
-                    post_syl=nan;
-                    postsyl_similar_to_targ_postsyl=nan;
-                    distance_from_targ=nan;
-                    
-                else
-                    % then this syllable has a defined motif
-                    is_in_defined_motif=1;
-                    
-                    syls_in_motif=motifs{motif_num};
-                    
-                    % what is this syl's position in motif;
-                    syl_pos_in_motif=find(strcmp(syls_in_motif, syl));
-                   
-                    % what is preceding syl?
                     if syl_pos_in_motif==1;
+                        % second choice
+                        
+                        % --- then try to extract using motif
                         % then this is the first syl
-                        preceding_syl=nan;
+                        pre_syl=nan;
                     else
-                        preceding_syl=syls_in_motif{syl_pos_in_motif-1};
-                    end
-                    
-                    
-                    % is the preceding syl similar to preceding syl of target?
-                    if length(preceding_syl)>1;
-                        tmp=regexp(preceding_syl,'[A-Z]');
-                        pre_syl=preceding_syl(tmp);
-                    else
-                        pre_syl=preceding_syl;
-                    end
-                    
-                    if strcmpi(pre_syl,targsyl_pre); % if they are the same (this fails even if they are both nan)
-                        presyl_similar_to_targ_presyl=1; % 1 means is similar
-                    else
-                        presyl_similar_to_targ_presyl=0;
-                    end
-                    
-                    
-                    
-                    % what is the post syl?
-                    if syl_pos_in_motif==length(syls_in_motif);
-                        % then this is last syl, no post syl
-                        post_syl=nan;
-                    else
-                        post_syl=syls_in_motif{syl_pos_in_motif+1};
-                    end
-                    
-                    % is post syl similar to target post syl?
-                    if length(post_syl)>1;
-                        tmp=regexp(post_syl,'[A-Z]');
-                        post_syl=lower(post_syl(tmp));
-                    else
-                        post_syl=lower(post_syl);
-                    end
-                    if strcmpi(post_syl,targsyl_post); % if they are the same
-                        postsyl_similar_to_targ_postsyl=1; % 1 means is similar
-                    else
-                        postsyl_similar_to_targ_postsyl=0;
-                    end
-                    
-                    
-                    % if this is in same motif as targsyl, how many renditions
-                    % away is it? (i.e. -1 is preceding, +1 is post)
-                    if any(strcmp(syls_in_motif,targsyl));
-                        % then this motif contains targ syl
-                        targsyl_ind=find(strcmp(syls_in_motif,targsyl));
-                        distance_from_targ=syl_pos_in_motif-targsyl_ind;
-                    else
-                        distance_from_targ=nan;
+                        pre_syl=syls_in_motif{syl_pos_in_motif-1};
                     end
                 end
                 
-                % ++++++++++++++++++++++++++++++++++++++++++++++++ CORRELATION STATS
+                %  what is 2 syls preceding?
+                % --- first try using syl name
+                %                 if length(syl)>2
+                %                     indCaps=regexp(syl, '[A-Z]');
+                %                     two_syl_back=lower(syl(indCaps-2));
+                %                 elseif syl_pos_in_motif>2;
+                %                     % --- else try to use motif
+                %                     two_syl_back=syls_in_motif{syl_pos_in_motif-2};
+                %                 else
+                %                     two_syl_back=nan;
+                %                 end
+                
+                two_syl_back=nan;
+                % first choice
+                indCaps=regexp(syl, '[A-Z]');
+                if indCaps>2;
+                    two_syl_back=lower(syl(indCaps-2));
+                else
+                    if syl_pos_in_motif>2;
+                        % --- else try to use motif
+                        two_syl_back=syls_in_motif{syl_pos_in_motif-2};
+                    else
+                        two_syl_back=nan;
+                    end
+                end
+                
+                
+                if length(two_syl_back)>1;
+                    tmp=regexp(two_syl_back,'[A-Z]');
+                    two_syl_back=two_syl_back(tmp);
+                else
+                    two_syl_back=two_syl_back;
+                end
+                two_syl_back=lower(two_syl_back);
+                
+                
+                % ============ is the preceding syl similar to preceding syl of target?
+                if length(pre_syl)>1;
+                    tmp=regexp(pre_syl,'[A-Z]');
+                    pre_syl=pre_syl(tmp);
+                else
+                    pre_syl=pre_syl;
+                end
+                pre_syl=lower(pre_syl);
+                
+                if strcmpi(pre_syl,targsyl_pre); % if they are the same (this fails even if they are both nan)
+                    presyl_similar_to_targ_presyl=1; % 1 means is similar
+                else
+                    presyl_similar_to_targ_presyl=0;
+                end
+                
+                
+                % what is the post syl?
+                if syl_pos_in_motif==length(syls_in_motif);
+                    % then this is last syl, no post syl
+                    post_syl=nan;
+                else
+                    post_syl=syls_in_motif{syl_pos_in_motif+1};
+                end
+                
+                
+                % is post syl similar to target post syl?
+                if length(post_syl)>1;
+                    tmp=regexp(post_syl,'[A-Z]');
+                    post_syl=lower(post_syl(tmp));
+                else
+                    post_syl=lower(post_syl);
+                end
+                if strcmpi(post_syl,targsyl_post); % if they are the same
+                    postsyl_similar_to_targ_postsyl=1; % 1 means is similar
+                else
+                    postsyl_similar_to_targ_postsyl=0;
+                end
+                
+                
+                % if this is in same motif as targsyl, how many renditions
+                % away is it? (i.e. -1 is preceding, +1 is post)
+                if any(strcmp(syls_in_motif,targsyl));
+                    % then this motif contains targ syl
+                    targsyl_ind=find(strcmp(syls_in_motif,targsyl));
+                    distance_from_targ=syl_pos_in_motif-targsyl_ind;
+                else
+                    distance_from_targ=nan;
+                end
+            end
+            
+            % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CORRELATION STATS
+            % SKIP FOR REPEAT EXPERIMENTS
+            % NOTE: THIS CAN ONLY GET CORRS (motif or song) if both syls
+            % are defined in regexp
+            
+            
+            func_tmp=@(X) findstr(X, '+');
+            if ~any(cell2mat(cellfun(func_tmp, SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.RegularExpressionsList, 'UniformOutput',0)));
+                % then there is no repeat in the reg exp
+                
                 % ==================================================== To other syls in same motif
                 if is_in_defined_motif==1;
                     if counter2==0;
                         counter2=1;
                         disp('NOTE: Correlations motif-to-motif: using subclass #1, assuming that is the important/only subclass');
                     end
-                        
-                       
+                    
+                    
                     
                     % -----------------------------------------------------------------
                     % figure out which class/subclass (strings) it is in
@@ -274,6 +345,9 @@ for i=1:NumBirds;
                     for k=1:length(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.Params.RegExpr.subexpressions);
                         if length(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.Params.RegExpr.subexpressions{k})>1; % skip, only works for things with one subexpression (e.g. abbccbb);
                             motifs_with_mult_subclasses=[motifs_with_mult_subclasses SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.Params.RegExpr.subexpressions{k}{1}];
+                            
+                            motifs_potential=[motifs_potential SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.Params.RegExpr.subexpressions{k}{1}];
+                            
                             continue
                         end
                         
@@ -282,58 +356,95 @@ for i=1:NumBirds;
                     
                     % tell user what threw out
                     for k=1:length(motifs_with_mult_subclasses);
+                        
                         disp(['subclass motif correlations: had more than one subclass, took the first one for ' motifs_with_mult_subclasses{k}]);
                     end
                     % -----------------------------------------------------------------
-                        
+                    
                     % Find which motif it is in, and which position in
                     % motif.
                     OUTPUT=Fn_FindSylInRegExp(motifs_potential, syl);
                     regexp_motifnum=OUTPUT.motif_of_origin;
                     regexp_PosInMotif_thissyl=OUTPUT.position_in_motif_of_origin;
                     
+                    % --- if this syl is not in a motif, then skip it for
+                    % motif by motif.
+                    if ~isempty(regexp_motifnum)
                         
-                    % -- Get list of other syls in motif
-                    for k=1:length(syls_in_motif);
-                        syl_other=syls_in_motif{k};
-                        
-                        % -- Get position of the other syl in the motif
-                        OUTPUT=Fn_FindSylInRegExp(motifs_potential, syl_other);
-                        if OUTPUT.motif_of_origin~=regexp_motifnum;
-                            % then there is problem! they should be in same
-                            % motif
-                            disp('PROBLEM - other syl found to be in diff motif (regexp) than syl');
-                            asdceagea; % halts
+                        % -- Get list of other syls in motif
+                        for k=1:length(syls_in_motif);
+                            syl_other=syls_in_motif{k};
+                            
+                            % -- Get position of the other syl in the motif
+                            OUTPUT=Fn_FindSylInRegExp(motifs_potential, syl_other);
+                            if OUTPUT.motif_of_origin~=regexp_motifnum;
+                                % then there is problem! they should be in same
+                                % motif
+                                disp('PROBLEM - other syl found to be in diff motif (regexp) than syl');
+                                asdceagea; % halts
+                            end
+                            
+                            regexp_PosInMotif_othersyl=OUTPUT.position_in_motif_of_origin;
+                            
+                            
+                            % ====== COLLECT STATS
+                            % Using motif-by-motif
+                            corrcoeff=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses...
+                                {regexp_motifnum}.sub_class{1}.CORRELATIONS.RhoMat(regexp_PosInMotif_thissyl, regexp_PosInMotif_othersyl);
+                            pval=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{regexp_motifnum}.sub_class{1}.CORRELATIONS.PvalMat(regexp_PosInMotif_thissyl, regexp_PosInMotif_othersyl);
+                            
+                            if isempty(corrcoeff)
+                                corrcoeff=nan;
+                            end
+                            if isempty(pval)
+                                pval=nan;
+                            end
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.corrcoeff_vs.(syl_other)=corrcoeff;
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.p_val_vs.(syl_other)=pval;
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.regexp_motifnum=regexp_motifnum;
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.regexp_PosInMotif=regexp_PosInMotif_thissyl;
+                            
+                            % Using motif-by-motif, subtracting song mean
+                            corrcoeff=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{regexp_motifnum}.sub_class{1}.CORRELATIONS.SUBTRACT_SONG_MEAN.RhoMat(regexp_PosInMotif_thissyl, regexp_PosInMotif_othersyl);
+                            pval=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{regexp_motifnum}.sub_class{1}.CORRELATIONS.SUBTRACT_SONG_MEAN.PvalMat(regexp_PosInMotif_thissyl, regexp_PosInMotif_othersyl);
+                            if isempty(corrcoeff)
+                                corrcoeff=nan;
+                            end
+                            if isempty(pval)
+                                pval=nan;
+                            end
+                            
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.SONG_MEAN_SUBTRACTED.corrcoeff_vs.(syl_other)=corrcoeff;
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.SONG_MEAN_SUBTRACTED.p_val_vs.(syl_other)=pval;
+                            
+                            % Using motif-by-motif, subtracting song mean, only
+                            % keeping songs with >N motifs
+                            corrcoeff=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{regexp_motifnum}.sub_class{1}.CORRELATIONS.SUBTRACT_SONG_MEAN_NoShortSongs.RhoMat(regexp_PosInMotif_thissyl, regexp_PosInMotif_othersyl);
+                            pval=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{regexp_motifnum}.sub_class{1}.CORRELATIONS.SUBTRACT_SONG_MEAN_NoShortSongs.PvalMat(regexp_PosInMotif_thissyl, regexp_PosInMotif_othersyl);
+                            if isempty(corrcoeff)
+                                corrcoeff=nan;
+                            end
+                            if isempty(pval)
+                                pval=nan;
+                            end
+                            
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.SONG_MEAN_SUBTRACTED_NoShortSong.corrcoeff_vs.(syl_other)=corrcoeff;
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.SONG_MEAN_SUBTRACTED_NoShortSong.p_val_vs.(syl_other)=pval;
+                            
                         end
-                        
-                        regexp_PosInMotif_othersyl=OUTPUT.position_in_motif_of_origin;
-                        
-                        
-                        % ====== COLLECT STATS
-                        % Using motif-by-motif
-                        corrcoeff=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{regexp_motifnum}.sub_class{1}.CORRELATIONS.RhoMat(regexp_PosInMotif_thissyl, regexp_PosInMotif_othersyl);
-                        pval=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{regexp_motifnum}.sub_class{1}.CORRELATIONS.PvalMat(regexp_PosInMotif_thissyl, regexp_PosInMotif_othersyl);
-                        
-                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.corrcoeff_vs.(syl_other)=corrcoeff;
-                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.p_val_vs.(syl_other)=pval;
-                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.regexp_motifnum=regexp_motifnum;
-                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.regexp_PosInMotif=regexp_PosInMotif_thissyl;
-                        
-                        % Using motif-by-motif, subtracting song mean
-                        corrcoeff=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{regexp_motifnum}.sub_class{1}.CORRELATIONS.SUBTRACT_SONG_MEAN.RhoMat(regexp_PosInMotif_thissyl, regexp_PosInMotif_othersyl);
-                        pval=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{regexp_motifnum}.sub_class{1}.CORRELATIONS.SUBTRACT_SONG_MEAN.PvalMat(regexp_PosInMotif_thissyl, regexp_PosInMotif_othersyl);
-                        
-                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.SONG_MEAN_SUBTRACTED.corrcoeff_vs.(syl_other)=corrcoeff;
-                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.SONG_MEAN_SUBTRACTED.p_val_vs.(syl_other)=pval;
-
-                        % Using motif-by-motif, subtracting song mean, only
-                        % keeping songs with >N motifs
-                        corrcoeff=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{regexp_motifnum}.sub_class{1}.CORRELATIONS.SUBTRACT_SONG_MEAN_NoShortSongs.RhoMat(regexp_PosInMotif_thissyl, regexp_PosInMotif_othersyl);
-                        pval=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{regexp_motifnum}.sub_class{1}.CORRELATIONS.SUBTRACT_SONG_MEAN_NoShortSongs.PvalMat(regexp_PosInMotif_thissyl, regexp_PosInMotif_othersyl);
-                        
-                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.SONG_MEAN_SUBTRACTED_NoShortSong.corrcoeff_vs.(syl_other)=corrcoeff;
-                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.SONG_MEAN_SUBTRACTED_NoShortSong.p_val_vs.(syl_other)=pval;
-
+                    else
+                        disp(['HEYHEYHEY - syl ' syl '(' birdname '-' exptname  ') is in defined motif (fields) but not in regexpr']);
+                        for k=1:length(syls_in_motif);
+                            syl_other=syls_in_motif{k};
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.corrcoeff_vs.(syl_other)=nan;
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.p_val_vs.(syl_other)=nan;
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.regexp_motifnum=nan;
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.regexp_PosInMotif=nan;
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.SONG_MEAN_SUBTRACTED.corrcoeff_vs.(syl_other)=nan;
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.SONG_MEAN_SUBTRACTED.p_val_vs.(syl_other)=nan;
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.SONG_MEAN_SUBTRACTED_NoShortSong.corrcoeff_vs.(syl_other)=nan;
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.SONG_MEAN_SUBTRACTED_NoShortSong.p_val_vs.(syl_other)=nan;
+                        end
                     end
                     
                 else
@@ -347,10 +458,10 @@ for i=1:NumBirds;
                 % ==================================================== To all syls in song (even in other motif)
                 % String of order of correlations in matrix.
                 if counter1==0;
-                disp('NOTE - Matching syls (e.g. dB) to position in correlation matrix only works if the regular expression strings are explicit (e.g. abbccb, and not [dj]bb, and have no subclasses');
-                counter1=1;
+                    disp('NOTE - Matching syls (e.g. dB) to position in correlation matrix only works if the regular expression strings are explicit (e.g. abbccb, and not [dj]bb, and have no subclasses');
+                    counter1=1;
                 end
-                                
+                
                 
                 % ===== Find index of this syl (in the corr matrix)
                 % where is the single syl? (upper case) (in motifs used for
@@ -359,59 +470,85 @@ for i=1:NumBirds;
                 
                 OUTPUT=Fn_FindSylInRegExp(motifs_potential, syl);
                 ind_of_this_syl=OUTPUT.ind_of_syl;
-
-                % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 
-                for k=1:length(SylFields_Unique); % get corr coeff to all other syls.
-                                        
-                    % === Find index of other syl
-                    syl_other=SylFields_Unique{k};
-                    
-                    
-                    OUTPUT=Fn_FindSylInRegExp(motifs_potential, syl_other);
-                    ind_of_other_syl=OUTPUT.ind_of_syl;
-                    
-
-                    % ================================= OUTPUT
-                    corrcoeff=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.Correlations_Across_Classes.SONG_BY_SONG.RhoMat(ind_of_this_syl,ind_of_other_syl);
-                    p_val=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.Correlations_Across_Classes.SONG_BY_SONG.PvalMat(ind_of_this_syl,ind_of_other_syl);
-
-                    if isempty(corrcoeff);
-                        corrcoeff=nan;
-                        p_val=nan;
+                % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                if ~isempty(ind_of_this_syl)
+                    for k=1:length(SylFields_Unique); % get corr coeff to all other syls.
+                        
+                        % === Find index of other syl
+                        syl_other=SylFields_Unique{k};
+                        
+                        
+                        OUTPUT=Fn_FindSylInRegExp(motifs_potential, syl_other);
+                        ind_of_other_syl=OUTPUT.ind_of_syl;
+                        
+                        
+                        % ================================= OUTPUT
+                        corrcoeff=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.Correlations_Across_Classes.SONG_BY_SONG.RhoMat(ind_of_this_syl,ind_of_other_syl);
+                        p_val=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.Correlations_Across_Classes.SONG_BY_SONG.PvalMat(ind_of_this_syl,ind_of_other_syl);
+                        
+                        if isempty(corrcoeff);
+                            corrcoeff=nan;
+                            p_val=nan;
+                        end
+                        
+                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.corrcoeff_vs.(syl_other)=corrcoeff;
+                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.p_val_vs.(syl_other)=p_val;
+                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.ind_of_this_syl=ind_of_this_syl;
+                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.ind_of_other_syl.(syl_other)=ind_of_other_syl;
+                        
                     end
                     
-                    SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.corrcoeff_vs.(syl_other)=corrcoeff;
-                    SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.p_val_vs.(syl_other)=p_val;
-                    SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.ind_of_this_syl=ind_of_this_syl;
-                    SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.ind_of_other_syl.(syl_other)=ind_of_other_syl;
+                else
+                    
+                    for k=1:length(SylFields_Unique); % get corr coeff to all other syls.
+                        
+                        % === Find index of other syl
+                        syl_other=SylFields_Unique{k};
+                        
+                        
+                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.corrcoeff_vs.(syl_other)=nan;
+                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.p_val_vs.(syl_other)=nan;
+                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.ind_of_this_syl=nan;
+                        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.ind_of_other_syl.(syl_other)=nan;
+                        
+                    end
+                    
                     
                 end
                 % ------------------------------------------------------------------------------------------------------------
-               
                 
                 
-                % ======================================= Put features into the original structure
-                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).single_syl=single_syl;
-                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).is_target=is_target;
-                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).similar_to_targ=similar_to_targ;
-                
-                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).eucldist_from_targ_PCA=eucldist_from_targ_PCA;
-                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).eucldist_from_targ_zscore=eucldist_from_targ_zscore;
-                
-                
-                
-                % motif related things
-                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).motif_num=motif_num;
                 SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).regexp_motifnum=regexp_motifnum;
                 SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).regexp_PosInMotif_thissyl=regexp_PosInMotif_thissyl;
-                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).preceding_syl=preceding_syl;
-                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).post_syl=post_syl;
-                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).distance_from_targ=distance_from_targ;
-                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).presyl_similar_to_targ_presyl=presyl_similar_to_targ_presyl;
-                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).postsyl_similar_to_targ_postsyl=postsyl_similar_to_targ_postsyl;
-                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).is_in_defined_motif=is_in_defined_motif;
+                
+                
+            else
+                disp(['repeats in reg exp: no corr put in syl id for ' birdname '-' exptname]);
+                
             end
+            
+            
+            % ======================================= Put features into the original structure
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).single_syl=single_syl;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).is_target=is_target;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).similar_to_targ=similar_to_targ;
+            
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).eucldist_from_targ_PCA=eucldist_from_targ_PCA;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).eucldist_from_targ_zscore=eucldist_from_targ_zscore;
+            
+            
+            
+            % motif related things (not regexp)
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).motif_num=motif_num;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).preceding_syl=pre_syl;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).two_syl_back=two_syl_back;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).post_syl=post_syl;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).distance_from_targ=distance_from_targ;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).presyl_similar_to_targ_presyl=presyl_similar_to_targ_presyl;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).postsyl_similar_to_targ_postsyl=postsyl_similar_to_targ_postsyl;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).is_in_defined_motif=is_in_defined_motif;
+        end
     end
 end
 
@@ -445,6 +582,35 @@ if (0)
         end
     end
 end
+
+
+%% DETERMINE IF 2 SYL BACK IS SIMILAR TO TARGET
+for i=1:length(SeqDepPitch_AcrossBirds.birds);
+    
+    numexpt=length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
+    
+    for ii=1:numexpt
+        
+        targsyl=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targsyl;
+        
+        two_syl_back_targsyl=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(targsyl).two_syl_back;
+        
+        SylsUnique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
+        
+        for j=1:length(SylsUnique);
+            syl=SylsUnique{j};
+            
+            two_syl_back=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).two_syl_back;
+            
+            if strcmp(two_syl_back, two_syl_back_targsyl);
+                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).two_syl_back_same_as_targ=1;
+            else
+                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).two_syl_back_same_as_targ=0;
+            end
+        end
+    end
+end
+
 
 
 %% GET INFORMATION ABOUT TARGET (i.e. learning at target) (start and end of WN)

@@ -1,9 +1,10 @@
 function hfig=lt_plot(X,Y,Modifiers)
 %% 11/30/14 - my version default of plot
 % X, Y normal
-% Modifiers = {'Color','k','LineWidth',2}; (enter as cell array, has to be even number)
+% Modifiers = {'Color','k','LineWidth',2,'Errors',Yerr}; (enter as cell array, has to be even number)
 
 %% Default params
+plot_errors=0;
 
 if nargin==2;
     % is last arg cell? then am missing X
@@ -50,21 +51,40 @@ if ~any(strcmp(Modifiers,'MarkerSize'));
     Modifiers=[Modifiers, 'MarkerSize',6];
 end
 
+if any(strcmp(Modifiers,'Errors'));
+    Yerr=Modifiers{find(strcmp(Modifiers,'Errors'))+1};
+    plot_errors=1;
+end
+
+
+
 
 %% RUN
 
 % then plot
+if plot_errors==0;
 hfig=plot(X,Y);
+
+else
+    if length(X)==1;
+        X=ones(length(Y), 1)*X;
+    end
+       
+    hfig=errorbar(X, Y, Yerr);
+    errorbar_tick(hfig, 1000)
+end
 
 % apply modifiers
 for i=1:length(Modifiers)/2;
-    
+    if any(strcmp(Modifiers{2*i-1}, 'Errors'));
+        continue;
+    end
     set(hfig,Modifiers{2*i-1},Modifiers{2*i});
 end
 
 % format color and font size
 lt_plot_format;
 
-
+set(hfig,'LineWidth',2)
 
 

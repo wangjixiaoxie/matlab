@@ -1,3 +1,67 @@
+%% ========================== 12/6/15 - pu11 context autolabel
+clear all; close all;
+batch = 'batch.keep';
+% config='/bluejay4/lucas/birds/pu11wh87/config_111715.evconfig2'; 
+config='/bluejay4/lucas/birds/pu11wh87/config_112015.evconfig2'; 
+
+syl.targ='b';
+syl.pre='cc';
+syl.post=''; 
+NoteNum=0; 
+
+ampThresh=19000;
+min_dur=20;
+min_int=4;
+
+overwrite_notmat=1;
+
+% ---- RUN
+MetadataStruct=lt_metadata_collect;
+
+experiment = 'CtxtDepPitch';
+condition='';
+notes='';
+date_range={'06Dec2015', '14Dec2015'};
+only_labeled_dirs=0;
+ListOfDirs2=lt_metadata_find_dirs(MetadataStruct, experiment, condition, notes, date_range, only_labeled_dirs);
+
+for i=1:length(ListOfDirs2);
+    
+        cd(ListOfDirs2{i});
+        
+        lt_make_batch(1);
+        
+        [fnames, sylnum, vlsorfn, vlsorind]=lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat);
+        
+        cd ..
+end
+
+
+
+% 
+% % ==== additional
+% cd /bluejay4/lucas/birds/pu11wh87/111315_CtxtDepPitch_away_preWN
+%         lt_make_batch(1);
+%         
+%         [fnames, sylnum, vlsorfn, vlsorind]=lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat);
+% 
+% 
+% cd /bluejay4/lucas/birds/pu11wh87/111415_CtxtDepPitch_away_preWN
+%         lt_make_batch(1);
+%         
+%         [fnames, sylnum, vlsorfn, vlsorind]=lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat);
+%       
+        
+%% =====
+[fnames, sylnum]=lt_jc_chcklbl(batch, syl.targ, 0.025,0.025,'','','');
+[vlsorfn vlsorind]=jc_vlsorfn(batch, syl.targ,'','');
+
+lt_autolabel_FixHandCheckedSyls(fnames, sylnum, vlsorfn, vlsorind)
+
+
+
+
+%% ================================================
 clear all; close all
 config= '/bluejay4/lucas/birds/pk32/config_081515.evconfig2'; 
 
@@ -13,17 +77,30 @@ min_int=4;
 overwrite_notmat=1;
 
 % ====== all syls
-% cd /bluejay4/lucas/birds/pk32/091515_Consolidation2_TargB_STIMon_day5
-% lt_make_batch(4);
-% batch = 'batch.rec_FB';
-% lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat)
+cd /bluejay4/lucas/birds/pk32/091715_Consolidation2_TargB_STIMon_day7
+lt_make_batch(4);
+batch = 'batch.rec_FB';
+lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat)
+
+cd /bluejay4/lucas/birds/pk32/091815_Consolidation2_TargB_STIMon_day8
+lt_make_batch(4);
+batch = 'batch.rec_FB';
+lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat)
+
+cd /bluejay4/lucas/birds/pk32/091915_Consolidation2_TargB_STIMon_day9
+lt_make_batch(4);
+batch = 'batch.rec_FB';
+lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat)
+
 
 % ==== subset syls
-% cd /bluejay4/lucas/birds/pk32/090915_Consolidation2_TargB_STIMoff
-% lt_make_batch(2,0.3);
-% batch = 'batch.rand.keep';
-% lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat)
-% 
+p=0.5;
+cd /bluejay4/lucas/birds/pk32/092015_Consolidation2_TargB_STIMoff
+lt_make_batch(4);
+randsamp('batch.rec_FB',p)
+batch = 'batch.rec_FB.rand';
+lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat)
+
 
 
 %% 5/13 - 

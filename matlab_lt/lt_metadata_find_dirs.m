@@ -27,7 +27,7 @@ function [output_cell_or_struct]=lt_metadata_find_dirs(MetadataStruct, experimen
 % date_range={'20Apr2015','20May2015'};
 % only_labeled_dirs=1;
 % 
-% ListOfDirs2=lt_metadata_find_dirs(MetadataStruct, experiment, condition, notes, date_range, only_labeled_dirs);
+% ListOfDirs2=lt_metadata_find_dirs(MetadataStruct, experiment, condition, notes, date_range, only_labeled_dirs, 2);
 
 %% DEFAULTS
 if ~exist('prog_vers', 'var');

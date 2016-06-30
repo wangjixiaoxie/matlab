@@ -34,13 +34,13 @@ for i = 1:length(make_temp.parameters.syllables)
         make_temp.parameters.syllables(i),...
         0.2,0.2,make_temp.parameters.prent,make_temp.parameters.postnt,'obs0');
     
-    figure
+    figure; hold on;
     imagesc(make_temp.time_range{i}*1000,make_temp.freq_range{i},log(make_temp.spec{i}));syn;ylim([0,1e4]);
     title(['Syllable ' make_temp.parameters.syllables(i) ', preceded by: ' make_temp.parameters.prent '; followed by: ' make_temp.parameters.postnt ])
     ylabel('Frequency (Hz)')
     xlabel('Time (ms)')
     
-    figure
+    figure; hold on;
     imagesc(log(make_temp.spec{i}));syn;
     title(['Syllable ' make_temp.parameters.syllables(i) ', preceded by: ' make_temp.parameters.prent '; followed by: ' make_temp.parameters.postnt ])
     ylabel('Frequency (Hz)')

@@ -245,11 +245,14 @@ while (1)
         fff = fff + pre_count; % LT: i.e. is there is a preceding note.
     end
     ntmintmp=[];
+    try
     for ll = 1:length(fff)
         ptmp=find((tdatat>=onsets(fff(ll))*1e-3)&(tdatat<=offsets(fff(ll))*1e-3));
         if (length(ptmp)>0)
             ntmintmp = [ntmintmp;min(tdata(ptmp))];
         end
+    end
+    catch err
     end
     trigs(cnt).ntmintmp=ntmintmp;
 end

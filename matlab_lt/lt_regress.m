@@ -1,15 +1,30 @@
 %% uses matlab code regress() but automatically adds 1 to X and formats X and Y. Also plots automatically
-function [b,bint,r,rint,stats,SummaryStats]=lt_regress(Y,X_no_ones,plotON,plotB_error)
+function [b,bint,r,rint,stats,SummaryStats, hplot]=lt_regress(Y,X_no_ones,plotON,plotB_error, plotline, plot_summary, plotcol)
 
 % Y and X are vectors (can be columns or rows, currently only 1D) (do not
 % add 1s to X)
 % plotON =1 plots data with best fit line.
 % plotB_error=1 plot 95% CI of line.
+% plotline=1
+
 % outputs: same as for regress()
 
 %% DEFAULTS
+
+if ~exist('plot_summary','var');
+    plot_summary=1;
+end
+
 if ~exist('plotB_error','var');
     plotB_error=0;
+end
+
+if ~exist('plotline','var');
+    plotline=1;
+end
+
+if ~exist('plotcol','var');
+    plotcol='b';
 end
 
 %% put inputs into columns
@@ -24,9 +39,7 @@ if size(X_no_ones,2)>size(X_no_ones,1);
 end
 
 %% put ones in front of X
-
 X=[ones(length(X_no_ones),1), X_no_ones];
-
 
 %% perform regression
 
@@ -42,26 +55,32 @@ SummaryStats.p=stats(3);
 
 %% plot if desired
 if plotON==1;
-%     lt_figure; hold on;
-%     title('raw data + linear regression best fit (95% CI)')
+    %     lt_figure; hold on;
+    %     title('raw data + linear regression best fit (95% CI)')
     % plot data
-    plot(X(:,2),Y, 'ok');
+    hplot=plot(X(:,2),Y, '.', 'Color',plotcol);
     
     % plot regression lines (with error)
-    plot(xlim,b(1) + b(2).*xlim,'-r','LineWidth',2);
+    if plotline==1;
+        plot(xlim,b(1) + b(2).*xlim,'-','Color',plotcol,'LineWidth',2);
+    end
     
     if plotB_error==1;
-    plot(xlim,bint(1,1) + bint(2,1).*xlim,'-r');
-    plot(xlim,bint(1,2) + bint(2,2).*xlim,'-r');
+        plot(xlim,bint(1,1) + bint(2,1).*xlim,'-r');
+        plot(xlim,bint(1,2) + bint(2,2).*xlim,'-r');
     end
     
     % plot summary stats
-    Xlim=xlim;
-    Ylim=ylim;
-    
-    text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-(Ylim(2)-Ylim(1))/10,['p=' num2str(SummaryStats.p)],'FontSize',13,'FontWeight','bold','Color','b');
-    text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-2*(Ylim(2)-Ylim(1))/10,['R2=' num2str(SummaryStats.R2)],'FontSize',13,'FontWeight','bold','Color','b');
+    if plot_summary==1;
+        Xlim=xlim;
+        Ylim=ylim;
+        
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-(Ylim(2)-Ylim(1))/10,['p=' num2str(SummaryStats.p)],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-2*(Ylim(2)-Ylim(1))/10,['R2=' num2str(SummaryStats.R2)],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-3*(Ylim(2)-Ylim(1))/10,['slope=' num2str(SummaryStats.slope)],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        
+    end
 end
-    
+
     
     

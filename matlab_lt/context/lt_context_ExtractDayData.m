@@ -34,6 +34,7 @@ function [AllData, error_NoNoteGroup]=lt_context_ExtractDayData(Params, saveON, 
 % about is a single note). Takes me about a second per song file.
 
 
+
 %% PARAMS
 if ~exist('OnlyContinueIfNoteGroups','var');
     OnlyContinueIfNoteGroups=0;

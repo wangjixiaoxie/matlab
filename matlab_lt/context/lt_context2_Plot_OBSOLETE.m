@@ -1,0 +1,37 @@
+%% OBSOLETE - this uses ALLDATSTRUCT made by lt_extract_CompilePC. Instead of this, use lt_context2_ConvertToContext1 
+% then run analysis using lt_context_PLOT
+
+numdays=length(ALLDATSTRUCT);
+
+%% Plot raw data for all days
+for k=1:length(Params_global.CompilePC.all_single_syls);
+    syl=Params_global.CompilePC.all_single_syls{k};
+    
+    lt_figure; hold on;
+    title(syl);
+    plot_cols=lt_make_plot_colors(length(Params_global.CompilePC.all_conditions), 0, 0);
+    
+    for i=1:numdays;
+        
+        if isempty(ALLDATSTRUCT(i).data);
+            continue;
+        end
+        
+        % == plot by condition
+        for j=1:length(Params_global.CompilePC.all_conditions);
+            cond=Params_global.CompilePC.all_conditions{j};
+            inds=strcmp({ALLDATSTRUCT(i).data.(syl).condition},cond);
+            
+            FFvals=[ALLDATSTRUCT(i).data.(syl)(inds).FFvals];
+            Tvals=[ALLDATSTRUCT(i).data.(syl)(inds).Tvals_days];
+            
+            lt_plot(Tvals, FFvals, {'Color',plot_cols{j}});
+            
+            legend(gca, Params_global.CompilePC.all_conditions)
+        end
+    end
+end
+
+
+
+

@@ -1,4 +1,4 @@
-function [smooth,spec,t,f]=SmoothData(rawsong,Fs,DOFILT,filter_type,nfft,olap,sm_win,F_low,F_High);
+function [smooth,spec,t,f]=SmoothData(rawsong,Fs,DOFILT,filter_type,nfft,olap,sm_win,F_low,F_high);
 % [smooth,spec,t,f]=SmoothData(rawsong,Fs,DOFILT,filter_type,nfft,olap,sm_win,F_low,F_High);
 % returns the smoothed waveform/envelope + the spectrum
 %
@@ -19,7 +19,7 @@ if (~exist('olap','var'))
 	olap = 0.8;
 end
 if (~exist('sm_win','var'))
-	sm_win = 2.0;%ms
+	sm_win = 2.0; %ms
 end
 
 %if(~exist('SPTH'))

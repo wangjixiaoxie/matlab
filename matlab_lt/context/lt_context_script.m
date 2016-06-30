@@ -1,3 +1,12 @@
+%% ++++++++++++++++++++++++++++++++++++INTRO
+% Method 1 and Method 2 below
+
+
+
+%% +++++++++++++++++++++++++++++++++ METHOD 1 - autolabels using evtafv4 some - uses tameplate matching FF for context analysis
+% === useful when have ginormous data, e.g. many days with rap[id context
+% switching.
+
 %% LT 4/26/15 - general script with directions for how to perform context analyses
 % This requires using EvTAF_v4_LT_v1 or higher - i.e. has note group
 % functionality.  It allows automatic switching of note groups (a note
@@ -35,7 +44,7 @@ Params.metadata.only_labeled_dirs=0;
 % analysis params
 Params.analysis.batch='batch.keep';
 % last version config (template used at very end of SeqDepPitch)
-Params.analysis.config = '/bluejay4/lucas/birds/pu35wh17/061215_SeqDepPitch_durWN_day9/config_061115.evconfig2';
+Params.analysiALL AL [EDGES FP REMOVED], edges checked s.config = '/bluejay4/lucas/birds/pu35wh17/061215_SeqDepPitch_durWN_day9/config_061115.evconfig2';
 Params.analysis.dataID='All'; % e.g. id of data (e.g. 'All' for all data in data). if blank, uses batch name.
 Params.analysis.Make_BatchKeep=1; % will make a new batch.keep for each day
 
@@ -61,7 +70,7 @@ Params_alldays.RunBin=10;
 
 Params_alldays.BoundaryTimes={'05May2014-1423', '08May2014-1423'}; % in format of e.g. 05May2014-1423, these are times of switching in experiment (e.g. turning WN off and on, changing pitch contingency, etc)
 
-Params_input.Edge_Num_Rends = 20; % num rends to call "edges" (defualt: queries)
+Params_alldays.Edge_Num_Rends = 20; % num rends to call "edges" (defualt: queries)
 Params_alldays.Probe_CSplus=[1 2]; % [from to] (actual NG nums) (e.g. from no light --> light on(probe))
 Params_alldays.Probe_CSminus=[1 3]; % [from to] (actual NG nums) (e.g. from no light --> no light (probe))
 
@@ -75,8 +84,70 @@ lt_context_CompileAndPlot(Params_alldays);
 
 
 
+%% ++++++++++++++++++++++++++++++++ METHOD 2 - hand labeled - exctracts data, uses pitch contour
+
+%% ======================= Extracting data across days
+% --- day directories must be in format
+% [date]_[experimentname]_[context_name].
+% -- Run this in bird folder to extract all days data to subfolder
+
+clear all; close all;
+
+Params.syl_list={'b'}; % single syls
+Params.freq_range_list={[3000 4000]};
+Params.pc_dur_list=[0.11];
+Params.pc_harms_list=[1];
+
+Params.batch='batch.labeled.all.edges';
+Params.experiment = 'CtxtDepPitch';
+
+date_range={'15Nov2015','18Nov2015'}; % e.g. {'20Apr2015','20May2015'}. leave blank ('') for all days
+
+lt_extract_AllDaysPC(Params, date_range)
 
 
+%% %% Compiling data - go to "extract" folder first
+clear all; close all;
+Params_global.CompilePC.PC_window_list={'b', [40 70]}; % syl, value pairs [single syls]
+Params_global.CompilePC.FirstDay='';
+Params_global.CompilePC.LastDay='';
+plotON=1; % pitch contours, all days, all syls
+saveON=1;
+
+% Regular expressions - first calculates FF etc, then performs regular
+% expressions
+Params_global.CompilePC.regexp_list={'c(b)'}; % e.g. {'dcc(b)', 'ab+(g)'} : dcc(b) means match dccb, and give me ind of b in parantheses.  ab+g means match ab... (anly length repeat), then g. give me ind of g
+Params_global.CompilePC.regexp_fieldnames={'dccB','bccB'}; % whatever
+% want to call structure field (if this cell array not defined, then will
+% attempt to use the regexp names.
+    
+[ALLDATSTRUCT, Params_global]= lt_extract_CompilePC(plotON, Params_global, saveON);
+
+
+%% Convert to context1 format
+% --- TO BE ABLE TO RUN USING CONTEXT PLOT SAME AS FOR METHOD 1
+Params_global.ConvertToContext1.NoteGroupNum_codes={'away', 1, 'home', 2, 'awayProbe', 3}; % {NoteGroup_name, NoteGroupNum} pairs - name must match what is in "condition" field. NoteGroupNum can be anything (keep it from 1, 2, ...);
+% Params_global.ConvertToContext1.NoteNum_codes={'dcc_b_', 1, 'bcc_b_', 2}; % {notestring, notenum} pairs - notestring either single syl (e.g. 'a') or regexp, using underscores (e.g. 'dcc_b_')
+Params_global.ConvertToContext1.NoteNum_codes={'c_b_', 1}; % {notestring, notenum} pairs - notestring either single syl (e.g. 'a') or regexp, using underscores (e.g. 'dcc_b_')
+% syl='b';
+
+
+[AllSongsDataMatrix, Params_alldays]= lt_context2_ConvertToContext1(ALLDATSTRUCT, Params_global);
+
+
+%% PLOT
+% USING SAME CONTEXT PLOT CODE FROM METHOD 1
+close all;
+Params_alldays.NoteToPlot=1;
+Params_alldays.RunBin=10;
+
+Params_alldays.BoundaryTimes={'15Nov2015-0000'}; % in format of e.g. 05May2014-1423, these are times of switching in experiment (e.g. turning WN off and on, changing pitch contingency, etc)
+Params_alldays.Edge_Num_Rends = 40; % num rends to call "edges"
+
+Params_alldays.throw_out_if_epoch_diff_days=0; % throws out any transitions that overlap with O/N (potentially 2 per O/N)
+one_switch_a_day=1; % manual switching experiemnts.
+
+lt_context_PLOT(AllSongsDataMatrix, Params_alldays, one_switch_a_day);
 
 
 

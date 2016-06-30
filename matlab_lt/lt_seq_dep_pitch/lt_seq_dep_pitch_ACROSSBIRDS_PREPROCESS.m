@@ -7,6 +7,13 @@ NumExpt=length(ExperimentList);
 SeqDepPitch_AcrossBirds=struct('birds',[]); % holding structure
 
 for i=1:length(ExperimentList);
+    
+    % skip if is empty
+    if isempty(ExperimentList{i});
+        continue;
+    end
+       
+    
     birdname=ExperimentList{i}{1};
     ExptID=ExperimentList{i}{2};
     NumTargs=ExperimentList{i}{3};
@@ -16,8 +23,41 @@ for i=1:length(ExperimentList);
     RegularExpressionsList=ExperimentList{i}{7};
     LMANinactivated=ExperimentList{i}{9};
     
-    % Multidir stuff
-    if ~isempty(ExperimentList{i}{8});
+    % === extract num days thr increased (single context phase)
+    NumDaysAdapticeThr=ExperimentList{i}{11};
+    if isempty(NumDaysAdapticeThr)
+    disp([birdname '-' ExptID '-  ' 'EMPTY']);
+    else
+    disp([birdname '-' ExptID '-  ' num2str(NumDaysAdapticeThr)]);
+    end
+    
+%     if NumTargs>2;
+%         sdafasdf
+%     end
+    
+% == old method. now using numtargs annotation
+%     if ~isempty(ExperimentList{i}{8});
+%         MultiDir_OneDayBeforeStart=ExperimentList{i}{8}{1};
+%         MultiDir_LastDay=ExperimentList{i}{8}{2};
+%         
+%         num_multidir_syls=length(ExperimentList{i}{8})-2;
+%         MultiDirSyls={};
+%         for j=1:num_multidir_syls;
+%             MultiDirSyls{j}=ExperimentList{i}{8}{j+2};
+%         end
+%         
+%         multidir_exists=1;
+%     else
+%         multidir_exists=0;
+%     end
+    
+
+% +++++ EXTRACT DIFFERENT EPOCHS - don't care which order the epochs came
+% in. just to compare across experiments
+    
+    % === Extract multidir,
+        multidir_exists=0;
+    if NumTargs==2 | NumTargs==0 | NumTargs==4
         MultiDir_OneDayBeforeStart=ExperimentList{i}{8}{1};
         MultiDir_LastDay=ExperimentList{i}{8}{2};
         
@@ -28,9 +68,50 @@ for i=1:length(ExperimentList);
         end
         
         multidir_exists=1;
-    else
-        multidir_exists=0;
     end
+    
+    if NumTargs==5
+        MultiDir_OneDayBeforeStart=ExperimentList{i}{10}{1};
+        MultiDir_LastDay=ExperimentList{i}{10}{2};
+        
+        num_multidir_syls=length(ExperimentList{i}{10}{3});
+        MultiDirSyls={};
+        for j=1:num_multidir_syls;
+            MultiDirSyls{j}=ExperimentList{i}{10}{3}{j};
+        end
+        multidir_exists=1;
+    end
+    
+    
+    % ======= Extract SAME DIR    
+    samedir_exists=0;
+    if NumTargs==3 | NumTargs==5
+        SameDir_OneDayBeforeStart=ExperimentList{i}{8}{1};
+        SameDir_LastDay=ExperimentList{i}{8}{2};
+        
+        num_samedir_syls=length(ExperimentList{i}{8})-2;
+        SameDirSyls={};
+        for j=1:num_samedir_syls;
+            SameDirSyls{j}=ExperimentList{i}{8}{j+2};
+        end
+        
+        samedir_exists=1;
+    end
+    
+    if NumTargs==4
+        SameDir_OneDayBeforeStart=ExperimentList{i}{10}{1};
+        SameDir_LastDay=ExperimentList{i}{10}{2};
+        num_samedir_syls=length(ExperimentList{i}{10}{3});
+        SameDirSyls={};
+        for j=1:num_samedir_syls;
+            SameDirSyls{j}=ExperimentList{i}{10}{3}{j};
+        end
+        samedir_exists=1;
+    end
+        
+    
+    
+        
     
     
     % Slot into structure
@@ -44,6 +125,7 @@ for i=1:length(ExperimentList);
         SeqDepPitch_AcrossBirds.birds{1}.experiment{1}.DATES.ConsolEndDate=ConsolEndDate;
         SeqDepPitch_AcrossBirds.birds{1}.experiment{1}.INFORMATION.RegularExpressionsList=RegularExpressionsList;
         SeqDepPitch_AcrossBirds.birds{1}.experiment{1}.INFORMATION.LMANinactivated=LMANinactivated;
+        SeqDepPitch_AcrossBirds.birds{1}.experiment{1}.INFORMATION.NumDaysAdapticeThr_col1OK_col2complete=NumDaysAdapticeThr;
         SeqDepPitch_AcrossBirds.birds{1}.birdname=birdname;
         
         
@@ -53,6 +135,15 @@ for i=1:length(ExperimentList);
         SeqDepPitch_AcrossBirds.birds{1}.experiment{1}.INFORMATION.num_multidir_syls=num_multidir_syls;
         SeqDepPitch_AcrossBirds.birds{1}.experiment{1}.INFORMATION.MultiDirSyls=MultiDirSyls;
         end
+        
+        if samedir_exists==1;
+        SeqDepPitch_AcrossBirds.birds{1}.experiment{1}.DATES.SameDir_OneDayBeforeStart=SameDir_OneDayBeforeStart;
+        SeqDepPitch_AcrossBirds.birds{1}.experiment{1}.DATES.SameDir_LastDay=SameDir_LastDay;
+        SeqDepPitch_AcrossBirds.birds{1}.experiment{1}.INFORMATION.SameDirSyls=SameDirSyls;
+        end
+        
+        
+        
     else
         % find the right bird to slot data into
         c=0;
@@ -66,16 +157,25 @@ for i=1:length(ExperimentList);
                 SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.ExptID=ExptID;
                 SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.DATES.ConsolStartDate=ConsolStartDate;
                 SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.DATES.ConsolEndDate=ConsolEndDate;
-                SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.INFORMATION.RegularExpressionsList=RegularExpressionsList;              
+                SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.INFORMATION.RegularExpressionsList=RegularExpressionsList;
                 SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.INFORMATION.LMANinactivated=LMANinactivated;
+                SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.INFORMATION.NumDaysAdapticeThr_col1OK_col2complete=NumDaysAdapticeThr;
                 SeqDepPitch_AcrossBirds.birds{j}.birdname=birdname;
                 
-                        if multidir_exists==1;
-                SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.DATES.MultiDir_OneDayBeforeStart=MultiDir_OneDayBeforeStart;
-                SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.DATES.MultiDir_LastDay=MultiDir_LastDay;
-                SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.INFORMATION.num_multidir_syls=num_multidir_syls;
-                SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.INFORMATION.MultiDirSyls=MultiDirSyls;
-                        end
+                if multidir_exists==1;
+                    SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.DATES.MultiDir_OneDayBeforeStart=MultiDir_OneDayBeforeStart;
+                    SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.DATES.MultiDir_LastDay=MultiDir_LastDay;
+                    SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.INFORMATION.num_multidir_syls=num_multidir_syls;
+                    SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.INFORMATION.MultiDirSyls=MultiDirSyls;
+                end
+                
+                if samedir_exists==1;
+                    SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.DATES.SameDir_OneDayBeforeStart=SameDir_OneDayBeforeStart;
+                    SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.DATES.SameDir_LastDay=SameDir_LastDay;
+                    SeqDepPitch_AcrossBirds.birds{j}.experiment{ind}.INFORMATION.SameDirSyls=SameDirSyls;
+                end
+                
+                
                 
                 % change c to show that bird found.
                 c=1;
@@ -91,17 +191,25 @@ for i=1:length(ExperimentList);
             SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.ExptID=ExptID;
             SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.DATES.ConsolStartDate=ConsolStartDate;
             SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.DATES.ConsolEndDate=ConsolEndDate;
-            SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.INFORMATION.RegularExpressionsList=RegularExpressionsList;              
+            SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.INFORMATION.RegularExpressionsList=RegularExpressionsList;
             SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.INFORMATION.LMANinactivated=LMANinactivated;
+            SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.INFORMATION.NumDaysAdapticeThr_col1OK_col2complete=NumDaysAdapticeThr;
             SeqDepPitch_AcrossBirds.birds{ind}.birdname=birdname;
             
-                    if multidir_exists==1;
-            SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.DATES.MultiDir_OneDayBeforeStart=MultiDir_OneDayBeforeStart;
-            SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.DATES.MultiDir_LastDay=MultiDir_LastDay;
-            SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.INFORMATION.num_multidir_syls=num_multidir_syls;
-            SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.INFORMATION.MultiDirSyls=MultiDirSyls;
-                    end
-                    
+            if multidir_exists==1;
+                SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.DATES.MultiDir_OneDayBeforeStart=MultiDir_OneDayBeforeStart;
+                SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.DATES.MultiDir_LastDay=MultiDir_LastDay;
+                SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.INFORMATION.num_multidir_syls=num_multidir_syls;
+                SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.INFORMATION.MultiDirSyls=MultiDirSyls;
+            end
+            
+            if samedir_exists==1;
+                SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.DATES.SameDir_OneDayBeforeStart=SameDir_OneDayBeforeStart;
+                SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.DATES.SameDir_LastDay=SameDir_LastDay;
+                SeqDepPitch_AcrossBirds.birds{ind}.experiment{1}.INFORMATION.SameDirSyls=SameDirSyls;
+            end
+            
+            
         end
     end
 end
@@ -145,8 +253,6 @@ NumBirds=length(SeqDepPitch_AcrossBirds.birds);
 % end
 
 
-% CHECK DIRECTION OF PITCH SHIFT
-
 
 %% == MAKE SURE Unique syls are defined for all expts (and if not, then do so)
 
@@ -170,7 +276,10 @@ end
 
 %% Correlations and Acoustic distance analyses.
 close all;
-[SeqDepPitch_AcrossBirds, PARAMS] = lt_seq_dep_pitch_ACROSSBIRDS_CORR_and_PCA(SeqDepPitch_AcrossBirds, PARAMS);
+plotPCA_stuff=PARAMS.preprocess.plotPCA_stuff;
+Zscore_use_rends=PARAMS.preprocess.Zscore_use_rends;
+load_old_vector_space=PARAMS.preprocess.load_old_vector_space; % default, 0, recreates vector space on each run. if 1, then loads previous version.
+[SeqDepPitch_AcrossBirds, PARAMS] = lt_seq_dep_pitch_ACROSSBIRDS_CORR_and_PCA(SeqDepPitch_AcrossBirds, PARAMS, plotPCA_stuff, Zscore_use_rends,load_old_vector_space);
 
 
 
@@ -197,7 +306,7 @@ for i=1:NumBirds;
         
         
         % ==== FIRST, make sure that regexpr has baselkine data for both
-        % musc (must already have pbs, because checked in previous code)
+        % ---- musc (must already have pbs, because checked in previous code)
         if ~isfield(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr, 'baseline_MUSC');
             % Then need to go and do those analysis
             
@@ -269,7 +378,6 @@ for i=1:NumBirds;
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr=AllDays_RegExpr;
             
         end
-        
     end
 end
 disp('DONE!...');
@@ -277,7 +385,7 @@ cd(currdir);
 
 
 %% FILTER - To give each syl a sylID (its features)
-close all; 
+% close all; 
 [SeqDepPitch_AcrossBirds, PARAMS] = lt_seq_dep_pitch_ACROSSBIRDS_FILTER(SeqDepPitch_AcrossBirds, PARAMS);
 
 
@@ -313,13 +421,16 @@ for i=1:NumBirds;
             disp(' ');
             disp('NOTE: LMAN Data filter will work for: ');
             % ---- To get correlations
+            disp('Correlations...');
             SeqDepPitch_AcrossBirds_LMAN.birds{1}.experiment{1}.Data_RegExpr.AllDays_RegExpr.baseline=...
                 SeqDepPitch_AcrossBirds_LMAN.birds{1}.experiment{1}.Data_RegExpr.AllDays_RegExpr.baseline_MUSC;
             
-            disp('Correlations...');
+            disp('Acoustic distance');
+            SeqDepPitch_AcrossBirds_LMAN.birds{1}.experiment{1}.Data_StructureStats.data=...
+                SeqDepPitch_AcrossBirds_LMAN.birds{1}.experiment{1}.Data_StructureStats.data_MUSC;
+            
             
             disp('DOES NOT YET WORK FOR: ');
-            disp('Acoustic distance');
             disp('Learning_by_target (not important)')
             disp(' ');
             
@@ -339,7 +450,7 @@ for i=1:NumBirds;
     end
 end
 
-%% BASELINE DATA - MAKE SURE ALL HAVE FFVALS AND TVALS IN BASELINE DATA (I DID NOT CODE THIS INTO THE ORIGINAL PLOT LEARNING FUNCTION)
+%% BASELINE DATA - MAKE SURE ALL TVALS IN BASELINE DATA (I DID NOT CODE THIS INTO THE ORIGINAL PLOT LEARNING FUNCTION)
 
 for i=1:NumBirds;
     numexperiments = length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
@@ -354,11 +465,12 @@ for i=1:NumBirds;
             % ==== GET VECTOR OF BASELINE FF AND TIMES
             ffvals_all=[];
             tvals_all=[];
+            
             for k=baseline_days;
                 ffvals_all=[ffvals_all cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).FFvals{k})];
                 tvals_all=[tvals_all cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).Tvals{k})];
             end
-               
+            
             % ---- make sure is same as what was done before
             n_old=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).n;
             meanFF_old=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF;
@@ -368,11 +480,419 @@ for i=1:NumBirds;
             
             if n_old~=n_new || meanFF_old~=meanFF_new;
                 disp('PROBLEM - NEW BASELINE ANALYSIS DOES NOT MATCH OLD BASELINE');
+                asdfasdfasfasd;
             end
             
-            % ----- UPDATE DATA 
+            % ----- UPDATE DATA
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).Tvals=tvals_all; % Tvals
-            disp([num2str(i) ' ' num2str(ii) ' ' syl]);
+            %             disp([num2str(i) ' ' num2str(ii) ' ' syl]);
+            
+            % ============ IF IS LMAN, ALSO GET WITHIN TIME WINDOW
+            if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.LMANinactivated==1
+                ffvals_all=[];
+                tvals_all=[];
+                
+                for k=baseline_days;
+                    ffvals_all=[ffvals_all SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).FFvals_WithinTimeWindow{k}];
+                    tvals_all=[tvals_all SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).Tvals_WithinTimeWindow{k}];
+                end
+                
+                % ---- make sure is same as what was done before
+                n_old=length(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_WithinTimeWindow);
+                meanFF_old=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_WithinTimeWindow;
+                
+                n_new=length(ffvals_all);
+                meanFF_new=mean(ffvals_all);
+                
+                if n_old~=n_new || meanFF_old~=meanFF_new;
+                    disp('PROBLEM - NEW BASELINE ANALYSIS DOES NOT MATCH OLD BASELINE');
+                    asdfasdfasfasd;
+                end
+                
+                % ----- UPDATE DATA
+                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).Tvals_WithinTimeWindow=tvals_all; % Tvals
+                %             disp([num2str(i) ' ' num2str(ii) ' ' syl]);
+                
+            end
+            
+            
         end
     end
 end
+
+disp('--')
+disp('BASELINE DAT FFVALS AND TVALS CHECKED')
+
+
+%% WHAT is direction of target learning?
+
+for i=1:NumBirds;
+    numexperiments = length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
+    
+    for ii=1:numexperiments;
+        
+            % ==== targ learning dir
+            targsyl=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targsyl;
+            targ_learndir=sign(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed.(targsyl).ConsolEnd_meanFF);
+
+            
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targ_learn_dir=targ_learndir;
+    end
+end
+
+%% ======== for LMAN experiments, extract zscore within time window
+% this is needed for Zscore data, if I want to use Zscore data. but I am
+% overwriting with last 2 baseline days (in other code), so don't need to do this.
+
+for i=1:NumBirds
+    
+    numexpts=length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
+    
+    for ii=1:numexpts
+        
+        if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.LMANinactivated==1
+            
+            SylsUnique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
+            
+            for j=1:length(SylsUnique)
+                syl=SylsUnique{j};
+                
+                % -- baseline stats
+                base_mean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_WithinTimeWindow;
+                base_std=std(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_WithinTimeWindow);
+                
+                % -- calc day to day stats
+                meanFFdev_alldays=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).meanFF_DevFromBase_WithinTimeWindow;
+                zscore_alldays=meanFFdev_alldays./base_std;
+                
+                % == OUTPUT
+                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).meanFF_zscore_WithinTimeWindow=zscore_alldays;
+                
+              
+            end
+        end
+        
+    end
+end
+
+
+%% ZSCORE DATA AND DEFINE LEARNING (I'M USING ZSCORE)
+% testing things
+PARAMS.zscore.zthresh_learning=0.8; % take 1st N days after target passes this value of shift (will take max of default day (see below) or this day)
+PARAMS.zscore.default_min_day=3; 
+PARAMS.zscore.max_day=3; % inclusive, limit days to within min and max days (wn start =1) then throw out this experiment
+PARAMS.zscore.N_days_post_thresh=2; % how many days to use to quantify learning
+PARAMS.zscore.account_for_NoData=1; % If early WN days don't have data, then the window will be moved forward
+% the number of no-data days (assumes no singing early days)
+[SeqDepPitch_AcrossBirds, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_ZSCORE(SeqDepPitch_AcrossBirds, PARAMS);
+
+
+%% DEFINE LEARNING - all future analysis will be done with this metric
+% use z-score or FF.  which epoch?
+NumBirds=length(SeqDepPitch_AcrossBirds.birds);
+
+for i=1:NumBirds;
+    numexperiments=length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
+    
+    for ii=1:numexperiments;
+        
+        syls_unique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
+        
+        
+        for j=1:length(syls_unique);
+            syl=syls_unique{j};
+            
+            
+            % ============ DEFINE THE LEARNING METRIC
+            if PARAMS.global.learning_metric=='zscore';
+                % then use z-score, with epoch defined in ZSCORE function above
+                if isfield(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.TargPassLearnThresh,'DATA'); % some don't have z-score defined becasue not enough elarning.
+                    learning=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.TargPassLearnThresh.DATA.(syl).mean_Zscore;
+                    learning_sem=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.TargPassLearnThresh.DATA.(syl).sem_Zscore;
+                    learning_DayInds=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.TargPassLearnThresh.DayInds;
+                else
+                    learning=nan;
+                    learning_sem=nan;
+                    learning_DayInds=nan;
+                end
+                
+                
+            elseif PARAMS.global.learning_metric=='ff_consolstart';
+                % then use mean FFval at time of consolidation start
+                
+                learning = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.consolid_start_meanFF_minbase;
+                learning_sem=lt_sem(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed.(syl).ConsolStart_FFvals_minbase);
+                consol_start=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.ConsolStartInd;
+                consol_start_numdays=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.Consol_DayBins;
+                learning_DayInds=consol_start:consol_start+consol_start_numdays-1;
+
+            else
+                disp('PROBLEM - LEARNING METRIC NOT DEFINED PROPERLY, ANALYSES WILL NOT WORK');
+                pause;
+            end
+            
+            % ---- PUT INTO OUTPUT STRUCTURE
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.mean=learning;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.sem=learning_sem;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.dayIndsUsed=learning_DayInds;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.LearningMetric.dayIndsUsed=learning_DayInds;
+            
+        end
+        
+        
+        % ======== GET REALTUIVE TO TARGSYL
+        % --- targsyl info
+        targsyl=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targsyl;
+        learning_targ=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(targsyl).LEARNING.learning_metric.mean;
+        
+        for j=1:length(syls_unique);
+            syl=syls_unique{j};
+            
+            learning=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.mean;
+            learning_rel_targ=learning/learning_targ;
+            
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.mean_rel_targ=learning_rel_targ;
+            
+        end
+    end
+end
+
+
+%% ==== make sure extracted hit rate infor for all LMAN experiments [not necessarily within time window]
+% NOTE: will have to restart entire analysis if runnign this is required.
+
+lt_seq_dep_pitch_ACROSSBIRDS_ExtrHitsMUSC(SeqDepPitch_AcrossBirds);
+            
+%% ===== HIT RATES - for LMAN experiments extract hit rates within time window [for both PBS and MUSC data]
+
+NumBirds=length(SeqDepPitch_AcrossBirds.birds);
+DatFields={'DataMatrix_MUSC', 'DataMatrix'};
+
+for datfield=DatFields;
+    datfield=datfield{1};
+    for i=1:NumBirds;
+        numexperiments=length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
+        
+        for ii=1:numexperiments;
+            
+            %  -- check if this expt is lman
+            if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.LMANinactivated==0
+                continue
+            end
+            
+            syls_unique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
+            
+            
+            for j=1:length(syls_unique);
+                syl=syls_unique{j};
+                
+                NumDays=length(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.(datfield).(syl).FFvals);
+                
+                % ---- pad number of days with empty days if necessary
+                if length(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.(datfield).(syl).HitRateStatus)<NumDays;
+                    SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.(datfield).(syl).HitRateStatus{NumDays}=[];
+                end
+                    
+                for day=1:NumDays
+                    
+                    hitRate_allsongs=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.(datfield).(syl).HitRateStatus{day};
+                    tvals_allsongs=cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.(datfield).(syl).Tvals{day});
+                    tvals_timewindow=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.(datfield).(syl).Tvals_WithinTimeWindow{day};
+                    
+                    ffvals_allsongs=cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.(datfield).(syl).FFvals{day});
+                    ffvals_timewindow=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.(datfield).(syl).FFvals_WithinTimeWindow{day};
+                    
+                    indsToKeep = find(ismember(tvals_allsongs, tvals_timewindow));
+                    
+                    % --- debug
+                    if length(indsToKeep) ~= length(ffvals_timewindow)
+                        if strcmp(datfield, 'DataMatrix_MUSC')
+                            % if only one is empty, then there is problem. likley
+                            % because musc data is taken from songs that are labeled
+                            % PBS. solution, check those songs
+                            hitRate_allsongs=[hitRate_allsongs; SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).HitRateStatus{day}];
+                            tvals_allsongs=[tvals_allsongs cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).Tvals{day})];
+                            ffvals_allsongs=[ffvals_allsongs cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).FFvals{day})];
+                            
+                            indsToKeep = find(ismember(tvals_allsongs, tvals_timewindow));
+                        else
+                            disp('PROBLEM!! - trying to extract PBS data, what I previously did is likely to take some MUSC data and use as PBS, but that code not yet written');
+                            cafaedweacacea3ra;
+                        end
+                    end
+                    
+                    if length(indsToKeep) ~= length(ffvals_timewindow)
+                        disp('PROBLEM - not sure why inds to keep extracted is not same as ffvals timewindow');
+                        afsceaea3rawvarvrav;
+                    end
+                    
+                    if ~isempty(indsToKeep) & ~isempty(ffvals_timewindow)
+                        assert(all(ffvals_allsongs(indsToKeep)==ffvals_timewindow), 'problem - mathing hit rates to songs might have problem');
+                    end
+                    
+                    % ===== COLLECT HIT RATES
+                    hitRate_timewindow=hitRate_allsongs(indsToKeep);
+                    
+                    SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.(datfield).(syl).HitRateStatus_WithinTimeWindow{day}=hitRate_timewindow;
+                    
+                    
+                    % -- debug
+                    assert(length(hitRate_timewindow)==length(ffvals_timewindow), 'WHAT!!!???');
+                    
+                    
+                end
+                
+            end
+        end
+    end
+end
+
+%% ==== all LMAN experiments, make sure baseline has MUSC data
+
+
+NumBirds=length(SeqDepPitch_AcrossBirds.birds);
+
+for i=1:NumBirds
+    
+    numexpts=length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
+    
+    
+    for ii=1:numexpts
+        
+        % === skip if is not LMAN
+        if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.LMANinactivated==0
+            continue
+        end
+        
+        SylsUnique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
+        
+        for j=1:length(SylsUnique)
+            syl=SylsUnique{j};
+            % === collect all baseline rends from day data
+            BaselineDays=1:SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.WNTimeOnInd-1;
+            
+            FFvalsMUSC=[];
+            TvalsMUSC=[];
+            for day=BaselineDays
+                % --- if this day is musc, then take
+                if ~isempty(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix_MUSC.(syl).FFvals_WithinTimeWindow{day})
+                    
+                    ffvals=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix_MUSC.(syl).FFvals_WithinTimeWindow{day};
+                    tvals=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix_MUSC.(syl).Tvals_WithinTimeWindow{day};
+                    
+                    FFvalsMUSC=[FFvalsMUSC ffvals];
+                    TvalsMUSC=[TvalsMUSC tvals];
+                    
+                end
+            end
+            
+            % ==== compare, make sure is same as baseline data that's
+            % already there.
+            % --- current baseline stuff
+            baseRawFF=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData_MUSC.Baseline.(syl).rawFF_WithinTimeWindow;
+            assert(length(baseRawFF)==length(FFvalsMUSC), 'asdffasfsd');
+            assert(mean(baseRawFF)==mean(FFvalsMUSC), 'asdffasfsd');
+            assert(length(TvalsMUSC) == length(FFvalsMUSC), 'dasfasdf');
+            
+
+            % --- add tvals
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData_MUSC.Baseline.(syl).Tvals_WithinTimeWindow=TvalsMUSC;
+        end
+        
+        
+        
+        
+    end
+end
+%% ==== make sure there are no empty corrs (replace with nan)
+% 
+% NumBirds=length(SeqDepPitch_AcrossBirds.birds);
+% 
+% for i=1:NumBirds
+%     numexpts=length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
+%     
+%     for ii=1:numexpts
+%         
+%         SylsUnique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
+%         
+%         
+%         for j=1:length(SylsUnique)
+%             
+%             syl=SylsUnique{j};
+%             
+%             
+%             
+%             
+%            
+%         end
+%         
+%         
+%     end
+%     
+%     
+%     
+% end
+% 
+%                     if isfield (SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS, 'motif_by_motif');
+%                         if isfield(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.corrcoeff_vs, syl2);
+%                             
+%                             corrmotifPBS=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.corrcoeff_vs.(syl2);
+%                             corrmotifMUSC=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions_LMAN.(syl).CORRELATIONS.motif_by_motif.corrcoeff_vs.(syl2);
+%                         end
+%                     end
+%                     
+%                     if isempty(corrmotifPBS)
+%                         corrmotifPBS=nan;
+%                     end
+% 
+% 
+
+
+%% ==== EXTRACT LAST SINGLE DIR DAY
+NumBirds=length(SeqDepPitch_AcrossBirds.birds);
+disp(' ')
+disp(' ========= LAST SINGLE DIR DAY ==== ');
+
+for i=1:NumBirds
+    numexpts=length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
+    birdname=SeqDepPitch_AcrossBirds.birds{i}.birdname;
+    
+    for ii=1:numexpts
+        exptname=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.ExptID;
+        
+        
+        daybeforemulti=1000; % 1000 will always be larger than window
+        daybeforeSame=1000;
+        if isfield(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES, 'MultiDir_OneDayBeforeStart_Ind');
+            daybeforemulti=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.MultiDir_OneDayBeforeStart_Ind;
+        end
+        if isfield(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES, 'SameDir_OneDayBeforeStart_Ind')
+            daybeforeSame=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.SameDir_OneDayBeforeStart_Ind;
+        end
+        
+        LastSingleDirDay=min([daybeforemulti daybeforeSame]);
+        
+        if LastSingleDirDay==1000;
+            % then entire expt is single dir.
+            % -- last day with data
+            targsyl=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targsyl;
+            lastDayWithDat=length(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(targsyl).FFvals);
+            
+            % -- last WN day
+            LastSingleDirDay=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.WNTimeOffInd;
+            
+            % -- take minimum
+            LastSingleDirDay=min([LastSingleDirDay lastDayWithDat]);
+        end
+        
+        
+        
+        % ===== output
+        disp([birdname '-' exptname ': ' num2str(LastSingleDirDay)]);
+        
+        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.SingleDirLastDay=LastSingleDirDay;
+        
+    end
+end
+
+

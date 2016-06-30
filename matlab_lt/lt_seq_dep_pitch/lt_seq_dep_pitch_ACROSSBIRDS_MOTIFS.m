@@ -1,4 +1,4 @@
-function [SeqDepPitch_AcrossBirds, PARAMS] = lt_seq_dep_pitch_ACROSSBIRDS_MOTIFS(SeqDepPitch_AcrossBirds, PARAMS, use_learning_metric)
+function [SeqDepPitch_AcrossBirds, PARAMS] = lt_seq_dep_pitch_ACROSSBIRDS_MOTIFS(SeqDepPitch_AcrossBirds, PARAMS, use_learning_metric, plot_hit_rate)
 %% Ask whether genearlziation is stronger to same motif and if closer in motif?
 %% Do syls in other motifs tend to generalization together?
 
@@ -10,6 +10,10 @@ if ~exist('use_learning_metric' ,'var');
     use_learning_metric=0;
 end
 
+
+if ~exist('plot_hit_rate' ,'var');
+    plot_hit_rate=1;
+end
 
 
 %% FOR EACH EXPERIMENT, PLOT LEARNING AS FUNCTION OF MOTIF DISTANCE
@@ -176,6 +180,8 @@ for i=1:NumBirds;
     birdname=SeqDepPitch_AcrossBirds.birds{i}.birdname;
     
     for ii=1:numexperiments;
+        
+        
         exptname=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.ExptID;
         motif_list=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.SeqFilter.SylLists.FieldsInOrder;
         
@@ -196,6 +202,14 @@ for i=1:NumBirds;
             for jj=1:length(motif);
                 syl=motif{jj};
                 
+                if ~any(strcmp(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique, syl));
+                    continue;
+                end
+                
+         if ~isfield(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl), 'LEARNING')
+             continue;
+         end
+         
                 learning_mean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.mean;
                 learning_sem=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.sem;
                 
@@ -222,14 +236,17 @@ for i=1:NumBirds;
                 
                 % --- Collect hit rate at that syllable (mean up to start
                 % of consolid day (i.e. time used for quantifying learning)
+                try 
                 day1=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.WNTimeOnInd; % 1st WN day
-                day2=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.ConsolStartInd+SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.Consol_DayBins-1; % last day in quahntified period (e.g. consol start).
+                day2=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.dayIndsUsed(end);
                 
                 numhits_all=sum(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed.(syl).HIT_RATE_overdays.NumHits(day1:day2));
                 numtotal_all=sum(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed.(syl).HIT_RATE_overdays.NumTotal(day1:day2));
                 
                 hitrate=numhits_all/numtotal_all;
                 HitRate_all=[HitRate_all hitrate];
+                catch err
+                end
                 
             end
         end
@@ -293,6 +310,8 @@ for i=1:NumBirds;
         end
         
         % hit rate
+        if plot_hit_rate==1;
+        try
         Ylim=ylim;
         
         if use_learning_metric==1;
@@ -309,7 +328,10 @@ for i=1:NumBirds;
             end
                 
         end
-        
+        catch err
+        end
+        end
+           
     end
 end
 end

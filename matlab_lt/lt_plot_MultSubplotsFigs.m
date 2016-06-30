@@ -1,23 +1,24 @@
 %% LT 7/20/15 - gives you correct figure and subplot number, so you can put multiple subplots over multiple figs
 
-function [fignums_alreadyused, hfigs, count]=lt_plot_MultSubplotsFigs(SubplotsPerFig, subplotrows, subplotcols, fignums_alreadyused, hfigs, count);
+function [fignums_alreadyused, hfigs, count, hsplot]=lt_plot_MultSubplotsFigs(SubplotsPerFig, subplotrows, subplotcols, fignums_alreadyused, hfigs, count);
 
 % To run:
 
 % Params:
-% count = 1 % Put this OUTSIDE the for loop
+% figcount = 1 % Put this OUTSIDE the for loop
 % SubplotsPerFig - how many subplots per fig?
 % subplotrows and subplotcols should match SubplotsPerFig
 % fignums_alreadyused=[];
 % hfigs=[];
 
 % EXAMPLE:
-% count=1;
-% SubplotsPerFig=6;
+% figcount=1;
 % subplotrows=2;
 % subplotcols=3;
 % fignums_alreadyused=[];
 % hfigs=[];
+
+% [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
 
 
 % put this function where you would normally put subplot
@@ -30,6 +31,7 @@ function [fignums_alreadyused, hfigs, count]=lt_plot_MultSubplotsFigs(SubplotsPe
 
 % fignums_alreadyused=[];
 % hfigs=[];
+SubplotsPerFig=subplotrows*subplotcols;
 
 %% RUN
 
@@ -50,7 +52,7 @@ end
 
 % Which subplot is this?
 subplot_num=count-(fignum-1)*SubplotsPerFig;
-lt_subplot(subplotrows, subplotcols, subplot_num); hold on;
+hsplot=lt_subplot(subplotrows, subplotcols, subplot_num); hold on;
 
 % Update count
 count=count+1;

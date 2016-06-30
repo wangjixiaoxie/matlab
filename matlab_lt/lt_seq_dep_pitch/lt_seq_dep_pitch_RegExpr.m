@@ -1,10 +1,20 @@
 function [Params, AllDays_RegExpr] = lt_seq_dep_pitch_RegExpr(Params, AllDays_RawDatStruct, saveON, DoLMAN, AllDays_PlotLearning)
+%% LT 5/4/16 - made sure PBS data is only within time window
+% PRevious: took all PBS data. this is fine for nonLMAN experiemnts.
+% however, for LMANmusc experiments was taking all PBS data, instead of
+% just those within the consistent day window. NOTE: this code was fine,
+% however, for MUSC data.
+
+% NOTE: now is only taking data with outliers for NON musc experiemnts
+% (becuase those are using old way of extracting song times from
+% RawDatStruct (woudl be easy chamnge)
 
 %% LT 6/16/15 - take AllDays Raw data structure (i.e. just individual syllables), parse data based on input regular expressions
 % Input:
 % Params.RegExpr.expressions={'acb+g', 'acb+'};
 % AllDays_RawDatStruct, i.e. the output from lt_seq_dep_pitch_SeqFilterCompile
-% DoLMAN = 1; then also analyzes LMAN data.  need to have field:
+% DoLMAN = 1; then also analyzes LMAN data.  need to have field: [makes
+% separate fields for PBS and MUSC]
 % data_MUSC, e.g. AllDays_RawDatStruct{1}.data_MUSC
 % If DoLMAN=1; then need to supply 
 % AllDays_PlotLearning (after running lt_seq_dep_pitch_PlotLearning_Musc), since this contains data filtered to within good time window of muscimol activation
@@ -28,6 +38,19 @@ end
 if ~exist('saveON','var');
     saveON=1;
 end
+
+% SANITY CHECK - make sure is DoLMAN if LMAN data exists
+if isfield(AllDays_PlotLearning, 'DataMatrix_MUSC');
+    if DoLMAN==0
+        % bad !! ask to change
+       if strcmp(input('HAS LMAN DATA BUT DoLMAN is 0. Change to 1? (y, n)', 's'), 'y');
+           DoLMAN=1;
+       else
+           disp('DID NOT CHANGE DoLMAN to 1!!! --> NOTE THIS will include MUSC data in PBS output as well!!! (bad)');
+       end
+    end
+end
+
 
 Params.PlotRegExpr.AnyNotesWithoutData=0;
 
@@ -68,6 +91,84 @@ for k=1:NumDays;
     [~, IndsToKeep, ~]=unique(AllSong_datenums);
     AllSong_datenums=AllSong_datenums(IndsToKeep); % FINAL, contains unique songs.
     AllSong_labels=AllSong_labels(IndsToKeep);
+    
+    
+    
+    % ========================
+    % If this is LMAN, then want to only keep songs that are within time
+    % window.
+    if DoLMAN==1;
+        day=k;
+        syls_unique=Params.PlotLearning.SylFields_Unique;
+        % -- Go through all syls and collect song information and song label
+        % information
+        tvals_within_time_window_ALL=[];
+        song_labels_ALL={};
+        
+        for ii=1:length(syls_unique);
+            syl=syls_unique{ii};
+            
+            tvals_thissyl=AllDays_PlotLearning.DataMatrix.(syl).Tvals_WithinTimeWindow{day};
+            tvals_thissyl=unique(tvals_thissyl);
+            
+            % with those tvals, go to raw dat and get song labels
+            labels_thissyl={};
+            for iii=1:length(tvals_thissyl);
+                tval=tvals_thissyl(iii);
+                
+                % for this tval, find the corresponging song label
+                song_inds=find(cell2mat(RawDatStruct.data_WithOutlier.(syl)(:,6))==tval); % data with Outlier has both PBS and MUSC
+                
+                % --- ASIDE: If don't find the song ind, then there is problem
+                if isempty(song_inds);
+                    disp('Note: tval should be oen of days songs but cannot find it..., assuming is because took PBS data outside of musc window');
+                    
+                    %  keyboard;
+                    % then is likely because this datapoint was taken from
+                    % MUSC.
+                    song_inds=find(cell2mat(RawDatStruct.data_MUSC.(syl)(:,6))==tval);
+                    labels_thissyl{iii}=RawDatStruct.data_MUSC.(syl){song_inds(1),7};
+                    
+                else
+                    % pick out the label for one of the song inds
+                    labels_thissyl{iii}=RawDatStruct.data_WithOutlier.(syl){song_inds(1),7};
+                end
+            end
+            
+            if isempty(labels_thissyl)
+                disp('ACTUAL PROBLEM - cant find this song using tvals');
+            end
+            
+            
+            
+            % ---- Put tvals and labels into output variables
+            tvals_within_time_window_ALL=[tvals_within_time_window_ALL tvals_thissyl];
+            song_labels_ALL=[song_labels_ALL labels_thissyl];
+        end
+        
+        % GET UNIQUE SONGS (and corresponding song labels)
+        [tvals_within_time_window_ALL, inds, ~]=unique(tvals_within_time_window_ALL);
+        song_labels_ALL=song_labels_ALL(inds);
+        song_labels_ALL=song_labels_ALL';
+        
+        % === FOR TROUBLESHOOTING - comparing number of songs using new and old
+        % method (old: gets all including musc and pbs, ignores time window;
+        % new; only in time window) also shows plot learning time window
+        % difference
+        if (0)
+            isMuscDay=~isempty(AllDays_PlotLearning.DataMatrix_MUSC.jjB.FFvals_DevFromBase_WithinTimeWindow{day});
+            numSongs_old=length(AllSong_labels);
+            numsongsnew=length(song_labels_ALL);
+            numpts_old=length(AllDays_PlotLearning.DataMatrix.jjB.FFvals{day});
+            numpts_new=length(AllDays_PlotLearning.DataMatrix.jjB.FFvals_WithinTimeWindow{day});
+            disp(['day ' num2str(day) '| old: ' num2str(numSongs_old) '; new: ' num2str(numsongsnew) '; muscday? ' num2str(isMuscDay) '| ' num2str(numpts_old) '(numpts, old); ' num2str(numpts_new) '(numpts, new)']);
+        end
+        
+        AllSong_labels=song_labels_ALL;
+        AllSong_datenums=tvals_within_time_window_ALL';
+    end
+    
+    % +++++++++++++++++++++++++++++++++++++++++++++++
     
     % ---- OUTPUT DATA
     DayData.AllSong_datenums=AllSong_datenums;

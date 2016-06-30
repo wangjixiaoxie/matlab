@@ -1,4 +1,4 @@
-function lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat)
+function [fnames, sylnum, vlsorfn, vlsorind]=lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat)
 %% LT 5/18/15 - Autolabel song files by using simulation of evtafv4. given template files (in .evconfig format), assigns any detects as the desired syllable
 % e.g. inputs:
 % batch = 'batch.labeled.all';
@@ -17,6 +17,11 @@ function lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, m
 % labels, unless that label conflicts with new label). also saves a
 % backup copy of old notmat
 
+% OUTPUTS:
+% [fnames, sylnum, vlsorfn, vlsorind] are used for 
+% lt_autolabel_FixHandCheckedSyls(fnames, sylnum, vlsorfn, vlsorind) after checking wav file using evsonganaly - see lt_autolabel_MasterScript
+
+% NOTE: .wav fiel it makes using only single syl, not context
 
 % Run this in the folder containing all the songs.
 
@@ -177,5 +182,19 @@ end
 %%  == Save new version of batch file with "autolabeled" in name
 batch_new=[batch '.AutoLabeled'];
 eval(['!cp ' batch ' ' batch_new])
+
+
+%% ======================= TO CHECK ACCURACY - isolates all syls labeled and saves to .wav - open and check by eye.
+[fnames, sylnum]=lt_jc_chcklbl(batch, syl.targ, 0.025,0.025,'','','');
+[vlsorfn vlsorind]=jc_vlsorfn(batch, syl.targ,'','');
+
+% Troubleshooting, enter syl name you want to find song of.
+% [fnames, sylnum]=lt_jc_chcklbl(batch,'x', 0.025,0.025,'','','');
+% [vlsorfn vlsorind]=jc_vlsorfn(batch,'x','','');
+
+disp('DONE!');
+
+
+
 
 disp('Done autolabeling!')

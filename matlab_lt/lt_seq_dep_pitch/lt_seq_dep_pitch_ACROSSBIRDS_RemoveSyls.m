@@ -35,10 +35,16 @@ for i=1:NumBirds;
                     
                     ind_to_remove=strcmp(syls_unique, tmp_sylremove);
                     
+                    if isempty(ind_to_remove)
+                        disp([birdname '-' exptname '-' tmp_sylremove '(syl to remove) is not actually in SylsUnique']);
+                    end
+                    
                     syls_unique(ind_to_remove)=[];
                     
                     % Put back into structure
                     SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique=syls_unique;
+%                     SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.SylFields_Unique=syls_unique;
+                    
                     
                     % tell user this is done
                     disp([birdname '-' exptname ': removed ' tmp_sylremove]);

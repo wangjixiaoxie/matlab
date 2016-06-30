@@ -94,6 +94,8 @@ if RunDefaults==1;
 elseif RunDefaults==0; % then file name was specified
     savename=[fname_ltrec(1:end-7) '_structure']; % take name string excluding '.ltrec' part
     save(savename, 'RecDatStruct');
+
+    disp(['savename: ' savename]);
 end
 
 disp('Done, saved!')

@@ -1,0 +1,19 @@
+%% Run in bird directory
+experiment = 'CtxtDepPitch';
+date_range=''; % e.g. {'20Apr2015','20May2015'}. leave blank ('') for all days
+only_labeled_dirs=0;
+
+%% ==== GO THROUGH EACH DAY AND EXTRACT PC 
+
+% 1) Collect dir information - find dirs that you want
+MetadataStruct=lt_metadata_collect;
+
+    ListOfDirs=lt_metadata_find_dirs(MetadataStruct, experiment, ...
+        '', '', '', only_labeled_dirs);
+
+    
+    % 2) go through all dates and extract data
+for i=1:length(ListOfDirs);
+    
+  
+

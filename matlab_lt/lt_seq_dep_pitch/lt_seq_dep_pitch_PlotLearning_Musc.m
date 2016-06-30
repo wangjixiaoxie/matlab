@@ -1,11 +1,17 @@
 function [Params, AllDays_PlotLearning]= lt_seq_dep_pitch_PlotLearning_Musc(Params, AllDays_PlotLearning, saveON)
 
 %     Params.PlotLearning.Lag_time=1.7; % time from switch to musc
-%
+%       Params.PlotLearning.MUSC_end_time=2.5; % hours from PBS to musc switch [OPTIONAL]
 %     Params.PlotLearning.PBS_window=[-1.5 0]; % time before switch for PBS
 %       Params.PlotLearning.Dur_of_PBS_dat_that_counts_as_MUSC=0.5; half
 %       hour from musc to pbs, still call musc data.
 %     saveON=1;
+
+% MUSCIMOL TIMELINES
+% Params.PlotLearning.timeline.consolid_start='17Aug2015';
+% Params.PlotLearning.timeline.consolid_end='14Jul2015';
+% Params.PlotLearning.timeline.bidir_start='15Jul2015';
+% Params.PlotLearning.timeline.bidir_end='25Jul2015';
 
 %% PARAMS1
 
@@ -13,6 +19,7 @@ function [Params, AllDays_PlotLearning]= lt_seq_dep_pitch_PlotLearning_Musc(Para
 if ~isfield(Params.PlotLearning, 'Lag_time');
     Params.PlotLearning.Lag_time=1.7; % time from switch to musc
 end
+
 
 if ~isfield(Params.PlotLearning, 'PBS_window');
     Params.PlotLearning.PBS_window=[-1.5 0]; % time before switch for PBS
@@ -209,12 +216,32 @@ for i=1:length(SylFields_Unique);
     AllDays_PlotLearning.DataMatrix_MUSC.(syl).FFvals_WithinTimeWindow=cell([1, NumDays]);
     AllDays_PlotLearning.DataMatrix_MUSC.(syl).Tvals_WithinTimeWindow=cell([1, NumDays]);
     
+    AllDays_PlotLearning.DataMatrix.(syl).FFvals_WithinTimeWindow=cell([1, NumDays]);
+    AllDays_PlotLearning.DataMatrix.(syl).Tvals_WithinTimeWindow=cell([1, NumDays]);
     
     for ii=1:NumDays;
         
+        if ~isfield(AllDays_PlotLearning.DataMatrix, syl)
+%                                 % == save those values
+%                     AllDays_PlotLearning.DataMatrix_MUSC.(syl).FFvals_WithinTimeWindow{ii}=[];
+%                     AllDays_PlotLearning.DataMatrix_MUSC.(syl).Tvals_WithinTimeWindow{ii}=[];
+% 
+            continue;
+        end
+        
+        if length(AllDays_PlotLearning.DataMatrix.(syl).FFvals)<ii
+%                     AllDays_PlotLearning.DataMatrix_MUSC.(syl).FFvals_WithinTimeWindow{ii}=[];
+%                     AllDays_PlotLearning.DataMatrix_MUSC.(syl).Tvals_WithinTimeWindow{ii}=[];
+            continue;
+
+        end
+        
         % check if day has data
         if isempty(AllDays_PlotLearning.DataMatrix.(syl).FFvals{ii});
+%                     AllDays_PlotLearning.DataMatrix_MUSC.(syl).FFvals_WithinTimeWindow{ii}=[];
+%                     AllDays_PlotLearning.DataMatrix_MUSC.(syl).Tvals_WithinTimeWindow{ii}=[];
             continue
+
         end
         
         % === EXTRACT DATA, for both PBS and MUSC
@@ -251,7 +278,15 @@ for i=1:length(SylFields_Unique);
                     % convert time to hours
                     [~, DataTimes] = lt_convert_datenum_to_hour(Tvals_MUSC);
                     
-                    IndsToKeep=find(DataTimes.hours>MUSC_start+Lag_time);
+                    
+                    if isfield(Params.PlotLearning, 'MUSC_end_time');
+                        % OPTION 2 (SPECIFY ENDPOINT FOR MUSC DATA);
+                        IndsToKeep=find(DataTimes.hours>MUSC_start+Lag_time & DataTimes.hours<MUSC_start+Params.PlotLearning.MUSC_end_time);
+                        
+                    else
+                        % OPTION 1 (DEFAULT - no endpoint)
+                        IndsToKeep=find(DataTimes.hours>MUSC_start+Lag_time);
+                    end
                     
                     % == extract the inds that pass lag time
                     Tvals_WithinTimeWindow=Tvals_MUSC(IndsToKeep);
@@ -372,6 +407,7 @@ for i=1:length(SylFields_Unique);
     for ii=1:NumDays;
         
         % == PBS
+%         if length(AllDays_PlotLearning.DataMatrix.(syl).FFvals_WithinTimeWindow)>=ii
         %             if ~isempty(AllDays_PlotLearning.DataMatrix.(syl).FFvals_WithinTimeWindow{ii});
         AllDays_PlotLearning.DataMatrix.(syl).FFvals_DevFromBase_WithinTimeWindow{ii}=AllDays_PlotLearning.DataMatrix.(syl).FFvals_WithinTimeWindow{ii} ...
             - AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_WithinTimeWindow;
@@ -379,6 +415,7 @@ for i=1:length(SylFields_Unique);
         AllDays_PlotLearning.DataMatrix.(syl).meanFF_DevFromBase_WithinTimeWindow(ii)=mean(AllDays_PlotLearning.DataMatrix.(syl).FFvals_DevFromBase_WithinTimeWindow{ii});
         AllDays_PlotLearning.DataMatrix.(syl).semFF_DevFromBase_WithinTimeWindow(ii)=lt_sem(AllDays_PlotLearning.DataMatrix.(syl).FFvals_DevFromBase_WithinTimeWindow{ii});
         %             end
+%         end
         
         % == MUSC
         %                     if
@@ -417,6 +454,10 @@ for i=1:length(SylFields_Unique);
     title(syl);
     
     for ii=1:NumDays;
+        
+        if length(AllDays_PlotLearning.DataMatrix.(syl).FFvals)<ii
+            continue
+        end
         
         if isempty(AllDays_PlotLearning.DataMatrix.(syl).FFvals{ii})
             % if day empty, skip
@@ -530,6 +571,15 @@ for i=1:length(SylFields_Unique);
         
     end
     
+    % ==== plot line showing baseline pitch
+    BaselineMeanFF=AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_WithinTimeWindow;
+    line(xlim, [BaselineMeanFF BaselineMeanFF], 'Color','b');
+    
+    BaselineMeanFF=AllDays_PlotLearning.EpochData_MUSC.Baseline.(syl).meanFF_WithinTimeWindow;
+    line(xlim, [BaselineMeanFF BaselineMeanFF], 'Color','r');
+    
+    
+    
     % ============================= 2) JUST MEANS, SEMS
     hsplot(1)=subplot(2,2,2); hold on; grid on;
     xlabel('days'); ylabel('FF (hz)');
@@ -543,6 +593,11 @@ for i=1:length(SylFields_Unique);
     
     % - collect data
     for ii=1:NumDays;
+        
+        if length(AllDays_PlotLearning.DataMatrix.(syl).FFvals_WithinTimeWindow)<ii
+           continue
+        end
+        
         if isempty(AllDays_PlotLearning.DataMatrix.(syl).FFvals_WithinTimeWindow{ii});
             continue
         end
@@ -559,9 +614,11 @@ for i=1:length(SylFields_Unique);
     end
     
     % == Plot all days
+    if length(Xall)>1
     shadedErrorBar(Xall, Yall.mean, Yall.sem, {'Color', 'b'},1);
     lt_plot(Xall, Yall.mean, {'Color', 'b'});
     ylabel('FF (hz) (SEM)');
+    end
     
     % == Plot N and CV
     hsplot(2)=lt_subplot(4,1,3); hold on;
@@ -687,6 +744,11 @@ for i=1:length(SylFields_Unique);
     
     % == muscimol pitch as difference from PBS pitch (using baseline
     % subtraacted pitch)
+    if length(Y_musc)>length(Y_pbs);
+        % then add nans onto pbs
+        Y_pbs=[Y_pbs nan(1, length(Y_musc)-length(Y_pbs))];
+    end
+        
     AllDays_PlotLearning.DataMatrix_MUSCvsPBS.(syl).Pitch_MuscMinusPBS_MinusBase=Y_musc-Y_pbs;
     
     % == muscimol pitch as percent of PBS pitch (using baseline subtracted
@@ -765,22 +827,24 @@ datamatfield='DataMatrix';
 % ==================================== PBS
 % PLOT pitch deviation and zscore - each with own axis.
 lt_figure; hold on;
-for j=1:length(Params.SeqFilter.SylLists.FieldsToPlot); % how many sets of fields (i.e. syls)?
-    FieldsList=Params.SeqFilter.SylLists.FieldsToPlot{j};
+for j=1:length(Params.SeqFilter.SylLists.FieldsInOrder); % how many sets of fields (i.e. syls)?
+    FieldsList=Params.SeqFilter.SylLists.FieldsInOrder{j};
     
     plot_colors=lt_make_plot_colors(length(FieldsList),0); % initiate colors for plot
     
     % PLOT MEAN PITCH SUBTRACTING BASELINE
-    lt_subplot(length(Params.SeqFilter.SylLists.FieldsToPlot),2,-1+j*2); hold on;
+    lt_subplot(length(Params.SeqFilter.SylLists.FieldsInOrder),2,-1+j*2); hold on;
     h=[];
     for jj=1:length(FieldsList); % how many fields within this set?
         syl=FieldsList{jj}; % actual syl name (e.g. 'a')
         
+        if isfield(AllDays_PlotLearning.(datamatfield), syl)
         % compile pitch means and SEM for each day, for this syl.
         shadedErrorBar(1:length(AllDays_PlotLearning.(datamatfield).(syl).meanFF_DevFromBase_WithinTimeWindow), AllDays_PlotLearning.(datamatfield).(syl).meanFF_DevFromBase_WithinTimeWindow, ...
             AllDays_PlotLearning.(datamatfield).(syl).semFF,{'Color',plot_colors{jj},'LineWidth',1.5},1);
         
         h(jj)=plot(AllDays_PlotLearning.(datamatfield).(syl).meanFF_DevFromBase_WithinTimeWindow,'o','Color',plot_colors{jj},'MarkerFaceColor',plot_colors{jj},'MarkerSize',6);
+        end
     end
     
     legend(h,FieldsList)
@@ -822,13 +886,13 @@ datamatfield='DataMatrix_MUSC';
 
 % PLOT pitch deviation and zscore - each with own axis.
 lt_figure; hold on;
-for j=1:length(Params.SeqFilter.SylLists.FieldsToPlot); % how many sets of fields (i.e. syls)?
-    FieldsList=Params.SeqFilter.SylLists.FieldsToPlot{j};
+for j=1:length(Params.SeqFilter.SylLists.FieldsInOrder); % how many sets of fields (i.e. syls)?
+    FieldsList=Params.SeqFilter.SylLists.FieldsInOrder{j};
     
     plot_colors=lt_make_plot_colors(length(FieldsList),0); % initiate colors for plot
     
     % PLOT MEAN PITCH SUBTRACTING BASELINE
-    lt_subplot(length(Params.SeqFilter.SylLists.FieldsToPlot),2,-1+j*2); hold on;
+    lt_subplot(length(Params.SeqFilter.SylLists.FieldsInOrder),2,-1+j*2); hold on;
     h=[];
     for jj=1:length(FieldsList); % how many fields within this set?
         syl=FieldsList{jj}; % actual syl name (e.g. 'a')
@@ -1010,7 +1074,7 @@ linkaxes(hplot,'xy');
 
 
 %% ONE FIGURE FOR ONE DAY (OR DAY BIN), ALL SYLS, EACH AS A DOT, AFP VS. GENERALIZATION
-
+if (0)
 lt_figure; hold on;
 hsplot=[];
 for i=1:length(DaysWithMuscimol);
@@ -1155,6 +1219,7 @@ end
 lt_subtitle('AFP bias (norm to laerning) vs. Learning - one plot each day');
 linkaxes(hsplot,'xy');
 
+end
 
 %% === DOES THE GENERALIZATION TO SOME NON-TARGETS REFLECT CONSOLIDATION?
 % 1) Supports if AFP bias does not seem to drive learning (as it does

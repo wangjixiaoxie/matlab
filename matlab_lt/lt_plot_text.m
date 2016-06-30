@@ -1,4 +1,13 @@
 %% LT 8/13/15 - just like text() but with default font size and weight
-function lt_plot_text(x, y, string);
+function lt_plot_text(x, y, string, color, fontsize);
 
-text(x, y,string, 'FontSize', 13, 'FontWeight', 'bold');
+if ~exist('color','var');
+    color='k';
+end
+
+if ~exist('fontsize','var');
+    fontsize=13;
+end
+
+
+text(x, y,string, 'FontSize', fontsize, 'FontWeight', 'bold', 'Color', color);

@@ -43,7 +43,7 @@ FILTERED_DATA.filter=sylID_filter{1};
 for i=1:NumBirds_OneTarg;
     NumExperiments=length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
     for ii=1:NumExperiments;
-        syl_list=fieldnames(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions);
+        syl_list=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
         
         % -- GET INFORMATION about the target syl
         targsyl=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.SeqFilter.SylLists.TargetSyls{1};

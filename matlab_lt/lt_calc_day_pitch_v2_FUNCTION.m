@@ -7,7 +7,19 @@
 % expressions
 % 4) also removed fvalsstr_all calculation.
 
+%% ==== examplei nput [see below for more details]
 
+% syl_target = 'b';
+% syl_pre = {'d'};
+% phrase = 'SeqDepPitchLMAN';
+% freq_range = {[3130 4000]};
+% pc_time_window = {0};
+% plot_result = 1;
+% batch='batch.labeled.all'; 
+% 
+% 
+% day_pitch=lt_calc_day_pitch_v2_FUNCTION(syl_target, ...
+%     syl_pre, phrase, freq_range, pc_time_window, plot_result,'',batch);
 
 %% created by LT 11/18/13 to take individual days and calculate pitch contour and time average pitch
 % modified from db_contour...v3, but don't have to do every day.  
@@ -46,6 +58,9 @@ end
 
 if ~exist('pc_window');
 pc_window=4000;
+end
+if isempty(pc_window)
+    pc_window=4000;
 end
 
 

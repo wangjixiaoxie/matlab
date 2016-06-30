@@ -10,6 +10,7 @@ function [AllSongsData_toplot, AllData]=lt_check_hit_templ_freq_NoLabelRequired(
 % Params.batch='batch.rand.keep';
 % Params.config='/bluejay4/lucas/birds/rd23gr89/060315_SeqDepPitch_durWN_day1/config.evconfig2'; 
 % Params.NoteNum_to_plot=2; % for the note you want to analyze
+% [AllSongsData_toplot, AllData]=lt_check_hit_templ_freq_NoLabelRequired(Params)
 
 % Outputs:
 % AllSongsData_toplot - trial by trial for the target notenum only.

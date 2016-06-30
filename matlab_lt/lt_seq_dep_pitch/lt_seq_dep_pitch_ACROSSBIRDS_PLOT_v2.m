@@ -368,7 +368,7 @@ for i=1:NumBirds;
         inds=Similar_status_all==1;
         X=CorrCoeff_all(inds);
         Y=AcousticDist_all(inds);
-        
+        try
         lt_regress(Y,X, 1);
         
         % different
@@ -394,7 +394,9 @@ for i=1:NumBirds;
         plot(X, Y, 'or');
         
         % 4) Motif position/(same or diff motif) - IN PROGRESS
-        
+                catch err
+        end
+
     end
     
     
@@ -1684,8 +1686,9 @@ for i=1:NumBirds;
         learning_targ=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(targsyl).LEARNING.learning_metric.mean;
         
         % ==== PLOT ALL SYLS
-        syllist=fieldnames(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed);
-        
+%         syllist=fieldnames(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed);
+                syllist=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
+
         for j=1:length(syllist);
             syl=syllist{j};
             
@@ -2023,7 +2026,8 @@ pause;
 close all;
 
 
-% =============== 2) ANOVA, IGNORE SIMILARITY (WITHIN SAME MOTIF), 
+% =============== 2) ANOVA, IGNORE SIMILARITY (WITHIN SAME MOTIF),
+% [THIS!!!! MOTIF POSITION]
 group_anova={};
 
 % first get inds for only those datapoints in same motif
@@ -2033,7 +2037,6 @@ inds=~isnan(MotifDist_AllExpts);
 group_anova{1} = MotifDist_AllExpts(inds); % position on motif (or on different motif)
 Y = Learning_AllExpts(inds);
 
-GroupNames={'similarity', 'motifpos'};
 GroupNames={'motifpos'};
 
 [p, table, stats, terms]=anovan(Y, group_anova, 'varnames', GroupNames);

@@ -509,10 +509,11 @@ if plotLMANinact==1;
                 SUMMARYDATA{ii}.PCsem=std(vals_PC,0,1)/sqrt(length(vals)-1);
                 
                 % bootstrap stats for CV
+                if length(vals)>1;
                 CV_btstats=lt_bootstrap(vals,'cv',1000);
                 SUMMARYDATA{ii}.FFcv_btstrapCI=CV_btstats.CI;
                 SUMMARYDATA{ii}.FFcv=CV_btstats.MEAN;
-                
+                end
                 
                 % plot mean with sem
                 lt_subplot(2,3,1); hold on;
@@ -536,13 +537,14 @@ if plotLMANinact==1;
                     title('CV (95%-ile)');
                 end
                 
+                if isfield(SUMMARYDATA{ii}, 'FFcv');
                 errorbar(ii,SUMMARYDATA{ii}.FFcv, SUMMARYDATA{ii}.FFcv-SUMMARYDATA{ii}.FFcv_btstrapCI(1),...
                     SUMMARYDATA{ii}.FFcv_btstrapCI(2)-SUMMARYDATA{ii}.FFcv,'o','Color','k','MarkerFaceColor','k');
                 xlim([-0.5 3.5])
                 
                 set(gca,'Xtick',[1 2]);
                 set(gca,'XtickLabel',ExptCondition_codes);
-                
+                end
                 
                 % -- plot distribution of pitch values
                 lt_subplot(2,3,3); hold on;

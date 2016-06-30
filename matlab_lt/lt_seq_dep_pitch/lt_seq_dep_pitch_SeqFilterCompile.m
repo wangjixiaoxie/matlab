@@ -364,12 +364,12 @@ disp('DONE! seq filtered and outliers removed');
 %% ---------------------------------------------------------
 %% TROUBLESHOOTING
 
-%% To plot outliers manually
+% %% To plot outliers manually
 % % 1) Lists outliers that were found
 % AllSyls=fieldnames(AllDays_RawDatStruct{1}.data);
 % for i=1:length(AllSyls);
 %     
-%     syl='b';
+%     syl='dB';
 %     syl=AllSyls{i};
 %     Ndays=size(Params.SeqFilter.OutlierInds,2);
 %     % to list outliers detected
@@ -443,11 +443,11 @@ disp('DONE! seq filtered and outliers removed');
 % % CHECK THAT time windows used for specific syls were correct
 % Params.SeqFilter.pc_time_window_list{j}
 % AllSyls
-
-
-
-
-
-
+% 
+% 
+% 
+% 
+% 
+% 
 
 

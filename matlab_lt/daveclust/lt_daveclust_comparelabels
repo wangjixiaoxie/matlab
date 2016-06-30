@@ -1,0 +1,3 @@
+
+%% compare matlab to daveclust labels
+length(test.labels)

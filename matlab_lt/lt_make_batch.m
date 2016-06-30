@@ -13,12 +13,12 @@ batchname = 'batch';
 db_write_batch(batchname)
 
 if input==1;
-cleandirAuto('batch',1000,5,5)
+lt_cleandirAuto('batch',1000,4,4)
 end
 
 if input==2;
     randsamp('batch',fraction);
-    cleandirAuto('batch.rand',1000,5,5);
+    lt_cleandirAuto('batch.rand',1000,4,4);
 end
 
 if input==3;

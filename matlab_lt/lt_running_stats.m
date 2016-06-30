@@ -25,16 +25,16 @@ for i=1:length(BeginInds);
     Dat=Y(BeginInds(i):BeginInds(i)+BinSize-1);
     
     % RUNNING MEDIAN
-    RunStats.Median(i)=median(Dat);
+    RunStats.Median(i)=nanmedian(Dat);
     
     % RUNNING MEAN
-    RunStats.Mean(i)=mean(Dat);
+    RunStats.Mean(i)=nanmean(Dat);
     
     % RUNNING STD
-    RunStats.STD(i)=std(Dat);
+    RunStats.STD(i)=nanstd(Dat);
     
     % RUNNING SEM
-    RunStats.SEM(i)=std(Dat)/sqrt(BinSize-1);
+    RunStats.SEM(i)=nanstd(Dat)/sqrt(numel(Dat)-1);
     
     % RUNNING PERCENTILES
     RunStats.prctiles_5_30_50_70_95(i,:)=prctile(Dat, [5, 30, 50, 70, 95]);

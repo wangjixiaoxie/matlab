@@ -30,7 +30,7 @@ for i=1:NumBirds;
         plotcols=lt_make_plot_colors(length(SylList),0,0);
 
         
-        lt_figure; hold on;
+%         lt_figure; hold on;
         
         hplot=[];
         YTOT{i,ii}.beginning=[];
@@ -39,7 +39,7 @@ for i=1:NumBirds;
             syl=SylList{iii};
             
             % ===================== SUBPLOT 1 - line plots
-            lt_subplot(2,1,1); hold on;
+%             lt_subplot(2,1,1); hold on;
 
             % ---- GET INDS
             ConsolStartDate=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.ConsolStartDate;
@@ -57,7 +57,7 @@ for i=1:NumBirds;
             else 
             FF_DayVals=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).meanFF_DevFromBase;
             end
-            plot(1:length(FF_DayVals),FF_DayVals,'-o','Color',plotcols{iii},'LineWidth',2);
+%             plot(1:length(FF_DayVals),FF_DayVals,'-o','Color',plotcols{iii},'LineWidth',2);
             
             
             % ========================== GET CONSOLIDATION START AND END VALS
@@ -69,11 +69,13 @@ for i=1:NumBirds;
             for dd=1:length(dayInds);
                 day=dayInds(dd);
                 
+                if length(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).FFvals)>=day;
                 ffvals=cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).FFvals{day});
                 tvals=cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).Tvals{day});
                 
                 FFvals_Cstart=[FFvals_Cstart ffvals];
                 Tvals_Cstart=[Tvals_Cstart tvals];
+                end
             end    
             
             % -------------------- Consol end
@@ -83,11 +85,13 @@ for i=1:NumBirds;
             for dd=1:length(dayInds);
                 day=dayInds(dd);
                 
+                if length(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).FFvals)>=day;
                 ffvals=cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).FFvals{day});
                 tvals=cell2mat(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).Tvals{day});
                 
                 FFvals_Cend=[FFvals_Cend ffvals];
                 Tvals_Cend=[Tvals_Cend tvals];
+                end
             end    
             
             % ---- SUBTRACT BASELINE FROM RAW VALUES
@@ -120,72 +124,73 @@ for i=1:NumBirds;
             % =====================================================
             
             
-            % === save to get global means
-%             if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).is_target==1;
-            if strcmp(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.SeqFilter.SylLists.TargetSyls{1}, syl);
-                % then is target, save to target field
-                YTOT{i,ii}.target_beginning=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed.(syl).ConsolStart_meanFF;
-                YTOT{i,ii}.target_end=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed.(syl).ConsolEnd_meanFF;
-            else
-                % then is not target, save to general field;
-                YTOT{i,ii}.beginning=[YTOT{i,ii}.beginning, FF_consol_start];
-                YTOT{i,ii}.end=[YTOT{i,ii}.end, FF_consol_end];
-            end
-            % =====
-            
-            
-            % plot (one dot for each syl)
-            try
-            hplot(iii)=plot(ConsolStartInd+DayBinSize/2, FF_consol_start, 's', 'Color','k','MarkerSize',8,'MarkerFaceColor',plotcols{iii});
-            plot(ConsolEndInd-DayBinSize/2, FF_consol_end ,'s', 'Color','k','MarkerSize',8,'MarkerFaceColor',plotcols{iii});
-            
-            % plot lines marking epoch start and end
-            line([ConsolStartInd-0.5 ConsolStartInd-0.5],ylim);
-            line([ConsolEndInd+0.5 ConsolEndInd+0.5],ylim);
-            catch err
-            end
-            
-            lt_plot_zeroline;            
-
-        end
-        try
-        legend(hplot, SylList)
-        catch err
+%             % === save to get global means
+% %             if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).is_target==1;
+%             if strcmp(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.SeqFilter.SylLists.TargetSyls{1}, syl);
+%                 % then is target, save to target field
+%                 YTOT{i,ii}.target_beginning=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed.(syl).ConsolStart_meanFF;
+%                 YTOT{i,ii}.target_end=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed.(syl).ConsolEnd_meanFF;
+%             else
+%                 % then is not target, save to general field;
+%                 YTOT{i,ii}.beginning=[YTOT{i,ii}.beginning, FF_consol_start];
+%                 YTOT{i,ii}.end=[YTOT{i,ii}.end, FF_consol_end];
+%             end
+%             % =====
+%             
+%             
+%             % plot (one dot for each syl)
+%             try
+%             hplot(iii)=plot(ConsolStartInd+DayBinSize/2, FF_consol_start, 's', 'Color','k','MarkerSize',8,'MarkerFaceColor',plotcols{iii});
+%             plot(ConsolEndInd-DayBinSize/2, FF_consol_end ,'s', 'Color','k','MarkerSize',8,'MarkerFaceColor',plotcols{iii});
+%             
+%             % plot lines marking epoch start and end
+%             line([ConsolStartInd-0.5 ConsolStartInd-0.5],ylim);
+%             line([ConsolEndInd+0.5 ConsolEndInd+0.5],ylim);
+%             catch err
+%             end
+%             
+%             lt_plot_zeroline;            
+% 
         end
         
-        % ----------- Put lines for WN start and end, and baseline, and
-        % other things
-        try
-        WNOnInd=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.WNTimeOnInd;
-        WnOffInd=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.WNTimeOffInd;
-        line([WNOnInd-0.5 WNOnInd-0.5],ylim,'LineStyle','--','Color','r'); % minus 0.5 since the datapoint is on the day, so want the line to be before datapojnt.
-        line([WnOffInd+0.5 WnOffInd+0.5],ylim,'LineStyle','--','Color','r')
-        text(WNOnInd, 0, 'WN', 'Color' , 'r');
-        
-        baseline_last_day=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.SeqFilter.BaselineDays(end);
-        line([baseline_last_day+0.4 baseline_last_day+0.4],ylim,'LineStyle','--','Color','g')
-        text(baseline_last_day, 5, 'Baseline end', 'Color' , 'g');
-       
-        % snapshot - important, snapshot{1} is end of single dir learning,
-        if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.NumTargs==0;
-            
-            try
-snapshotfield=fieldnames(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Snapshot);
-            snapshotfield=snapshotfield{1};
-            snapshot_start=snapshotfield(5:13);
-            firstday=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.SeqFilter.FirstDay;
-            snapshot_start_ind=lt_convert_EventTimes_to_RelTimes(firstday, {snapshot_start});
-            snapshot_start_ind=snapshot_start_ind.FinalValue;
-            snapshot_end_ind=snapshot_start_ind+2;
-
-            line([snapshot_start_ind-0.4 snapshot_start_ind-0.4], ylim, 'Color', 'k');
-            line([snapshot_end_ind+0.4 snapshot_end_ind+0.4], ylim, 'Color', 'k');
-            text(snapshot_start_ind, 5, 'Snapshot', 'Color' , 'k');
-            catch err
-                disp(['NO SNAPSHOT for bird ' num2str(i) ', expt ' num2str(ii) ', but should be']);
-            end
-        end
-        
+%         try
+%         legend(hplot, SylList)
+%         catch err
+%         end
+%         
+%         % ----------- Put lines for WN start and end, and baseline, and
+%         % other things
+%         try
+%         WNOnInd=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.WNTimeOnInd;
+%         WnOffInd=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.WNTimeOffInd;
+%         line([WNOnInd-0.5 WNOnInd-0.5],ylim,'LineStyle','--','Color','r'); % minus 0.5 since the datapoint is on the day, so want the line to be before datapojnt.
+%         line([WnOffInd+0.5 WnOffInd+0.5],ylim,'LineStyle','--','Color','r')
+%         text(WNOnInd, 0, 'WN', 'Color' , 'r');
+%         
+%         baseline_last_day=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.SeqFilter.BaselineDays(end);
+%         line([baseline_last_day+0.4 baseline_last_day+0.4],ylim,'LineStyle','--','Color','g')
+%         text(baseline_last_day, 5, 'Baseline end', 'Color' , 'g');
+%        
+%         % snapshot - important, snapshot{1} is end of single dir learning,
+%         if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.NumTargs==0;
+%             
+%             try
+% snapshotfield=fieldnames(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Snapshot);
+%             snapshotfield=snapshotfield{1};
+%             snapshot_start=snapshotfield(5:13);
+%             firstday=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.SeqFilter.FirstDay;
+%             snapshot_start_ind=lt_convert_EventTimes_to_RelTimes(firstday, {snapshot_start});
+%             snapshot_start_ind=snapshot_start_ind.FinalValue;
+%             snapshot_end_ind=snapshot_start_ind+2;
+% 
+%             line([snapshot_start_ind-0.4 snapshot_start_ind-0.4], ylim, 'Color', 'k');
+%             line([snapshot_end_ind+0.4 snapshot_end_ind+0.4], ylim, 'Color', 'k');
+%             text(snapshot_start_ind, 5, 'Snapshot', 'Color' , 'k');
+%             catch err
+%                 disp(['NO SNAPSHOT for bird ' num2str(i) ', expt ' num2str(ii) ', but should be']);
+%             end
+%         end
+%         
         % Put line for multidir learning if applicable
         if isfield(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES, 'MultiDir_OneDayBeforeStart');
             date1=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.MultiDir_OneDayBeforeStart;
@@ -200,121 +205,139 @@ snapshotfield=fieldnames(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_Pl
         SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.MultiDir_OneDayBeforeStart_Ind=date1_ind;
         SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.MultiDir_LastDay_Ind=date2_ind;
         
-        % --- plot
-            line([date1_ind date1_ind], ylim, 'Color', 'k', 'LineStyle', '--');
-            line([date2_ind date2_ind], ylim, 'Color', 'k', 'LineStyle', '--');
-            text(date1_ind, 50, ['Day before start, and last day of, multidir, using syls: ' ...
-                [SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.MultiDirSyls]], 'Color' , 'k');
-        end
-        catch err
-            disp('NOTE: SKIPPED PLOTTING LINES AND SUCH');
-        end
-        
-        
-        % ====================== SUBPLOT 2 - just dots for beginning and end (not absolute values);
-        lt_subplot(2,3,4); hold on;
-        title('learning (start and end of consolidation)');
-        
-        X=[1.1, 2.1];
-        
-        % plot nontargets
-        for j=1:length(YTOT{i,ii}.beginning);
-            Y1=YTOT{i,ii}.beginning(j);
-            Y2=YTOT{i,ii}.end(j);
-            
-            lt_plot(X, [Y1 Y2],{'LineStyle','-','Color',plotcols{j}});
-            
-            xlim([-0.5 3.5]);
+%         
+%         % --- plot
+%             line([date1_ind date1_ind], ylim, 'Color', 'k', 'LineStyle', '--');
+%             line([date2_ind date2_ind], ylim, 'Color', 'k', 'LineStyle', '--');
+%             text(date1_ind, 50, ['Day before start, and last day of, multidir, using syls: ' ...
+%                 [SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.MultiDirSyls]], 'Color' , 'k');
+%         end
+%         catch err
+%             disp('NOTE: SKIPPED PLOTTING LINES AND SUCH');
         end
         
-        % plot the target differently
-        Y1=YTOT{i,ii}.target_beginning;
-        Y2=YTOT{i,ii}.target_end;
-        
-        plot(X, [Y1 Y2],'-o','Color','k');
-        
-        % -- add means
-        Ybeg_mean=mean(YTOT{i,ii}.beginning);
-        Ybeg_sem=lt_sem(YTOT{i,ii}.beginning);
-        
-        Yend_mean=mean(YTOT{i,ii}.end);
-        Yend_sem=lt_sem(YTOT{i,ii}.end);
-        
-        errorbar(X+0.2, [Ybeg_mean Yend_mean], [Ybeg_sem Yend_sem],'-s', 'MarkerFaceColor','k','MarkerSize',9);
-        
-        lt_plot_zeroline;
-        
-        
-        % =========================== SUBPLOT 3 -  absolute values
-        lt_subplot(2,3,5); hold on;
-        title('absolute value of learning (consolidaton)');
-        
-        X=[1.1, 2.1];
-        
-        % plot nontargets
-        for j=1:length(YTOT{i,ii}.beginning);
-            Y1=abs(YTOT{i,ii}.beginning(j));
-            Y2=abs(YTOT{i,ii}.end(j));
+        if isfield(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES, 'SameDir_OneDayBeforeStart');
             
-            lt_plot(X, [Y1 Y2],{'LineStyle','-','Color',plotcols{j}});
-            
-            xlim([-0.5 3.5]);
+            date1=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.SameDir_OneDayBeforeStart;
+            tmp=lt_convert_EventTimes_to_RelTimes(FirstDate, {date1});
+            date1_ind=tmp.JustDays_rel;
+        
+            date2=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.SameDir_LastDay;
+            tmp=lt_convert_EventTimes_to_RelTimes(FirstDate, {date2});
+            date2_ind=tmp.JustDays_rel;
+          
+        % --- output
+        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.SameDir_OneDayBeforeStart_Ind=date1_ind;
+        SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.SameDir_LastDay_Ind=date2_ind;
         end
         
-        % plot the target differently
-        Y1=abs(YTOT{i,ii}.target_beginning);
-        Y2=abs(YTOT{i,ii}.target_end);
-        
-        plot(X, [Y1 Y2],'-o','Color','k');
-        
-        % -- add means
-        Ybeg_mean=mean(abs(YTOT{i,ii}.beginning));
-        Ybeg_sem=lt_sem(abs(YTOT{i,ii}.beginning));
-        
-        Yend_mean=mean(abs(YTOT{i,ii}.end));
-        Yend_sem=lt_sem(abs(YTOT{i,ii}.end));
-        
-        errorbar(X+0.2, [Ybeg_mean Yend_mean], [Ybeg_sem Yend_sem],'-s', 'MarkerFaceColor','k','MarkerSize',9);
-
-
-        % ===================== SUBPLOT 4 - maginute of learning (recalculated at start and
-        % end)
-        subplot(2,3,6); hold on;
-        title('learning magnitude (relative to target)');
-        
-        X=[1.1, 2.1];
-        
-        % plot nontargets
-        for j=1:length(YTOT{i,ii}.beginning);
-            Y1=YTOT{i,ii}.beginning(j)/YTOT{i,ii}.target_beginning;
-            Y2=YTOT{i,ii}.end(j)/YTOT{i,ii}.target_end;
-            
-            lt_plot(X, [Y1 Y2],{'LineStyle','-','Color',plotcols{j}});
-            
-            xlim([-0.5 3.5]);
-        end
-        
-        
-        % -- add means
-        
-        Ybeg_mean=mean(YTOT{i,ii}.beginning./YTOT{i,ii}.target_beginning);
-        Ybeg_sem=lt_sem(YTOT{i,ii}.beginning./YTOT{i,ii}.target_beginning);
-        
-        Yend_mean=mean(YTOT{i,ii}.end./YTOT{i,ii}.target_end);
-        Yend_sem=lt_sem(YTOT{i,ii}.end./YTOT{i,ii}.target_end);
-        
-        errorbar(X+0.2, [Ybeg_mean Yend_mean], [Ybeg_sem Yend_sem],'-s', 'MarkerFaceColor','k','MarkerSize',9);
-
-        
-        % === Annotate
-        lt_subtitle([birdname '; experiment: ' exptname]);
-        
+%         
+%         
+%         % ====================== SUBPLOT 2 - just dots for beginning and end (not absolute values);
+%         lt_subplot(2,3,4); hold on;
+%         title('learning (start and end of consolidation)');
+%         
+%         X=[1.1, 2.1];
+%         
+%         % plot nontargets
+%         for j=1:length(YTOT{i,ii}.beginning);
+%             Y1=YTOT{i,ii}.beginning(j);
+%             Y2=YTOT{i,ii}.end(j);
+%             
+%             lt_plot(X, [Y1 Y2],{'LineStyle','-','Color',plotcols{j}});
+%             
+%             xlim([-0.5 3.5]);
+%         end
+%         
+%         % plot the target differently
+%         Y1=YTOT{i,ii}.target_beginning;
+%         Y2=YTOT{i,ii}.target_end;
+%         
+%         plot(X, [Y1 Y2],'-o','Color','k');
+%         
+%         % -- add means
+%         Ybeg_mean=mean(YTOT{i,ii}.beginning);
+%         Ybeg_sem=lt_sem(YTOT{i,ii}.beginning);
+%         
+%         Yend_mean=mean(YTOT{i,ii}.end);
+%         Yend_sem=lt_sem(YTOT{i,ii}.end);
+%         
+%         errorbar(X+0.2, [Ybeg_mean Yend_mean], [Ybeg_sem Yend_sem],'-s', 'MarkerFaceColor','k','MarkerSize',9);
+%         
+%         lt_plot_zeroline;
+%         
+%         
+%         % =========================== SUBPLOT 3 -  absolute values
+%         lt_subplot(2,3,5); hold on;
+%         title('absolute value of learning (consolidaton)');
+%         
+%         X=[1.1, 2.1];
+%         
+%         % plot nontargets
+%         for j=1:length(YTOT{i,ii}.beginning);
+%             Y1=abs(YTOT{i,ii}.beginning(j));
+%             Y2=abs(YTOT{i,ii}.end(j));
+%             
+%             lt_plot(X, [Y1 Y2],{'LineStyle','-','Color',plotcols{j}});
+%             
+%             xlim([-0.5 3.5]);
+%         end
+%         
+%         % plot the target differently
+%         Y1=abs(YTOT{i,ii}.target_beginning);
+%         Y2=abs(YTOT{i,ii}.target_end);
+%         
+%         plot(X, [Y1 Y2],'-o','Color','k');
+%         
+%         % -- add means
+%         Ybeg_mean=mean(abs(YTOT{i,ii}.beginning));
+%         Ybeg_sem=lt_sem(abs(YTOT{i,ii}.beginning));
+%         
+%         Yend_mean=mean(abs(YTOT{i,ii}.end));
+%         Yend_sem=lt_sem(abs(YTOT{i,ii}.end));
+%         
+%         errorbar(X+0.2, [Ybeg_mean Yend_mean], [Ybeg_sem Yend_sem],'-s', 'MarkerFaceColor','k','MarkerSize',9);
+% 
+% 
+%         % ===================== SUBPLOT 4 - maginute of learning (recalculated at start and
+%         % end)
+%         subplot(2,3,6); hold on;
+%         title('learning magnitude (relative to target)');
+%         
+%         X=[1.1, 2.1];
+%         
+%         % plot nontargets
+%         for j=1:length(YTOT{i,ii}.beginning);
+%             Y1=YTOT{i,ii}.beginning(j)/YTOT{i,ii}.target_beginning;
+%             Y2=YTOT{i,ii}.end(j)/YTOT{i,ii}.target_end;
+%             
+%             lt_plot(X, [Y1 Y2],{'LineStyle','-','Color',plotcols{j}});
+%             
+%             xlim([-0.5 3.5]);
+%         end
+%         
+%         
+%         % -- add means
+%         
+%         Ybeg_mean=mean(YTOT{i,ii}.beginning./YTOT{i,ii}.target_beginning);
+%         Ybeg_sem=lt_sem(YTOT{i,ii}.beginning./YTOT{i,ii}.target_beginning);
+%         
+%         Yend_mean=mean(YTOT{i,ii}.end./YTOT{i,ii}.target_end);
+%         Yend_sem=lt_sem(YTOT{i,ii}.end./YTOT{i,ii}.target_end);
+%         
+%         errorbar(X+0.2, [Ybeg_mean Yend_mean], [Ybeg_sem Yend_sem],'-s', 'MarkerFaceColor','k','MarkerSize',9);
+% 
+%         
+%         % === Annotate
+%         lt_subtitle([birdname '; experiment: ' exptname]);
+%         
     end
 end
 
 
 %% =========================== PLOTS ACROSS ALL BIRDS
-lt_figure; hold on;
+if (0)
+    lt_figure; hold on;
 plotcols=lt_make_plot_colors(size(YTOT,1),0,0);
 title('During consolidation, All syls, all birds');
 xlabel('Start');
@@ -427,6 +450,7 @@ xlabel('Learning at start of consolidation');
 line(xlim,[0 0]);
 line([0 0],ylim);
 
+end
 
 
 %% SAVE A LEARNING SCORE FOR EACH SYL

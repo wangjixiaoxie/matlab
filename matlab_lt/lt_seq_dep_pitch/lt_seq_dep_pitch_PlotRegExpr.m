@@ -300,7 +300,7 @@ FFsem_alldays_minusbase=cell(NumRegExprClasses, NumDays);
 
 for i=1:NumRegExprClasses;
     regexpr_string=Params.RegExpr.expressions{i};
-    NumSylsMax=length(AllDays_RegExpr.(['baseline' data_field]).data_WithOutlier{i}.FFmean)+1;
+    NumSylsMax=length(AllDays_RegExpr.(['baseline' data_field]).data_WithOutlier{i}.FFmean)+2;
     plot_cols=lt_make_plot_colors(NumSylsMax, 0, [1 0 0]);
     
     lt_figure; hold on;
@@ -951,6 +951,7 @@ FFmean_by_song_ind_Compiled_NanSongsRemoved=FFmean_by_song_ind_Compiled;
 FFmean_by_song_ind_Compiled_NanSongsRemoved(Inds_nan,:)=[];
 
 % ===== CALCULATE AND PLOT
+if ~isempty(FFmean_by_song_ind_Compiled_NanSongsRemoved)
 lt_figure; hold on;
 title('Correlation matrix between all classes (using mean in song)');
 [RhoMat, PvalMat]=corr(FFmean_by_song_ind_Compiled_NanSongsRemoved);
@@ -994,8 +995,7 @@ for i=1:length(SylsInOrder_Compiled);
     set(gca,'XTick',1:length(SylsInOrder_Compiled), 'XTickLabel', SylsInOrder_Compiled);
 end
 lt_subtitle('Correlation between all classes (song mean)');
-
-
+end
         
 %% CORRELATIONS USING MOTIFS (baseline), all subclasses? With and Without subtracting song mean
 MinRendPerSong=3; % min rends of motif to take data for song-subtracted correaltions.
@@ -1052,14 +1052,17 @@ for i=1:NumRegExprClasses;
         end
         
         % --- CORRELATIONS
+        if ~isempty(ffvals_MinMean_compiled)
         [RhoMat_MinSongMean, PvalMat_MinSongMean]=corr(ffvals_MinMean_compiled);
 
         
         % --- OUTPUT STRUCTURE
+        try
         AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{i}.sub_class{ii}.CORRELATIONS.SUBTRACT_SONG_MEAN.ffvals=ffvals_MinMean_compiled;
         AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{i}.sub_class{ii}.CORRELATIONS.SUBTRACT_SONG_MEAN.RhoMat=RhoMat_MinSongMean;
         AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{i}.sub_class{ii}.CORRELATIONS.SUBTRACT_SONG_MEAN.PvalMat=PvalMat_MinSongMean;
-        
+        catch err
+        end
         
         % +++++++++++++++++++++++++ CORRELATIONS (SUBTRACTING SONG MEAN
         % FIRST, ONLY TAKING IF SONG HAS OVER N RENDITIONS OF MOTIF)
@@ -1068,6 +1071,7 @@ for i=1:NumRegExprClasses;
         num_songs=size(AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{i}.sub_class{ii}.CORRELATIONS.SONG_BY_SONG.FFmean_matrix_by_GlobalSongInd,1);
         ffvals_MinMean_NoShortSong_compiled=[];
         songs_taken_compiled=[];
+
         for j=1:num_songs;
             ffvals=AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{i}.sub_class{ii}.CORRELATIONS.SONG_BY_SONG.FFvals_raw{j};
             
@@ -1092,14 +1096,21 @@ for i=1:NumRegExprClasses;
         % --- CORRELATIONS
         if ~isempty(ffvals_MinMean_NoShortSong_compiled);
         [RhoMat_MinSongMean_NoShortSong, PvalMat_MinSongMean_NoShortSong]=corr(ffvals_MinMean_NoShortSong_compiled);
+        else
+        % isempty
+        RhoMat_MinSongMean_NoShortSong=nan(size(AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{i}.sub_class{ii}.FFmean,2));
+        PvalMat_MinSongMean_NoShortSong=RhoMat_MinSongMean_NoShortSong;
         end
         
         % --- OUTPUT STRUCTURE
+        try
         AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{i}.sub_class{ii}.CORRELATIONS.SUBTRACT_SONG_MEAN_NoShortSongs.ffvals=ffvals_MinMean_NoShortSong_compiled;
         AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{i}.sub_class{ii}.CORRELATIONS.SUBTRACT_SONG_MEAN_NoShortSongs.Songs_kept=songs_taken_compiled;
         AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{i}.sub_class{ii}.CORRELATIONS.SUBTRACT_SONG_MEAN_NoShortSongs.RhoMat=RhoMat_MinSongMean_NoShortSong;
         AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{i}.sub_class{ii}.CORRELATIONS.SUBTRACT_SONG_MEAN_NoShortSongs.PvalMat=PvalMat_MinSongMean_NoShortSong;
-
+        catch err
+        end
+        
         % ========================================== PLOT =====================================================================
         % +++++++++++++++++++++++ 1) WITHOUT SUBTRACTING SONG MEANS 
         lt_figure; hold on;
@@ -1198,6 +1209,7 @@ for i=1:NumRegExprClasses;
         colorbar;
         
     lt_subtitle(['Correlations (motifs, minus song mean, no short song): ' regexpr_string]);
+        end
     end
    
 end
@@ -1255,13 +1267,16 @@ for n=1:NumRegExprClasses;
     for i=1:num_syls;
         lt_subplot(ceil(num_syls/3), 3, i); hold on;
         title(['syl: ' syllist(i)]);
-        
+        try
         Y=AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{subclass_choice(1)}.sub_class{subclass_choice(2)}.CORRELATIONS.RhoMat(i,:);
         
         bar(Y);
         ylim([-0.15 0.7]);
         xlim([0.5 num_syls+0.5]);
         set(gca, 'XTick', 1:num_syls);
+        catch err
+        end
+        
     end
     
     lt_subtitle([Params.RegExpr.subexpressions{subclass_choice(1)}{subclass_choice(2)} '; rho (motifs)']);
@@ -1271,8 +1286,10 @@ for n=1:NumRegExprClasses;
     for i=1:num_syls;
         lt_subplot(ceil(num_syls/3), 3, i); hold on;
         title(['syl: ' syllist(i)]);
-        
+        try
         Y=AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{subclass_choice(1)}.sub_class{subclass_choice(2)}.CORRELATIONS.SUBTRACT_SONG_MEAN.RhoMat(i,:);
+        catch err
+        end
         
         bar(Y);
         ylim([-0.15 0.7]);
@@ -1288,8 +1305,10 @@ for n=1:NumRegExprClasses;
         lt_subplot(ceil(num_syls/3), 3, i); hold on;
         title(['syl: ' syllist(i)]);
         
+        try
         Y=AllDays_RegExpr.(['baseline' data_field]).data_ParsedIntoSubclasses{subclass_choice(1)}.sub_class{subclass_choice(2)}.CORRELATIONS.SUBTRACT_SONG_MEAN_NoShortSongs.RhoMat(i,:);
-        
+        catch err
+        end
         bar(Y);
         ylim([-0.15 0.7]);
         xlim([0.5 num_syls+0.5]);

@@ -133,7 +133,7 @@ end
 
 
 
-% Convert WNdays to index days
+% =========== Convert WNdays to index days
 global WNTimeOnInd % make global, so can use in subfunction below.
 global WNTimeOffInd
 
@@ -145,7 +145,16 @@ if Params.PlotLearning.plotWNdays==1;
 end
 
 
-% Get days to mark, if exist.
+% ===== Get baseline days
+if isfield(Params.SeqFilter, 'BaselineDays');
+    disp(['replacing Params.SeqFilter.BaselineDays from ' num2str(Params.SeqFilter.BaselineDays) ' to ' ...
+        num2str(1:WNTimeOnInd-1)]);
+end
+Params.SeqFilter.BaselineDays=1:WNTimeOnInd-1;
+
+
+
+% ========= Get days to mark, if exist.
 global DaysToMarkInds
 DaysToMarkInds={};
 X={};
@@ -309,7 +318,14 @@ if plotLMANmusc==1;
                 
                 % ==== SORT TODAY's TRIALS INTO CONDITIONS ==================
                 % get all filenames
-                filenames=AllDays_RawDatStruct{ii}.data.(syl)(:,5);
+                filenames=[];
+                if isfield(AllDays_RawDatStruct{ii}.data, syl);
+                    filenames=AllDays_RawDatStruct{ii}.data.(syl)(:,5);
+                end
+                
+                if isempty(filenames);
+                    continue;
+                end
                 
                 % get conditions from filenames
                 ExptConditions=[];
@@ -354,20 +370,23 @@ if plotLMANmusc==1;
                 % -- find inds for PBS data
                 PBS_indicator=find(strcmp(ExptCondition_codes,'PBS'));
                 
-                PBS_inds=cell2mat(AllDays_RawDatStruct{ii}.data_PBS_and_MUSC.(syl)(:,12))==PBS_indicator;
-                
-                % -- slot data of those inds back into "data" field
-                AllDays_RawDatStruct{ii}.data.(syl)=AllDays_RawDatStruct{ii}.data_PBS_and_MUSC.(syl)(PBS_inds,:);
-                
+                if isfield(AllDays_RawDatStruct{ii}.data_PBS_and_MUSC, syl);
+                    % then there are data
+                    PBS_inds=cell2mat(AllDays_RawDatStruct{ii}.data_PBS_and_MUSC.(syl)(:,12))==PBS_indicator;
+                    
+                    % -- slot data of those inds back into "data" field
+                    AllDays_RawDatStruct{ii}.data.(syl)=AllDays_RawDatStruct{ii}.data_PBS_and_MUSC.(syl)(PBS_inds,:);
+                end
                 % == Filter out Musc data
                 % -- find inds for MUSC data
                 MUSC_indicator=find(strcmp(ExptCondition_codes,'MUSC'));
                 
-                MUSC_inds=cell2mat(AllDays_RawDatStruct{ii}.data_PBS_and_MUSC.(syl)(:,12))==MUSC_indicator;
-                
-                % -- slot data of those inds back into "data_MUSC" field
-                AllDays_RawDatStruct{ii}.data_MUSC.(syl)=AllDays_RawDatStruct{ii}.data_PBS_and_MUSC.(syl)(MUSC_inds,:);
-                
+                if isfield(AllDays_RawDatStruct{ii}.data_PBS_and_MUSC, syl)
+                    MUSC_inds=cell2mat(AllDays_RawDatStruct{ii}.data_PBS_and_MUSC.(syl)(:,12))==MUSC_indicator;
+                    
+                    % -- slot data of those inds back into "data_MUSC" field
+                    AllDays_RawDatStruct{ii}.data_MUSC.(syl)=AllDays_RawDatStruct{ii}.data_PBS_and_MUSC.(syl)(MUSC_inds,:);
+                end
                 
                 
             end
@@ -625,14 +644,19 @@ for dd=1:length(epochdata_fields);
     datamatrixfield=datamatrix_fields{dd};
     
     % 1st and last WN bins
+    try
     FirstWNBin=AllDays_PlotLearning.(epochdatafield).AllDaysSliding.(Params.PlotLearning.DayBinsFieldname).(syl).FirstWNInd;
     LastWNBin=AllDays_PlotLearning.(epochdatafield).AllDaysSliding.(Params.PlotLearning.DayBinsFieldname).(syl).LastWNInd;
+    catch err
+        continue;
+    end
     
     for i=1:length(Params.SeqFilter.SylLists.FieldsInOrder);
         lt_figure; hold on;
         
         X=length(Params.SeqFilter.SylLists.FieldsInOrder{i}); % how many syls?
         Y=AllDays_PlotLearning.(epochdatafield).MatrixOverDaysforSylLists.FieldsInOrder{i}.meanFF_minusBaseline;
+        
         Ymin=min(min(Y));
         Ymax=max(max(Y));
         Ylimits{i}=[Ymin-10 Ymax+10];
@@ -641,7 +665,10 @@ for dd=1:length(epochdata_fields);
         for ii=1:X;
             lt_subplot(X,2,(-1+(X-ii+1)*2)); hold on;
             bar(Y(:,ii));
-            ylim(Ylimits{i})
+            try 
+                ylim(Ylimits{i})
+            catch err
+            end
             ylabel(AllDays_PlotLearning.(epochdatafield).MatrixOverDaysforSylLists.FieldsInOrder{i}.FieldNamesInOrder{ii});
             
             % annotate WN bins
@@ -658,7 +685,11 @@ for dd=1:length(epochdata_fields);
         for ii=1:X;
             lt_subplot(X,2,((X-ii+1)*2)); hold on;
             bar(Y(:,ii));
-            ylim(Ylimits_zoom{i})
+            try 
+                ylim(Ylimits_zoom{i})
+            catch err
+            end
+            
             ylabel(AllDays_PlotLearning.(epochdatafield).MatrixOverDaysforSylLists.FieldsInOrder{i}.FieldNamesInOrder{ii});
             if ii==X;
                 xlabel('Day bin #');
@@ -691,7 +722,11 @@ for dd=1:length(epochdata_fields);
             % Plot pitch means and SEM for each day, for this syl.
             bar(AllDays_PlotLearning.(datamatrixfield).(syl).meanFF_DevFromBase);
             
+            try
             ylim(Ylimits{i})
+            catch err
+            end
+            
             ylabel(syl);
             if ii==length(FieldsList);
                 xlabel('3-day bin #');
@@ -707,7 +742,11 @@ for dd=1:length(epochdata_fields);
             lt_subplot(length(FieldsList),2,(length(FieldsList)-ii+1)*2); hold on;
             bar(AllDays_PlotLearning.(datamatrixfield).(syl).meanFF_DevFromBase);
             
+            try
             ylim(Ylimits_zoom{i})
+            catch err
+            end
+            
             ylabel(syl);
             if ii==length(FieldsList);
                 xlabel('3-day bin #');
@@ -730,7 +769,7 @@ end
 
 % LEARNING (Hz from baseline) - 3 day bins
 
-
+try 
 figure; hold on;
 for i=1:length(Params.SeqFilter.SylLists.FieldsInOrder);
     subplot(1,length(Params.SeqFilter.SylLists.FieldsInOrder),i); hold on;
@@ -768,7 +807,11 @@ for i=1:length(Params.SeqFilter.SylLists.FieldsInOrder);
     set(gca,'XTick',Xtick);
     set(gca,'XTickLabel',EpochData.MatrixOverDaysforSylLists.FieldsInOrder{i}.FieldNamesInOrder)
     
+    try
     caxis(Ylimits_zoom{i})
+    catch err
+    end
+    
     
     line(xlim,[FirstWNBin-0.5 FirstWNBin-0.5])
     line(xlim,[LastWNBin-0.5 LastWNBin-0.5])
@@ -820,8 +863,12 @@ for i=1:length(Params.SeqFilter.SylLists.FieldsInOrder);
     set(gca,'XTick',Xtick);
     set(gca,'XTickLabel',EpochData.MatrixOverDaysforSylLists.FieldsInOrder{i}.FieldNamesInOrder)
     
+    try
     caxis(Ylimits_zoom{i})
+    catch err
+    end
     
+        
     % WN start and end line
     
     line(xlim,[WNTimeOnInd-0.5 WNTimeOnInd-0.5])
@@ -832,18 +879,20 @@ for i=1:length(Params.SeqFilter.SylLists.FieldsInOrder);
 end
 
 
-
+catch err
+end
 
 
 %% PLOT MEAN OF LAST FEW DAYS IN ORDER OF SYLLABLES (and snapshot days, if desired) - currently only for PBS
 
-
+try
 % PLOT LEARNING AS MINUS BASELINE (HZ);
 binfield=Params.PlotLearning.DayBinsFieldname;
 lastday=EpochData.AllDaysSliding.(binfield).(syl).LastWNInd;
 
 % only perform if there is data for last day
-if length(EpochData.AllDaysSliding.(binfield).(syl).meanFF_minusBaseline)>=lastday;
+if length(EpochData.AllDaysSliding.(binfield).(syl).meanFF_minusBaseline)>=lastday & ...
+        lastday>0;
     
     Y={};
     Ysem={};
@@ -876,7 +925,10 @@ if length(EpochData.AllDaysSliding.(binfield).(syl).meanFF_minusBaseline)>=lastd
         
         bar(Y{ll})
         
+        try
         ylim([min(Ymin)-20 max(Ymax)+20]);
+        catch err
+        end
         
         % annotate
         Xtick=1:length(FieldsList); % one tick for each syl. needed.
@@ -889,7 +941,9 @@ if length(EpochData.AllDaysSliding.(binfield).(syl).meanFF_minusBaseline)>=lastd
 else
     disp('Note, not plotting summary of last WN day because lacks data!!');
 end
-
+catch err
+end
+    
 %% TO DO: CONVERT TO FUNCTION TO PLOT ANY DESIRED DAYS
 % IF WANT TO PLOT A SNAPSHOT - need to designate in params
 % Params.SeqFilter.DaysForSnapshot{1}={'09Dec2014','11Dec2014'};
@@ -1234,6 +1288,10 @@ for j=1:length(syllist);
     end
     
     % plot
+    if isempty(FFvals_tot);
+        continue;
+    end
+      
     hplot(j)=plot(Tvals_tot,FFvals_tot,'.','Color',plotcols{j});
     
     % get running avg
@@ -1254,7 +1312,7 @@ lt_subtitle('Baseline circadian fluctuation of pitch');
 
 
 %% PLOT TRIAL BY TRIAL
-
+if (0) % SKIPPING BECAUSE TAKES  ALONG TIME.
 
 % TO DO - concatenate multiple days
 % - overlay targ syl
@@ -1332,6 +1390,10 @@ for j=1:length(Params.SeqFilter.SylLists.FieldsToPlot); % how many sets of field
         
         
         % ==== subtract (baseline) from FF values
+        if ~isfield(AllDays_PlotLearning.EpochData.Baseline, syl);
+        continue; 
+        end
+       
         baselineFF=AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF;
         %                 tmp=round(length(FFvals_alldays)/6);
         %                 baselineFF=mean(FFvals_alldays(1:tmp));
@@ -1349,8 +1411,10 @@ for j=1:length(Params.SeqFilter.SylLists.FieldsToPlot); % how many sets of field
         % RAW VALUES
         lt_plot(Tvals_alldays, FFvals_alldays, {'Color', plot_colors{jj}});
         % SMOOTHED
+        if length(Tvals_sm.Mean)>1;
         shadedErrorBar(Tvals_sm.Mean,FFvals_sm.Mean,FFvals_sm.SEM,{'-','Color','k','LineWidth',6},1);
         %                 plot(Tvals_sm.Mean,FFvals_sm.Mean,'.','Color',plot_colors{jj})
+        end
         
         % plot line for day mean
         plot(xlim,[0 0],'--');
@@ -1373,8 +1437,10 @@ for j=1:length(Params.SeqFilter.SylLists.FieldsToPlot); % how many sets of field
         % RAW VALUES
         lt_plot(X, FFvals_alldays, {'Color', plot_colors{jj}});
         % SMOOTHED
+                if length(X_sm.Mean)>1;
         shadedErrorBar(X_sm.Mean,FFvals_sm.Mean,FFvals_sm.SEM,{'-','Color','k','LineWidth',6},1);
-        
+                end
+                
         % plot line for day mean
         plot(xlim,[0 0],'--');
         Xlim=xlim;
@@ -1422,8 +1488,7 @@ for j=1:length(Params.SeqFilter.SylLists.FieldsToPlot); % how many sets of field
    
 end
 
-
-    
+end    
 
 %% TO DO:
 % at: 
@@ -1452,7 +1517,6 @@ end
 % AllDays_PlotLearning.EpochData=EpochData;
 % AllDays_PlotLearning.DataMatrix=DataMatrix;
 % AllDays_PlotLearning.DataMatrix_Targ=DataMatrix_Targ;
-
 %% SAVE
 if saveON==1;
     
@@ -1461,9 +1525,9 @@ if saveON==1;
     save('Params','Params');
     save('AllDays_PlotLearning','AllDays_PlotLearning');
     if save_AllDays_RawDat==1;
-    save('AllDays_RawDatStruct','AllDays_RawDatStruct','-v7.3');
+        save('AllDays_RawDatStruct','AllDays_RawDatStruct','-v7.3');
     end
-        
+    
     % write a text file that tells you when files were made
     fid1=fopen(['DONE_PlotLearning_' timestampSv '.txt'],'w');
     fclose(fid1);
@@ -1481,8 +1545,8 @@ if saveON==1;
     
 end
 
-end
 
+end
 
 %% VARIOUS SUNFUNCTIONS
 

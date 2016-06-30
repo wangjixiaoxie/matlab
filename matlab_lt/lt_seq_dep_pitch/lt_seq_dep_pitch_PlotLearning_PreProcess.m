@@ -16,7 +16,7 @@ if muscimol_data==1;
 else
     data_field='data';
 end
-    
+
 
 NumDays=length(AllDays_RawDatStruct);
 
@@ -38,7 +38,7 @@ for i=1:length(SylFields_Unique);
             end
         end
     end
-
+    
     EpochData.Baseline.(syl).pitchcontour_mean=nanmean(PCmat,1);
     EpochData.Baseline.(syl).pitchcontour_STD=nanstd(PCmat,0,1);
     EpochData.Baseline.(syl).rawFF=X;
@@ -77,8 +77,27 @@ for jj=1:length(SylFields_Unique); % how many fields within this set?
                 if size(AllDays_RawDatStruct{i}.(data_field).(syl),2)>12;
                     % then catch song data was annotated
                     CatchSongStatus{i}=cell2mat(AllDays_RawDatStruct{i}.(data_field).(syl)(:,13));
+                else
+                    CatchSongStatus{i}=[];
                 end
+                
+            else
+                Yvals{i}={};
+                Tvals{i}={};
+                Ymean(i)=nan;
+                Yerr(i)=nan;
+                Ystd(i)=nan;
+                    CatchSongStatus{i}={};
+                
             end
+        else
+                Yvals{i}={};
+                Tvals{i}={};
+                Ymean(i)=nan;
+                Yerr(i)=nan;
+                Ystd(i)=nan;
+                CatchSongStatus{i}={};
+            
         end
     end
     
@@ -238,57 +257,21 @@ Params.PlotLearning.DayBinsFieldname=DayBinsFieldname;
 % Do this for both 3-day binned data and single-day data (here)
 % 1) For 3-day binned
 if isfield(EpochData, 'AllDaysSliding');
-RunWinInds=length(EpochData.AllDaysSliding.(Params.PlotLearning.DayBinsFieldname).(syl).meanFF); % num bins
-SylCategoriesFields=fieldnames(Params.SeqFilter.SylLists); % how manyways of dividing up syls have I used?
-
-for ll=1:length(SylCategoriesFields);
-    fn=SylCategoriesFields{ll}; % e.g. fn = 'SylsSame'
-    if ~isempty(Params.SeqFilter.SylLists.(fn));
-        if ischar(Params.SeqFilter.SylLists.(fn){1})==1; % if this is char, then this is the end of the line for this structure, so start using these entries as the syl names. Otherwise, go one lower (below) to find syl names.
-            FieldsList=Params.SeqFilter.SylLists.(fn);
-            for ii=1:length(FieldsList);
-                syl=FieldsList{ii};
-                
-                % 1) learning (hz min baseline)
-                try
-                EpochData.MatrixOverDaysforSylLists.(fn).meanFF_minusBaseline(:,ii)=...
-                    EpochData.AllDaysSliding.(DayBinsFieldname).(syl).meanFF_minusBaseline';
-                catch err
-                end
-                
-                %             % 2) generalization
-                %             for j=1:length(SylLists.TargetSyls);
-                %                 targsyl=SylLists.TargetSyls{j};
-                %
-                %                 EpochData.MatrixOverDaysforSylLists.FieldsInOrder.FieldsInOrderNum{i}.GeneralizationFrom.(targsyl).UsingHz(iii,ii)=...
-                %                     EpochData.WNdaysSlidingWin{iii}.UNDIR.(syl).GeneralizationFrom.(targsyl).UsingHz; % format: columns are fields in order, and rows are mean data, each being one 3-day bin.
-                %
-                %             end
-                
-                
-                % % FOR SINGLE DAYS
-                try
-                DataMatrix.MatrixOverDaysforSylLists.(fn).meanFF_minusBaseline(:,ii)=...
-                    DataMatrix.(syl).meanFF_DevFromBase; % format: columns are fields in order, and rows are mean data, each being one 3-day bin.
-                catch err
-                end
-                
-                
-            end
-            EpochData.MatrixOverDaysforSylLists.(fn).FieldNamesInOrder=FieldsList;
-            DataMatrix.MatrixOverDaysforSylLists.(fn).FieldNamesInOrder=FieldsList;
-            
-            
-        else
-            for i=1:length(Params.SeqFilter.SylLists.(fn)); % how many lists? (e.g. fields in order might have 2, but same syls is always 1)
-                FieldsList=Params.SeqFilter.SylLists.(fn){i};
+    RunWinInds=length(EpochData.AllDaysSliding.(Params.PlotLearning.DayBinsFieldname).(syl).meanFF); % num bins
+    SylCategoriesFields=fieldnames(Params.SeqFilter.SylLists); % how manyways of dividing up syls have I used?
+    
+    for ll=1:length(SylCategoriesFields);
+        fn=SylCategoriesFields{ll}; % e.g. fn = 'SylsSame'
+        if ~isempty(Params.SeqFilter.SylLists.(fn));
+            if ischar(Params.SeqFilter.SylLists.(fn){1})==1; % if this is char, then this is the end of the line for this structure, so start using these entries as the syl names. Otherwise, go one lower (below) to find syl names.
+                FieldsList=Params.SeqFilter.SylLists.(fn);
                 for ii=1:length(FieldsList);
                     syl=FieldsList{ii};
                     
-                    % 1) learning (hz min baseli)
+                    % 1) learning (hz min baseline)
                     try
-                    EpochData.MatrixOverDaysforSylLists.(fn){i}.meanFF_minusBaseline(:,ii)=...
-                        EpochData.AllDaysSliding.(DayBinsFieldname).(syl).meanFF_minusBaseline';
+                        EpochData.MatrixOverDaysforSylLists.(fn).meanFF_minusBaseline(:,ii)=...
+                            EpochData.AllDaysSliding.(DayBinsFieldname).(syl).meanFF_minusBaseline';
                     catch err
                     end
                     
@@ -301,21 +284,57 @@ for ll=1:length(SylCategoriesFields);
                     %
                     %             end
                     
+                    
                     % % FOR SINGLE DAYS
                     try
-                        DataMatrix.MatrixOverDaysforSylLists.(fn){i}.meanFF_minusBaseline(:,ii)=...
-                        DataMatrix.(syl).meanFF_DevFromBase; % format: columns are fields in order, and rows are mean data, each being one 3-day bin.
+                        DataMatrix.MatrixOverDaysforSylLists.(fn).meanFF_minusBaseline(:,ii)=...
+                            DataMatrix.(syl).meanFF_DevFromBase; % format: columns are fields in order, and rows are mean data, each being one 3-day bin.
                     catch err
                     end
-                        
                     
                     
                 end
-                EpochData.MatrixOverDaysforSylLists.(fn){i}.FieldNamesInOrder=FieldsList;
-                DataMatrix.MatrixOverDaysforSylLists.(fn){i}.FieldNamesInOrder=FieldsList;
+                EpochData.MatrixOverDaysforSylLists.(fn).FieldNamesInOrder=FieldsList;
+                DataMatrix.MatrixOverDaysforSylLists.(fn).FieldNamesInOrder=FieldsList;
                 
+                
+            else
+                for i=1:length(Params.SeqFilter.SylLists.(fn)); % how many lists? (e.g. fields in order might have 2, but same syls is always 1)
+                    FieldsList=Params.SeqFilter.SylLists.(fn){i};
+                    for ii=1:length(FieldsList);
+                        syl=FieldsList{ii};
+                        
+                        % 1) learning (hz min baseli)
+                        try
+                            EpochData.MatrixOverDaysforSylLists.(fn){i}.meanFF_minusBaseline(:,ii)=...
+                                EpochData.AllDaysSliding.(DayBinsFieldname).(syl).meanFF_minusBaseline';
+                        catch err
+                        end
+                        
+                        %             % 2) generalization
+                        %             for j=1:length(SylLists.TargetSyls);
+                        %                 targsyl=SylLists.TargetSyls{j};
+                        %
+                        %                 EpochData.MatrixOverDaysforSylLists.FieldsInOrder.FieldsInOrderNum{i}.GeneralizationFrom.(targsyl).UsingHz(iii,ii)=...
+                        %                     EpochData.WNdaysSlidingWin{iii}.UNDIR.(syl).GeneralizationFrom.(targsyl).UsingHz; % format: columns are fields in order, and rows are mean data, each being one 3-day bin.
+                        %
+                        %             end
+                        
+                        % % FOR SINGLE DAYS
+                        try
+                            DataMatrix.MatrixOverDaysforSylLists.(fn){i}.meanFF_minusBaseline(:,ii)=...
+                                DataMatrix.(syl).meanFF_DevFromBase; % format: columns are fields in order, and rows are mean data, each being one 3-day bin.
+                        catch err
+                        end
+                        
+                        
+                        
+                    end
+                    EpochData.MatrixOverDaysforSylLists.(fn){i}.FieldNamesInOrder=FieldsList;
+                    DataMatrix.MatrixOverDaysforSylLists.(fn){i}.FieldNamesInOrder=FieldsList;
+                    
+                end
             end
         end
     end
-end
 end

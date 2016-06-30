@@ -642,8 +642,10 @@ linkaxes(hspot,'xy');
 
 %% PLOT WITH EACH EPOCH AS A DATAPOINT
 
+if ~exist('RendNumBins', 'var');
 RendNumBins=Params_alldays.Edge_Num_Rends; % number of renditions at starts of epochs to analyze. (for analysis of transitions, for instance)
 % RendNumBins=5; % number of renditions at starts of epochs to analyze. (for analysis of transitions, for instance)
+end
 
 
 % == PLOT NUMBER OF RENDITIONS PER EPOCH
