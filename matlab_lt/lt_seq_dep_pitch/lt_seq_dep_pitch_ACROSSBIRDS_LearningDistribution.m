@@ -438,11 +438,6 @@ Xcenters=linspace(Xcenters(1), Xcenters(end), 50);
 hbar_all=[];
 
 
-% ============================================= SIMILAR
-[fignums_alreadyused, hfigs, count]=lt_plot_MultSubplotsFigs(SubplotsPerFig, subplotrows, subplotcols, fignums_alreadyused, hfigs, count);
-xlabel('Pitch shift (z-score)');
-hbar_all=[];
-
 % ___________________________ 2) Plot (COUNTS)
 % ---------- Targets
 lt_subplot(2,2,1); hold on;
@@ -464,6 +459,16 @@ upperBound=PARAMS.baselineDrift.prctiles_2_5and97_5(2);
 
 line([lowerBound lowerBound], ylim, 'Color','k','LineStyle','--');
 line([upperBound upperBound], ylim, 'Color','k','LineStyle','--');
+% --- how many greater than 97.5 or less than 2.5?
+numless=sum(Learning_targ_dir<lowerBound);
+nummore=sum(Learning_targ_dir>upperBound);
+lt_plot_text(mean(Learning_targ_dir), 1.1*max(Ybinned), ['numless=' num2str(numless) '; numore=' num2str(nummore)], 'b');
+
+
+
+
+
+
 
 
 
@@ -489,6 +494,10 @@ upperBound=PARAMS.baselineDrift.prctiles_2_5and97_5(2);
 
 line([lowerBound lowerBound], ylim, 'Color','k','LineStyle','--');
 line([upperBound upperBound], ylim, 'Color','k','LineStyle','--');
+% --- how many greater than 97.5 or less than 2.5?
+numless=sum(Learning_targ_dir<lowerBound);
+nummore=sum(Learning_targ_dir>upperBound);
+lt_plot_text(mean(Learning_targ_dir), 1.1*max(Ybinned), ['numless=' num2str(numless) '; numore=' num2str(nummore)], 'b');
 
 
 
@@ -514,9 +523,22 @@ upperBound=PARAMS.baselineDrift.prctiles_2_5and97_5(2);
 
 line([lowerBound lowerBound], ylim, 'Color','k','LineStyle','--');
 line([upperBound upperBound], ylim, 'Color','k','LineStyle','--');
+% --- how many greater than 97.5 or less than 2.5?
+numless=sum(Learning_targ_dir<lowerBound);
+nummore=sum(Learning_targ_dir>upperBound);
+lt_plot_text(mean(Learning_targ_dir), 1.1*max(Ybinned), ['numless=' num2str(numless) '; numore=' num2str(nummore)], 'b');
 
 
 %% +++++++++++++++++++++++++++++++++++++++++ HISTOGRAMS OVERLAYED WITH BASELINE DRIFT [ each own drift]
+
+
+figcount=1;
+subplotrows=2;
+subplotcols=2;
+fignums_alreadyused=[];
+hfigs=[];
+
+useStypeXbins=1;
 
 lt_seq_dep_pitch_ACROSSBIRDS_LearningDistribution_sub
 

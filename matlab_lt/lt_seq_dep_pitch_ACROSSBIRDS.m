@@ -577,6 +577,10 @@ BirdToPlot='rd23gr89';
 ExptToPlot='SeqDepPitchLMAN';
 SylsToPlot={'dB'};
 
+BirdToPlot='rd23gr89';
+ExptToPlot='SeqDepPitchLMAN2';
+SylsToPlot={'Ah', 'Ak', 'k' , 'd' ,'dB' ,'dbB' ,'g' ,'c' ,'cB'};
+
 BirdToPlot='pu53wh88';
 ExptToPlot='SeqDepPitchLMAN';
 SylsToPlot={'dB'};
@@ -1078,7 +1082,8 @@ close all;
 norm_by_targsyl=0; % normalize within each experiment
 % epochfield_input='days_consolid_early';
 epochfield_input='final_extracted_window';
-UseBaselineForCV=1; % then uses baseline data for CV reduction analysis
+UseBaselineForCV=0; % then uses baseline data for CV reduction analysis
+DispEachSylCVpval=0; % if 1, lists p vals
 [PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANLocalClean(SeqDepPitch_AcrossBirds_LMAN, PARAMS, norm_by_targsyl, epochfield_input, UseBaselineForCV);
 
 

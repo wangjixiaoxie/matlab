@@ -63,6 +63,11 @@ DriftRelTarg=SeqDepPitch_AcrossBirds.AllSyllables.baselineDriftRelTarg(inds);
 set(hbar, 'LineStyle','--')
 hbar_all=[hbar_all hbar];
 
+% == how many generalizers greater than or less than 0.5? 
+greater_than_one=sum(Learning_targ_dir>0.5);
+% less_than_negone=sum(Learning_targ_dir<=-0.5);
+
+lt_plot_annotation(1, ['gen>50% = ' num2str(greater_than_one)], 'r')
 
 
 % ----- LEGEND

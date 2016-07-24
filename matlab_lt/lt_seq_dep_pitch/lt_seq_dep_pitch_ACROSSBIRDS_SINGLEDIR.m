@@ -471,7 +471,9 @@ lt_seq_dep_pitch_ACROSSBIRDS_PresylCorr(SeqDepPitch_AcrossBirds, PARAMS, inds1)
 
 
 
-
+%% ===== ANTIGENERALiATION due to use-based learning?
+close all;
+lt_seq_dep_pitch_ACROSSBIRDS_Antigen(SeqDepPitch_AcrossBirds, PARAMS);
 
 
 %% PLOTS OF LEARNING BASED ON MOTIF DISTANCE etc (USING EARLY CONSOL FF)

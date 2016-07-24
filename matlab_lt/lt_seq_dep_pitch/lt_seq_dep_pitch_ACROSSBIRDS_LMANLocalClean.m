@@ -95,6 +95,23 @@ for i=1:length(SeqDepPitch_AcrossBirds.birds);
 end
 end
 
+%% ==== list birds and expts
+disp(' =============== birds/expts');
+for i=1:length(SeqDepPitch_AcrossBirds.birds);
+    
+    birdname=SeqDepPitch_AcrossBirds.birds{i}.birdname;
+    numexpts=length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
+    
+    
+    for ii=1:numexpts;
+        exptname=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.ExptID;
+
+        disp([birdname '-' exptname]);
+
+    end
+end
+
+
 %% [ COLLECT DATA] - PLOT AFP BIAS VS. MP LEARNING, DISTRIBUTIONS, AND OTHER THINGS
 % lt_figure; 
 % hold on;
@@ -296,8 +313,9 @@ for i=1:NumBirds;
                 % significant
                 cvRatio_MUSCoverPBS_usingAllVals=CVofAllDays_UsingValsDividedByDayMean_MUSC/CVofAllDays_UsingValsDividedByDayMean_PBS;
                 [~, p]=vartest2(ffvals_DivideDayMean_AllDays_PBS, ffvals_DivideDayMean_AllDays_MUSC, 'tail', 'right');
+                if DispEachSylCVpval==1
                 disp([birdname '-' exptname '-' syl ': ' num2str(cvRatio_MUSCoverPBS_usingAllVals), '; p=' num2str(p)]);
-                
+                end
 %                 plot(CVofAllDays_UsingValsDividedByDayMean_MUSC, CVofAllDays_UsingValsDividedByDayMean_PBS, 'o');
                 
 
@@ -407,6 +425,33 @@ for i=1:NumBirds;
     end
 end
 
+
+%% ==== display num expts/birds for both targ and nontarg
+
+% TARG
+disp(' ==== TARG SYLS');
+disp(['numexpts: ' num2str(max(Expt_count_all))]);
+disp(['numbirds: ' num2str(length(unique(Ybird_all)))]);
+
+% NONTARG (SAME)
+disp(' ==== SAME NONTARG')
+inds=find(TargStatus_all==0 & SimDiff_all==1);
+
+exptnumtmp=[];
+birdnametmp={};
+for i=1:length(inds)
+    ind=inds(i);
+    
+    expt=Expt_count_all(ind);
+    bname=Ybird_all{ind};
+    
+    exptnumtmp=[exptnumtmp expt];
+    birdnametmp=[birdnametmp bname];
+end
+
+disp(['n: ' num2str(length(inds))])
+disp(['numexpts: ' num2str(length(unique(exptnumtmp)))]);
+disp(['numbirds: ' num2str(length(unique(birdnametmp)))]);
 
 %% ==== BAR PLOTS OF LEARNING VS. MUSC [2]
 
@@ -2019,10 +2064,11 @@ disp(['Targ vs. Difftype; p=' num2str(p)]);
 lt_figure; hold on;
 
 NumExpts=max(Expt_count_all);
+XlabelsAll={};
 
 for i=1:NumExpts
     
-    inds=Expt_count_all==i;
+    inds=find(Expt_count_all==i);
     
     % --- collect CV ratio for all syls
     cvratios=cvRatio_MUSCoverPBS_usingAllVals_ALLEXPTS(inds);
@@ -2034,11 +2080,16 @@ for i=1:NumExpts
     p=signrank(cvratios, 1, 'tail', 'left');
     lt_plot_text(i, max(cvratios)+0.01, ['p=' num2str(p, '%3.2g')], 'r');
     
+    % --- collect name
+    XlabelsAll=[XlabelsAll [Ybird_all{inds(1)} '-' Yexpt_all{inds(1)}]];
+    
 end
     
    line(xlim, [0.72 0.72], 'LineStyle','--','Color','b')
    line(xlim, [1 1], 'LineStyle','--','Color','b')
 
+set(gca, 'XTick', 1:length(XlabelsAll), 'XTickLabel', XlabelsAll)
+rotateXLabels(gca, 90);
 
 
 %% ========= greater reversion if greater cv reduction?
