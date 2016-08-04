@@ -64,6 +64,8 @@ function lt_neural_sortAudioFiles_OpeningFcn(hObject, eventdata, handles, vararg
 % Choose default command line output for lt_neural_sortAudioFiles
 handles.output = hObject;
 
+set(gcf,'toolbar','figure');
+
 % ======= start reading batch
 batchf=varargin{1};
 fid=fopen(batchf);

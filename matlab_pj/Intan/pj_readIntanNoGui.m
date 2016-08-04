@@ -1,4 +1,4 @@
-function [amplifier_data,board_dig_in_data,frequency_parameters, board_adc_data] = pj_readIntanNoGui(file)
+function [amplifier_data,board_dig_in_data,frequency_parameters, board_adc_data, board_adc_channels, amplifier_channels, board_dig_in_channels] = pj_readIntanNoGui(file)
 %% LT modified 7/21/16 to output other variables
 
 % read_Intan_RHD2000_file
