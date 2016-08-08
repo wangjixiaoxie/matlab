@@ -1,9 +1,10 @@
 %% 7/21/16 - LT extract analog audio from Intan recording
 
-%% ==========
-close all;
+function lt_neural_extractaudio(filename)
 
-fline='MultBirds_AudioOnly_160721_175929.rhd';
+%% ==========
+
+% filename='MultBirds_AudioOnly_160721_175929.rhd';
 
 % put all files in folder into batch
 !ls *.rhd* > batch

@@ -939,7 +939,7 @@ disp('also true that, if allow separate lines, then the marginal mean for AFP is
 pause
 
 
-
+%% =================== IMPORTANT - PAPER FIGURE
 % ====== LEARNING AND MP BIAS
 X5=X5(~isnan(X5)); % targ learning
 Learning_nontarg_all=Learning_nontarg_all(~isnan(Learning_nontarg_all)); % nontarg learning
@@ -963,6 +963,7 @@ Zname='Learning1_MPbias0';
 
 [h, a, c, stats]=aoctool(Xtot, Ytot, LearningIndicator, '', Xname, Yname, Zname, 'on', 'separate lines');
 [c, m, h, nms]=multcompare(stats, 'alpha', 0.05, 'estimate', 'slope');
+[c, m, h, nms]=multcompare(stats, 'alpha', 0.05, 'estimate', 'INTERCEPT');
 
 
 % ---- plot separate linear regressions

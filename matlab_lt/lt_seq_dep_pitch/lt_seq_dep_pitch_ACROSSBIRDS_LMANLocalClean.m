@@ -1,4 +1,4 @@
-function [PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANlearning(SeqDepPitch_AcrossBirds, PARAMS, norm_by_targsyl, epochfield_input, UseBaselineForCV)
+function [PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANlearning(SeqDepPitch_AcrossBirds, PARAMS, norm_by_targsyl, epochfield_input, UseBaselineForCV, DispEachSylCVpval)
 %% LMAN bias localized to targ?  clean plots (final?) LT 11/21/15
 
 %% PARAMS

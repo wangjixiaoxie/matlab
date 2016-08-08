@@ -1084,7 +1084,7 @@ norm_by_targsyl=0; % normalize within each experiment
 epochfield_input='final_extracted_window';
 UseBaselineForCV=0; % then uses baseline data for CV reduction analysis
 DispEachSylCVpval=0; % if 1, lists p vals
-[PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANLocalClean(SeqDepPitch_AcrossBirds_LMAN, PARAMS, norm_by_targsyl, epochfield_input, UseBaselineForCV);
+[PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANLocalClean(SeqDepPitch_AcrossBirds_LMAN, PARAMS, norm_by_targsyl, epochfield_input, UseBaselineForCV, DispEachSylCVpval);
 
 
 % ====== METRIC FOR SINGLE DIR LEARNING (METRIC OF SPECIFICITY)
