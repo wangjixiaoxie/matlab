@@ -31,7 +31,7 @@ function varargout = lt_neural_sortAudioFiles(varargin)
 
 % Edit the above text to modify the response to help lt_neural_sortAudioFiles
 
-% Last Modified by GUIDE v2.5 21-Jul-2016 22:11:41
+% Last Modified by GUIDE v2.5 04-Aug-2016 19:24:35
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -65,6 +65,12 @@ function lt_neural_sortAudioFiles_OpeningFcn(hObject, eventdata, handles, vararg
 handles.output = hObject;
 
 set(gcf,'toolbar','figure');
+
+% ===== mksubfolder to delete songs
+handles.subfolder='DELETED_SONGS';
+if ~exist(handles.subfolder, 'dir')
+    mkdir(handles.subfolder)
+end
 
 % ======= start reading batch
 batchf=varargin{1};
@@ -182,7 +188,52 @@ end
         set(handles.checkbox6, 'Value', 0);
         set(handles.checkbox7, 'Value', 0);
 
+        
 
+% ========= DELETE SONGS
+% (if radio button active, moves song to a subfolder)
+
+if get(handles.radiobutton3, 'Value')==1
+    % then move file to subfolder
+    movefile(handles.plot1_filename, handles.subfolder);
+end
+
+if get(handles.radiobutton4, 'Value')==1
+    % then move file to subfolder
+    movefile(handles.plot8_filename, handles.subfolder);
+end
+
+if get(handles.radiobutton5, 'Value')==1
+    % then move file to subfolder
+    movefile(handles.plot9_filename, handles.subfolder);
+end
+
+if get(handles.radiobutton6, 'Value')==1
+    % then move file to subfolder
+    movefile(handles.plot10_filename, handles.subfolder);
+end
+
+if get(handles.radiobutton7, 'Value')==1
+    % then move file to subfolder
+    movefile(handles.plot11_filename, handles.subfolder);
+end
+
+
+if get(handles.radiobutton8, 'Value')==1
+    % then move file to subfolder
+    movefile(handles.plot12_filename, handles.subfolder);
+end
+
+% --------- RESET RADIO BUTTONS
+set(handles.radiobutton3, 'Value', 0);
+set(handles.radiobutton4, 'Value', 0);
+set(handles.radiobutton5, 'Value', 0);
+set(handles.radiobutton6, 'Value', 0);
+set(handles.radiobutton7, 'Value', 0);
+set(handles.radiobutton8, 'Value', 0);
+
+
+ 
 % 2) replace all figs
 % ======== PLOT SPEC FOR SONG
 filename=fgetl(fid);
@@ -219,6 +270,27 @@ fn_PlotSpec(handles.plot12_filename);
 
 % Update handles structure
 guidata(hObject, handles);
+
+
+% --- Executes on button press in pushbutton2.
+function pushbutton2_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% ===== ACTIOVATES ALL RADIO BUTTONS - ALL SONGS DELETED
+set(handles.radiobutton3, 'Value', 1);
+set(handles.radiobutton4, 'Value', 1);
+set(handles.radiobutton5, 'Value', 1);
+set(handles.radiobutton6, 'Value', 1);
+set(handles.radiobutton7, 'Value', 1);
+set(handles.radiobutton8, 'Value', 1);
+
+% ==== then activates pushbutton 1 to reset all songs. [also ends this
+% callback]
+pushbutton1_Callback(hObject, eventdata, handles)
+
+
 
 % --- Executes during object creation, after setting all properties.
 function axes1_CreateFcn(hObject, eventdata, handles)
@@ -337,6 +409,11 @@ function checkbox7_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of checkbox7
 
 
+
+
+
+
+
 % ----- Plots spec for this song
 function fn_PlotSpec(fline)
 % ===== if no more songs, then tell user, and quit program
@@ -430,8 +507,74 @@ end
 %     axis([t(1) t(end) f(1) f(end)]);
 
 
+
+
+
+
+
 % --- Executes during object creation, after setting all properties.
 function text2_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to text2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
+
+
+
+
+
+
+
+% --- Executes on button press in radiobutton3.
+function radiobutton3_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton3
+
+
+% --- Executes on button press in radiobutton4.
+function radiobutton4_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton4 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton4
+
+
+% --- Executes on button press in radiobutton5.
+function radiobutton5_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton5
+
+
+% --- Executes on button press in radiobutton6.
+function radiobutton6_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton6
+
+
+% --- Executes on button press in radiobutton7.
+function radiobutton7_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton7
+
+
+% --- Executes on button press in radiobutton8.
+function radiobutton8_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton8 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton8
+
+
