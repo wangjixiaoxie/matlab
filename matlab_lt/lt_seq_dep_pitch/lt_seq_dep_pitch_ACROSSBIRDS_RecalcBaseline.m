@@ -1,14 +1,23 @@
-function SeqDepPitch_AcrossBirds=lt_seq_dep_pitch_ACROSSBIRDS_RecalcBaseline(SeqDepPitch_AcrossBirds, Params,OverwriteLearningMetric)
+function SeqDepPitch_AcrossBirds=lt_seq_dep_pitch_ACROSSBIRDS_RecalcBaseline(SeqDepPitch_AcrossBirds, Params,OverwriteLearningMetric, ConvertToHz)
 %% LT 12/17/15 - recalcualte learning using last 2 baseline days. allows to compare with distrubtion
 NumBirds=length(SeqDepPitch_AcrossBirds.birds);
+
+
+if ConvertToHz==1  
+    % since is not default, let use know
+    figure; 
+    lt_plot_text(0, 0.5, 'Convert to HZ, sure? (type anything)');
+    pause;
+end
+
+
+%%  FIRST COLLECT LEARNING FOR ALL BIRDS (EVEN THOSE WITH SHORT BASELINES) - ALL BIRDS MUST HAVE BASELINE LAST 2 DAYS)
 
 count=1;
 subplotrows=4;
 subplotcols=4;
 fignums_alreadyused=[];
 hfigs=[];
-
-%%  FIRST COLLECT LEARNING FOR ALL BIRDS (EVEN THOSE WITH SHORT BASELINES) - ALL BIRDS MUST HAVE BASELINE LAST 2 DAYS)
 
 disp(' ');
 
@@ -121,7 +130,7 @@ for i=1:NumBirds;
             mu2=mean(learning_end_ffvals);
             
             mudiff_learning=mu2-mu1;
-            
+            mudiff_sem=lt_sem(learning_end_ffvals-mu1);
             
             
             %             % ----------- dprime
@@ -153,12 +162,23 @@ for i=1:NumBirds;
             %
             
             % ===== plot
+            try
             lt_plot_45degScatter(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.mean, zscore_learning, plotcols{j});
+            catch err
+            end
             
             % ======== OVERWRITE LEARNING STATS FOR THIS BIRD
             if OverwriteLearningMetric==1;
+                if ConvertToHz==1
+                % use hz diff
+                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.mean=mudiff_learning;
+                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.sem=mudiff_sem;
+                
+                else
+                    % use zscore
                 SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.mean=zscore_learning;
                 SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.sem=zscore_learning_sem;
+                end
             end
             
         end
@@ -311,6 +331,7 @@ for i=1:NumBirds;
             
             mudiff_baseline=mu2-mu1;
             
+            mudiff_sem=lt_sem(baseline_end_ffvals-mu1);
             
             %             % ----------- dprime
             %             % learning
@@ -342,9 +363,18 @@ for i=1:NumBirds;
             %
             
             % ======= SAVE BASELINE DRIFT AS WELL
+            if ConvertToHz==1
+                % use hz
+                            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).DRIFT_UsingTwoDays.zscore_mean=mudiff_baseline;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).DRIFT_UsingTwoDays.zscore_sem=mudiff_sem;
+SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).DRIFT_UsingTwoDays.NOTE='stats are hz, not score';
+            
+            else
+                % use zscore
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).DRIFT_UsingTwoDays.zscore_mean=zscore_baseline;
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).DRIFT_UsingTwoDays.zscore_sem=zscore_baseline_sem;
             disp(['baseline zscore (sem): ' num2str(zscore_baseline) '(' num2str(zscore_baseline_sem) ')']);
+            end
         end
         
         

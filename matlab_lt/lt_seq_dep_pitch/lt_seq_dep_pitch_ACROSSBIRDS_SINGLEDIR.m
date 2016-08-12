@@ -268,7 +268,7 @@ SeqDepPitch_AcrossBirds.AllSyllables.DayVals_Baseline_zscore_targdirsign=DayVals
 %% MAKE A NEW STRUCTURE - each datapoint is one experiment
 count_expt=1; % experiments
 try
-SeqDepPitch_AcrossBirds=rmfield(SeqDepPitch_AcrossBirds, 'AllExpt');
+    SeqDepPitch_AcrossBirds=rmfield(SeqDepPitch_AcrossBirds, 'AllExpt');
 catch err
 end
 
@@ -280,8 +280,8 @@ for i=1:NumBirds
     
     for ii=1:numexperiments;
         exptname=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.ExptID;
-SylsUnique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
-
+        SylsUnique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
+        
         % === GET INDS FOR THIS EXPT
         inds_expt=SeqDepPitch_AcrossBirds.AllSyllables.BirdNum_all==i & ...
             SeqDepPitch_AcrossBirds.AllSyllables.ExptNum_all==ii;
@@ -300,19 +300,19 @@ SylsUnique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields
         % --- NONTARGETS
         inds=SeqDepPitch_AcrossBirds.AllSyllables.Target_all==0 & inds_expt;
         DatStruct_tmp=lt_structure_subsample_all_fields(SeqDepPitch_AcrossBirds.AllSyllables, inds);
-       
+        
         SeqDepPitch_AcrossBirds.AllExpt(count_expt).Nontargets=DatStruct_tmp;
         
         % --- SIMILAR
         inds=SeqDepPitch_AcrossBirds.AllSyllables.Target_all==0 & SeqDepPitch_AcrossBirds.AllSyllables.Similar_all==1 & inds_expt;
         DatStruct_tmp=lt_structure_subsample_all_fields(SeqDepPitch_AcrossBirds.AllSyllables, inds);
-       
+        
         SeqDepPitch_AcrossBirds.AllExpt(count_expt).Similar=DatStruct_tmp;
         
         % --- DIFFERENT
         inds=SeqDepPitch_AcrossBirds.AllSyllables.Target_all==0 & SeqDepPitch_AcrossBirds.AllSyllables.Similar_all==0 & inds_expt;
         DatStruct_tmp=lt_structure_subsample_all_fields(SeqDepPitch_AcrossBirds.AllSyllables, inds);
-       
+        
         SeqDepPitch_AcrossBirds.AllExpt(count_expt).Different=DatStruct_tmp;
         
         
@@ -335,7 +335,7 @@ SylsUnique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields
                 AcousticDist_vect_Diff=[AcousticDist_vect_Diff ac_dist];
             end
         end
-            
+        
         % -- OUTPUT
         SeqDepPitch_AcrossBirds.AllExpt(count_expt).AcousticDist_vect_Similar=AcousticDist_vect_Similar;
         SeqDepPitch_AcrossBirds.AllExpt(count_expt).AcousticDist_vect_Diff=AcousticDist_vect_Diff;
@@ -371,7 +371,7 @@ SylsUnique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields
         SeqDepPitch_AcrossBirds.AllExpt(count_expt).exptnum=ii;
         
         count_expt=count_expt+1;
-
+        
         
         
     end
@@ -447,6 +447,7 @@ lt_seq_dep_pitch_ACROSSBIRDS_DRIFT3(SeqDepPitch_AcrossBirds, PARAMS, WNdaynum_st
 
 
 
+
 %% Plot distributions of learning
 
 close all;
@@ -457,6 +458,12 @@ close all
 acoustThresh=PARAMS.SylClassify.SylDistCutoff; % for computer label.
 lt_seq_dep_pitch_ACROSSBIRDS_LearDistribv2(SeqDepPitch_AcrossBirds, PARAMS, acoustThresh)
 
+
+%% === plot distribution v3 [lines for expts, plot raw val]
+% ---- separates by experiment. IDEALLY PLOTS ALL EXPTS, INCLUDING THOSE
+% THAT DON'T PASS LEARNING THRESHOLD. 
+close all
+lt_seq_dep_pitch_ACROSSBIRDS_LearningDistribution3(SeqDepPitch_AcrossBirds, PARAMS)
 
 %% Does effect of presyl hold even if account for acoustic similarity?
 close all;

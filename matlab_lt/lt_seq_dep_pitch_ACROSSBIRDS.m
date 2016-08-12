@@ -477,7 +477,8 @@ SeqDepPitch_AcrossBirds=lt_seq_dep_pitch_ACROSSBIRDS_CompSyls(SeqDepPitch_Across
 %% == RECALCULATE LEARNING AND DRIFT FROM 2 BASELINE DAYS 
 close all
 OverwriteLearningMetric=1; % OVERWRITES LEARNING METRIC
-SeqDepPitch_AcrossBirds=lt_seq_dep_pitch_ACROSSBIRDS_RecalcBaseline(SeqDepPitch_AcrossBirds, PARAMS, OverwriteLearningMetric);
+ConvertToHz=1; % 1, uses FF diff, not zscore; 0, uses zscore [default];
+SeqDepPitch_AcrossBirds=lt_seq_dep_pitch_ACROSSBIRDS_RecalcBaseline(SeqDepPitch_AcrossBirds, PARAMS, OverwriteLearningMetric, ConvertToHz);
 % lt_seq_dep_pitch_ACROSSBIRDS_RecalcBaseline(SeqDepPitch_AcrossBirds, PARAMS,OverwriteLearningMetric);
 
 %% ==== PLOT ALL LEARNING DISTRIBUTIONS IN RASTER PLOT

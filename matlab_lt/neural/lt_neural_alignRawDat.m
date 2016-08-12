@@ -1,5 +1,5 @@
 %% LT 8/3/16 - single file, aligns raw signal for all channels desired by user
-function lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm)
+function lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster)
 
 % TO DO:
 % fig numbers depending on num channels
@@ -280,6 +280,25 @@ if PlotWhat.filt==1;
             title(['neural chan (filt): ' num2str(AmpChans_zero(i))]);
             plot(tt, dat, 'k');
             hsplots=[hsplots hsplot];
+            
+            % ================ IF WANT TO PLOT SPIKES, THEN OVERLAY THEM
+            % HERE
+            if PlotWhat.raster==1
+                % === get RMS
+                MedianNoise=median(abs(dat)./0.6745); % median noise (not std), from http://www.scholarpedia.org/article/Spike_sorting
+                SpikeThreshold=Raster.ThrXNoise*MedianNoise;
+                
+                [SpikePks, SpikeInds]=findpeaks(Raster.PosOrNeg*dat,'minpeakheight',...
+                    SpikeThreshold,'minpeakdistance',floor(0.0003*fs)); % 0.3ms min separation btw peaks.
+                
+                line(xlim, Raster.PosOrNeg*[SpikeThreshold SpikeThreshold], 'Color','r');
+                
+                % == PLOT
+                for j=1:length(SpikeInds) % plot all spikes as a line
+                    x=tt(SpikeInds(j)); % convert to ms
+                    line([x x], [-10 10], 'Color','r');
+                end
+            end
         end
         
         
@@ -399,7 +418,7 @@ if PlotWhat.raster==1;
     
     % --- plot initiate
     figcount=1;
-    subplotrows=5;
+    subplotrows=3;
     subplotcols=1;
     fignums_alreadyused=[];
     hfigs=[];
@@ -441,22 +460,33 @@ if PlotWhat.raster==1;
     if isempty(AmpChans_zero)
         
     else
+            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+            title(['neural chan (raster): ']);
+            hsplots=[hsplots hsplot];
+            Ylabels={};
         for i=1:length(AmpChans_zero)
             
             % === filter
             dat=filtfilt(filt_b,filt_a,amplifier_data(i, :));
             
-            % === rectify
-            dat=abs(dat);
+            % === get RMS
+            MedianNoise=median(abs(dat)./0.6745); % median noise (not std), from http://www.scholarpedia.org/article/Spike_sorting
+            SpikeThreshold=Raster.ThrXNoise*MedianNoise;
             
-            
-            
+            [SpikePks, SpikeInds]=findpeaks(Raster.PosOrNeg*dat,'minpeakheight',...
+            SpikeThreshold,'minpeakdistance',floor(0.0003*fs)); % 0.3ms min separation btw peaks.
+
             % == PLOT
-            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-            title(['neural chan (raster): ' num2str(AmpChans_zero(i))]);
-            plot(tt, dat, 'k');
-            hsplots=[hsplots hsplot];
+            for j=1:length(SpikeInds) % plot all spikes as a line
+                x=tt(SpikeInds(j)); % convert to ms
+                line([x x], [i-0.3 i+0.3]);
+            end
+                
+            Ylabels=[Ylabels num2str(AmpChans_zero(i))];
+%             plot(tt(SpikeInds), i, '.k');
         end
+        set(gca, 'YTick', 1:length(AmpChans_zero));
+        set(gca, 'YTickLabel', Ylabels);
         
         
     end
