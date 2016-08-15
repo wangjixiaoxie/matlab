@@ -6,7 +6,7 @@ lt_neural_extractaudio
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='bk7_160809_140244.rhd';
+filename='bk7_2160_160813_153425.rhd';
 ChansToPlot.DigChans_zero=[]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 ChansToPlot.AmpChans_zero=[9 14 19];
