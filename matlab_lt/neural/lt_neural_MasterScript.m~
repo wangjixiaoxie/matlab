@@ -71,7 +71,10 @@ lt_neural_AlgnWavclus(batchf, channel_board);
 
 %% ==== EXTRACT SONG, LABEL, ONSETS, SPIKE DATA
 
-[SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board)
+[AllSongs, AllLabels, AllOnsets, AllOffsets, spikes_cat, metaDat] = ...
+    lt_neural_ExtractDat(batchf, channel_board);
+
+SongDat
 
 %% ===== Align motifs with neural data
 regexpr_str='ghh';
