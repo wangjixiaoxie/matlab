@@ -24,7 +24,7 @@ olap=0.8;
 noverlap=olap*window;
 
 % - filter
-filter_type='hanningfir';
+filter_type='hanningfirff';
 F_low  = 500;
 F_high = 8000;
 

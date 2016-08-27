@@ -53,7 +53,8 @@ if neuralFiltLow<min([frequency_parameters.actual_lower_bandwidth, ...
         frequency_parameters.actual_dsp_cutoff_frequency]);
 end
 
-neuralFiltHi=frequency_parameters.actual_upper_bandwidth;
+% neuralFiltHi=frequency_parameters.actual_upper_bandwidth;
+neuralFiltHi=3000;
 
 [filt_b,filt_a]=butter(N,[neuralFiltLow*2/fs, neuralFiltHi*2/fs]);
 
@@ -274,6 +275,8 @@ if PlotWhat.filt==1;
             
             % === filter
             dat=filtfilt(filt_b,filt_a,amplifier_data(i, :));
+
+            % ==============
             
             % == PLOT
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
@@ -469,6 +472,7 @@ if PlotWhat.raster==1;
             % === filter
             dat=filtfilt(filt_b,filt_a,amplifier_data(i, :));
             
+            
             % === get RMS
             MedianNoise=median(abs(dat)./0.6745); % median noise (not std), from http://www.scholarpedia.org/article/Spike_sorting
             SpikeThreshold=Raster.ThrXNoise*MedianNoise;
@@ -512,10 +516,13 @@ noverlap=olap*window;
 
 % ==== filter song
 songdat=(rawdat);
-filter_type='hanningfir';
+filter_type='hanningfirff';
 F_low  = 500;
 F_high = 8000;
 songdat=bandpass(songdat,fs,F_low,F_high,filter_type);
+
+% ==== SAME FILTER AS IN WAVE_CLUS
+
 
 
 % === colect spectrogram

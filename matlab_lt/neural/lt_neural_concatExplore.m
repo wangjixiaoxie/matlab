@@ -51,9 +51,11 @@ subplotrows=length(ChansToPlot)+1;
 subplotcols=1;
 fignums_alreadyused=[];
 hfigs=[];
+hsplots=[];
 
 % - song, raw
 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+hsplots=[hsplots hsplot];
 tt=[1:length(songDat_all)]/fs_all(1);
 plot(tt, songDat_all);
 
@@ -61,10 +63,12 @@ plot(tt, songDat_all);
 for i=1:length(ChansToPlot)
     chan=ChansToPlot(i);
  [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+hsplots=[hsplots hsplot];
 title(['chan ' num2str(chan)]);
 
 dat=lt_neural_filter(ampDat_all{i}, frequency_parameters);
 plot(tt, dat, 'k');
 end
     
+linkaxes(hsplots, 'x');
 

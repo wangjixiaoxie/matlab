@@ -2,6 +2,8 @@ function varargout = lt_neural_sortAudioFiles(varargin)
 %% ===
 % varargin{1}='batch.keep';
 
+useAmplWave=1; % if 0, plots spectrograms.
+
 % TO DO
 % 1) deletion
 % 2) stop when fid is -1
@@ -453,7 +455,9 @@ else
     F_high = 8000;
     songdat=bandpass(songdat,fs,F_low,F_high,filter_type);
     
+    plot(songdat);
     
+    if (0)
     % === colect spectrogram
     [sp, f, t] = spectrogram(songdat, window, noverlap, nfft, fs);
     sp=abs(sp);
@@ -502,6 +506,7 @@ else
     imagesc(t, f, sptemp);
     set(gca,'YDir','normal');
     title(fline);
+    end
 end
 %     axis([t(1) t(end) f(end) f(1)]);
 %     axis([t(1) t(end) f(1) f(end)]);

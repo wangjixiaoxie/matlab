@@ -23,8 +23,8 @@ for i=1:length(filenames)
     
     fname=filenames{i};
     
-    [amplifier_data,~ ,frequency_parameters, ~, ...
-        ~, amplifier_channels, ~] = pj_readIntanNoGui(fname);
+    [amplifier_data,~ ,frequency_parameters, board_adc_data, ...
+        board_adc_channels, amplifier_channels, ~] = pj_readIntanNoGui(fname);
     
     % --- collect all amp dat
     ind=[amplifier_channels.chip_channel]==channel_board;
@@ -39,7 +39,7 @@ for i=1:length(filenames)
     metaDat(i).filename=fname; % filename
     metaDat(i).numSamps=length(dattmp); % length of file (samps)
     metaDat(i).fs=frequency_parameters.amplifier_sample_rate; % fs
-    
+    metaDat(i).songDat=board_adc_data(1,:);
 end
 
 

@@ -50,7 +50,7 @@ end
 
 %% === OUTPUT RUNNING MEAN
 
-xmax=max(cellfun(@max, Yspks));
+xmax=max(cellfun(@max, Yspks(~cellfun(@isempty, Yspks))));
 
 xstarts=0:windshift:xmax-window;
 xends=window:windshift:xmax;

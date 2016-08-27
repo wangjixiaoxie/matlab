@@ -32,30 +32,39 @@ cumulative_filedur=0; % keeps track as concatenating
 
 for i=1:length(metaDat)
     
-    % -- load original sound and neural
-    [amplifier_data,~,frequency_parameters, board_adc_data, ...
-        board_adc_channels, amplifier_channels, ~] = pj_readIntanNoGui(metaDat(i).filename);
-   ind=find([amplifier_channels.chip_channel]==channel_board);
-   AllSongs=[AllSongs board_adc_data(1,:)];
-%    AllNeural_old=[AllNeural_old amplifier_data(ind, :)];
+    if isfield(metaDat, 'songDat')
+        % then don't need to reload raw
+        AllSongs=[AllSongs metaDat(i).songDat];
+    else
+        % relaod raw
+        
+        % -- load original sound and neural
+        [amplifier_data,~,frequency_parameters, board_adc_data, ...
+            board_adc_channels, amplifier_channels, ~] = pj_readIntanNoGui(metaDat(i).filename);
+%         ind=find([amplifier_channels.chip_channel]==channel_board);
+        
+        AllSongs=[AllSongs board_adc_data(1,:)];
+        %    AllNeural_old=[AllNeural_old amplifier_data(ind, :)];
+    end
     
-
-% -- load labels, onsets, offsets
+    % -- load labels, onsets, offsets
     tmp=load([metaDat(i).filename '.not.mat']);
     AllLabels=[AllLabels tmp.labels];
     
     % convert onsets to onset relative to start of entire concatenated file
     onsets_cum=(tmp.onsets/1000)+cumulative_filedur; % sec
     offsets_cum=(tmp.offsets/1000)+cumulative_filedur;
-        
+    
     AllOnsets=[AllOnsets onsets_cum'];
     AllOffsets=[AllOffsets offsets_cum'];
     
     
-% duration of this song file (sec)
-filedur=metaDat(i).numSamps/metaDat(i).fs;
-cumulative_filedur=cumulative_filedur + filedur;
+    % duration of this song file (sec)
+    filedur=metaDat(i).numSamps/metaDat(i).fs;
+    cumulative_filedur=cumulative_filedur + filedur;
 end
+
+
 
 SongDat.AllSongs=AllSongs;
 SongDat.AllLabels=AllLabels;
@@ -91,3 +100,6 @@ Params.channel_board=channel_board;
 %     line([AllOnsets(i) AllOffsets(i)], [0 0], 'LineWidth', 2);
 %     lt_plot_text(AllOnsets(i), 100, AllLabels(i), 'r')
 % end
+
+disp('DONE ! ...');
+
