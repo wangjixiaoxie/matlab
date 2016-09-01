@@ -35,16 +35,18 @@ if isfield(metaDat, 'songDat');
     AllNeural_old=neural_cat.data;
     
     for i=1:length(metaDat)
-        % -- load labels, onsets, offsets
-        tmp=load([metaDat(i).filename '.not.mat']);
-        AllLabels=[AllLabels tmp.labels];
-        
-        % convert onsets to onset relative to start of entire concatenated file
-        onsets_cum=(tmp.onsets/1000)+cumulative_filedur; % sec
-        offsets_cum=(tmp.offsets/1000)+cumulative_filedur;
-        
-        AllOnsets=[AllOnsets onsets_cum'];
-        AllOffsets=[AllOffsets offsets_cum'];
+        % -- load labels, onsets, offsets (if exists)
+        if exist([metaDat(i).filename '.not.mat'])
+            tmp=load([metaDat(i).filename '.not.mat']);
+            AllLabels=[AllLabels tmp.labels];
+            
+            % convert onsets to onset relative to start of entire concatenated file
+            onsets_cum=(tmp.onsets/1000)+cumulative_filedur; % sec
+            offsets_cum=(tmp.offsets/1000)+cumulative_filedur;
+            
+            AllOnsets=[AllOnsets onsets_cum'];
+            AllOffsets=[AllOffsets offsets_cum'];
+        end
         
         % duration of this song file (sec)
         filedur=metaDat(i).numSamps/metaDat(i).fs;

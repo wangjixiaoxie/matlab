@@ -5,26 +5,26 @@ function lt_neural_motifRastMult(SongDat, NeurDat, Params, MotifList_regexp, ...
 
 % MotifList_regexp={'g(h)h', 'n(h)h', '(S)[\w-]*?E'};
 % % MotifList_regexp={'g(h)h', 'n(h)h'};
-% 
+%
 % predur=2; % will use for all motifs
 % postdur=3;
 % LinearWarp=2; % 0=no; 1=yes, each motif individually; 2=yes, all motifs to global motif median dur
 
-    fs=NeurDat.metaDat(1).fs;
-    plotcols={'k', 'r', 'b', 'm'}; % each cluster.
+fs=NeurDat.metaDat(1).fs;
+plotcols={'k', 'r', 'b', 'm'}; % each cluster.
 numclusts=max(NeurDat.spikes_cat.cluster_class(:,1));
 
-%% 
+%%
 
 nummotifs=length(MotifList_regexp);
 
 
 %% == extract data for each motif
-    SegmentsALL=struct; % will hold all data
-    
+SegmentsALL=struct; % will hold all data
+
 for i=1:nummotifs
     
-    regexp_str=MotifList_regexp{i};    
+    regexp_str=MotifList_regexp{i};
     disp(['extracting regexp str: ' regexp_str]);
     
     % == extract all data segments
@@ -38,13 +38,13 @@ for i=1:nummotifs
 end
 
 
-%% === LINEARLY TIME WARP 
+%% === LINEARLY TIME WARP
 % if do all together, then gets median duration over all motifs (tokensyl
 % onset to last syl offset) and uses that as template
 if LinearWarp==1
     % then each motif warp to itself
     for i=1:length(SegmentsALL)
-
+        
         disp(['... warping: ' MotifList_regexp{i}]);
         [sgmtdata, prms] = lt_neural_LinTimeWarp(SegmentsALL(i).data, ...
             SegmentsALL(i).params, []);
@@ -52,7 +52,7 @@ if LinearWarp==1
         SegmentsALL(i).data=sgmtdata;
         SegmentsALL(i).params=prms;
     end
- 
+    
     
 elseif LinearWarp==2
     % warp vs global motif median
@@ -88,7 +88,7 @@ elseif LinearWarp==2
     
     % ======= PERFORM TIME WARP ON ALL MOTIFS
     for i=1:length(SegmentsALL)
-
+        
         disp(['... warping: ' MotifList_regexp{i}]);
         [sgmtdata, prms] = lt_neural_LinTimeWarp(SegmentsALL(i).data, ...
             SegmentsALL(i).params, MotifTime_med);
@@ -104,86 +104,86 @@ end
 
 %% ==== PLOT RASTERS FOR EACH segment separately
 %  one plot for each cluster for this channel
-window=0.015;
-windshift=0.002;
+window=0.02;
+windshift=0.004;
 
 if onlyPlotMean==0
-hsplots=[];
-
-% raster stuff
-
-for j=1:numclusts
-    plotcol=plotcols{j};
-    % -- Go thru all motifs
-    for i=1:nummotifs
-        motif=MotifList_regexp{i};
-        datstruct=SegmentsALL(i).data;
-        numtrials=length(datstruct);
-        predur=SegmentsALL(i).params.REGEXP.predur;
-        
-        lt_figure; hold on;
-        % == 1) spectrogram (representative)
-        hsplot=lt_subplot(4,1,1); hold on;
-        hsplots=[hsplots hsplot];
-        
-%         title('ex. specgram');
-        songdat=SegmentsALL(i).data(1).songdat;
-        lt_plot_spectrogram(songdat, fs, 1, 0);
-        line([predur predur], ylim, 'Color', 'y');
-        
-        % == 2) overlayed song amplitudes
-        hsplot=lt_subplot(8,1,3); hold on;
-        hsplots=[hsplots hsplot];
-        
-        for kk=1:numtrials;
-            songdat=datstruct(kk).songdat;
+    hsplots=[];
+    
+    % raster stuff
+    
+    for j=1:numclusts
+        plotcol=plotcols{j};
+        % -- Go thru all motifs
+        for i=1:nummotifs
+            motif=MotifList_regexp{i};
+            datstruct=SegmentsALL(i).data;
+            numtrials=length(datstruct);
+            predur=SegmentsALL(i).params.REGEXP.predur;
             
-            [songdat_sm, tsm]=lt_plot_AmplSm(songdat, fs);
-            plot(tsm, songdat_sm, '--');
-        end
-        line([predur predur], ylim, 'Color', 'y');
-        
-        % == 3) rasters
-        hsplot= lt_subplot(8,1, 4:6); hold on;
-        hsplots=[hsplots hsplot];
-        
-        Yspks={};
-        for kk=1:numtrials
-            inds=find([datstruct(kk).spk_Clust]==j); % find this cluster's spikes
-            if LinearWarp==0
-                % then no warp
-            spktimes=datstruct(kk).spk_Times(inds);
-            else
-            spktimes=datstruct(kk).spk_Times_scaled(inds);
+            lt_figure; hold on;
+            % == 1) spectrogram (representative)
+            hsplot=lt_subplot(4,1,1); hold on;
+            hsplots=[hsplots hsplot];
+            
+            %         title('ex. specgram');
+            songdat=SegmentsALL(i).data(1).songdat;
+            lt_plot_spectrogram(songdat, fs, 1, 0);
+            line([predur predur], ylim, 'Color', 'y');
+            
+            % == 2) overlayed song amplitudes
+            hsplot=lt_subplot(8,1,3); hold on;
+            hsplots=[hsplots hsplot];
+            
+            for kk=1:numtrials;
+                songdat=datstruct(kk).songdat;
+                
+                [songdat_sm, tsm]=lt_plot_AmplSm(songdat, fs);
+                plot(tsm, songdat_sm, '--');
             end
-            Yspks{kk}=spktimes;
+            line([predur predur], ylim, 'Color', 'y');
+            
+            % == 3) rasters
+            hsplot= lt_subplot(8,1, 4:6); hold on;
+            hsplots=[hsplots hsplot];
+            
+            Yspks={};
+            for kk=1:numtrials
+                inds=find([datstruct(kk).spk_Clust]==j); % find this cluster's spikes
+                if LinearWarp==0
+                    % then no warp
+                    spktimes=datstruct(kk).spk_Times(inds);
+                else
+                    spktimes=datstruct(kk).spk_Times_scaled(inds);
+                end
+                Yspks{kk}=spktimes;
+            end
+            [xbin, ~, ~, ymean_hz, ysem_hz]= ...
+                lt_neural_plotRastMean(Yspks, window, windshift, 1, plotcol);
+            line([predur predur], ylim, 'Color', 'y');
+            
+            % == 4) mean fr
+            hsplot=lt_subplot(4, 1, 4); hold on;
+            hsplots=[hsplots hsplot];
+            
+            shadedErrorBar(xbin, ymean_hz, ysem_hz, {'Color', plotcol}, 1);
+            ylim([-10 150]);
+            line([predur predur], ylim, 'Color', 'y');
+            lt_plot_zeroline
+            
+            lt_subtitle(['clust' num2str(j) 'motif: ' motif]);
+            
+            linkaxes(hsplots, 'x')
         end
-        [xbin, ~, ~, ymean_hz, ysem_hz]= ...
-            lt_neural_plotRastMean(Yspks, window, windshift, 1, plotcol);
-        line([predur predur], ylim, 'Color', 'y');
-        
-        % == 4) mean fr
-        hsplot=lt_subplot(4, 1, 4); hold on;
-        hsplots=[hsplots hsplot];
-        
-        shadedErrorBar(xbin, ymean_hz, ysem_hz, {'Color', plotcol}, 1);
-        ylim([-10 150]);
-        line([predur predur], ylim, 'Color', 'y');
-        lt_plot_zeroline
-        
-        lt_subtitle(['clust' num2str(j) 'motif: ' motif]);
-        
-        linkaxes(hsplots, 'x')
     end
-end
-
-
-% ----- distribute plots evenly
-distFig('Columns', 'Auto')
-
-
-disp('PAUSED');
-pause;
+    
+    
+    % ----- distribute plots evenly
+    distFig('Columns', 'Auto')
+    
+    
+    disp('PAUSED');
+    pause;
 end
 
 %% ============= OVERLAY means for diff motifs for single cluster (cell)
@@ -252,8 +252,8 @@ for j=1:numclusts
         
     end
     ylim([-10 150]);
-        lt_plot_zeroline;
-legend(hsplots, MotifList_regexp);
+    lt_plot_zeroline;
+    legend(hsplots, MotifList_regexp);
 end
 
 

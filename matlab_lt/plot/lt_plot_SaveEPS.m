@@ -1,4 +1,4 @@
-SaveDir='/bluejay4/lucas/Dropbox/SCIENCE/BRAINARD_LAB/MANUSCRIPTS/SeqDepPitch/FIGURES/MATLAB';
+SaveDir='/bluejay4/lucas/Dropbox/SCIENCE/BRAINARD_LAB/PROJECTS/MATLAB';
 timestamp=lt_get_timestamp(0);
 randnum=randi(10000, 1);
 SavePath=[SaveDir '/' timestamp '_rand' num2str(randnum) '.eps'];

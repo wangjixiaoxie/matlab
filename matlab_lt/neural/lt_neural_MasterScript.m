@@ -54,16 +54,12 @@ lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, R
 %% label songs using modified evsonganaly
 clear all; close all;
 % batchf='batch_test';
-batchf='BatchTest';
-batchf='BatchChan14LateTmp';
-batchf='BatchChan14good';
-batchf='BatchChan14good_v3';
-batchf='BatchChan14good_v4';
+batchf='BatchChan14Late';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
-ChansToPlot=[14];
-batchtoplot='BatchTest';
+ChansToPlot=[23];
+batchtoplot='BatchMidDayChan18SU';
 % batchtoplot=batchf;
 lt_neural_concatExplore(batchtoplot, ChansToPlot)
 
@@ -72,7 +68,8 @@ lt_neural_concatExplore(batchtoplot, ChansToPlot)
 % based on expectation of duration for single unit.
 % -- saves into downstream folder
 
-channel_board=14;
+batchf='BatchMidDayChan18SU';
+channel_board=23;
 lt_neural_concatOneChan(batchf, channel_board)
 
 %% ==== run wave_clus on this concatted data
@@ -85,7 +82,7 @@ plotcols={'m', 'r','c', 'b', 'g'};
 lt_neural_AlgnWavclus(batchf, channel_board, plotcols);
 
 
-%% =================================================== ANALYSIS 
+%% ++++++++++ ANALYSIS (NEURONS ONE BY ONE) 
 %% ==== EXTRACT SONG, LABEL,SongDat ONSETS, SPIKE DATA
 close all;
 [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
@@ -101,13 +98,23 @@ regexpr_str='n(h)h'; % token determines where align. predur is relative to token
 regexpr_str='[^h](h)h'; % token determines where align. predur is relative to token.
 predur=1;
 postdur=2;
+alignByOnset=1;
 
 % - entire motifs
 regexpr_str='(S)[\w-]*?E'; % gets any S ---- E
 predur=6; % sec
 postdur=8; % sec
+alignByOnset=1;
 
-[SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, regexpr_str, predur, postdur);
+% - Extract song motifs (onset and offset) automatically)
+regexpr_str='WHOLEBOUTS';
+predur=8; % sec
+postdur=3; % sec
+alignByOnset=0;
+
+[SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, regexpr_str, predur, postdur, alignByOnset);
+
+
 
 %% ===== [OPTIONAL] extract segments automatically - motif on and off
 
@@ -120,9 +127,10 @@ TargetDur=[];
 
 
 %% ==== plot rasters
+
 close all;
 useRescaled=0; % 1, then need to run LinTimeWarp first (plots scaled spikes, not song dat)
-plotAllSegs=0; % then plots each trial own plot.
+plotAllSegs=1; % then plots each trial own plot.
 [Params]=lt_neural_motifRaster(SegmentsExtract, Params, useRescaled, plotAllSegs);
 
 
@@ -132,20 +140,24 @@ plotAllSegs=0; % then plots each trial own plot.
 
 close all; 
 % MotifList_regexp={'(S)[\w-]*?E'};
-% MotifList_regexp={'gh(h)', 'nh(h)'};
+MotifList_regexp={'g(h)h', 'n(h)h'};
 MotifList_regexp={'v(b)b', '[^vb](b)b'};
 MotifList_regexp={'n(b)b', 'v(b)b'};
-
+MotifList_regexp={'[nv](b)', '[gm](b)'};
+MotifList_regexp={'(v)', '(b)'};
 % MotifList_regexp={'[^b](b)', 'b(b)'};
 MotifList_regexp={'(g)b', '(g)h'};
-predur=0.5;
-postdur=1;
-LinearWarp=1; % 0=no; 1=yes, each motif individually; 2=yes, all motifs to global motif median dur
+MotifList_regexp={'gh(h)hh'};
+predur=0.3;
+postdur=0.5;
+LinearWarp=2; % 0=no; 1=yes, each motif individually; 2=yes, all motifs to global motif median dur
 suppressplots=1; % diagnostic plots.
 onlyPlotMean=0; % then does not plot rasters, just means.
+
 lt_neural_motifRastMult(SongDat, NeurDat, Params, MotifList_regexp, ...
     predur, postdur, LinearWarp, suppressplots, onlyPlotMean)
 
+% === TO DO, LIMIT TO A SINGLE CHANNEL
 
 
 %% +++++++++++++++++++++++++++++++++++++++++++++++++

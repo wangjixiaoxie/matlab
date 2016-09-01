@@ -14,6 +14,7 @@ filenames=lt_batchsong_NamesToCell(batchf);
 fs_all=[];
 ampDat_all=cell(length(ChansToPlot),1); % chan x data
 songDat_all=[];
+transsamps=[];
 
 % ----- COLLECT DATA
 for i=1:length(filenames)
@@ -25,7 +26,8 @@ for i=1:length(filenames)
     
     % -- collect song
     songDat_all=[songDat_all board_adc_data(1,:)];
-    
+    transsamps=[transsamps length(board_adc_data(1,:))];
+        
     % --- collect all amp dat
     for j=1:length(ChansToPlot)
         chan=ChansToPlot(j);
@@ -59,6 +61,13 @@ hsplots=[hsplots hsplot];
 tt=[1:length(songDat_all)]/fs_all(1);
 plot(tt, songDat_all);
 
+%  line for each transition
+transsamps=cumsum(transsamps);
+for i=1:length(transsamps)
+    x=tt(transsamps(i));
+    line([x x], ylim)
+end
+
 % - plot each chan
 for i=1:length(ChansToPlot)
     chan=ChansToPlot(i);
@@ -69,6 +78,9 @@ title(['chan ' num2str(chan)]);
 dat=lt_neural_filter(ampDat_all{i}, frequency_parameters);
 plot(tt, dat, 'k');
 end
+
+    
+
     
 linkaxes(hsplots, 'x');
 

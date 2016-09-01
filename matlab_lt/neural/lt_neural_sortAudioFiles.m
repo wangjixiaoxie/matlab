@@ -2,7 +2,7 @@ function varargout = lt_neural_sortAudioFiles(varargin)
 %% ===
 % varargin{1}='batch.keep';
 
-useAmplWave=1; % if 0, plots spectrograms.
+% useAmplWave=1; % if 0, plots spectrograms.
 
 % TO DO
 % 1) deletion
@@ -419,6 +419,8 @@ function checkbox7_Callback(hObject, eventdata, handles)
 % ----- Plots spec for this song
 function fn_PlotSpec(fline)
 % ===== if no more songs, then tell user, and quit program
+useAmplWave=1;
+
 if ~ischar(fline)
     plot([1 100], [1 10], 'r');
     msgbox('No More Songs! - can keep doing "Load Songs"');
@@ -455,9 +457,9 @@ else
     F_high = 8000;
     songdat=bandpass(songdat,fs,F_low,F_high,filter_type);
     
+    if useAmplWave==1
     plot(songdat);
-    
-    if (0)
+    else
     % === colect spectrogram
     [sp, f, t] = spectrogram(songdat, window, noverlap, nfft, fs);
     sp=abs(sp);

@@ -1,0 +1,374 @@
+function lt_neural_MultNeur_MotifRasters_v2(NeuronDatabase, motif_regexpr_str, motif_predur, motif_postdur)
+%% v2 - can input multiple motifs, will align all of them and compare firing rate for each neuron across motifs
+% now:
+% motif_regexpr_str is cell array, each ind with one motif
+suppresssomeplots = 1; % just time warping plots
+
+
+%% given motif, plots rasters and smooth rate for all neurons
+
+%  NOTE: default is to linearly scale across all neurons (motif onset to
+%  offset)
+
+%% PARAMS
+NumMotifs=length(motif_regexpr_str);
+NumNeurons=length(NeuronDatabase.neurons);
+LinScaleGlobal=1;% scales all trials across all neurons to global median [DEFAULT, AND ALTERNATIVES NOT YET CODED]
+
+% smoothing window (neural)
+window=0.02; windshift=0.004;
+
+%% EXTRACT DATA
+MOTIFSTATS=struct;
+for i=1:NumNeurons
+    cd(NeuronDatabase.global.basedir);
+    
+    % - find day folder
+    dirdate=NeuronDatabase.neurons(i).date;
+    tmp=dir([dirdate '*']);
+    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+    cd(tmp(1).name);
+    
+    % - load data for this neuron
+    batchf=NeuronDatabase.neurons(i).batchfile;
+    channel_board=NeuronDatabase.neurons(i).chan;
+    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
+    
+    % --- EXTRACT DAT
+    % - do this one time for each desired motif
+    for j=1:NumMotifs
+        regexpr_str=motif_regexpr_str{j};
+        predur=motif_predur; % sec
+        postdur=motif_postdur; % sec
+        alignByOnset=1;
+        WHOLEBOUTS_edgedur=''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
+        % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
+        [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
+            regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur);
+        
+        % -------- SAVE TIMING OF SPIKES FOR THIS NEURON
+        MOTIFSTATS.neurons(i).motif(j).SegmentsExtract=SegmentsExtract;
+        MOTIFSTATS.neurons(i).motif(j).Params=Params;
+    end
+end
+
+
+%% ========================== PLOT COMBINED RASTERS
+if LinScaleGlobal==1
+    % =================== OPTIONAL, LINEARLY TIME WARP [DEFAULT]
+    spktimefield='spk_Times_scaled';
+    % -- 1) figure out median dur across all neurons (for this motif)
+    OnAll=[];
+    OffAll=[];
+    MotifTimesAll=[];
+    
+    for i=1:NumNeurons
+        for j=1:NumMotifs
+            if ~isfield(MOTIFSTATS.neurons(i).motif(j).SegmentsExtract, 'spk_Times')
+                % then there is no data for this neuron
+                continue
+            end
+            
+            %         predur=MOTIFSTATS.neurons(i).Params.REGEXP.predur;
+            %         postdur=MOTIFSTATS.neurons(i).Params.REGEXP.postdur;
+            
+            %         motifontimes = predur + ...
+            %             [MOTIFSTATS.neurons(i).SegmentsExtract.global_ontime_motifInclFlank];
+            %         motifofftimes=[MOTIFSTATS.neurons(i).SegmentsExtract.global_offtime_motifInclFlank] - ...
+            %             postdur;
+            
+            %         OnAll=[OnAll motifontimes];
+            %         OffAll=[OffAll motifofftimes];
+            MotifTimesAll=[MotifTimesAll MOTIFSTATS.neurons(i).motif(j).SegmentsExtract.actualmotifdur];
+        end
+    end
+    %     MotifTimesAll=OffAll-OnAll;
+    lt_figure; hold on;
+    lt_plot_histogram(MotifTimesAll); xlabel('all motif times (s)');
+    MotifTime_med=median(MotifTimesAll);
+    
+    
+    % -- 2) time warp
+    for i=1:NumNeurons
+        for j=1:NumMotifs
+            if ~isfield(MOTIFSTATS.neurons(i).motif(j).SegmentsExtract, 'spk_Times')
+                % then there is no data for this neuron
+                continue
+            end
+            segmentdat=MOTIFSTATS.neurons(i).motif(j).SegmentsExtract;
+            prms=MOTIFSTATS.neurons(i).motif(j).Params;
+            [segmentdatout, prmsout] = lt_neural_LinTimeWarp(segmentdat, ...
+                prms, MotifTime_med);
+            
+            if suppresssomeplots==1
+                close gcf
+                close gcf % close 2 figs
+            end
+            MOTIFSTATS.neurons(i).motif(j).SegmentsExtract=segmentdatout;
+            MOTIFSTATS.neurons(i).motif(j).Params=prmsout;
+        end
+    end
+end
+
+%% =================== PLOT ONE GLOBAL RASTER [do once for each motif]
+hsplots_rasty=[];
+for m=1:NumMotifs
+    lt_figure; hold on;
+    ylabel('trial #');
+    xlabel('sec');
+    yind=1; % will increment to plot over all experiments
+    plotcols=lt_make_plot_colors(NumNeurons, 0, 0);
+    hsplots=[];
+    
+    % 1) === plot spectrogram at top
+    hsplot=lt_subplot(8, 1, 1); hold on
+    ylabel('median dur trial');
+    hsplots=[hsplots hsplot];
+    % --- find the trial that has close to median motif time
+    songdat=[];
+    fs=[];
+    for i=1:NumNeurons
+        if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
+            % then there is no data for this neuron
+            continue
+        end
+        
+        numtrials=length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract);
+        
+        for j=1:numtrials
+            if abs(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur - ...
+                    MotifTime_med)<0.01*MotifTime_med; % good enough, less than 1% of motif median.
+                
+                songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+                fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+%                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
+                break
+            end
+        end
+    end
+    
+    % --- plot
+    lt_plot_spectrogram(songdat, fs, 1, 0);
+    line([motif_predur motif_predur], ylim, 'Color','w');
+    line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','w'); % end
+    
+    % 2) ===== plot rasters
+    hsplot=lt_subplot(8, 1, 2:8); hold on
+    hsplots=[hsplots hsplot];
+    hsplots_rasty=[hsplots_rasty hsplot];
+    for i=1:NumNeurons
+        if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
+            % then there is no data for this neuron
+            continue
+        end
+        
+        segextract=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
+        params=MOTIFSTATS.neurons(i).motif(m).Params;
+        clustnum=NeuronDatabase.neurons(i).clustnum;
+        
+        numtrials=length(segextract);
+        for j=1:numtrials
+            inds=segextract(j).spk_Clust==clustnum;
+            spktimes=segextract(j).(spktimefield)(inds);
+            
+            if ~isempty(spktimes)
+                for jj=1:length(spktimes)
+                    spk=spktimes(jj);
+                    line([spk spk], -[yind-0.4 yind+0.4], 'Color', plotcols{i}, 'LineWidth', 1);
+                end
+            end
+            
+            % -- increment y ind
+            yind=yind+1;
+        end
+    end
+    % -- line for motif onset
+    line([motif_predur motif_predur], ylim, 'Color','k');
+    line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
+    
+    % --- link
+    linkaxes(hsplots, 'x');
+    
+end
+
+linkaxes(hsplots_rasty, 'xy');
+
+
+%% === PLOT MEAN FIRING RATE SMOOTHED OVER TIME [EACH MOTIF SEPARATE PLOT]
+
+for m=1:NumMotifs
+    lt_figure; hold on;
+%     figcount=1;
+%     subplotrows=NumNeurons+1;
+%     subplotcols=1;
+%     fignums_alreadyused=[];
+%     hfigs=[];
+    
+    hsplots=[];
+    
+    % 1) === plot spectrogram at top
+    hsplot=lt_subplot(NumNeurons+1, 1, 1); hold on
+    ylabel('median dur trial');
+    hsplots=[hsplots hsplot];
+    % --- find the trial that has close to median motif time
+    songdat=[];
+    fs=[];
+    for i=1:NumNeurons
+        if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
+            % then there is no data for this neuron
+            continue
+        end
+        
+        numtrials=length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract);
+        
+        for j=1:numtrials
+            if abs(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur - ...
+                    MotifTime_med)<0.01*MotifTime_med; % good enough, less than 1% of motif median.
+                
+                songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+                fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+%                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
+                break
+            end
+        end
+    end
+    % --- plot
+    lt_plot_spectrogram(songdat, fs, 1, 0);
+    line([motif_predur motif_predur], ylim, 'Color','w');
+    line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','w'); % end
+    
+    % 2) ===== plot rasters
+    for i=1:NumNeurons
+        if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
+            % then there is no data for this neuron
+            continue
+        end
+%         [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+    hsplot=lt_subplot(NumNeurons+1, 1, i+1); hold on
+
+hsplots=[hsplots hsplot];
+        ylabel(['neuron ' num2str(i)]);
+        
+        segextract=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
+        params=MOTIFSTATS.neurons(i).motif(m).Params;
+        clustnum=NeuronDatabase.neurons(i).clustnum;
+        
+        numtrials=length(segextract);
+        Yspks={};
+        for j=1:numtrials
+            inds=segextract(j).spk_Clust==clustnum;
+            spktimes=segextract(j).(spktimefield)(inds);
+            Yspks{j}=spktimes;
+        end
+        
+        % -- convert to smoothed rate
+        [xbin, ~, ~, ymean_hz, ysem_hz] = lt_neural_plotRastMean(Yspks, window, windshift, 0, '');
+        
+        % --- plot
+        shadedErrorBar(xbin, ymean_hz, ysem_hz, {'Color', plotcols{i}}, 1);
+        
+        % -- line for motif onset
+        line([motif_predur motif_predur], ylim, 'Color','k');
+        line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
+    end
+    
+    % --- link
+    linkaxes(hsplots, 'x');
+end
+
+
+%% === PLOT MEAN FIRING RATE SMOOTHED OVER TIME [OVERLAY EACH MOTIF IN ONE PLOT
+    
+lt_figure; hold on;
+    hsplots=[];
+
+    plotcols_motif=lt_make_plot_colors(NumMotifs, 0, 0);
+    
+% ==== Plot spectrograms of each motif
+for m=1:NumMotifs
+%     figcount=1;
+%     subplotrows=NumNeurons+1;
+%     subplotcols=1;
+%     fignums_alreadyused=[];
+%     hfigs=[];
+    
+    
+    % 1) === plot spectrogram at top
+    hsplot=lt_subplot(2*(NumNeurons+NumMotifs), 1, m); hold on
+    hsplots=[hsplots hsplot];
+    % --- find the trial that has close to median motif time
+    songdat=[];
+    fs=[];
+    for i=1:NumNeurons
+        if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
+            % then there is no data for this neuron
+            continue
+        end
+        
+        numtrials=length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract);
+        
+        for j=1:numtrials
+            if abs(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur - ...
+                    MotifTime_med)<0.01*MotifTime_med; % good enough, less than 1% of motif median.
+                
+                songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+                fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+%                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
+                break
+            end
+        end
+    end
+    % --- plot
+    lt_plot_spectrogram(songdat, fs, 1, 0);
+    line([motif_predur motif_predur], ylim, 'Color','w');
+    line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','w'); % end
+    title(['dur close to median: ' motif_regexpr_str{m}, 'Color', plotcols_motif{m}]);
+end
+    
+
+% ===== PLOT NEURAL DATA
+for m=1:NumMotifs
+    %     figcount=1;
+    %     subplotrows=NumNeurons+1;
+    %     subplotcols=1;
+    %     fignums_alreadyused=[];
+    %     hfigs=[];
+    
+    for i=1:NumNeurons
+        if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
+            % then there is no data for this neuron
+            continue
+        end
+        %         [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+        hsplot=lt_subplot(NumNeurons+NumMotifs, 1, ceil(NumMotifs/2)+i); hold on
+        
+        hsplots=[hsplots hsplot];
+        ylabel(['neuron ' num2str(i)]);
+        
+        segextract=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
+        params=MOTIFSTATS.neurons(i).motif(m).Params;
+        clustnum=NeuronDatabase.neurons(i).clustnum;
+        
+        numtrials=length(segextract);
+        Yspks={};
+        for j=1:numtrials
+            inds=segextract(j).spk_Clust==clustnum;
+            spktimes=segextract(j).(spktimefield)(inds);
+            Yspks{j}=spktimes;
+        end
+        
+        % -- convert to smoothed rate
+        [xbin, ~, ~, ymean_hz, ysem_hz] = lt_neural_plotRastMean(Yspks, window, windshift, 0, '');
+        
+        % --- plot
+        shadedErrorBar(xbin, ymean_hz, ysem_hz, {'Color', plotcols_motif{m}}, 1);
+        
+        % -- line for motif onset
+        line([motif_predur motif_predur], ylim, 'Color','k');
+        line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
+    end
+    
+end
+    % --- link
+    linkaxes(hsplots, 'x');
+
