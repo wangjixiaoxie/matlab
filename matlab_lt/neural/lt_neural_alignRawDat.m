@@ -249,13 +249,14 @@ if PlotWhat.filt==1;
             % 1) raw amplitude
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
             title(['analog chan: ' num2str(i)]);
-            plot(tt, board_adc_data(i, :), 'b');
+            plot(tt./1000, board_adc_data(i, :), 'b');
             hsplots=[hsplots hsplot];
             
             % 2) spectrogram
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
             title(['analog chan: ' num2str(i)]);
             [t, f, spec]=fn_extract_sound_spec(frequency_parameters, board_adc_data(i, :));
+            t=t./1000;
             imagesc(t, f, spec);
             axis([t(1) t(end) f(1) f(end)]);
             hsplots=[hsplots hsplot];
@@ -281,7 +282,7 @@ if PlotWhat.filt==1;
             % == PLOT
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
             title(['neural chan (filt): ' num2str(AmpChans_zero(i))]);
-            plot(tt, dat, 'k');
+            plot(tt./1000, dat, 'k');
             hsplots=[hsplots hsplot];
             
             % ================ IF WANT TO PLOT SPIKES, THEN OVERLAY THEM
@@ -298,7 +299,7 @@ if PlotWhat.filt==1;
                 
                 % == PLOT
                 for j=1:length(SpikeInds) % plot all spikes as a line
-                    x=tt(SpikeInds(j)); % convert to ms
+                    x=tt(SpikeInds(j))/1000; % convert to ms
                     line([x x], [-10 10], 'Color','r');
                 end
             end
@@ -361,14 +362,14 @@ if PlotWhat.rect_sm==1;
             % 1) raw amplitude
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
             title(['analog chan: ' num2str(i)]);
-            plot(tt, board_adc_data(i, :), 'b');
+            plot(tt/1000, board_adc_data(i, :), 'b');
             hsplots=[hsplots hsplot];
             
             % 2) spectrogram
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
             title(['analog chan: ' num2str(i)]);
             [t, f, spec]=fn_extract_sound_spec(frequency_parameters, board_adc_data(i, :));
-            imagesc(t, f, spec);
+            imagesc(t./1000, f, spec);
             axis([t(1) t(end) f(1) f(end)]);
             hsplots=[hsplots hsplot];
         end
@@ -401,7 +402,7 @@ if PlotWhat.rect_sm==1;
             % == PLOT
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
             title(['neural chan (rect, sm): ' num2str(AmpChans_zero(i))]);
-            plot(tt, dat_smrect(numsamps/2:end-numsamps/2), 'k');
+            plot(tt/1000, dat_smrect(numsamps/2:end-numsamps/2), 'k');
             hsplots=[hsplots hsplot];
         end
         

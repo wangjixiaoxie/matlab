@@ -1,9 +1,12 @@
-function lt_neural_concatExplore(batchf, ChansToPlot)
+function lt_neural_concatExplore_v2(batchf, ChansToPlot)
 
 %% lt 8/17/16 - exploratory only - concats neural (all chans) + song
 % does not save anything
-% 
+%
 % ChansToPlot=neural chans (chip chan)
+
+    windowsize=0.03; % from -2sd to +2sd [for smoothed rectified]
+
 %% put names of all files in batch into a cell array
 
 filenames=lt_batchsong_NamesToCell(batchf);
@@ -27,7 +30,7 @@ for i=1:length(filenames)
     % -- collect song
     songDat_all=[songDat_all board_adc_data(1,:)];
     transsamps=[transsamps length(board_adc_data(1,:))];
-        
+    
     % --- collect all amp dat
     for j=1:length(ChansToPlot)
         chan=ChansToPlot(j);
@@ -37,8 +40,10 @@ for i=1:length(filenames)
         ampDat_all{j}=[ampDat_all{j} dattmp]; % concat
         
         % --- collect all fs
-    end
         fs_all=[fs_all frequency_parameters.amplifier_sample_rate];
+    end
+    
+    
 end
 
 
@@ -49,7 +54,7 @@ end
 
 %% PLOT
 figcount=1;
-subplotrows=length(ChansToPlot)+1;
+subplotrows=2*length(ChansToPlot)+1;
 subplotcols=1;
 fignums_alreadyused=[];
 hfigs=[];
@@ -71,16 +76,40 @@ end
 % - plot each chan
 for i=1:length(ChansToPlot)
     chan=ChansToPlot(i);
- [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-hsplots=[hsplots hsplot];
-title(['chan ' num2str(chan)]);
-
-dat=lt_neural_filter(ampDat_all{i}, frequency_parameters);
-plot(tt, dat, 'k');
+    
+    % === 1) neural, filtered
+    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+    hsplots=[hsplots hsplot];
+    title(['chan ' num2str(chan)]);
+    
+    datfilt=lt_neural_filter(ampDat_all{i}, frequency_parameters);
+    plot(tt, datfilt, 'k');
+    
+    % === 2) neural, smoothed
+    % === rectify
+    datfilt=abs(datfilt);
+    
+    % == smoooth
+    % Construct a gaussian window
+    sigma=(windowsize/4)*fs_all(1); %
+    numsamps=4*sigma; % (get 2 std on each side)
+    alpha= numsamps/(2*sigma); % N/2sigma
+    gaussFilter = gausswin(numsamps, alpha);
+    gaussFilter = gaussFilter / sum(gaussFilter); % Normalize.
+    dat_smrect = conv(datfilt, gaussFilter);
+    
+    % == PLOT
+    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+    plot(tt, dat_smrect(numsamps/2:end-numsamps/2), 'k');
+    hsplots=[hsplots hsplot];
+    
+    
+    
+    
 end
 
-    
 
-    
+
+
 linkaxes(hsplots, 'x');
 

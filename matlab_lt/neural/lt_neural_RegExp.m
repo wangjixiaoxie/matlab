@@ -14,6 +14,11 @@ if ~exist('WHOLEBOUTS_edgedur', 'var');
     WHOLEBOUTS_edgedur=[];
 end
 
+if ~exist('alignByOnset', 'var');
+    alignByOnset=1;
+end
+
+UseLastSylAsToken=0;
 
 %% === extract stuff from inputs
 
@@ -81,7 +86,7 @@ if strcmp(regexpr_str, 'WHOLEBOUTS')
     end
     
     % --- if want to use last syl as token.
-    if (0)
+    if UseLastSylAsToken==1;
         tokenExtents=bout_lastsyls;
         startinds=bout_lastsyls;
         endinds=bout_lastsyls;

@@ -13,6 +13,9 @@ Learning_all=[];
 Learning_TargDir_All=[];
 LearningRelTarg_all=[];
 Similar_all=[];
+
+Similar_all_handlab=[];
+
 PreSimilar_all=[];
 TwoBackSimilar_all=[];
 Target_all=[];
@@ -100,6 +103,9 @@ for i=1:NumBirds;
             
             % --
             Similar_all = [Similar_all SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).similar_to_targ];
+            
+            Similar_all_handlab= [Similar_all_handlab ...
+                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).similar_to_targ_HandLab];
             
             % --
             Target_all = [Target_all SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).is_target];
@@ -240,6 +246,7 @@ AllSylsStruct.Learning_all=Learning_all;
 AllSylsStruct.Learning_TargDir_All=Learning_TargDir_All;
 AllSylsStruct.LearningRelTarg_all=LearningRelTarg_all;
 AllSylsStruct.Similar_all=Similar_all;
+AllSylsStruct.Similar_all_handlab=Similar_all_handlab;
 AllSylsStruct.PreSimilar_all=PreSimilar_all;
 AllSylsStruct.TwoBackSimilar_all=TwoBackSimilar_all;
 AllSylsStruct.Target_all=Target_all;
@@ -269,8 +276,6 @@ AllSylsStruct.LMAN.Corr_motif_all_MUSC=Corr_motif_all_MUSC;
 AllSylsStruct.LMAN.Corr_song_all_MUSC=Corr_song_all_MUSC;
 AllSylsStruct.LMAN.AcousticDist_all=acoustdist_MUSC_all;
 
-
-keyboard
 
 %% ++++++++++++++++
 %% ====== PRESIM (effect independent of corr and acoustic and motif?)
@@ -448,6 +453,62 @@ disp('From ANCOVA looks like slope for same-type is greater than for diff type')
 disp('Hoever, from linear regression neither slope is significant (why? - from ancova it is different even from 0)');
 
 
+%% +++ ACOUSTIC DIST [SAME AS ABOVE, BUT USING HAND LABELED]
+
+% === linear regression [learning vs. acoustic dist]
+lt_figure; hold on;
+
+% --- SAME
+lt_subplot(2,2,1); hold on
+ylabel('gener');
+xlabel('acoustic dist');
+title('same-type [hand lab]');
+
+inds=AllSylsStruct.Target_all==0 & AllSylsStruct.Similar_all_handlab==1;
+
+X=AllSylsStruct.AcousticDist_all(inds);
+Xname='acoust dist';
+Y=AllSylsStruct.LearningRelTarg_all(inds);
+Yname='gener';
+
+lt_regress(Y, X, 1, 0, 1, 1, 'k');
+
+
+% --- DIFF
+lt_subplot(2,2,2); hold on
+ylabel('gener');
+xlabel('acoustic dist');
+title('diff-type [hand lab]');
+
+inds=AllSylsStruct.Similar_all_handlab==0;
+
+X=AllSylsStruct.AcousticDist_all(inds);
+Xname='acoust dist';
+Y=AllSylsStruct.LearningRelTarg_all(inds);
+Yname='gener';
+
+lt_regress(Y, X, 1, 0, 1, 1, 'k');
+
+
+% == ALL
+lt_subplot(2,2,3); hold on
+ylabel('gener');
+xlabel('acoustic dist');
+title('all nontarg [hand lab]');
+
+inds=AllSylsStruct.Target_all==0;
+
+X=AllSylsStruct.AcousticDist_all(inds);
+Xname='acoust dist';
+Y=AllSylsStruct.LearningRelTarg_all(inds);
+Yname='gener';
+
+lt_regress(Y, X, 1, 0, 1, 1, 'k');
+
+
+
+
+
 %% +++++++++++++++++++++++++ correlations
 % ===================== ANCOVA (one way) (gener vs. corr (song))
 
@@ -480,6 +541,9 @@ X=AllSylsStruct.Corr_song_all(inds);
 Y=AllSylsStruct.LearningRelTarg_all(inds);
 
 lt_regress(Y, X, 1, 0, 1, 1, 'b');
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
 
 % -- diff type
 lt_subplot(2,2,2); hold on;
@@ -493,6 +557,9 @@ X=AllSylsStruct.Corr_song_all(inds);
 Y=AllSylsStruct.LearningRelTarg_all(inds);
 
 lt_regress(Y, X, 1, 0, 1, 1, 'r');
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
 
 
 % --- all combined
@@ -507,9 +574,9 @@ X=AllSylsStruct.Corr_song_all(inds);
 Y=AllSylsStruct.LearningRelTarg_all(inds);
 
 lt_regress(Y, X, 1, 0, 1, 1, 'k');
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
 
-line(xlim, [0 0]);
-line([0 0], ylim);
 
 % ===== linear regression [same motif]
 lt_figure; hold on;
@@ -698,6 +765,107 @@ disp('===== CONCLUSIONS (trial by trial corr)');
 disp('positive correlation between learning and corr for same motif (dff type only), but not for diff motif (even if use song corr for both analyses) (even though same-types do have greater mean corr for diff motif)');
 disp('however, there is no sign diff between slopes (for same-types or diff types) of learn vs. corr depending on motif');
 disp('note, howeber, that slopes of same-type are not significantly different (close though) than diff type (for same-motif)');
+
+
+%% ==== PITCH CORREALTION [AS ABOVE, BUT USING HAND LABELED]
+
+% ===== linear regression
+lt_figure; hold on;
+% --- same type
+lt_subplot(2,2,1); hold on;
+title('same type [HAND LAB]');
+xlabel('corr(song)');
+ylabel('gen');
+
+inds=AllSylsStruct.Target_all==0 & AllSylsStruct.Similar_all_handlab==1;
+
+X=AllSylsStruct.Corr_song_all(inds);
+Y=AllSylsStruct.LearningRelTarg_all(inds);
+
+lt_regress(Y, X, 1, 0, 1, 1, 'b');
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
+% -- diff type
+lt_subplot(2,2,2); hold on;
+title('diff type [HAND LAB]');
+xlabel('corr (song)');
+ylabel('gen');
+
+inds=AllSylsStruct.Target_all==0 & AllSylsStruct.Similar_all_handlab==0;
+
+X=AllSylsStruct.Corr_song_all(inds);
+Y=AllSylsStruct.LearningRelTarg_all(inds);
+
+lt_regress(Y, X, 1, 0, 1, 1, 'r');
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
+% --- all combined
+lt_subplot(2,2,3); hold on;
+title('all nontarg [HAND LAB]');
+xlabel('corr (song)');
+ylabel('gen');
+
+inds=AllSylsStruct.Target_all==0;
+
+X=AllSylsStruct.Corr_song_all(inds);
+Y=AllSylsStruct.LearningRelTarg_all(inds);
+
+lt_regress(Y, X, 1, 0, 1, 1, 'k');
+
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
+
+
+% ========================== SAME MOTIF
+lt_figure; hold on;
+% --- same type
+lt_subplot(2,2,1); hold on;
+title('same type [HAND LAB]');
+xlabel('corr(motif sub song)');
+ylabel('gen');
+
+inds=AllSylsStruct.Target_all==0 & AllSylsStruct.Similar_all_handlab==1;
+
+X=AllSylsStruct.Corr_motifsubsong_all(inds);
+Y=AllSylsStruct.LearningRelTarg_all(inds);
+
+lt_regress(Y, X, 1, 0, 1, 1, 'b');
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
+% -- diff type
+lt_subplot(2,2,2); hold on;
+title('diff type [HAND LAB]');
+xlabel('corr (motif sub song)');
+ylabel('gen');
+
+inds=AllSylsStruct.Target_all==0 & AllSylsStruct.Similar_all_handlab==0;
+
+X=AllSylsStruct.Corr_motifsubsong_all(inds);
+Y=AllSylsStruct.LearningRelTarg_all(inds);
+
+lt_regress(Y, X, 1, 0, 1, 1, 'r');
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
+% -- all nontarg
+lt_subplot(2,2,3); hold on;
+title('all nontarg [HAND LAB]');
+xlabel('corr (motif sub song)');
+ylabel('gen');
+
+inds=AllSylsStruct.Target_all==0;
+
+X=AllSylsStruct.Corr_motifsubsong_all(inds);
+Y=AllSylsStruct.LearningRelTarg_all(inds);
+
+lt_regress(Y, X, 1, 0, 1, 1, 'k');
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
 
 
 %% == indepnednet contriubtions by corr and acoustic to generalization?

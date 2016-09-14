@@ -69,8 +69,9 @@ neuralFiltHi=3000;
             
             y = y.';
             
+            
             % =============================
-            % another wave_clus version
+            % another wave_clus version [same as above]
             if exist('ellip','file')                         %Checks for the signal processing toolbox
                 [b_detect,a_detect] = ellip(4,0.1,40,[300 3000]*2/fs);
                 [b,a] = ellip(2,0.1,40,[300 3000]*2/fs);

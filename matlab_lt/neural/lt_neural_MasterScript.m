@@ -24,11 +24,11 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='bk7_160809_102808.rhd';
+filename='bk7_160809_120614.rhd';
 ChansToPlot.DigChans_zero=[]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
-ChansToPlot.AmpChans_zero=[14];
+ChansToPlot.AmpChans_zero=[9];
 % ChansToPlot.AmpChans_zero=[10 14 18 23];
 
 % neuralFiltLow=500;
@@ -36,7 +36,7 @@ neuralFiltLow=300;
 
 PlotWhat.raw=0;
 PlotWhat.filt=1;
-PlotWhat.rect_sm=0;
+PlotWhat.rect_sm=1;
 PlotWhat.raster=0;
 
 Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
@@ -59,17 +59,21 @@ batchf='BatchChan14Late';
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
 ChansToPlot=[23];
-batchtoplot='BatchMidDayChan18SU';
+batchtoplot='batchall2';
 % batchtoplot=batchf;
-lt_neural_concatExplore(batchtoplot, ChansToPlot)
+lt_neural_concatExplore(batchtoplot, ChansToPlot); % v1, plots just raw neural, filtered
+
+ChansToPlot=[23];
+batchtoplot='batchall2';
+lt_neural_concatExplore_v2(batchtoplot, ChansToPlot); % v2, plots filtered neural, smoothed, and spike waveforms
 
 
 %% ==== concatenate multiple files for given channel, [and saves]
 % based on expectation of duration for single unit.
 % -- saves into downstream folder
 
-batchf='BatchMidDayChan18SU';
-channel_board=23;
+batchf='BatchMidDayChan18SU_TryToGet2Clust_NEW';
+channel_board=18;
 lt_neural_concatOneChan(batchf, channel_board)
 
 %% ==== run wave_clus on this concatted data
@@ -85,6 +89,8 @@ lt_neural_AlgnWavclus(batchf, channel_board, plotcols);
 %% ++++++++++ ANALYSIS (NEURONS ONE BY ONE) 
 %% ==== EXTRACT SONG, LABEL,SongDat ONSETS, SPIKE DATA
 close all;
+batchf='BatchChan10Early';
+channel_board=10;
 [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
 
 
@@ -93,11 +99,12 @@ close all;
 close all;
 
 % - desired motifs
-regexpr_str='g(h)h'; % token determines where align. predur is relative to token.
+regexpr_str='[^vb](b)'; % token determines where align. predur is relative to token.
+regexpr_str='(g)h'; % token determines where align. predur is relative to token.
 regexpr_str='n(h)h'; % token determines where align. predur is relative to token.
 regexpr_str='[^h](h)h'; % token determines where align. predur is relative to token.
-predur=1;
-postdur=2;
+predur=0.2;
+postdur=0.2;
 alignByOnset=1;
 
 % - entire motifs
@@ -148,9 +155,10 @@ MotifList_regexp={'(v)', '(b)'};
 % MotifList_regexp={'[^b](b)', 'b(b)'};
 MotifList_regexp={'(g)b', '(g)h'};
 MotifList_regexp={'gh(h)hh'};
-predur=0.3;
-postdur=0.5;
-LinearWarp=2; % 0=no; 1=yes, each motif individually; 2=yes, all motifs to global motif median dur
+
+predur=0.2;
+postdur=0.2;
+LinearWarp=0; % 0=no; 1=yes, each motif individually; 2=yes, all motifs to global motif median dur
 suppressplots=1; % diagnostic plots.
 onlyPlotMean=0; % then does not plot rasters, just means.
 

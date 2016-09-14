@@ -1,44 +1,96 @@
+function lt_neural_MultNeur_SongMod(NeuronDatabase, regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, Window_relOnset, motifwind, Window_relOffset)
 %% == analysis for song modulation (e.g. onset, offset, FR, ISI, etc)
 
+% === PARAM
+%     regexpr_str='WHOLEBOUTS';
+%     predur=6; % sec
+%     postdur=6; % sec
+%     alignByOnset=1;
+%     WHOLEBOUTS_edgedur=6; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
+
+%     motifwind=[-0.04 -0.04]; % e.g. 40ms premotif onset to 40ms pre motif offest
+%     Window_relOnset{1}=[-6 -5.5]; % window rel 1st syl onset
+%     Window_relOnset{2}=[-0.6 -0.1]; % window rel 1st syl onset
+%     Window_relOffset{1}=[0.1 0.6]; % window rel last syl offset... can have as many as desired
+%     Window_relOffset{2}=[5.5 6];
+    
+    %% auto params
+    
+    ISIthreshburst=0.005; % percent of spikes that are within birsts.
+
+    
+   %% === make a plot depicting timepoint of windows
+   lt_figure; hold on;
+   xlabel('sec');
+   song_length=10; % arbitrary, 10s
+   totaldur=song_length+predur+postdur;
+   
+   line([0 totaldur], [0.5 0.5], 'Color','k','LineWidth', 3);
+   
+   
+   counter=1;
+   % - prewind
+   for i=1:length(Window_relOnset)
+       wind=Window_relOnset{i};
+       
+       line([predur+wind(1) predur+wind(2)], [0.5 0.5], 'Color','m', 'LineWidth', 7);
+       lt_plot_text(predur+wind(1), 0.7, num2str(counter), 'm');
+       counter=counter+1;
+   end
+   
+   % - song
+   line([predur predur+song_length], [0.5 0.5],'Color','b','LineWidth', 10);
+   lt_plot_text(predur+1,0.7, [num2str(counter) ' (song)'], 'b');
+counter=counter+1;
+   % - postwin
+   for i=1:length(Window_relOffset)
+       wind=Window_relOffset{i};
+       
+       line([predur+song_length+wind(1) predur+song_length+wind(2)], [0.5 0.5], 'Color','m', 'LineWidth', 7);
+        lt_plot_text(predur+song_length+wind(1), 0.7, num2str(counter), 'm');
+       counter=counter+1;
+  end
+   
+       
+   
 %% === 1) Bout onset and offset modulation for each neuron
-currdir=pwd;
-close all;
 
-%% ======================= FOR EACH NEURON, PLOT IT'S OWN RASTERS, AND SM FRATE
+NumNeurons=length(NeuronDatabase.neurons);
 
-% ================ MOTIF STATISTICS (E.G. FIRING RATE, BURSTS, ...)
-for i=1:NumNeurons
-    cd(NeuronDatabase.global.basedir);
-    
-    % - find day folder
-    dirdate=NeuronDatabase.neurons(i).date;
-    tmp=dir([dirdate '*']);
-    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
-    cd(tmp(1).name);
-    
-    % - load data for this neuron
-    batchf=NeuronDatabase.neurons(i).batchfile;
-    channel_board=NeuronDatabase.neurons(i).chan;
-    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
-    
-    % --- EXTRACT DAT
-    regexpr_str='WHOLEBOUTS';
-    predur=6; % sec
-    postdur=6; % sec
-    alignByOnset=1;
-    WHOLEBOUTS_edgedur=6; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
-    % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
-    [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
-        regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur);
-    
-    
-        % ==================== Plot individually for this neuron
-        useRescaled=0; % 1, then need to run LinTimeWarp first (plots scaled spikes, not song dat)
-        plotAllSegs=0; % then plots each trial own plot.
-        [Params]=lt_neural_motifRaster(SegmentsExtract, Params, useRescaled, plotAllSegs);
-    
-end
-
+% %% ======================= FOR EACH NEURON, PLOT IT'S OWN RASTERS, AND SM FRATE
+% 
+% % ================ MOTIF STATISTICS (E.G. FIRING RATE, BURSTS, ...)
+% for i=1:NumNeurons
+%     cd(NeuronDatabase.global.basedir);
+%     
+%     % - find day folder
+%     dirdate=NeuronDatabase.neurons(i).date;
+%     tmp=dir([dirdate '*']);
+%     assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+%     cd(tmp(1).name);
+%     
+%     % - load data for this neuron
+%     batchf=NeuronDatabase.neurons(i).batchfile;
+%     channel_board=NeuronDatabase.neurons(i).chan;
+%     [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
+%     
+%     % --- EXTRACT DAT
+%     regexpr_str='WHOLEBOUTS';
+%     predur=6; % sec
+%     postdur=6; % sec
+%     alignByOnset=1;
+%     WHOLEBOUTS_edgedur=6; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
+%     % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
+%     [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
+%         regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur);
+%     
+%     
+%         % ==================== Plot individually for this neuron
+%         useRescaled=0; % 1, then need to run LinTimeWarp first (plots scaled spikes, not song dat)
+%         plotAllSegs=0; % then plots each trial own plot.
+%         [Params]=lt_neural_motifRaster(SegmentsExtract, Params, useRescaled, plotAllSegs);
+%     
+% end
 
 
 %% COLLECT AND PLOT STATS ACROSS NEURONS
@@ -71,18 +123,6 @@ for i=1:NumNeurons
     
     
     % ------ STATISTICS
-    motifwind=[-0.04 -0.04]; % e.g. 40ms premotif onset to 40ms pre motif offest
-    Window_relOnset={};
-    Window_relOffset={};
-%     Window_relOnset{1}=[-10 -9.5]; % window rel 1st syl onset
-%     Window_relOnset{2}=[-0.6 -0.1]; % window rel 1st syl onset
-%     Window_relOffset{1}=[0.1 0.6]; % window rel last syl offset... can have as many as desired
-%     Window_relOffset{2}=[9.5 10];
-    Window_relOnset{1}=[-6 -5.5]; % window rel 1st syl onset
-    Window_relOnset{2}=[-0.6 -0.1]; % window rel 1st syl onset
-    Window_relOffset{1}=[0.1 0.6]; % window rel last syl offset... can have as many as desired
-    Window_relOffset{2}=[5.5 6];
-    ISIthreshburst=0.005; % percent of spikes that are within birsts.
     clustwanted=NeuronDatabase.neurons(i).clustnum; % wave_clus cluster
 
     [FiringRateOut BurstFracOut] = lt_neural_CalMeanFiring(SegmentsExtract, ...

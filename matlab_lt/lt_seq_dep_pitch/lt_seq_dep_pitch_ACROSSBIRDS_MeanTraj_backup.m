@@ -1,4 +1,4 @@
-function lt_seq_dep_pitch_ACROSSBIRDS_MeanTraj(SeqDepPitch_AcrossBirds, PARAMS, OnlyExptsWithNoStartDelay, TakeIntoAccountStartDelay, plotCents, DayWindow, throwOutIfAnyDayEmpty, plotZ, recalcBaseMean, useHandLabSame)
+function lt_seq_dep_pitch_ACROSSBIRDS_MeanTraj(SeqDepPitch_AcrossBirds, PARAMS, OnlyExptsWithNoStartDelay, TakeIntoAccountStartDelay, plotCents, DayWindow, throwOutIfAnyDayEmpty, plotZ, recalcBaseMean)
 %% === notes
 % plots relative to base extracted in these days.
 
@@ -10,9 +10,7 @@ if ~exist('plotCents', 'var');
     plotCents=0;
 end
 
-if ~exist('useHandLabSame', 'var');
-    useHandLabSame=0;
-end
+
 
 %% ==== Plot all birds like sam sober (but separate by syl, smooth across days, plot by rendition)
 
@@ -76,14 +74,14 @@ for i=1:NumBirds
         
         % -- targdir sign if needed
         targdir=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targ_learn_dir;
-        
+
         % ----- EXTRACT FOR EACH SYL
         SylsUnique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
         for j=1:length(SylsUnique)
             syl=SylsUnique{j};
             
             if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.LMANinactivated==1
-                %                 ffmeanvals=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).meanFF_DevFromBase_WithinTimeWindow(DaysToExtract);
+%                 ffmeanvals=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).meanFF_DevFromBase_WithinTimeWindow(DaysToExtract);
                 FFbase=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).meanFF_DevFromBase_WithinTimeWindow(BaseDays);
                 FFwn=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).meanFF_DevFromBase_WithinTimeWindow(WNDays);
                 
@@ -92,11 +90,11 @@ for i=1:NumBirds
                 FFbase=FFbase+tmp;
                 FFwn=FFwn+tmp;
                 
-                baseSTD=std(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_WithinTimeWindow);
+                 baseSTD=std(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_WithinTimeWindow);
                 basemean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_WithinTimeWindow;
-                
+                 
             else
-                %                 ffmeanvals=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).meanFF_DevFromBase(DaysToExtract)';
+%                 ffmeanvals=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).meanFF_DevFromBase(DaysToExtract)';
                 FFbase=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).meanFF(BaseDays)';
                 FFwn=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syl).meanFF(WNDays)';
                 
@@ -130,20 +128,15 @@ for i=1:NumBirds
             % NAN?
             if throwOutIfAnyDayEmpty==1
                 if any(isnan(ffmeanvals))
-                    disp(['THREW OUT SYL, has nan on some days: ' birdname '-' exptname '-' syl]);
-                    continue
-                end
+                   disp(['THREW OUT SYL, has nan on some days: ' birdname '-' exptname '-' syl]);
+                  continue 
+               end
                 
             end
             
             % ===== OUTPUT
             targ=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).is_target;
-            
-            if useHandLabSame==1
-                same=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).similar_to_targ_HandLab;
-            else
-                same=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).similar_to_targ;
-            end
+            same=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).similar_to_targ;
             
             if targ==1
                 FFmeansTargALL=[FFmeansTargALL; ffmeanvals];
@@ -163,7 +156,7 @@ for i=1:NumBirds
         exptcount=exptcount+1;
     end
 end
-
+            
 %% ============ PLOT GLOBAL MEAN
 
 figcount=1;
@@ -177,7 +170,7 @@ hfigs=[];
 title('mean trajectory');
 xlabel('day');
 if plotCents==1
-    ylabel('shift (cents');
+ylabel('shift (cents');
 else
     ylabel('shift (hz)');
 end
@@ -253,7 +246,7 @@ lt_figure; hold on;
 title('all trajectory');
 xlabel('day');
 if plotCents==1
-    ylabel('shift (cents');
+ylabel('shift (cents');
 else
     ylabel('shift (hz)');
 end
@@ -305,7 +298,7 @@ Y=[]; % nontarg;
 for i=1:NumExpts
     
     % nontarg
-    inds=exptcountvals==i;
+    inds=exptcountvals==i;    
     yvals=ffnontarg(inds);
     
     % targ
@@ -315,10 +308,10 @@ for i=1:NumExpts
     
     % --- output
     X=[X xvals];
-    Y=[Y yvals'];
+    Y=[Y yvals'];    
 end
 
-lt_regress(Y, X, 1, 0, 1, 1, color);
+lt_regress(Y, X, 1, 0, 1, 1, color);    
 lt_plot_zeroline; lt_plot_zeroline_vert;
 
 
@@ -336,7 +329,7 @@ Y=[]; % nontarg;
 for i=1:NumExpts
     
     % nontarg
-    inds=exptcountvals==i;
+    inds=exptcountvals==i;    
     yvals=ffnontarg(inds);
     
     % targ
@@ -346,10 +339,10 @@ for i=1:NumExpts
     
     % --- output
     X=[X xvals];
-    Y=[Y yvals'];
+    Y=[Y yvals'];    
 end
 
-lt_regress(Y, X, 1, 0, 1, 1, color);
+lt_regress(Y, X, 1, 0, 1, 1, color);    
 lt_plot_zeroline; lt_plot_zeroline_vert;
 
 

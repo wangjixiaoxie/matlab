@@ -71,9 +71,9 @@ if LinScaleGlobal==1
     % =================== OPTIONAL, LINEARLY TIME WARP [DEFAULT]
     spktimefield='spk_Times_scaled';
     % -- 1) figure out median dur across all neurons (for this motif)
-    OnAll=[];
-    OffAll=[];
-    MotifDurs=[];
+%     OnAll=[];
+%     OffAll=[];
+    MotifTimesAll=[];
     
     for i=1:NumNeurons
         if ~isfield(MOTIFSTATS.neurons(i).SegmentsExtract, 'spk_Times')
@@ -81,19 +81,20 @@ if LinScaleGlobal==1
             continue
         end
         
-        predur=MOTIFSTATS.neurons(i).Params.REGEXP.predur;
-        postdur=MOTIFSTATS.neurons(i).Params.REGEXP.postdur;
+%         predur=MOTIFSTATS.neurons(i).Params.REGEXP.predur;
+%         postdur=MOTIFSTATS.neurons(i).Params.REGEXP.postdur;
+%         
+%         motifontimes = predur + ...
+%             [MOTIFSTATS.neurons(i).SegmentsExtract.global_ontime_motifInclFlank];
+%         motifofftimes=[MOTIFSTATS.neurons(i).SegmentsExtract.global_offtime_motifInclFlank] - ...
+%             postdur;
+%         
+%         OnAll=[OnAll motifontimes];
+%         OffAll=[OffAll motifofftimes];
         
-        motifontimes = predur + ...
-            [MOTIFSTATS.neurons(i).SegmentsExtract.global_ontime_motifInclFlank];
-        motifofftimes=[MOTIFSTATS.neurons(i).SegmentsExtract.global_offtime_motifInclFlank] - ...
-            postdur;
-        
-        OnAll=[OnAll motifontimes];
-        OffAll=[OffAll motifofftimes];
-        %         MotifDurs=[MotifDurs MOTIFSTATS.neurons(i).SegmentsExtract.actualmotifdur];
+                MotifTimesAll=[MotifTimesAll MOTIFSTATS.neurons(i).SegmentsExtract.actualmotifdur];
     end
-    MotifTimesAll=OffAll-OnAll;
+%     MotifTimesAll=OffAll-OnAll;
     lt_figure; hold on;
     lt_plot_histogram(MotifTimesAll); xlabel('all motif times (s)');
     MotifTime_med=median(MotifTimesAll);
@@ -127,6 +128,9 @@ hsplot=lt_subplot(8, 1, 1); hold on
 ylabel('median dur trial');
 hsplots=[hsplots hsplot];
 % --- find the trial that has the median motif time
+songdat=[];
+fs=[];
+tmptmp=[];
 for i=1:NumNeurons
     if ~isfield(MOTIFSTATS.neurons(i).SegmentsExtract, 'spk_Times')
         % then there is no data for this neuron
@@ -136,21 +140,24 @@ for i=1:NumNeurons
     numtrials=length(MOTIFSTATS.neurons(i).SegmentsExtract);
     
     for j=1:numtrials
-        if MOTIFSTATS.neurons(i).SegmentsExtract(j).actualmotifdur == ...
-                MotifTime_med;
+        if abs(MOTIFSTATS.neurons(i).SegmentsExtract(j).actualmotifdur - MotifTime_med) < ...
+                0.01*MotifTime_med;
             % found the median trial!!!
-            
+            disp('sdafasdf')
             songdat=MOTIFSTATS.neurons(i).SegmentsExtract(j).songdat;
             fs=MOTIFSTATS.neurons(i).SegmentsExtract(j).fs;
             motifdur=MOTIFSTATS.neurons(i).SegmentsExtract(j).actualmotifdur;
+            tmptmp=[tmptmp motifdur]
             break
         end
     end
 end
+
 % --- plot
 lt_plot_spectrogram(songdat, fs, 1, 0);
 line([motif_predur motif_predur], ylim, 'Color','w');
 line([motif_predur+motifdur motif_predur+motifdur], ylim, 'Color','w'); % end
+title(motif_regexpr_str);
 
 % 2) ===== plot rasters
 hsplot=lt_subplot(8, 1, 2:8); hold on
@@ -204,6 +211,8 @@ hsplots=[];
 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
 hsplots=[hsplots hsplot];
 % --- find the trial that has the median motif time
+songdat=[];
+fs=[];
 for i=1:NumNeurons
     if ~isfield(MOTIFSTATS.neurons(i).SegmentsExtract, 'spk_Times')
         % then there is no data for this neuron
@@ -213,8 +222,8 @@ for i=1:NumNeurons
     numtrials=length(MOTIFSTATS.neurons(i).SegmentsExtract);
     
     for j=1:numtrials
-        if MOTIFSTATS.neurons(i).SegmentsExtract(j).actualmotifdur == ...
-                MotifTime_med;
+        if abs(MOTIFSTATS.neurons(i).SegmentsExtract(j).actualmotifdur - MotifTime_med) < ...
+                0.01*MotifTime_med;
             % found the median trial!!!
             
             songdat=MOTIFSTATS.neurons(i).SegmentsExtract(j).songdat;
@@ -228,6 +237,7 @@ end
 lt_plot_spectrogram(songdat, fs, 1, 0);
 line([motif_predur motif_predur], ylim, 'Color','w');
 line([motif_predur+motifdur motif_predur+motifdur], ylim, 'Color','w'); % end
+title(motif_regexpr_str);
 
 % 2) ===== plot rasters
 for i=1:NumNeurons

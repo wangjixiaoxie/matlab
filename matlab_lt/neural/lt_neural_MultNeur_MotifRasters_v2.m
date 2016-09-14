@@ -141,12 +141,20 @@ for m=1:NumMotifs
                 
                 songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
                 fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
-%                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
+                %                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
                 break
             end
         end
     end
     
+    if isempty(songdat)
+        % then pick a random song
+        i=randi(NumNeurons,1);
+        j=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
+                songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+                fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+    end
+       
     % --- plot
     lt_plot_spectrogram(songdat, fs, 1, 0);
     line([motif_predur motif_predur], ylim, 'Color','w');
@@ -198,11 +206,11 @@ linkaxes(hsplots_rasty, 'xy');
 
 for m=1:NumMotifs
     lt_figure; hold on;
-%     figcount=1;
-%     subplotrows=NumNeurons+1;
-%     subplotcols=1;
-%     fignums_alreadyused=[];
-%     hfigs=[];
+    %     figcount=1;
+    %     subplotrows=NumNeurons+1;
+    %     subplotcols=1;
+    %     fignums_alreadyused=[];
+    %     hfigs=[];
     
     hsplots=[];
     
@@ -227,11 +235,19 @@ for m=1:NumMotifs
                 
                 songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
                 fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
-%                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
+                %                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
                 break
             end
         end
     end
+        if isempty(songdat)
+        % then pick a random song
+        i=randi(NumNeurons,1);
+        j=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
+                songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+                fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+    end
+
     % --- plot
     lt_plot_spectrogram(songdat, fs, 1, 0);
     line([motif_predur motif_predur], ylim, 'Color','w');
@@ -243,10 +259,10 @@ for m=1:NumMotifs
             % then there is no data for this neuron
             continue
         end
-%         [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-    hsplot=lt_subplot(NumNeurons+1, 1, i+1); hold on
-
-hsplots=[hsplots hsplot];
+        %         [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+        hsplot=lt_subplot(NumNeurons+1, 1, i+1); hold on
+        
+        hsplots=[hsplots hsplot];
         ylabel(['neuron ' num2str(i)]);
         
         segextract=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
@@ -278,19 +294,19 @@ end
 
 
 %% === PLOT MEAN FIRING RATE SMOOTHED OVER TIME [OVERLAY EACH MOTIF IN ONE PLOT
-    
-lt_figure; hold on;
-    hsplots=[];
 
-    plotcols_motif=lt_make_plot_colors(NumMotifs, 0, 0);
-    
+lt_figure; hold on;
+hsplots=[];
+
+plotcols_motif=lt_make_plot_colors(NumMotifs, 0, 0);
+
 % ==== Plot spectrograms of each motif
 for m=1:NumMotifs
-%     figcount=1;
-%     subplotrows=NumNeurons+1;
-%     subplotcols=1;
-%     fignums_alreadyused=[];
-%     hfigs=[];
+    %     figcount=1;
+    %     subplotrows=NumNeurons+1;
+    %     subplotcols=1;
+    %     fignums_alreadyused=[];
+    %     hfigs=[];
     
     
     % 1) === plot spectrogram at top
@@ -313,18 +329,27 @@ for m=1:NumMotifs
                 
                 songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
                 fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
-%                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
+                %                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
                 break
             end
         end
     end
+    
+            if isempty(songdat)
+        % then pick a random song
+        i=randi(NumNeurons,1);
+        j=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
+                songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+                fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+    end
+
     % --- plot
     lt_plot_spectrogram(songdat, fs, 1, 0);
     line([motif_predur motif_predur], ylim, 'Color','w');
     line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','w'); % end
-    title(['dur close to median: ' motif_regexpr_str{m}, 'Color', plotcols_motif{m}]);
+    title(['dur close to median: ' motif_regexpr_str{m}], 'Color', plotcols_motif{m});
 end
-    
+
 
 % ===== PLOT NEURAL DATA
 for m=1:NumMotifs
@@ -369,6 +394,6 @@ for m=1:NumMotifs
     end
     
 end
-    % --- link
-    linkaxes(hsplots, 'x');
+% --- link
+linkaxes(hsplots, 'x');
 

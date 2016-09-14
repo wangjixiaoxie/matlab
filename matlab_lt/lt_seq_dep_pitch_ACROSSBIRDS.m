@@ -687,6 +687,7 @@ lt_seq_dep_pitch_ACROSSBIRDS_Trial2(SeqDepPitch_AcrossBirds_filtered, PARAMS, Ho
 % ------------------------------------ LOW LEARNERS
 % ---- use -2 to 1.15; 1.15 to 2.4; 2.4 to 5; [REPEATS]
 % ---- [-0.15 1.22 2 2.5 4.2]; [NO REPEATS]
+% ---- [-100 to 66.56], [66.56 to 134.38], [134.38 400] ----  [HZ, NO REPEATS (MAIN DATASET)]
 filter='learning_range';
 [SeqDepPitch_AcrossBirds_filtered, NumBirds]=lt_seq_dep_pitch_ACROSSBIRDS_ExtractStruct(SeqDepPitch_AcrossBirds, filter);
 % --- 
@@ -702,10 +703,11 @@ plotZ=0;
 DayWindow=[-3 4]; % [baseDays, WNdays];
 throwOutIfAnyDayEmpty=0; % then if any day is nan, throws out just that syl (but will likely apply to all syls in an expt)
 recalcBaseMean=0;
+useHandLabSame=1; % default = 0; if 1, then uses hand lab. if 0, comp labeled.
 
 lt_seq_dep_pitch_ACROSSBIRDS_MeanTraj(SeqDepPitch_AcrossBirds_filtered, PARAMS, ...
     OnlyExptsWithNoStartDelay, TakeIntoAccountStartDelay, plotCents, DayWindow, ...
-    throwOutIfAnyDayEmpty, plotZ, recalcBaseMean)
+    throwOutIfAnyDayEmpty, plotZ, recalcBaseMean, useHandLabSame)
 
 
 %% ++++++++++++++++++++ SINGLE DIR LEARNING ANALYSIS
@@ -714,6 +716,8 @@ lt_seq_dep_pitch_ACROSSBIRDS_MeanTraj(SeqDepPitch_AcrossBirds_filtered, PARAMS, 
 % Remove experiments where learning metric is "nan";
 filter='learning_metric';
 [SeqDepPitch_AcrossBirds_filtered, NumBirds]=lt_seq_dep_pitch_ACROSSBIRDS_ExtractStruct(SeqDepPitch_AcrossBirds, filter);
+% 40.34hz
+% 0.8z
 
 % Remove experiments where late learning is poor; (e.g. for
 % antigeneralizatioj analysis, looking at last window of single targ
