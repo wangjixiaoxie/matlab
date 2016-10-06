@@ -1,0 +1,467 @@
+%% LT 9/29/16 - make data struct - each vocalization
+
+NumNeurons=length(NeuronDatabase.neurons);
+
+%% == go thru each neuron, each song file, each vocalization, extract data
+% all neurons combined
+
+prepad=0.015; postpad=0.015; % get 15ms pre and post (acoustic dat)
+premotorlag=0.04; % getting spike dat.
+
+SYLNEURDAT=struct;
+counter=0;
+
+for i=1:NumNeurons
+    cd(NeuronDatabase.global.basedir);
+    
+    % - find day folder
+    dirdate=NeuronDatabase.neurons(i).date;
+    tmp=dir([dirdate '*']);
+    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+    cd(tmp(1).name);
+    
+    % - load data for this neuron
+    batchf=NeuronDatabase.neurons(i).batchfile;
+    channel_board=NeuronDatabase.neurons(i).chan;
+    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
+    
+    
+    % ========= Go thru all labeled syls, for each, collect data and store
+    % in output data structure
+    numsyls=length(SongDat.AllLabels);
+    for j=1:numsyls
+        syl=SongDat.AllLabels(j);
+        if j>10
+            pre_ten_syls=SongDat.AllLabels(j-10:j-1);
+        else
+            pre_ten_syls=SongDat.AllLabels(1:j-1);
+        end
+        if length(SongDat.AllLabels)>j+9
+            post_ten_syls=SongDat.AllLabels(j+1:j+10);
+        else
+            post_ten_syls=SongDat.AllLabels(j+1:end);
+        end
+        
+        if j>1
+            pre_syl=SongDat.AllLabels(j-1);
+        else
+            pre_syl=[];
+        end
+        if length(SongDat.AllLabels)>j
+            post_syl=SongDat.AllLabels(j+1);
+        else
+            post_syl=[];
+        end
+        
+        
+        if strcmp(syl, '-') % only collect labeled syls
+            continue
+        end
+        
+        % --- acoustic data
+        fs=NeurDat.metaDat(1).fs;
+        onset_sec=SongDat.AllOnsets(j);
+        onset_samp=int64(onset_sec*fs);
+        
+        offset_sec=SongDat.AllOffsets(j);
+        offset_samp=int64(offset_sec*fs);
+        
+        syldat=SongDat.AllSongs(onset_samp-prepad*fs:offset_samp+postpad*fs);
+        
+        
+        % Pitch contour and FF ----------------------
+        collectFF=1;
+        
+        cell_of_FFtimebins={'h', [0.042 0.058], 'b', [0.053 0.07], ...
+            'v', [0.052 0.07]}; % in sec, relative to onset (i.e. see vector T)
+        
+        cell_of_freqwinds={'h', [1100 2600], 'b', [2400 3500], ...
+            'v', [2450 4300]};
+        ind=find(strcmp(syl, cell_of_freqwinds));
+        
+        if isempty(ind)
+            % tel;l use
+            disp('EMPTY FREQ WINDOW!!');
+            collectFF=0;
+        elseif isempty(cell_of_freqwinds{ind+1})
+            collectFF=0;
+        end
+        
+        % -- defaults, sets output (e.g., ff) to this if don't collect
+        % actual FF
+        PC=nan;
+        FF=nan;
+        F=nan;
+        T=nan;
+        
+        if collectFF==1
+            N=1024;
+            sigma=1;
+            SAMPLING=fs;
+            OVERLAP=1020;
+            
+            F_high=cell_of_freqwinds{ind+1}(2);
+            F_low=cell_of_freqwinds{ind+1}(1);
+            
+            t=-N/2+1:N/2;
+            sigma=(sigma/1000)*SAMPLING;
+            %Gaussian and first derivative as windows.
+            w=exp(-(t/sigma).^2);
+            timebins=floor((length(syldat)-(N))/(N-OVERLAP))+1;  % number of bins, i.e. how many times the window N will be shifted to reach the end of the data.
+            freqbins=(N/2)+1;
+            
+            Nyquist=SAMPLING/2;
+            step=Nyquist/freqbins; % This is the width of freqency bins (in Hz)
+            mini=round(F_high/step);
+            maxi=round(F_low/step); % step numbers for the min and max of the window you are interested in.
+            
+            sonogram=zeros(freqbins,timebins);
+            [S,F,T]=spectrogram(syldat, w,OVERLAP,N,SAMPLING);
+            sonogram=abs(flip(S,1)); % gaussian windowed spectrogram, for entire data duration
+            F=flip(F);
+            
+            % -
+            freqbin_estimate=nan(1, size(sonogram,2));
+            for currenttime_bin=1:size(sonogram,2)
+                slice=sonogram(:,currenttime_bin); %power at each frequency for the current time bin
+                %         Powerful(1)=0;
+                minimum=freqbins-mini;
+                maximum=freqbins-maxi;
+                freq_window=slice(minimum:maximum);
+                
+                [Pow,Ind]=max(freq_window);
+                
+                % Interpolation--subtraction of 0.5 because we care about the
+                % central frequency of the bin, not the upper boundary.
+                if Ind==1 || Ind==length(freq_window) % edges
+                    Indest=Ind;
+                else
+                    Indest=pinterp([Ind-1;Ind;Ind+1], [freq_window(Ind-1);freq_window(Ind);freq_window(Ind+1)]);
+                end
+                
+                %                 disp(['central freq bin: ' num2str(Ind) ' - ' num2str(Indest)]);
+                
+                Real_Index=minimum+Indest-1; % -1 to account for window;
+                Freqbinest=freqbins-Real_Index;
+                %             Powerful=Pow;
+                %         normalizer=sum(Powerful);
+                %         normpower=Powerful/normalizer;
+                %         freqbin_estimate(currenttime_bin)=dot(normpower,Freqbinest); % weighted average of all harms.
+                
+                freqbin_estimate(currenttime_bin)=Freqbinest; % weighted average of all harms.
+            end
+            PC=freqbin_estimate*(Nyquist/(freqbins-1));
+            
+            
+            % ==== extract FF
+            ind=find(strcmp(cell_of_FFtimebins, syl));
+            mintime=cell_of_FFtimebins{ind+1}(1); % sec
+            [~, minind]=min(abs(T-mintime));
+            
+            maxtime=cell_of_FFtimebins{ind+1}(2);
+            [~, maxind]=min(abs(T-maxtime));
+            
+            FF=mean(PC(minind:maxind));
+            % ----------------------------
+            
+            % === DEBUG - plot spectrogram, with PC overlayed
+            if (0)
+                if strcmp(syl, 'b') & length(PC)==219
+                    %                 if counter==1781;
+                    lt_figure; hold on;
+                    title(syl);
+                    imagesc(T, F, log(sonogram)); hold on;
+                    plot(T, PC, 'k', 'LineWidth', 2);
+                    line([mintime mintime], ylim, 'Color', 'm');
+                    line([maxtime maxtime], ylim, 'Color', 'm');
+                    line([mintime maxtime], [FF, FF], 'Color','m');
+                    
+                    pause; close all;
+                end
+            end
+        end
+        
+        % ---- What song file this came from?
+        globalOnsetTime=SongDat.AllOnsets(j); % sec
+        globalOnsetSamp=globalOnsetTime*fs;
+        cumOnsSamps=cumsum([0 NeurDat.metaDat.numSamps]);
+        songind=find((globalOnsetSamp-cumOnsSamps)>0, 1, 'last');
+        songfname=NeurDat.metaDat(songind).filename;
+        
+        
+        
+        % --- spikes (premotor window)
+        inds=NeurDat.spikes_cat.cluster_class(:,2) > (onset_sec - premotorlag)*1000 ...
+            & NeurDat.spikes_cat.cluster_class(:,2) < (offset_sec - premotorlag)*1000 ...
+            & NeurDat.spikes_cat.cluster_class(:,1) == NeuronDatabase.neurons(i).clustnum;
+        numspikes=sum(inds);
+        spike_rate_hz=numspikes/(offset_sec - onset_sec); % sp/sec
+        
+        
+        
+        
+        % ===== OUTPUT
+        counter=counter+1;
+        SYLNEURDAT.data_sylrend(counter).NumSpikes=numspikes;
+        SYLNEURDAT.data_sylrend(counter).SpikeRate_hz=spike_rate_hz;
+        
+        SYLNEURDAT.data_sylrend(counter).positionInAllLabels_thisBatchNeuron=j;
+        SYLNEURDAT.data_sylrend(counter).post_ten_syls=post_ten_syls;
+        SYLNEURDAT.data_sylrend(counter).pre_ten_syls=pre_ten_syls;
+        
+        
+        SYLNEURDAT.data_sylrend(counter).neuronID=i;
+        SYLNEURDAT.data_sylrend(counter).songfname=songfname;
+        SYLNEURDAT.data_sylrend(counter).date=dirdate;
+        SYLNEURDAT.data_sylrend(counter).batchf=batchf;
+        SYLNEURDAT.data_sylrend(counter).channel_board=channel_board;
+        
+        
+        SYLNEURDAT.data_sylrend(counter).Syl=syl;
+        
+        SYLNEURDAT.data_sylrend(counter).PitchContour=PC; % pitch stuff
+        SYLNEURDAT.data_sylrend(counter).PitchContour_T=T;
+        SYLNEURDAT.data_sylrend(counter).PitchContour_F=F;
+        SYLNEURDAT.data_sylrend(counter).FF=FF;
+        
+        
+    end
+    
+    
+end
+
+clear SongDat;
+clear NeurDat;
+
+% ================ SAVE
+savedir='/bluejay4/lucas/birds/bk7/MultNeur_CollectFeats';
+save([savedir '/SYLNEURDAT.mat'], 'SYLNEURDAT');
+
+
+%% ====== DEBUG - across all neurons, plot pitch contours for each syl,
+% across all rends
+if (0)
+    syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
+    figcount=1;
+    subplotcols=2;
+    subplotrows=ceil(length(syllist)/subplotcols);
+    fignums_alreadyused=[];
+    hfigs=[];
+    
+    for i=1:length(syllist)
+        syl=syllist{i};
+        
+        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+        title(syl);
+        
+        % extract all PC for this syl (across all neurons)
+        inds=strfind([SYLNEURDAT.data_sylrend.Syl], syl);
+        
+        for j=1:length(inds)
+            
+            T=SYLNEURDAT.data_sylrend(inds(j)).PitchContour_T;
+            pc=SYLNEURDAT.data_sylrend(inds(j)).PitchContour;
+            plot(T, pc, 'Color', [rand rand rand]);
+        end
+        try
+            indtmp=find(strcmp(cell_of_FFtimebins, syl));
+            mintime=cell_of_FFtimebins{indtmp+1}(1); % sec
+            [~, minind]=min(abs(T-mintime));
+            
+            maxtime=cell_of_FFtimebins{indtmp+1}(2);
+            [~, maxind]=min(abs(T-maxtime));
+            line([mintime mintime], ylim, 'Color', 'm');
+            line([maxtime maxtime], ylim, 'Color', 'm');
+        catch err
+        end
+        
+        axis tight;
+    end
+end
+
+
+
+% ======= PICK OUT INDS THAT HAVE WEIRD CONTOURS - CLIPPING
+syltoget='b';
+window=[250 300];
+
+syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
+figcount=1;
+subplotcols=2;
+subplotrows=ceil(length(syllist)/subplotcols);
+fignums_alreadyused=[];
+hfigs=[];
+
+for i=1:length(syllist)
+    syl=syllist{i};
+    
+    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+    title(syl);
+    
+    % extract all PC for this syl (across all neurons)
+    inds=strfind([SYLNEURDAT.data_sylrend.Syl], syl);
+    
+    for j=1:length(inds)
+        
+        T=SYLNEURDAT.data_sylrend(inds(j)).PitchContour_T;
+        pc=SYLNEURDAT.data_sylrend(inds(j)).PitchContour;
+        if strcmp(syl, syltoget)
+            %             disp(max(pc(250:287)));
+            if length(pc)<287
+                disp('pc too short!!')
+                disp([num2str(inds(j)) ': ' SYLNEURDAT.data_sylrend(inds(j)).songfname]);
+                
+                continue
+            end
+            if any(pc(250:287)>3325);
+                plot(T, pc, 'Color', [rand rand rand]);
+                disp([num2str(inds(j)) ': ' SYLNEURDAT.data_sylrend(inds(j)).songfname]);
+                
+            end
+        end
+    end
+    
+    axis tight;
+end
+
+
+% ======= FOR EACH SYL, PLOT FF, ORDERED BY NEURON
+syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
+neuronlist=unique([SYLNEURDAT.data_sylrend.neuronID]);
+
+figcount=1;
+subplotcols=2;
+subplotrows=ceil(length(syllist)/subplotcols);
+fignums_alreadyused=[];
+hfigs=[];
+
+for i=1:length(syllist)
+    syl=syllist{i};
+    
+    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+    title(syl);
+    
+    % extract all PC for this syl (across all neurons)
+    inds=strfind([SYLNEURDAT.data_sylrend.Syl], syl);
+    
+    for j=1:length(inds)
+        
+        T=SYLNEURDAT.data_sylrend(inds(j)).PitchContour_T;
+        pc=SYLNEURDAT.data_sylrend(inds(j)).PitchContour;
+        plot(T, pc, 'Color', [rand rand rand]);
+    end
+    
+    axis tight;
+end
+
+
+%% ============================ FOR EACH NEURON, HOW DOES FIRING RATE CORRELATE WITH PITCH?
+
+useFiringRate=1; % if 0, then uses num spikes; if 1, then norms to duration of premotor window.
+
+NumNeurons=max([SYLNEURDAT.data_sylrend.neuronID]);
+syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
+
+for i=1:NumNeurons
+    
+    figcount=1;
+    subplotcols=3;
+    subplotrows=ceil(length(syllist)/subplotcols);
+    fignums_alreadyused=[];
+    hfigs=[];
+    
+    
+    % === for each syl, plot corr between firing rate and pitch
+    for j=1:length(syllist)
+        syl=syllist{j};
+        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+        title(['neuron: ' num2str(i) '; syl: ' syl]);
+        
+        % ================== PITCH VS. SPIKES
+        inds=find([SYLNEURDAT.data_sylrend.neuronID]==i & ...
+            [SYLNEURDAT.data_sylrend.Syl] == syl); % for this syl and neuron
+        
+        if ~isempty(inds)
+            if useFiringRate==1
+                x_spikes=[SYLNEURDAT.data_sylrend(inds).SpikeRate_hz];
+                xlab='firing rate (hz)';
+                
+            else
+                x_spikes=[SYLNEURDAT.data_sylrend(inds).NumSpikes]; % take raw spikes num
+                xlab='num spks';
+            end
+            y_FF=[SYLNEURDAT.data_sylrend(inds).FF];
+            
+            if length(y_FF)==1 & isnan(y_FF)
+                continue
+            else
+                lt_regress(y_FF, x_spikes, 1, 0, 1, 1, 'b');
+            end
+        end
+        
+        xlabel(xlab);
+        ylabel('ff');
+        
+    end
+end
+
+
+%% ============== SEPARATE BY SEQUENTIAL CONTEXT
+
+% For this neuron, for each syl, plot FF vs spike rate for each potential
+% preceding syl (ie. each context)
+
+useFiringRate=1; % if 0, then uses num spikes; if 1, then norms to duration of premotor window.
+
+NumNeurons=max([SYLNEURDAT.data_sylrend.neuronID]);
+syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
+
+for i=1:NumNeurons
+    
+    figcount=1;
+    subplotcols=3;
+    subplotrows=ceil(length(syllist)/subplotcols);
+    fignums_alreadyused=[];
+    hfigs=[];
+    
+    
+    % === for each syl, plot corr between firing rate and pitch
+    for j=1:length(syllist)
+        syl=syllist{j};
+        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+        title(['neuron: ' num2str(i) '; syl: ' syl]);
+        
+        
+        % ================== PITCH VS. SPIKES
+        inds=find([SYLNEURDAT.data_sylrend.neuronID]==i & ...
+            [SYLNEURDAT.data_sylrend.Syl] == syl); % for this syl and neuron
+        
+        preSylList=[{SYLNEURDAT.data_sylrend(inds).pre_syl}];
+        
+        % ======= For each context
+        presyl='';
+        if ~isempty(inds)
+            if useFiringRate==1
+                x_spikes=[SYLNEURDAT.data_sylrend(inds).SpikeRate_hz];
+                xlab='firing rate (hz)';
+                
+            else
+                x_spikes=[SYLNEURDAT.data_sylrend(inds).NumSpikes]; % take raw spikes num
+                xlab='num spks';
+            end
+            y_FF=[SYLNEURDAT.data_sylrend(inds).FF];
+            
+            if length(y_FF)==1 & isnan(y_FF)
+                continue
+            else
+                lt_regress(y_FF, x_spikes, 1, 0, 1, 1, 'b');
+            end
+        end
+        
+        xlabel(xlab);
+        ylabel('ff');
+        
+        
+    end
+end
+

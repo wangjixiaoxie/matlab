@@ -286,6 +286,8 @@ for m=1:NumMotifs
         % -- line for motif onset
         line([motif_predur motif_predur], ylim, 'Color','k');
         line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
+        
+        ylim([0 100]);
     end
     
     % --- link
@@ -468,6 +470,8 @@ for i=1:NumNeurons
         % -- line for motif onset
         line([motif_predur motif_predur], ylim, 'Color','k');
         line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
+        
+        ylim([0 100]);
     end
     
 end

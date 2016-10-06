@@ -421,6 +421,53 @@ line(xlim, [lowerBound lowerBound], 'Color','k','LineStyle','--');
 line(xlim, [upperBound upperBound], 'Color','k','LineStyle','--');
 
 
+%% scatter of distribution as before, but showing gaussian of baseline drift
+lt_figure; hold on;
+
+% ============================ PLOT SCATTER WITH NOT HIST
+
+handles=plotSpread({Learn_targ_all', Learn_same_all', Learn_diff_all'}, 'distributionColors', {'k', 'b', 'r'}, 'showMM', 4);
+
+set(handles{2}(1), 'Color','k');
+set(handles{2}(2), 'Color','k');
+
+
+% === fit gaussian to baseline drift vals
+pd=fitdist(PARAMS.baselineDrift.AllDriftVals', 'Normal');
+
+% get cdf
+xtmp=-100:0.1:100;
+Ycdf=cdf(pd, xtmp);
+lt_subplot(2,2,1); subtitle('cdf of baseline drift, fit to gaussian');
+plot(xtmp, Ycdf);
+
+% -- get val for 2.5 and 97.5 percentiles
+prctile1=2.5;
+[C, ind]=min(abs(Ycdf-prctile1/100));
+lowerBound=xtmp(ind);
+
+prctile2=97.5;
+[C, ind]=min(abs(Ycdf-prctile2/100));
+upperBound=xtmp(ind);
+
+
+
+%  plot lines for baseline drift
+lowerBound=PARAMS.baselineDrift.prctiles_2_5and97_5(1);
+upperBound=PARAMS.baselineDrift.prctiles_2_5and97_5(2);
+
+line(xlim, [lowerBound lowerBound], 'Color','k','LineStyle','--');
+line(xlim, [upperBound upperBound], 'Color','k','LineStyle','--');
+
+line(xlim, [0 0], 'Color' ,'k');
+
+% -- sample sizes;
+n1=length(Learn_targ_all);
+n2=length(Learn_same_all);
+n3=length(Learn_diff_all);
+
+lt_plot_annotation(1, ['ntarg=' num2str(n1) '; nsame=' num2str(n2) '; ndiff=' num2str(n3)]);
+
 
 %% PLOT ONE POINT FOR EACH EXPERIMENT, THEN PUT LINE
 % --- ONLY PLOT IF EXPT HAS BOTH SAME AND DIFF TYPE

@@ -179,6 +179,10 @@ for i=1:NumBirds;
                 SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.mean=zscore_learning;
                 SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.sem=zscore_learning_sem;
                 end
+                
+                % === overwrite baseline pitch
+                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_RecalcDays=mu1;
+                SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_RecalcDays=learning_start_ffvals;
             end
             
         end

@@ -10,6 +10,9 @@ function [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, re
 % SongDat, NeurDat, Params, shoudl correspond to same dataset, extracted using lt_neural_ExtractDat
 % alignByOnset=1, then aligns all by the onset of token ind. if 0, then by offset of token ind.
 
+%     WHOLEBOUTS_edgedur=6; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
+%     % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
+
 if ~exist('WHOLEBOUTS_edgedur', 'var');
     WHOLEBOUTS_edgedur=[];
 end
@@ -41,11 +44,11 @@ if strcmp(regexpr_str, 'WHOLEBOUTS')
     % If you only want to keep those with a long enough quiet time, then do
     % following
     
-%     offset_post_threshold=3; % in seconds
+    %     offset_post_threshold=3; % in seconds
     min_syls_in_bout=5;
 end
-    
-    
+
+
 
 %% ------ find motifs
 
@@ -66,16 +69,16 @@ if strcmp(regexpr_str, 'WHOLEBOUTS')
     % === ONLY KEEP THOSE WHICH HAVE FLANKING GAP DURS LONGER THAN
     % CRITERION
     if ~isempty(WHOLEBOUTS_edgedur)
-    gapdurs_subset=gapdurs(gapdurs>onset_pre_threshold);
-    inds_tmp2=gapdurs_subset(inds_tmp)>WHOLEBOUTS_edgedur ...
-        & gapdurs_subset(inds_tmp+1)>WHOLEBOUTS_edgedur;
-    
-    bout_firstsyls=bout_firstsyls(inds_tmp2);
-    bout_lastsyls=bout_lastsyls(inds_tmp2);
+        gapdurs_subset=gapdurs(gapdurs>onset_pre_threshold);
+        inds_tmp2=gapdurs_subset(inds_tmp)>WHOLEBOUTS_edgedur ...
+            & gapdurs_subset(inds_tmp+1)>WHOLEBOUTS_edgedur;
+        
+        bout_firstsyls=bout_firstsyls(inds_tmp2);
+        bout_lastsyls=bout_lastsyls(inds_tmp2);
     end
-% ----------------------
-
-
+    % ----------------------
+    
+    
     % ---- convert to variables used below
     tokenExtents=bout_firstsyls;
     startinds=bout_firstsyls;
@@ -132,7 +135,7 @@ for i=1:length(tokenExtents)
     spkinds=(spikes_cat.cluster_class(:,2) > ontime*1000) & ...
         (spikes_cat.cluster_class(:,2) < offtime*1000);
     spk_ClustTimes = spikes_cat.cluster_class(spkinds, :); % in sec, relative to onset of the segment
-
+    
     
     
     SegmentsExtract(i).songdat=songseg;
@@ -145,7 +148,7 @@ for i=1:length(tokenExtents)
     SegmentsExtract(i).global_startind_motifonly=startinds(i);
     SegmentsExtract(i).global_endind_motifonly=endinds(i);
     SegmentsExtract(i).global_tokenind_DatAlignedToOnsetOfThis=tokenExtents(i);
-     
+    
     actualmotifdur=(offtime - postdur) - (ontime + predur);
     SegmentsExtract(i).actualmotifdur=actualmotifdur;
     
@@ -159,31 +162,31 @@ disp(['DONE! EXTRACTED ' num2str(length(SegmentsExtract)) ' segments']);
 % OLD, using start ind only
 % [startinds, endinds, matchlabs, tokenExtents]=regexp(AllLabels, regexpr_str, 'start', 'end', ...
 %     'match', 'tokenExtents');
-% 
+%
 % SegmentsExtract=struct;
-% 
+%
 % % -- for each match ind, extract audio + spikes
 % for i=1:length(startinds)
-%     
+%
 %     % on time
-%     ind=startinds(i);    
+%     ind=startinds(i);
 %     ontime=AllOnsets(ind); % sec
 %     ontime=ontime-predur; % - adjust on time
-%     onsamp=round(ontime*fs);    
-%     
+%     onsamp=round(ontime*fs);
+%
 %     % off time
 %     ind=endinds(i);
 %     offtime=AllOffsets(ind);
 %     offtime=offtime+postdur;
 %     offsamp=round(offtime*fs);
-%     
+%
 %     % - collect
 %     songseg=AllSongs(onsamp:offsamp);
-%     
+%
 %     spkinds=(spikes_cat.cluster_class(:,2) > ontime*1000) & ...
 %         (spikes_cat.cluster_class(:,2) < offtime*1000);
 %     spk_ClustTimes = spikes_cat.cluster_class(spkinds, :); % in sec, relative to onset of the segment
-% 
+%
 %     SegmentsExtract(i).songdat=songseg;
 %     SegmentsExtract(i).spk_Clust=spk_ClustTimes(:,1)';
 %     SegmentsExtract(i).spk_Times=(spk_ClustTimes(:,2)/1000)'-ontime;

@@ -1,6 +1,7 @@
-function lt_seq_dep_pitch_ACROSSBIRDS_PlotRawTraj(SeqDepPitch_AcrossBirds, PARAMS, BirdToPlot, ExptToPlot, SylsToPlot, use_rand_color)
+function lt_seq_dep_pitch_ACROSSBIRDS_PlotRawTraj(SeqDepPitch_AcrossBirds, PARAMS, BirdToPlot, ExptToPlot, SylsToPlot, use_rand_color,UseRecalcBaseline, ThreshChangeTime)
 
 PlotLearnShift=1; % overlays text info
+UseRecalcBaseline=1; % then limits to days used to calcualte deviation of learning
 
 %% PARAMS
 NumBirds=length(SeqDepPitch_AcrossBirds.birds);
@@ -112,12 +113,17 @@ if ~strcmp(BirdToPlot, 'all')
                 
                 
                 % ---- baseline mean
-                if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.LMANinactivated==1
-                    BlineMean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_WithinTimeWindow;
-                    BlineSTD=std(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_WithinTimeWindow);
+                if UseRecalcBaseline
+                        BlineMean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_RecalcDays;
+                        BlineSTD=std(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_RecalcDays);
                 else
-                    BlineMean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF;
-                    BlineSTD=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).stdFF;
+                    if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.LMANinactivated==1
+                        BlineMean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_WithinTimeWindow;
+                        BlineSTD=std(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_WithinTimeWindow);
+                    else
+                        BlineMean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF;
+                        BlineSTD=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).stdFF;
+                    end
                 end
                 
                 shadedErrorBar(1:NumDays, ones(1, NumDays)*BlineMean, ones(1, NumDays)*BlineSTD, {'Color',PlotCol}, 1);
@@ -128,6 +134,43 @@ if ~strcmp(BirdToPlot, 'all')
                 
                 line([WNonInd WNonInd], ylim, 'Color','k', 'LineWidth',2)
                 line([WNoffInd+1 WNoffInd+1], ylim, 'Color','k', 'LineWidth',2)
+                
+                % ---- OVERLAY WN THRESHOLDS IF DEFINED FOR THIS
+                % EXPERIMENT\
+                %
+                %                 if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).is_target==1
+                ind1=find(strcmp(ThreshChangeTime, birdname));
+                ind2=find(strcmp(ThreshChangeTime, exptID));
+                ind3=find(strcmp(ThreshChangeTime, syl));
+                
+                if ~any(cellfun(@isempty, {ind1, ind2, ind3}))
+                    indind=find(ind1+1 == ind2 & ind1+2 == ind3);
+                    if ~isempty(indind)
+                        threshchanges=ThreshChangeTime{ind1(indind)+3};
+                    end
+                    % plot those thresh changes
+                    learndir=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targ_learn_dir;
+                    firstday=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.SeqFilter.FirstDay;
+                    for k=1:length(threshchanges)
+                        
+                        tmp=lt_convert_EventTimes_to_RelTimes(firstday, {threshchanges{k}{1}});
+                        x1=tmp.FinalValue; % time of start
+                        
+                        if k<length(threshchanges)
+                            tmp=lt_convert_EventTimes_to_RelTimes(firstday, {threshchanges{k+1}{1}});
+                            x2=tmp.FinalValue; % time of start
+                        else
+                            Xlim=xlim;
+                            x2=Xlim(2);
+                            % then go to end of time
+                        end
+                        
+                        thresh=threshchanges{k}{2};
+                        line([x1 x2], [thresh thresh]);
+                        
+                    end
+                end
+                % ---------
                 
                 
                 % ==== plot learning value
@@ -254,14 +297,18 @@ if ~strcmp(BirdToPlot, 'all')
                 
                 
                 % ---- baseline mean
-                if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.LMANinactivated==1
-                    BlineMean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_WithinTimeWindow;
-                    BlineSTD=std(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_WithinTimeWindow);
+                if UseRecalcBaseline==1
+                    BlineMean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_RecalcDays;
+                    BlineSTD=std(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_RecalcDays);
                 else
-                    BlineMean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF;
-                    BlineSTD=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).stdFF;
+                    if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.LMANinactivated==1
+                        BlineMean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF_WithinTimeWindow;
+                        BlineSTD=std(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).rawFF_WithinTimeWindow);
+                    else
+                        BlineMean=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).meanFF;
+                        BlineSTD=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(syl).stdFF;
+                    end
                 end
-                
                 
                 %                 shadedErrorBar(1:NumDays, ones(1, NumDays)*BlineMean, ones(1, NumDays)*BlineSTD, {'Color',PlotCol}, 1);
                 line(xlim, [BlineMean BlineMean], 'Color','k', 'LineWidth',2);

@@ -79,6 +79,29 @@ tt=tt*1000; % to ms;
 
 
 % ==== DIG CHANNELS
+if isempty(DigChans_zero)
+    
+else
+    chanstmp=[];
+    dattmp=[];
+    
+    for i=DigChans_zero
+        
+        ind=find([board_dig_in_channels.chip_channel]==i); % ind to find this chan
+        
+        if isempty(ind)
+            % then did not recoprd this chan...
+            disp(['PROBLEM - do not have data for dig chan (skipping) ' num2str(i)]);
+            continue
+        end
+        
+        chanstmp=[chanstmp i];
+        dattmp=[dattmp; board_dig_in_data(ind, :)];
+    end
+    
+    DigChans_zero=chanstmp;
+    board_dig_in_data=dattmp;
+end
 
 
 
@@ -238,7 +261,6 @@ if PlotWhat.filt==1;
     
     
     
-    
     % ==== ANALOG (board aux) inputs
     if isempty(AnalogChans_zero)
         
@@ -251,6 +273,15 @@ if PlotWhat.filt==1;
             title(['analog chan: ' num2str(i)]);
             plot(tt./1000, board_adc_data(i, :), 'b');
             hsplots=[hsplots hsplot];
+            
+            % === overlay digital over amplitude;
+            if PlotWhat.digital==1
+                for j=1:length(DigChans_zero)
+                    
+                    plot(tt./1000, board_dig_in_data(j, :), 'k', 'LineWidth', 2);
+                    lt_plot_annotation(1, 'Dig signal', 'k')
+                end
+            end
             
             % 2) spectrogram
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
@@ -276,7 +307,7 @@ if PlotWhat.filt==1;
             
             % === filter
             dat=filtfilt(filt_b,filt_a,amplifier_data(i, :));
-
+            
             % ==============
             
             % == PLOT
@@ -392,12 +423,12 @@ if PlotWhat.rect_sm==1;
             % == smoooth
             % Construct a gaussian window
             windowsize=Rect_sm.windowsize; % from -2sd to +2sd
-            sigma=(windowsize/4)*fs; % 
+            sigma=(windowsize/4)*fs; %
             numsamps=4*sigma; % (get 2 std on each side)
             alpha= numsamps/(2*sigma); % N/2sigma
             gaussFilter = gausswin(numsamps, alpha);
             gaussFilter = gaussFilter / sum(gaussFilter); % Normalize.
-            dat_smrect = conv(dat, gaussFilter);            
+            dat_smrect = conv(dat, gaussFilter);
             
             % == PLOT
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
@@ -464,10 +495,10 @@ if PlotWhat.raster==1;
     if isempty(AmpChans_zero)
         
     else
-            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-            title(['neural chan (raster): ']);
-            hsplots=[hsplots hsplot];
-            Ylabels={};
+        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+        title(['neural chan (raster): ']);
+        hsplots=[hsplots hsplot];
+        Ylabels={};
         for i=1:length(AmpChans_zero)
             
             % === filter
@@ -479,16 +510,16 @@ if PlotWhat.raster==1;
             SpikeThreshold=Raster.ThrXNoise*MedianNoise;
             
             [SpikePks, SpikeInds]=findpeaks(Raster.PosOrNeg*dat,'minpeakheight',...
-            SpikeThreshold,'minpeakdistance',floor(0.0003*fs)); % 0.3ms min separation btw peaks.
-
+                SpikeThreshold,'minpeakdistance',floor(0.0003*fs)); % 0.3ms min separation btw peaks.
+            
             % == PLOT
             for j=1:length(SpikeInds) % plot all spikes as a line
                 x=tt(SpikeInds(j)); % convert to ms
                 line([x x], [i-0.3 i+0.3]);
             end
-                
+            
             Ylabels=[Ylabels num2str(AmpChans_zero(i))];
-%             plot(tt(SpikeInds), i, '.k');
+            %             plot(tt(SpikeInds), i, '.k');
         end
         set(gca, 'YTick', 1:length(AmpChans_zero));
         set(gca, 'YTickLabel', Ylabels);

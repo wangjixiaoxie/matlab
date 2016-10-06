@@ -24,12 +24,12 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='bk7_160809_120614.rhd';
-ChansToPlot.DigChans_zero=[]; % make string "all" to plot all that exist. empty array to ignore
+filename='bk7_1860_WNon_161005_134824.rhd';
+ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
-ChansToPlot.AmpChans_zero=[9];
-% ChansToPlot.AmpChans_zero=[10 14 18 23];
+% ChansToPlot.AmpChans_zero=[9];
+ChansToPlot.AmpChans_zero=[10 14 18 23];
 
 % neuralFiltLow=500;
 neuralFiltLow=300;
@@ -38,6 +38,7 @@ PlotWhat.raw=0;
 PlotWhat.filt=1;
 PlotWhat.rect_sm=1;
 PlotWhat.raster=0;
+PlotWhat.digital=1;
 
 Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
 Raster.ThrXNoise=6; % threshold for units, used for all channels, uses absolute data for peak detection
@@ -58,22 +59,25 @@ batchf='BatchChan14Late';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
-ChansToPlot=[23];
-batchtoplot='batchall2';
+ChansToPlot=[10];
+batchtoplot='batch_tmp';
+
+% -----  v1, plots just raw neural, filtered
 % batchtoplot=batchf;
-lt_neural_concatExplore(batchtoplot, ChansToPlot); % v1, plots just raw neural, filtered
+lt_neural_concatExplore(batchtoplot, ChansToPlot);
 
-ChansToPlot=[23];
-batchtoplot='batchall2';
-lt_neural_concatExplore_v2(batchtoplot, ChansToPlot); % v2, plots filtered neural, smoothed, and spike waveforms
+% ----- v2, plots filtered neural, smoothed, and spike waveforms
+PlotRectDat=1; % 1, plots, 0 skips.
+PlotFiltDat=1; % usually 1, filt neural.
 
+lt_neural_concatExplore_v2(batchtoplot, ChansToPlot, PlotRectDat, PlotFiltDat); % WAVEFORMS ONLY PLOTTED FOR ONE CHANNEL!!
 
 %% ==== concatenate multiple files for given channel, [and saves]
 % based on expectation of duration for single unit.
 % -- saves into downstream folder
-
-batchf='BatchMidDayChan18SU_TryToGet2Clust_NEW';
-channel_board=18;
+close all; clear all;
+batchf='BatchNotAllSongs';
+channel_board=10;
 lt_neural_concatOneChan(batchf, channel_board)
 
 %% ==== run wave_clus on this concatted data
@@ -89,8 +93,8 @@ lt_neural_AlgnWavclus(batchf, channel_board, plotcols);
 %% ++++++++++ ANALYSIS (NEURONS ONE BY ONE) 
 %% ==== EXTRACT SONG, LABEL,SongDat ONSETS, SPIKE DATA
 close all;
-batchf='BatchChan10Early';
-channel_board=10;
+batchf='BatchChan18Early';
+channel_board=18;
 [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
 
 
@@ -158,7 +162,7 @@ MotifList_regexp={'gh(h)hh'};
 
 predur=0.2;
 postdur=0.2;
-LinearWarp=0; % 0=no; 1=yes, each motif individually; 2=yes, all motifs to global motif median dur
+LinearWarp=1; % 0=no; 1=yes, each motif individually; 2=yes, all motifs to global motif median dur
 suppressplots=1; % diagnostic plots.
 onlyPlotMean=0; % then does not plot rasters, just means.
 
