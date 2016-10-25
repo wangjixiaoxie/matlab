@@ -21,7 +21,7 @@ end
 window = 0.016*fs; % make it 16ms, to match evtaf stuff
 nfft=2^nextpow2(window); % go to next pow 2 size
 olap=0.8;
-noverlap=olap*window;
+noverlap=ceil(olap*window);
 
 % - filter
 filter_type='hanningfirff';
@@ -34,7 +34,7 @@ F_high = 8000;
 songdat=bandpass(songdat,fs,F_low,F_high,filter_type);
 
 % === colect spectrogram
-[sp, f, t] = spectrogram(songdat, window, noverlap, nfft, fs);
+[sp, f, t] = spectrogram(songdat', window, noverlap, nfft, fs);
 if plot_ms==1
 t=t.*1000;
 end
@@ -72,7 +72,7 @@ if bk_red==1
     
     % Plot
     colormap('hot')
-    imagesc(t, f, sptemp, [Cmin+Cmin/10 Cmax]);
+    imagesc(t, f, flipud(sptemp), [Cmin+Cmin/10 Cmax]);
 else
             imagesc(t, f, sptemp);
 end

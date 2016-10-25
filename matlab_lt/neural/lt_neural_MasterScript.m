@@ -24,12 +24,12 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='bk7_1860_WNon_161005_134824.rhd';
+filename='bk7_161017_210629.rhd';
 ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
 % ChansToPlot.AmpChans_zero=[9];
-ChansToPlot.AmpChans_zero=[10 14 18 23];
+ChansToPlot.AmpChans_zero=[23];
 
 % neuralFiltLow=500;
 neuralFiltLow=300;
@@ -59,15 +59,15 @@ batchf='BatchChan14Late';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
-ChansToPlot=[10];
-batchtoplot='batch_tmp';
+ChansToPlot=[18];
+batchtoplot='batchall_sub';
 
 % -----  v1, plots just raw neural, filtered
 % batchtoplot=batchf;
 lt_neural_concatExplore(batchtoplot, ChansToPlot);
 
 % ----- v2, plots filtered neural, smoothed, and spike waveforms
-PlotRectDat=1; % 1, plots, 0 skips.
+PlotRectDat=0; % 1, plots, 0 skips.
 PlotFiltDat=1; % usually 1, filt neural.
 
 lt_neural_concatExplore_v2(batchtoplot, ChansToPlot, PlotRectDat, PlotFiltDat); % WAVEFORMS ONLY PLOTTED FOR ONE CHANNEL!!
@@ -76,7 +76,7 @@ lt_neural_concatExplore_v2(batchtoplot, ChansToPlot, PlotRectDat, PlotFiltDat); 
 % based on expectation of duration for single unit.
 % -- saves into downstream folder
 close all; clear all;
-batchf='BatchNotAllSongs';
+batchf='Batch1980PeakLearnChan10MUearly';
 channel_board=10;
 lt_neural_concatOneChan(batchf, channel_board)
 

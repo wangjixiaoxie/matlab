@@ -35,6 +35,13 @@ catch err
     disp('starting new 1_LOG_EXPTS.txt');
     edit 1_LOG_EXPTS.txt
 end
+
+try 
+open 1_CONCLUSIONS.txt
+catch err
+    disp('starting new 1_CONCLUSIONS.txt');
+    edit 1_CONCLUSIONS.txt
+end
     
 
 

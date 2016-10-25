@@ -1,6 +1,6 @@
 %%  lt 8/19/16 - plots raster and (pltos and outputs) mean +/- SE (overlapping)
 
-function [xbin, ymean, ysem, ymean_hz, ysem_hz] = lt_neural_plotRastMean(Yspks, window, windshift, plotRastOn, plotcol)
+function [xbin, ymean, ysem, ymean_hz, ysem_hz, ystd, ystd_hz] = lt_neural_plotRastMean(Yspks, window, windshift, plotRastOn, plotcol)
 
 
 % %% ==== [for converting structure to cell array]
@@ -80,13 +80,14 @@ end
 
 % -- get mean and sem across trials
 ymean=mean(Yall, 1);
+ystd=std(Yall, 0, 1);
 ysem=lt_sem(Yall);
 xbin=Xall(1,:);
 
 % - convert to spike rate (assumes that binwidth is in sec)
 ymean_hz=ymean./window;
 ysem_hz=ysem./window;
-
+ystd_hz=ystd./window;
 
 
 

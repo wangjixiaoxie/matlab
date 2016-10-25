@@ -44,6 +44,7 @@ for i=1:length(metaDat)
 %         ind=find([amplifier_channels.chip_channel]==channel_board);
         
         AllSongs=[AllSongs board_adc_data(1,:)];
+        
         %    AllNeural_old=[AllNeural_old amplifier_data(ind, :)];
     end
     

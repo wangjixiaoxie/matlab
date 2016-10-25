@@ -165,11 +165,14 @@ if SongOrSyl==0; % then plot songs
         
         
         % MARK AS NOTCATCH
+        try
         rd=readrecf(fname);
         if rd.iscatch==0;
             rectangle('Position',[t(1)+0.07, f(1)+70, t(end)-t(1)-0.14, f(end)-f(1)-140],'LineWidth',2, 'EdgeColor','r')
         end
-        
+        catch
+            % i.e. rec file doesnt exist
+        end
         
         % ANNOTATE WITH FB TIMES
         % note: is assuming evtaf v4, so has multiple notes.

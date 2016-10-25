@@ -17,7 +17,7 @@ z=zeros(length(x), length(y));
 hmesh=mesh(x, y, z);
 
 set(hmesh, 'FaceAlpha', 0)
-set(hmesh, 'Color', 0)
+set(hmesh, 'EdgeColor', [0.5 0.5 0.5])
 set(hmesh, 'LineWidth', 0.3)
 
 end

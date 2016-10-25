@@ -122,7 +122,7 @@ plot(tt, songDat_all);
 transsamps=cumsum(transsamps);
 for i=1:length(transsamps)
     x=tt(transsamps(i));
-    line([x x], ylim)
+    line([x x], ylim, 'Color', 'r')
 end
 
 % - plot each chan

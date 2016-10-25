@@ -1,10 +1,13 @@
 clear all; close all;
-songfn='bk34bk68_20151020123606.wav';
+songfn='rd12pu6_PBS_170915_135530.8070.cbin';
 
 % =============== Read song file
 % 1) read cbin file
 [dat, Fs, DOFILT, ext]=ReadDataFile(songfn,'0');
 
+if (1)
+    lt_plot_spectrogram(dat, Fs, 1, 0);
+else
 % 2) smooth, filter sound file
 [sm,sp,t,f]=SmoothData(dat,Fs,DOFILT,'‘hanningfirff’'); % ends up doing buttor, with filtfilt. (because there is extra quote marks in filter type)
 % default: 512 NFFT, using 512 sample windows, 0.8 olap
@@ -62,6 +65,6 @@ figure;
         
         axis([t(1) t(end) f(end) f(1)]);
         axis([t(1) t(end) f(1) f(end)]);
-
+        end
         
 %% ====== PLAY AUDIO

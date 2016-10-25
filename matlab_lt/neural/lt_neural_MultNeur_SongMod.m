@@ -136,6 +136,8 @@ end
 
 %% =========================== PLOT SUMMARY STATS ACROSS NEURONS (E.G.
 % FIRING RATE
+if NumNeurons>1
+    
 lt_figure; hold on;
 hsplots=[];
 % ----- 1) using actual mean timepoints
@@ -349,5 +351,6 @@ Ysem=lt_sem(Yall);
 lt_plot(X, Ymean, {'Errors', Ysem, 'LineStyle', '-', 'Color', 'r', 'Marker', 's'});
 ylim([0 1]);
 
+end
 
 

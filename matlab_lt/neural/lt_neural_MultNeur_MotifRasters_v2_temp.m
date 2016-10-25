@@ -1,4 +1,4 @@
-function lt_neural_MultNeur_MotifRasters_v2(NeuronDatabase, motif_regexpr_str, motif_predur, motif_postdur, LinScaleGlobal)
+function lt_neural_MultNeur_MotifRasters_v2(NeuronDatabase, motif_regexpr_str, motif_predur, motif_postdur)
 %% v2 - can input multiple motifs, will align all of them and compare firing rate for each neuron across motifs
 % now:
 % motif_regexpr_str is cell array, each ind with one motif
@@ -7,11 +7,13 @@ suppresssomeplots = 1; % just time warping plots
 
 %% given motif, plots rasters and smooth rate for all neurons
 
-% LinScaleGlobal=2; % 0: NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
+%  NOTE: default is to linearly scale across all neurons (motif onset to
+%  offset)
 
 %% PARAMS
 NumMotifs=length(motif_regexpr_str);
 NumNeurons=length(NeuronDatabase.neurons);
+LinScaleGlobal=1;% scales all trials across all neurons to global median [DEFAULT, AND ALTERNATIVES NOT YET CODED]
 
 % smoothing window (neural)
 window=0.02; windshift=0.004;
@@ -53,7 +55,7 @@ end
 
 %% ========================== PLOT COMBINED RASTERS
 if LinScaleGlobal==1
-    % =================== OPTIONAL, LINEARLY TIME WARP ALL TO SAME DURATION[DEFAULT]
+    % =================== OPTIONAL, LINEARLY TIME WARP [DEFAULT]
     spktimefield='spk_Times_scaled';
     % -- 1) figure out median dur across all neurons (for this motif)
     OnAll=[];
@@ -106,33 +108,6 @@ if LinScaleGlobal==1
             MOTIFSTATS.neurons(i).motif(j).Params=prmsout;
         end
     end
-elseif LinScaleGlobal==2
-    % ======= TIME WARP WITHIN EACH NEURON AND MOTIF
-    spktimefield='spk_Times_scaled';
-    
-    for i=1:NumNeurons
-        for j=1:NumMotifs
-            if ~isfield(MOTIFSTATS.neurons(i).motif(j).SegmentsExtract, 'spk_Times')
-                % then there is no data for this neuron
-                continue
-            end
-            segmentdat=MOTIFSTATS.neurons(i).motif(j).SegmentsExtract;
-            prms=MOTIFSTATS.neurons(i).motif(j).Params;
-            [segmentdatout, prmsout] = lt_neural_LinTimeWarp(segmentdat, ...
-                prms, []);
-            
-            if suppresssomeplots==1
-                close gcf
-                close gcf % close 2 figs
-            end
-            MOTIFSTATS.neurons(i).motif(j).SegmentsExtract=segmentdatout;
-            MOTIFSTATS.neurons(i).motif(j).Params=prmsout;
-        end
-    end
-    
-elseif LinScaleGlobal==0
-    % THEN NO SCALING AT ALLL!
-    spktimefield='spk_Times';
 end
 
 %% =================== PLOT ONE GLOBAL RASTER [do once for each motif]
@@ -146,53 +121,47 @@ for m=1:NumMotifs
     hsplots=[];
     
     % 1) === plot spectrogram at top
-    hsplot=lt_subplot(7, 1, 1); hold on
-    title(motif_regexpr_str{m});
+    hsplot=lt_subplot(8, 1, 1); hold on
+    ylabel('median dur trial');
     hsplots=[hsplots hsplot];
+    % --- find the trial that has close to median motif time
     songdat=[];
     fs=[];
-    if LinScaleGlobal==1
-        % then try to find median duration trial to plot - otherwise plot
-        % random song - see below.
-        ylabel('median dur trial');
-        % --- find the trial that has close to median motif time
-        for i=1:NumNeurons
-            if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
-                % then there is no data for this neuron
-                continue
-            end
-            
-            numtrials=length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract);
-            
-            for j=1:numtrials
-                if abs(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur - ...
-                        MotifTime_med)<0.01*MotifTime_med; % good enough, less than 1% of motif median.
-                    
-                    songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
-                    fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
-                    %                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
-                    break
-                end
+    for i=1:NumNeurons
+        if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
+            % then there is no data for this neuron
+            continue
+        end
+        
+        numtrials=length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract);
+        
+        for j=1:numtrials
+            if abs(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur - ...
+                    MotifTime_med)<0.01*MotifTime_med; % good enough, less than 1% of motif median.
+                
+                songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+                fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+                %                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
+                break
             end
         end
     end
+    
     if isempty(songdat)
         % then pick a random song
         i=randi(NumNeurons,1);
         j=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
-        songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
-        fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+                songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+                fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
     end
-    
+       
     % --- plot
     lt_plot_spectrogram(songdat, fs, 1, 0);
     line([motif_predur motif_predur], ylim, 'Color','w');
-    if LinScaleGlobal==1
-        line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','w'); % end
-    end
+    line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','w'); % end
     
     % 2) ===== plot rasters
-    hsplot=lt_subplot(7, 1, 2:7); hold on
+    hsplot=lt_subplot(8, 1, 2:8); hold on
     hsplots=[hsplots hsplot];
     hsplots_rasty=[hsplots_rasty hsplot];
     for i=1:NumNeurons
@@ -223,9 +192,7 @@ for m=1:NumMotifs
     end
     % -- line for motif onset
     line([motif_predur motif_predur], ylim, 'Color','k');
-    if LinScaleGlobal==1
-        line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
-    end
+    line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
     
     % --- link
     linkaxes(hsplots, 'x');
@@ -249,47 +216,42 @@ for m=1:NumMotifs
     
     % 1) === plot spectrogram at top
     hsplot=lt_subplot(NumNeurons+1, 1, 1); hold on
-    title(motif_regexpr_str{m});
+    ylabel('median dur trial');
     hsplots=[hsplots hsplot];
+    % --- find the trial that has close to median motif time
     songdat=[];
     fs=[];
-    if LinScaleGlobal==1
-        ylabel('median dur trial');
-        % --- find the trial that has close to median motif time
-        for i=1:NumNeurons
-            if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
-                % then there is no data for this neuron
-                continue
-            end
-            
-            numtrials=length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract);
-            
-            for j=1:numtrials
-                if abs(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur - ...
-                        MotifTime_med)<0.01*MotifTime_med; % good enough, less than 1% of motif median.
-                    
-                    songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
-                    fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
-                    %                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
-                    break
-                end
+    for i=1:NumNeurons
+        if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
+            % then there is no data for this neuron
+            continue
+        end
+        
+        numtrials=length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract);
+        
+        for j=1:numtrials
+            if abs(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur - ...
+                    MotifTime_med)<0.01*MotifTime_med; % good enough, less than 1% of motif median.
+                
+                songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+                fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+                %                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
+                break
             end
         end
     end
-    if isempty(songdat)
+        if isempty(songdat)
         % then pick a random song
         i=randi(NumNeurons,1);
         j=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
-        songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
-        fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+                songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+                fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
     end
-    
+
     % --- plot
     lt_plot_spectrogram(songdat, fs, 1, 0);
     line([motif_predur motif_predur], ylim, 'Color','w');
-    if LinScaleGlobal==1
-        line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','w'); % end
-    end
+    line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','w'); % end
     
     % 2) ===== plot rasters
     for i=1:NumNeurons
@@ -323,11 +285,9 @@ for m=1:NumMotifs
         
         % -- line for motif onset
         line([motif_predur motif_predur], ylim, 'Color','k');
-        if LinScaleGlobal==1
-            line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
-        end
+        line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
         
-        ylim([0 200]);
+        ylim([0 100]);
     end
     
     % --- link
@@ -337,19 +297,19 @@ end
 
 %% === PLOT MEAN FIRING RATE SMOOTHED OVER TIME [OVERLAY EACH MOTIF IN ONE PLOT
 
-PlotForIllustrator=0;
+PlotForIllustrator=1;
 RandomSong=1;
 
 if PlotForIllustrator==1
     figcount=1;
-    subplotrows=2;
-    subplotcols=1;
-    fignums_alreadyused=[];
-    hfigs=[];
-    
-    
+subplotrows=2;
+subplotcols=1;
+fignums_alreadyused=[];
+hfigs=[];
+
+
 else
-    lt_figure; hold on;
+lt_figure; hold on;
 end
 hsplots=[];
 
@@ -368,31 +328,29 @@ for m=1:NumMotifs
     if PlotForIllustrator==1
         [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     else
-        hsplot=lt_subplot(NumNeurons+NumMotifs, 1, m); hold on
+        
+    hsplot=lt_subplot(NumNeurons+NumMotifs, 1, m); hold on
     end
-    %     title(motif_regexpr_str{m});
     hsplots=[hsplots hsplot];
+    % --- find the trial that has close to median motif time
     songdat=[];
     fs=[];
-    if LinScaleGlobal==1
-        % --- find the trial that has close to median motif time
-        for i=1:NumNeurons
-            if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
-                % then there is no data for this neuron
-                continue
-            end
-            
-            numtrials=length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract);
-            
-            for j=1:numtrials
-                if abs(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur - ...
-                        MotifTime_med)<0.01*MotifTime_med; % good enough, less than 1% of motif median.
-                    
-                    songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
-                    fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
-                    %                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
-                    break
-                end
+    for i=1:NumNeurons
+        if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
+            % then there is no data for this neuron
+            continue
+        end
+        
+        numtrials=length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract);
+        
+        for j=1:numtrials
+            if abs(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur - ...
+                    MotifTime_med)<0.01*MotifTime_med; % good enough, less than 1% of motif median.
+                
+                songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+                fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+                %                 motifdur=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).actualmotifdur;
+                break
             end
         end
     end
@@ -400,22 +358,20 @@ for m=1:NumMotifs
         % make it empty so will pick random song
         songdat=[];
     end
-    if isempty(songdat)
+            if isempty(songdat)
         % then pick a random song
         i=randi(NumNeurons,1);
         j=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
-        songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
-        fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+                songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+                fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
     end
-    
+
     % --- plot
     lt_plot_spectrogram(songdat, fs, 1, 0);
     line([motif_predur motif_predur], ylim, 'Color','w');
-    if LinScaleGlobal==1
-        line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','w'); % end
-    end
+    line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','w'); % end
     if RandomSong==1
-        title(['rand song: ' motif_regexpr_str{m}], 'Color', plotcols_motif{m});
+        title(['rand song: ' motif_regexpr_str{m}], 'Color', plotcols_motif{m});        
     else
         title(['dur close to median: ' motif_regexpr_str{m}], 'Color', plotcols_motif{m});
     end
@@ -430,7 +386,7 @@ end
 %     %     subplotcols=1;
 %     %     fignums_alreadyused=[];
 %     %     hfigs=[];
-%
+%     
 %     for i=1:NumNeurons
 %         if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
 %             % then there is no data for this neuron
@@ -444,11 +400,11 @@ end
 %         end
 %         hsplots=[hsplots hsplot];
 %         ylabel(['neuron ' num2str(i)]);
-%
+%         
 %         segextract=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
 %         params=MOTIFSTATS.neurons(i).motif(m).Params;
 %         clustnum=NeuronDatabase.neurons(i).clustnum;
-%
+%         
 %         numtrials=length(segextract);
 %         Yspks={};
 %         for j=1:numtrials
@@ -456,18 +412,18 @@ end
 %             spktimes=segextract(j).(spktimefield)(inds);
 %             Yspks{j}=spktimes;
 %         end
-%
+%         
 %         % -- convert to smoothed rate
 %         [xbin, ~, ~, ymean_hz, ysem_hz] = lt_neural_plotRastMean(Yspks, window, windshift, 0, '');
-%
+%         
 %         % --- plot
 %         shadedErrorBar(xbin, ymean_hz, ysem_hz, {'Color', plotcols_motif{m}}, 1);
-%
+%         
 %         % -- line for motif onset
 %         line([motif_predur motif_predur], ylim, 'Color','k');
 %         line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
 %     end
-%
+%     
 % end
 
 % ===== PLOT NEURAL DATA
@@ -513,10 +469,9 @@ for i=1:NumNeurons
         
         % -- line for motif onset
         line([motif_predur motif_predur], ylim, 'Color','k');
-        if LinScaleGlobal==1
-            line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
-        end
-        ylim([0 200]);
+        line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
+        
+        ylim([0 100]);
     end
     
 end
