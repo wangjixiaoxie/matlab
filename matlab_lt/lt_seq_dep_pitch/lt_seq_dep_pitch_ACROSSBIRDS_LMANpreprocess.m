@@ -124,32 +124,32 @@ for i=1:NumBirds;
         
         % === lag time collect
         lagtime=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.Lag_time;
-LagTimes_All=[LagTimes_All lagtime];
-
-% === start of PBS collection time
-pretime=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.PBS_window(1);
-medianSwitchTime=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.MuscimolSchedule_MedianStartTime;
-PBSstartTime=medianSwitchTime+pretime;
-PBSstartTimeALL=[PBSstartTimeALL PBSstartTime];
-
-% ==== start of MUSC switch time
-StartTimes=[];
-for k=1:length(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.MuscimolSchedule_ByDayInds);
-    if isempty(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.MuscimolSchedule_ByDayInds{k})
-        continue
-    end
-    stime=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.MuscimolSchedule_ByDayInds{k};
-StartTimes=[StartTimes stime.start];
-end
-StartTimeRange=max(StartTimes)-min(StartTimes);
-StartTimeMean=mean(StartTimes);
-StartTimeSTD=std(StartTimes);
-
-StartTimeRangeALL=[StartTimeRangeALL StartTimeRange];
-StartTimeMeanALL=[StartTimeMeanALL StartTimeMean];
-StartTimeSTDALL=[StartTimeSTDALL StartTimeSTD];
-
-
+        LagTimes_All=[LagTimes_All lagtime];
+        
+        % === start of PBS collection time
+        pretime=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.PBS_window(1);
+        medianSwitchTime=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.MuscimolSchedule_MedianStartTime;
+        PBSstartTime=medianSwitchTime+pretime;
+        PBSstartTimeALL=[PBSstartTimeALL PBSstartTime];
+        
+        % ==== start of MUSC switch time
+        StartTimes=[];
+        for k=1:length(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.MuscimolSchedule_ByDayInds);
+            if isempty(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.MuscimolSchedule_ByDayInds{k})
+                continue
+            end
+            stime=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.MuscimolSchedule_ByDayInds{k};
+            StartTimes=[StartTimes stime.start];
+        end
+        StartTimeRange=max(StartTimes)-min(StartTimes);
+        StartTimeMean=mean(StartTimes);
+        StartTimeSTD=std(StartTimes);
+        
+        StartTimeRangeALL=[StartTimeRangeALL StartTimeRange];
+        StartTimeMeanALL=[StartTimeMeanALL StartTimeMean];
+        StartTimeSTDALL=[StartTimeSTDALL StartTimeSTD];
+        
+        
         
         % --- EXTRACT DATA FOR THOSE DAYS
         SylsUnique=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique;
@@ -220,7 +220,7 @@ end
 
 
 % ======= PLOT lag time and start time
-lt_figure; 
+lt_figure;
 lt_plot_annotation(1, ['lag time(std) = ' num2str(mean(LagTimes_All)) '(' num2str(std(LagTimes_All)) ')'], 'k');
 lt_plot_annotation(2, ['PBS start time(std) = ' num2str(mean(PBSstartTimeALL)) '(' num2str(std(PBSstartTimeALL)) ')'], 'b');
 lt_plot_annotation(3, ['MUSC start time(std) = ' num2str(mean(StartTimeMeanALL)) '(' num2str(std(StartTimeMeanALL)) ')'], 'b');

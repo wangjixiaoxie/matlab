@@ -55,6 +55,12 @@ xmax=max(cellfun(@max, Yspks(~cellfun(@isempty, Yspks))));
 xstarts=0:windshift:xmax-window;
 xends=window:windshift:xmax;
 
+if isempty(xstarts) && isempty(xends)
+    % then is becuase last spike is earlier than end of first window
+    xstarts = [0];
+    xends = [window];
+end
+
 Xall=[]; % trial x bins
 Yall=[];
 for i=1:numsegs
@@ -68,7 +74,7 @@ for i=1:numsegs
         wmin=xstarts(j);
         wmax=xends(j);
         
-        y=sum(spktimes>wmin & spktimes<wmax);
+        y=sum(spktimes>wmin & spktimes<=wmax);
         
         Xseg=[Xseg mean([wmin wmax])]; % x val is bincenter
         Yseg=[Yseg y];

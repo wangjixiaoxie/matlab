@@ -59,8 +59,8 @@ batchf='BatchChan14Late';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
-ChansToPlot=[18];
-batchtoplot='batchall_sub';
+ChansToPlot=[17];
+batchtoplot='Batch1750';
 
 % -----  v1, plots just raw neural, filtered
 % batchtoplot=batchf;
@@ -76,8 +76,8 @@ lt_neural_concatExplore_v2(batchtoplot, ChansToPlot, PlotRectDat, PlotFiltDat); 
 % based on expectation of duration for single unit.
 % -- saves into downstream folder
 close all; clear all;
-batchf='Batch1980PeakLearnChan10MUearly';
-channel_board=10;
+batchf='Batch1750';
+channel_board=17;
 lt_neural_concatOneChan(batchf, channel_board)
 
 %% ==== run wave_clus on this concatted data
@@ -93,8 +93,8 @@ lt_neural_AlgnWavclus(batchf, channel_board, plotcols);
 %% ++++++++++ ANALYSIS (NEURONS ONE BY ONE) 
 %% ==== EXTRACT SONG, LABEL,SongDat ONSETS, SPIKE DATA
 close all;
-batchf='BatchChan18Early';
-channel_board=18;
+batchf='batchall';
+channel_board=17;
 [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
 
 
@@ -103,12 +103,13 @@ channel_board=18;
 close all;
 
 % - desired motifs
-regexpr_str='[^vb](b)'; % token determines where align. predur is relative to token.
-regexpr_str='(g)h'; % token determines where align. predur is relative to token.
-regexpr_str='n(h)h'; % token determines where align. predur is relative to token.
-regexpr_str='[^h](h)h'; % token determines where align. predur is relative to token.
-predur=0.2;
-postdur=0.2;
+% regexpr_str='[^vb](b)'; % token determines where align. predur is relative to token.
+% regexpr_str='(g)h'; % token determines where align. predur is relative to token.
+% regexpr_str='n(h)h'; % token determines where align. predur is relative to token.
+% regexpr_str='[^h](h)h'; % token determines where align. predur is relative to token.
+regexpr_str='kd(c)cbgh'; % token determines where align. predur is relative to token.
+predur=0.1;
+postdur=0.1;
 alignByOnset=1;
 
 % - entire motifs
@@ -151,17 +152,18 @@ plotAllSegs=1; % then plots each trial own plot.
 
 close all; 
 % MotifList_regexp={'(S)[\w-]*?E'};
-MotifList_regexp={'g(h)h', 'n(h)h'};
-MotifList_regexp={'v(b)b', '[^vb](b)b'};
-MotifList_regexp={'n(b)b', 'v(b)b'};
-MotifList_regexp={'[nv](b)', '[gm](b)'};
-MotifList_regexp={'(v)', '(b)'};
-% MotifList_regexp={'[^b](b)', 'b(b)'};
-MotifList_regexp={'(g)b', '(g)h'};
-MotifList_regexp={'gh(h)hh'};
+% MotifList_regexp={'g(h)h', 'n(h)h'};
+% MotifList_regexp={'v(b)b', '[^vb](b)b'};
+% MotifList_regexp={'n(b)b', 'v(b)b'};
+% MotifList_regexp={'[nv](b)', '[gm](b)'};
+% MotifList_regexp={'(v)', '(b)'};
+% % MotifList_regexp={'[^b](b)', 'b(b)'};
+% MotifList_regexp={'(g)b', '(g)h'};
+% MotifList_regexp={'gh(h)hh'};
+MotifList_regexp={'kd(c)cbgh', 'wd(c)cbgh'};
 
-predur=0.2;
-postdur=0.2;
+predur=0.1;
+postdur=0.1;
 LinearWarp=1; % 0=no; 1=yes, each motif individually; 2=yes, all motifs to global motif median dur
 suppressplots=1; % diagnostic plots.
 onlyPlotMean=0; % then does not plot rasters, just means.

@@ -47,6 +47,9 @@ end
 if ~exist('FaceAlpha', 'var');
     FaceAlpha=0.3;
 end
+if isempty(FaceAlpha)
+    FaceAlpha=0.3;
+end
 
 if ~exist('StairsON', 'var');
     StairsON=0;

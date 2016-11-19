@@ -349,11 +349,7 @@ if PlotForIllustrator==1
     
     
 else
-    figcount=1;
-    subplotrows=8;
-    subplotcols=1;
-    fignums_alreadyused=[];
-    hfigs=[];
+    lt_figure; hold on;
 end
 hsplots=[];
 
@@ -369,7 +365,11 @@ for m=1:NumMotifs
     
     
     % 1) === plot spectrogram at top
+    if PlotForIllustrator==1
         [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+    else
+        hsplot=lt_subplot(NumNeurons+NumMotifs, 1, m); hold on
+    end
     %     title(motif_regexpr_str{m});
     hsplots=[hsplots hsplot];
     songdat=[];
@@ -478,11 +478,17 @@ end
 %     hfigs=[];
 
 for i=1:NumNeurons
+    if PlotForIllustrator==1
         [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+    end
     for m=1:NumMotifs
         if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
             % then there is no data for this neuron
             continue
+        end
+        if PlotForIllustrator==0
+            %         [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+            hsplot=lt_subplot(NumNeurons+NumMotifs, 1, NumMotifs+i); hold on
         end
         hsplots=[hsplots hsplot];
         ylabel(['neuron ' num2str(i)]);
@@ -510,7 +516,7 @@ for i=1:NumNeurons
         if LinScaleGlobal==1
             line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','k'); % end
         end
-        ylim([0 max(ymean_hz)+20]);
+        ylim([0 200]);
     end
     
 end

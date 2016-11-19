@@ -17,7 +17,7 @@ PARAMS.global.SylsToRemove=...
     {'gr41gr90','SeqDepPitchShift',{'d', 'Jbba','g'}, ...
     'gr41gr90','SeqDepPitchShift2',{'d', 'Jbba','g'}, ...
     'gr41gr90','SeqDepPitchLMAN',{'Jbba','d', 'g'}, ...
-    'gr41gr90','SeqDepPitchLMAN2',{'d','Dbba','dBba','dbBa','dbbA', 'dbbaC','dbbacB','dbbacbB', 'Jbba', 'g'}, ...
+    'gr41gr90','SeqDepPitchLMAN2',{'d','Dbba','dBba','dbBa','dbbA', 'dbbaC','dbbacB','dbbacbB', 'Jbba', 'g'}, ... 
     'rd12pu6','SeqDepPitch',{'Jjb','jJb','Ja','h'}, ...
     'rd12pu6','SeqDepPitch2',{'Jjb','jJb','Ja','h'}, ...
     'rd12pu6','SeqDepPitch3',{'Jjb','jJb','Ja','h'}, ...
@@ -55,7 +55,7 @@ PARAMS.global.SylsToRemove=...
 %     {'gr41gr90','SeqDepPitchShift',{'d'}, ...
 %     'gr41gr90','SeqDepPitchShift2',{'d'}, ...
 %     'gr41gr90','SeqDepPitchLMAN',{'d'}, ...
-%     'gr41gr90','SeqDepPitchLMAN2',{'d','dBba','dbBa'}, ...
+%     'gr41gr90','SeqDepPitchLMAN2',{'d','dBba','dbBa'}, ... 
 %     'rd12pu6','SeqDepPitch',{'h'}, ...
 %     'rd12pu6','SeqDepPitch2',{'h'}, ...
 %     'rd23gr89','SeqDepPitch',{'n', 'k'},...
@@ -74,7 +74,7 @@ PARAMS.global.SylsToRemove=...
     {'gr41gr90','SeqDepPitchShift',{'d', 'Jbba','g'}, ...
     'gr41gr90','SeqDepPitchShift2',{'d', 'Jbba','g'}, ...
     'gr41gr90','SeqDepPitchLMAN',{'Jbba','d', 'g'}, ...
-    'gr41gr90','SeqDepPitchLMAN2',{'d','Dbba','dBba','dbBa','dbbA', 'dbbaC','dbbacB','dbbacbB', 'Jbba', 'g'}, ...
+    'gr41gr90','SeqDepPitchLMAN2',{'d','Dbba','dBba','dbBa','dbbA', 'dbbaC','dbbacB','dbbacbB', 'Jbba', 'g'}, ... 
     'rd12pu6','SeqDepPitch',{'Jjb','jJb','Ja','h'}, ...
     'rd12pu6','SeqDepPitch2',{'Jjb','jJb','Ja','h'}, ...
     'rd12pu6','SeqDepPitch3',{'Jjb','jJb','Ja','h'}, ...
@@ -150,32 +150,32 @@ PARAMS.global.SylsToRemove=...
 % LMANinactivation, RestOfMultiTargExpts, DayOfLastThreshAdjust};
 
 % Note:
-% NumTargets:
-% 1 (just one dir)
-% 2 (start off two targs
-% 0 - first 1, then 2 (diff dir)
-% 3 - first 1, then 2 (same dir)
-% 4 - first 1, then 2 (diff dir), then 2 (same dir)
-% 5 - first 1, then 2 (same), then 2 (diff)
-% 9 - no learning, just baseline [in PROGRESS]
-
-
+% NumTargets: 
+    % 1 (just one dir)
+    % 2 (start off two targs
+    % 0 - first 1, then 2 (diff dir) 
+    % 3 - first 1, then 2 (same dir)
+    % 4 - first 1, then 2 (diff dir), then 2 (same dir)
+    % 5 - first 1, then 2 (same), then 2 (diff)
+    % 9 - no learning, just baseline [in PROGRESS]
+    
+    
 % "bidir" is actually multidir, just enter additional syls if you want
 % multidir
 % "consolidation" dates are mainly important for determing what direction
 % the syl should be learning.
 % RestOfMultiTargExpts is cell containing rest of multi target epochs
-% (either same dir or diff dir), only use if there is more than one
-% multidir epoch. If only one, then use the first cell that is inputed
-% earlier. If there are multiple, use that first cell for the first one,
-% and this cell for later ones.
-% e.g. RestOfMultiTargExpts = {one day before start epoch, last day of
-% epoch, {syl1, syl2, ...} ...} i.e. 3 entries for each epoch.
-
+    % (either same dir or diff dir), only use if there is more than one
+    % multidir epoch. If only one, then use the first cell that is inputed
+    % earlier. If there are multiple, use that first cell for the first one,
+    % and this cell for later ones.
+    % e.g. RestOfMultiTargExpts = {one day before start epoch, last day of
+    % epoch, {syl1, syl2, ...} ...} i.e. 3 entries for each epoch.
+    
 % DayOfLastThreshAdjust=[a b]; a: excluding minor adjust (can use); col 2:
 % actual, even with minor adjust; note: days are starting from 1st day with
 % usable data.
-
+    
 
 % for example:
 % RegularExpressionsCell={'abbccbb', 'dccbb'}; OPTIONAL, only if will have
@@ -262,35 +262,35 @@ ExperimentList{43}={'rd12pu6','SeqDepPitch3',0,'/bluejay4/lucas/birds/rd12pu6/se
 
 ExperimentList{38}={'rd28pu64','SeqDepPitch',0,'/bluejay4/lucas/birds/rd28pu64/seq_dep_pitch_SeqDepPitch/SeqFilterCompile',...
     '17Nov2015','22Nov2015', {'jabdgkjbb', 'jjbb'}, {'22Nov2015','28Nov2015','kjB','jjB'}, 0, {}, [5 5]}; % used to be {'jabdgkjb+g', 'jjb+g'}
-
+ 
 
 
 
 % ======================================================================
 % ---------------------- LMAN EXPERIMENTS
 ExperimentList{21}={'pu11wh87','SeqDepPitchLMAN', 0,'/bluejay3/lucas/birds/pu11wh87/seq_dep_pitch_SeqDepPitchLMAN/SeqFilterCompile',...
-    '27May2015','08Jun2015', {'abbccbb', 'dccbb'}, {'08Jun2015', '16Jun2015', 'bccB', 'dccB'}, 1, {}, [9 9]}; %
-% NEED TO USE EARLIER DAY THAN what I called consolidation start (based
-% on stability, about 8 days post 1st musc day (which is about 8 days post WN start), although they look
-% similar
-% - need to clean up labeling, as, likely because of WN, I get some
-% outliers on each day
-% - NEED TO LABEL CATCH SONG for bidir (that's when started catch song
-% method.) ONce do that, turn off skipping of post syls.
-% NOT CATCH
+    '27May2015','08Jun2015', {'abbccbb', 'dccbb'}, {'08Jun2015', '16Jun2015', 'bccB', 'dccB'}, 1, {}, [9 9]}; % 
+    % NEED TO USE EARLIER DAY THAN what I called consolidation start (based
+    % on stability, about 8 days post 1st musc day (which is about 8 days post WN start), although they look
+    % similar
+    % - need to clean up labeling, as, likely because of WN, I get some
+    % outliers on each day
+    % - NEED TO LABEL CATCH SONG for bidir (that's when started catch song
+    % method.) ONce do that, turn off skipping of post syls.
+    % NOT CATCH
 
 ExperimentList{22}={'pu11wh87','SeqDepPitchLMAN2', 0,'/bluejay3/lucas/birds/pu11wh87/seq_dep_pitch_SeqDepPitchLMAN2/SeqFilterCompile',...
-    '07Jul2015','12Jul2015', {'abbccbb', 'dccbb'}, {'14Jul2015', '25Jul2015', 'aB', 'abB'}, 1, {}, [4 4]}; % LABEL/MUSC GOOD - but need to account for WN during single dir.
-% remove post syl (how many? abB is target. I will start just removing bC). SOME DAYS could use more labels, but important days
-% are relatively well labeled. Consol start is earliest MUSC day
-% rise: 8 days
-% hold: 8
-% bidir rise: 3
-% bidir hold: 8
-% NOT CATCH (SINGLE DIR)
-
+    '07Jul2015','12Jul2015', {'abbccbb', 'dccbb'}, {'14Jul2015', '25Jul2015', 'aB', 'abB'}, 1, {}, [4 4]}; % LABEL/MUSC GOOD - but need to account for WN during single dir.  
+    % remove post syl (how many? abB is target. I will start just removing bC). SOME DAYS could use more labels, but important days
+    % are relatively well labeled. Consol start is earliest MUSC day
+    % rise: 8 days
+    % hold: 8
+    % bidir rise: 3
+    % bidir hold: 8
+    % NOT CATCH (SINGLE DIR)
+    
 ExperimentList{23}={'pu11wh87','SeqDepPitchLMAN3', 1,'/bluejay3/lucas/birds/pu11wh87/seq_dep_pitch_SeqDepPitchLMAN3/SeqFilterCompile',...
-    '17Aug2015','24Aug2015', {'abbccbb', 'dccbb'}, {}, 1, {}, [7 7]};
+    '17Aug2015','24Aug2015', {'abbccbb', 'dccbb'}, {}, 1, {}, [7 7]}; 
 
 ExperimentList{24}={'pu53wh88','SeqDepPitchLMAN', 1,'/bluejay3/lucas/birds/pu53wh88/seq_dep_pitch_SeqDepPitchLMAN/SeqFilterCompile',...
     '23Jun2015','24Jun2015', {'abbb', 'accbb'}, {}, 1, {}, [12 12]}; % CONFIRM GOOD LABELING/INACTIVATION [to do: day 19 and 21 look potentially good.  need more labels late (after 3.5 hr) for those days.
@@ -302,20 +302,20 @@ ExperimentList{25}={'gr41gr90','SeqDepPitchLMAN', 1,'/bluejay3/lucas/birds/gr41g
     '23Jul2015','24Jul2015', {'jbbacbb'}, {}, 1, {}, [3 3]}; % NOTE - LABEL/MUSC checked good. PROBLEM: FP on couple other B was high.
 
 ExperimentList{26}={'gr41gr90','SeqDepPitchLMAN2', 0,'/bluejay3/lucas/birds/gr41gr90/seq_dep_pitch_SeqDepPitchLMAN2/SeqFilterCompile',...
-    '15Aug2015','17Aug2015', {'jbbacbb', 'dbbacbb'}, {'17Aug2015', '24Aug2015', 'jbBa', 'jbbacbB'}, 1, {}, [3 3]};
-% NOTE: bidir, syl 2 was actually any cbB (incluyding in motif after d
-% or g. need to limit bidir analysis to just one motif.
+    '15Aug2015','17Aug2015', {'jbbacbb', 'dbbacbb'}, {'17Aug2015', '24Aug2015', 'jbBa', 'jbbacbB'}, 1, {}, [3 3]}; 
+    % NOTE: bidir, syl 2 was actually any cbB (incluyding in motif after d
+    % or g. need to limit bidir analysis to just one motif.
 
 ExperimentList{35}={'rd23gr89','SeqDepPitchLMAN', 0, '/bluejay4/lucas/birds/rd23gr89/seq_dep_pitch_SeqDepPitchLMAN/SeqFilterCompile',...
-    '05Oct2015','06Oct2015', {'nakj','nahj', 'ndbbgcb'}, {'06Oct2015', '14Oct2015', 'dB', 'dbB'}, 1, {}, [2 2]};
-
+    '05Oct2015','06Oct2015', {'nakj','nahj', 'ndbbgcb'}, {'06Oct2015', '14Oct2015', 'dB', 'dbB'}, 1, {}, [2 2]};    
+   
 
 ExperimentList{36}={'pu11wh87','SeqDepPitchLMAN6', 0, '/bluejay3/lucas/birds/pu11wh87/seq_dep_pitch_SeqDepPitchLMAN6/SeqFilterCompile',...
-    '05Oct2015','07Oct2015', {'abbccbb', 'dccbb'}, {'07Oct2015','14Oct2015', 'aB','abB'}, 1,{},  [2 2]};
-
+    '05Oct2015','07Oct2015', {'abbccbb', 'dccbb'}, {'07Oct2015','14Oct2015', 'aB','abB'}, 1,{},  [2 2]};    
+    
 
 ExperimentList{44}={'bk34bk68','SeqDepPitchLMAN', 0, '/bluejay4/lucas/birds/bk34bk68/seq_dep_pitch_SeqDepPitchLMAN/SeqFilterCompile',...
-    '18Dec2015','20Dec2015', {'njjjbbga', 'kljbbga'}, {'21Dec2015','31Dec2015', 'ljbB','jjbB'}, 1, {}, [5 6]};
+    '18Dec2015','20Dec2015', {'njjjbbga', 'kljbbga'}, {'21Dec2015','31Dec2015', 'ljbB','jjbB'}, 1, {}, [5 6]};    
 
 ExperimentList{45}={'rd28pu64','SeqDepPitchLMAN', 0, '/bluejay4/lucas/birds/rd28pu64/seq_dep_pitch_SeqDepPitchLMAN/SeqFilterCompile',...
     '18Dec2015','20Dec2015', {'jabdgkjbb', 'jjbb'}, {'21Dec2015','31Dec2015', 'kjB','jjB'}, 1, {}, [4 5]}; % used to be {'jabdgkjb+g', 'jjb+g'}
@@ -324,7 +324,7 @@ ExperimentList{45}={'rd28pu64','SeqDepPitchLMAN', 0, '/bluejay4/lucas/birds/rd28
 % ------ IN PROGRESS BELOW
 % ExperimentList{46}={'wh4wh77','SeqDepPitchLMAN', 4, '/bluejay4/lucas/birds/wh4wh77/seq_dep_pitch_SeqDepPitchLMAN/SeqFilterCompile',...
 %     '14Jan2016','16Jan2016', {'jdbbghn', 'jakccbbghn'}, {'22Jan2016', '03Feb2016', 'cbB','cB'}, 1, {'03Feb2016', '16Feb2016', {'cbB','cB'}}}; %
-ExperimentList{46}={'wh4wh77','SeqDepPitchLMAN', 4, '/bluejay4/lucas/birds/wh4wh77/seq_dep_pitch_SeqDepPitchLMAN/SeqFilterCompile',...
+ ExperimentList{46}={'wh4wh77','SeqDepPitchLMAN', 4, '/bluejay4/lucas/birds/wh4wh77/seq_dep_pitch_SeqDepPitchLMAN/SeqFilterCompile',...
     '14Jan2016','16Jan2016', {'jdbbghn', 'jakccbb'}, {'22Jan2016', '03Feb2016', 'cbB','cB'}, 1, {'03Feb2016', '16Feb2016', {'cbB','cB'}}, [5 6]}; %
 
 % ExperimentList{47}={'rd28pu64','SeqDepPitchLMAN2', 1, '/bluejay4/lucas/birds/rd28pu64/seq_dep_pitch_SeqDepPitchLMAN2/SeqFilterCompile',...
@@ -335,7 +335,7 @@ ExperimentList{47}={'rd28pu64','SeqDepPitchLMAN2', 3, '/bluejay4/lucas/birds/rd2
 % ExperimentList{48}={'rd23gr89','SeqDepPitchLMAN2', 1, '/bluejay4/lucas/birds/rd23gr89/seq_dep_pitch_SeqDepPitchLMAN2/SeqFilterCompile',...
 %     '23Jan2016','26Jan2016', {'ak','ah', 'dbbgcb'}, {}, 1}; % CHANGE CONSOL DATES/ ADD BIDIR
 ExperimentList{48}={'rd23gr89','SeqDepPitchLMAN2', 3, '/bluejay4/lucas/birds/rd23gr89/seq_dep_pitch_SeqDepPitchLMAN2/SeqFilterCompile',...
-    '23Jan2016','24Jan2016', {'nakj','nahj', 'ndbbgcb'}, {'03Feb2016','14Feb2016' , 'cB','dB', 'dbB'}, 1, {}, [7 7]}; %
+    '23Jan2016','24Jan2016', {'nakj','nahj', 'ndbbgcb'}, {'03Feb2016','14Feb2016' , 'cB','dB', 'dbB'}, 1, {}, [7 7]}; % 
 
 % ExperimentList{49}={'wh25pk77','SeqDepPitchLMAN', 1, '/bluejay4/lucas/birds/wh25pk77/seq_dep_pitch_SeqDepPitchLMAN/SeqFilterCompile',...
 %     '23Jan2016','26Jan2016', {'jjkbbg', 'ajnhbbg'}, {'25Jan2016', '31Jan2016', 'hbB', 'kbB'}, 1}; % CHANGE CONSOL DATES/ ADD BIDIR
@@ -386,10 +386,10 @@ ExperimentList{34}={'bu11or68','RepDepPitchShift',1,'/bluejay4/lucas/birds/bu11o
     '04Dec2014','08Dec2014', {'jb+'}, {}, 0, {}, []}; % NOTE, SAME DIR MULTI SYL AFTER CONSOLID END
 
 ExperimentList{41}={'gr87bu18','SeqDepPitch2',1,'/bluejay1/lucas/birds/gr87bu18/seq_dep_pitch_SeqDepPitch2/SeqFilterCompile',...
-    '04Oct2015','07Oct2015', {'kb', 'ghb+', 'dccc', 'ab+'}, {}, 0, {}, []}; %
+    '04Oct2015','07Oct2015', {'kb', 'ghb+', 'dccc', 'ab+'}, {}, 0, {}, []}; % 
 
 ExperimentList{42}={'gr87bu18','RepDepPitch',1,'/bluejay1/lucas/birds/gr87bu18/seq_dep_pitch_RepDepPitch/SeqFilterCompile',...
-    '11Nov2015','12Nov2015', {'kb', 'ghb+', 'dccc', 'ab+'}, {}, 0, {}, []}; %
+    '11Nov2015','12Nov2015', {'kb', 'ghb+', 'dccc', 'ab+'}, {}, 0, {}, []}; % 
 
 
 % ======== LMAN REPEAT EXPERIMENTS
@@ -401,24 +401,7 @@ ExperimentList{40}={'or100pu10','SeqDepPitchLMAN2',1,'/bluejay4/lucas/birds/or10
 
 
 
-%% === new HDD (all bluejay3 move to bluejay5
-if (1)
-    for i=1:length(ExperimentList)
-        if ~isempty(ExperimentList{i})
-        ind=strfind(ExperimentList{i}{4}, 'bluejay');
-        bluejaynum = ExperimentList{i}{4}(ind + 7);
-        
-        if bluejaynum == '3'
-            % then change partition to bluejay5
-            disp(['changed bluejay num from 3 to 5: ' ExperimentList{i}{1} '-' ExperimentList{i}{2}]);
-            ExperimentList{i}{4}(ind + 7) = '5';
-        end
-        end
-    end
-end
 %% =========== RAW DATA ANALYSIS
-
-
 %% ====== Recalculate acoustic features, to get things that don't have well-defined pitch
 
 lt_seq_dep_pitch_ACROSSBIRDS_RAW_Acoustic
@@ -426,7 +409,7 @@ lt_seq_dep_pitch_ACROSSBIRDS_RAW_Acoustic
 %% ============ RECALC ACOUSTIC (USING POWER INSTEAD OF AMPLITUDE FOR ENTROPY ANALYSES)
 
 lt_seq_dep_pitch_ACROSSBIRDS_RAW_Acoustic2(ExperimentList)
-% NOTE: have done for
+% NOTE: have done for 
 
 
 %% ============
@@ -443,7 +426,7 @@ PARAMS.preprocess.load_old_vector_space=1; % default, 0, recreates vector space 
 [SeqDepPitch_AcrossBirds, PARAMS] = lt_seq_dep_pitch_ACROSSBIRDS_PREPROCESS(ExperimentList, PARAMS);
 
 
-% =============== FILTER OUT EXPERIMENTS THAT START WITH 2-DIR
+% =============== FILTER OUT EXPERIMENTS THAT START WITH 2-DIR 
 % SeqDepPitch_AcrossBirds_ORIG=SeqDepPitch_AcrossBirds;
 % Remove expts starting with 2 targs;
 filter='RemoveStartTwoTargs';
@@ -466,7 +449,7 @@ extract_repeats=0;
 
 
 % TO DO: REMOVE EXPERIMENTS IF ALL SYLS HAPPEN TO BE REMOVED
-remove_repeats=3; % [syl pos 3 +] a) throws out all experiments if target was syl3 or
+remove_repeats=3; % [syl pos 3 +] a) throws out all experiments if target was syl3 or 
 % higher in repeat, and b) For all experiments, throw out syls that are at repeat position 3+ [EVEN IF IS DIFF TYPE SYL] [CAN END UP WITH EXPTS WITH NO/FEW NONTARGS]
 extract_repeats=0;
 % lt_seq_dep_pitch_ACROSSBIRDS_FilterRepeats(SeqDepPitch_AcrossBirds, remove_repeats, extract_repeats);
@@ -491,7 +474,7 @@ TestIfDistanceSignDiff=0;
 % === compile same-type and diff type unique syls
 SeqDepPitch_AcrossBirds=lt_seq_dep_pitch_ACROSSBIRDS_CompSyls(SeqDepPitch_AcrossBirds);
 
-%% == RECALCULATE LEARNING AND DRIFT FROM 2 BASELINE DAYS
+%% == RECALCULATE LEARNING AND DRIFT FROM 2 BASELINE DAYS 
 close all
 OverwriteLearningMetric=1; % OVERWRITES LEARNING METRIC
 ConvertToHz=1; % 1, uses FF diff, not zscore; 0, uses zscore [default];
@@ -570,7 +553,7 @@ use_rand_color=0; % if 1, then random color for syls, if 0, then use color schem
 
 UseRecalcBaseline=1; % then limits to days used to calcualte deviation of learning
 
-ThreshChangeTime={'rd12pu6', 'SeqDepPitch3', 'aBb', ... % quadruplets {birdname, experiment, syl, {{11Nov2015-0000, 3620}, {11Nov2015-1322, 3680}}}
+ThreshChangeTime={'rd12pu6', 'SeqDepPitch3', 'aBb', ... % quadruplets {birdname, experiment, syl, {{11Nov2015-0000, 3620}, {11Nov2015-1322, 3680}}} 
     {{'11Nov2015-0000', 3620}, {'11Nov2015-1322', 3680},...
     {'11Nov2015-2400', 3725}, {'12Nov2015-1355', 3770}, ...
     {'12Nov2015-2400', 3820}}, ...
@@ -636,9 +619,9 @@ lt_seq_dep_pitch_ACROSSBIRDS_PlotRawLMAN(SeqDepPitch_AcrossBirds, PARAMS, BirdTo
 OverlayLMANStats=1; % plots mean shift in single target learning window (defined below)
 OverlayMUSC_days=[];
 OverlayMUSC_days=[20 21]; % plots mean shift (MUSC and PBS) on user-specified days (if empty, then uses learning window).
-% (if not empty, then takes precedence over OverlayLMANStats);
-% OverlayLMANStats needs to be 1 for this to work. format: [start end]
-% (day inds)
+    % (if not empty, then takes precedence over OverlayLMANStats);
+    % OverlayLMANStats needs to be 1 for this to work. format: [start end]
+    % (day inds)
 lt_seq_dep_pitch_ACROSSBIRDS_PlotRawLMAN(SeqDepPitch_AcrossBirds_LMAN, PARAMS, BirdToPlot, ExptToPlot, SylsToPlot, overlayMeans, plotRawFF, UseSylColors, flipsign, use_std, OverlayLMANStats, OverlayMUSC_days)
 
 % --- TO PLOT WITH CV AND ALL RAW LMAN STUFF
@@ -720,7 +703,7 @@ lt_seq_dep_pitch_ACROSSBIRDS_Trial2(SeqDepPitch_AcrossBirds_filtered, PARAMS, Ho
 % ---- [-100 to 66.56], [66.56 to 134.38], [134.38 400] ----  [HZ, NO REPEATS (MAIN DATASET)]
 filter='learning_range';
 [SeqDepPitch_AcrossBirds_filtered, NumBirds]=lt_seq_dep_pitch_ACROSSBIRDS_ExtractStruct(SeqDepPitch_AcrossBirds, filter);
-% ---
+% --- 
 filter='did_not_sing2';
 [SeqDepPitch_AcrossBirds_filtered, NumBirds]=lt_seq_dep_pitch_ACROSSBIRDS_ExtractStruct(SeqDepPitch_AcrossBirds_filtered, filter);
 
@@ -771,19 +754,19 @@ filter='DelayExptStart';
 
 % ===== OPTIONS - removing experiments before analysis [I DON'T USE]
 % remove if learning less than threshold - don't use
-filter='good_learning';
-[SeqDepPitch_AcrossBirds_filtered, NumBirds]=lt_seq_dep_pitch_ACROSSBIRDS_ExtractStruct(SeqDepPitch_AcrossBirds_filtered, filter);
-% Remove LMAN experiments
-filter='notLMAN';
-[SeqDepPitch_AcrossBirds_filtered, NumBirds]=lt_seq_dep_pitch_ACROSSBIRDS_ExtractStruct(SeqDepPitch_AcrossBirds_filtered, filter);
-% Remove experiments that are missing data in beginning of learning (i.e.
-% did not sing)
-filter='did_not_sing';
-[SeqDepPitch_AcrossBirds_filtered, NumBirds]=lt_seq_dep_pitch_ACROSSBIRDS_ExtractStruct(SeqDepPitch_AcrossBirds_filtered, filter);
-% Remove experiments that are missing data at least 2 days in beginning of learning (i.e.
-% did not sing)
-filter='did_not_sing2';
-[SeqDepPitch_AcrossBirds_filtered, NumBirds]=lt_seq_dep_pitch_ACROSSBIRDS_ExtractStruct(SeqDepPitch_AcrossBirds_filtered, filter);
+    filter='good_learning';
+    [SeqDepPitch_AcrossBirds_filtered, NumBirds]=lt_seq_dep_pitch_ACROSSBIRDS_ExtractStruct(SeqDepPitch_AcrossBirds_filtered, filter);
+    % Remove LMAN experiments
+    filter='notLMAN';
+    [SeqDepPitch_AcrossBirds_filtered, NumBirds]=lt_seq_dep_pitch_ACROSSBIRDS_ExtractStruct(SeqDepPitch_AcrossBirds_filtered, filter);
+    % Remove experiments that are missing data in beginning of learning (i.e.
+    % did not sing)
+    filter='did_not_sing';
+    [SeqDepPitch_AcrossBirds_filtered, NumBirds]=lt_seq_dep_pitch_ACROSSBIRDS_ExtractStruct(SeqDepPitch_AcrossBirds_filtered, filter);
+    % Remove experiments that are missing data at least 2 days in beginning of learning (i.e.
+    % did not sing)
+    filter='did_not_sing2';
+    [SeqDepPitch_AcrossBirds_filtered, NumBirds]=lt_seq_dep_pitch_ACROSSBIRDS_ExtractStruct(SeqDepPitch_AcrossBirds_filtered, filter);
 
 
 % ====== LEARNING ANALYSIS [NOTED INSIDE WHAT IS USING CONSOLD START VS.
@@ -848,21 +831,21 @@ DriveMoreList={'pu64bk13', 'SeqDepPitchShift2', 12, ...
 %     'rd12pu6', 'SeqDepPitch3', [4 12], ...
 %     'rd28pu64', 'SeqDepPitch', [5 11], ...
 %     'rd28pu64', 'SeqDepPitchLMAN', [6 6], ...
-%     'bk34bk68', 'SeqDepPitchLMAN', [5 7]};
+%     'bk34bk68', 'SeqDepPitchLMAN', [5 7]}; 
 % OLD above
 
 PARAMS.TimeCourse.ConsolidationList={...
     'pu53wh88', 'SeqDepPitchShift', [8 13], ...
     'pu53wh88', 'SeqDepPitchShift2', [8 16], ...
     'pu53wh88', 'SeqDepPitchShift3', [5 12], ...
-    'pu53wh88', 'SeqDepPitchLMAN', [14 21], ...
-    'pu11wh87', 'SyntaxDepPitchShift_abUP', [5 8], ...
+    'pu53wh88', 'SeqDepPitchLMAN', [14 21], ... 
+    'pu11wh87', 'SyntaxDepPitchShift_abUP', [5 8], ... 
     'pu11wh87', 'SeqDepPitchShift2', [11 19], ...
-    'pu11wh87', 'SeqDepPitchShift3', [12 17], ...
+    'pu11wh87', 'SeqDepPitchShift3', [12 17], ... 
     'pu11wh87', 'SyntaxDepPitchShift_cbDOWN', [5 11], ...
     'pu11wh87', 'SeqDepPitchLMAN', [13 28], ...
     'pu11wh87', 'SeqDepPitchLMAN2', [5 15], ... % if want to avoid gap, use [8 15]
-    'pu11wh87', 'SeqDepPitchLMAN3', [8 15], ...
+    'pu11wh87', 'SeqDepPitchLMAN3', [8 15], ... 
     'pu11wh87', 'SeqDepPitchLMAN6', [4 5], ...
     'pu37wh20', 'SeqDepPitchShift', [5 6], ...
     'pu37wh20', 'SeqDepPitchShift2', [4 5], ...
@@ -876,16 +859,16 @@ PARAMS.TimeCourse.ConsolidationList={...
     'rd23gr89', 'SeqDepPitchLMAN', [4 5], ...
     'rd23gr89', 'SeqDepPitchLMAN2', [8 14], ...
     'pu35wh17', 'SeqDepPitch', [6 11], ...
-    'pu35wh17', 'SeqDepPitch2', [4 4], ...
-    'pu35wh17', 'SeqDepPitch3', [5 5], ...
+    'pu35wh17', 'SeqDepPitch2', [4 4], ... 
+    'pu35wh17', 'SeqDepPitch3', [5 5], ... 
     'rd12pu6', 'SeqDepPitch', [4 9], ...
     'rd12pu6', 'SeqDepPitch2', [4 12], ...
     'rd12pu6', 'SeqDepPitch3', [4 12], ...
     'rd28pu64', 'SeqDepPitch', [6 11], ...
     'rd28pu64', 'SeqDepPitchLMAN', [6 6], ...
-    'rd28pu64', 'SeqDepPitchLMAN2', [7 11], ...
-    'bk34bk68', 'SeqDepPitchLMAN', [7 7], ...
-    'bk34bk68', 'SeqDepPitchLMAN3', [5 8], ...
+    'rd28pu64', 'SeqDepPitchLMAN2', [7 11], ... 
+    'bk34bk68', 'SeqDepPitchLMAN', [7 7], ... 
+    'bk34bk68', 'SeqDepPitchLMAN3', [5 8], ... 
     'wh4wh77', 'SeqDepPitchLMAN', [6 12], ...
     'wh25pk77', 'SeqDepPitchLMAN', [5 7]};
 % triplets {birdname, exptname, [day1 daylast] (relative to WN day1 (not
@@ -900,14 +883,14 @@ PARAMS.TimeCourse.ConsolidationList={...
     'pu53wh88', 'SeqDepPitchShift', [4 13], ...
     'pu53wh88', 'SeqDepPitchShift2', [3 16], ...
     'pu53wh88', 'SeqDepPitchShift3', [3 12], ...
-    'pu53wh88', 'SeqDepPitchLMAN', [2 21], ...
-    'pu11wh87', 'SyntaxDepPitchShift_abUP', [1 8], ...
+    'pu53wh88', 'SeqDepPitchLMAN', [2 21], ... 
+    'pu11wh87', 'SyntaxDepPitchShift_abUP', [1 8], ... 
     'pu11wh87', 'SeqDepPitchShift2', [1 19], ...
-    'pu11wh87', 'SeqDepPitchShift3', [1 17], ...
+    'pu11wh87', 'SeqDepPitchShift3', [1 17], ... 
     'pu11wh87', 'SyntaxDepPitchShift_cbDOWN', [1 11], ...
     'pu11wh87', 'SeqDepPitchLMAN', [1 28], ...
     'pu11wh87', 'SeqDepPitchLMAN2', [1 15], ... % if want to avoid gap, use [8 15]
-    'pu11wh87', 'SeqDepPitchLMAN3', [1 15], ...
+    'pu11wh87', 'SeqDepPitchLMAN3', [1 15], ... 
     'pu11wh87', 'SeqDepPitchLMAN6', [1 5], ...
     'pu37wh20', 'SeqDepPitchShift', [1 6], ...
     'pu37wh20', 'SeqDepPitchShift2', [1 5], ...
@@ -921,16 +904,16 @@ PARAMS.TimeCourse.ConsolidationList={...
     'rd23gr89', 'SeqDepPitchLMAN', [2 5], ...
     'rd23gr89', 'SeqDepPitchLMAN2', [1 14], ...
     'pu35wh17', 'SeqDepPitch', [1 11], ...
-    'pu35wh17', 'SeqDepPitch2', [1 4], ...
-    'pu35wh17', 'SeqDepPitch3', [1 5], ...
+    'pu35wh17', 'SeqDepPitch2', [1 4], ... 
+    'pu35wh17', 'SeqDepPitch3', [1 5], ... 
     'rd12pu6', 'SeqDepPitch', [1 9], ...
     'rd12pu6', 'SeqDepPitch2', [1 12], ...
     'rd12pu6', 'SeqDepPitch3', [1 12], ...
     'rd28pu64', 'SeqDepPitch', [1 11], ...
     'rd28pu64', 'SeqDepPitchLMAN', [1 6], ...
-    'rd28pu64', 'SeqDepPitchLMAN2', [1 11], ...
-    'bk34bk68', 'SeqDepPitchLMAN', [1 7], ...
-    'bk34bk68', 'SeqDepPitchLMAN3', [1 8], ...
+    'rd28pu64', 'SeqDepPitchLMAN2', [1 11], ... 
+    'bk34bk68', 'SeqDepPitchLMAN', [1 7], ... 
+    'bk34bk68', 'SeqDepPitchLMAN3', [1 8], ... 
     'wh4wh77', 'SeqDepPitchLMAN', [1 12], ...
     'wh25pk77', 'SeqDepPitchLMAN', [1 7]};
 
@@ -956,7 +939,7 @@ PARAMS.TimeCourse.ThrowOutPoorLearner=0; % based on z score learning;
 lt_seq_dep_pitch_ACROSSBIRDS_TimeCourse(SeqDepPitch_AcrossBirds, PARAMS, DayToLockAllTo)
 
 
-%% PLOT LEARNING VS. DISTANCE FROM TARGET
+%% PLOT LEARNING VS. DISTANCE FROM TARGET 
 % Modified from singledir analysis, here  is simple, good for repeats.
 close all;
 norm_all_to_targ=1;
@@ -966,7 +949,7 @@ lt_seq_dep_pitch_ACROSSBIRDS_LearnVsPosition(SeqDepPitch_AcrossBirds, PARAMS, no
 lt_seq_dep_pitch_ACROSSBIRDS_LearnVsPosition(SeqDepPitch_AcrossBirds_filtered, PARAMS, norm_all_to_targ, plot_error_bars_on_raw, equal_y_axis);
 
 
-%% ==== REPEATS (good code)
+%% ==== REPEATS (good code) 
 close all;
 % ========= SINGLE DIR
 remove_repeats=0;
@@ -997,15 +980,15 @@ close all;
 PARAMS.global.MULTIDIR.DayBinSize=2; % num days to take at start and end. (also = num baseline days)
 PARAMS.global.MULTIDIR.WNdaynum=[3 4]; % days to use, post bidir WN on
 RepeatsOnly=0;
-OnlyUseSylsInSylsUnique=1; %
+OnlyUseSylsInSylsUnique=1; % 
 
 [SeqDepPitch_AcrossBirds_MULTIDIR, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_MULTIDIR(SeqDepPitch_AcrossBirds, PARAMS, RepeatsOnly,OnlyUseSylsInSylsUnique);
-
+ 
 
 % ==== PLOT ACROSS DAYS - CONSTRAINED TO SHIFT TOGETHER?
 close all;
 RepeatsOnly=0;
-OnlyUseSylsInSylsUnique=1; %
+OnlyUseSylsInSylsUnique=1; % 
 ExcludeSeqLearning=0;
 ExcludeNotFullyLabeled=1; % ad hoc, expt with unresolvable holes. (e.g. reprobing, mistakes, see code)
 ExcludeIfHasSameDirBeforeDiffDir=1;
@@ -1034,7 +1017,7 @@ lt_seq_dep_pitch_ACROSSBIRDS_Hamish(SeqDepPitch_AcrossBirds, PARAMS, plotExptRaw
 % TO DO: perform within experiment controls - label days fully for those
 % expts.
 close all;
-NullControl_splitday=0;
+NullControl_splitday=0; 
 same_type_thr=1.43;
 [~, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANbase(SeqDepPitch_AcrossBirds_LMAN, PARAMS, same_type_thr, NullControl_splitday);
 
@@ -1047,11 +1030,9 @@ same_type_thr=1.43;
 %% MAIN LMAN STUFF
 % --- what day windows to use for analysis?
 close all;
-debugON=0; % plots
-% musc_day_window_WNdayinds=[4 10]; % from WN day 3 to 10, collect all for analysis
+debugON=0; % plots 
 musc_day_window_WNdayinds=[4 10]; % from WN day 3 to 10, collect all for analysis
 musc_day_window_Bidirdayinds_Bidir=[4 10];
-
 % musc_day_window_WNdayinds=[9 12]; % from WN day 3 to 10, collect all for analysis
 pu53_use_later_days=2; % if 1, then goes to late days that had inactivaiotn; if 2, then throws out pu53
 single_targ_UseMaintainedEarly=1; % then use initial learning to day 4 of maintained shift [max is day 10]
@@ -1133,8 +1114,7 @@ epochfield_input='final_extracted_window';
 
 
 
-% ===== SINGLE DIR - CONSOLIDATION DRIVES GENERALIZATION? [IMPORTANT,
-% REGRESSION]
+% ===== SINGLE DIR - CONSOLIDATION DRIVES GENERALIZATION?
 close all;
 norm_by_targsyl=0; % normalize within each experiment
 % epochfield_input='days_consolid_early';
@@ -1144,7 +1124,7 @@ similar_only=1; % 0=only diff; 1=similar only; 2 = all;
 [PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANconsolGen(SeqDepPitch_AcrossBirds_LMAN, PARAMS, norm_by_targsyl, epochfield_input, similar_only);
 
 
-% +++++++++++++++++++++++++++++++
+% +++++++++++++++++++++++++++++++ 
 
 % ++++++++++++++++++++++++++= PLOT FOR BIDIR LEARNING
 close all;
@@ -1174,14 +1154,14 @@ GetAutoConsolWindows=1; % replace manual consol windows with auto?
 % OUTPUTS. THESE WINDOWS BELOW ARE OLD HAND CHOSEN.
 PARAMS.LMANTimeCourse.BidirConsolPeriod_IndsFromBidirStart={...
     'pu11wh87', 'SeqDepPitchLMAN',[4 8], ... %     'pu11wh87', 'SeqDepPitchLMAN2',[6 10], ... THIS IS DIFF SYLS
-    'gr41gr90', 'SeqDepPitchLMAN2',[3 4], ... %      'pu11wh87', 'SeqDepPitchLMAN6',[3 7], ... this is diff syl
-    'rd23gr89', 'SeqDepPitchLMAN',[5 8], ...
-    'rd28pu64', 'SeqDepPitchLMAN',[3 8], ...
-    'bk34bk68', 'SeqDepPitchLMAN3',[11 16], ...
-    'wh4wh77', 'SeqDepPitchLMAN',[4 12], ...
-    'wh25pk77', 'SeqDepPitchLMAN',[4 10], ...
-    'bk34bk68', 'SeqDepPitchLMAN',[3 8]}
-
+      'gr41gr90', 'SeqDepPitchLMAN2',[3 4], ... %      'pu11wh87', 'SeqDepPitchLMAN6',[3 7], ... this is diff syl
+      'rd23gr89', 'SeqDepPitchLMAN',[5 8], ...
+       'rd28pu64', 'SeqDepPitchLMAN',[3 8], ...
+      'bk34bk68', 'SeqDepPitchLMAN3',[11 16], ...
+      'wh4wh77', 'SeqDepPitchLMAN',[4 12], ...
+      'wh25pk77', 'SeqDepPitchLMAN',[4 10], ...
+      'bk34bk68', 'SeqDepPitchLMAN',[3 8]}
+  
 % PARAMS.LMANTimeCourse.BidirConsolPeriod_IndsFromBidirStart={...
 %     'pu11wh87', 'SeqDepPitchLMAN',[4 8], ... %     'pu11wh87', 'SeqDepPitchLMAN2',[6 10], ... THIS IS DIFF SYLS
 %      'pu11wh87', 'SeqDepPitchLMAN6',[3 7], ...
@@ -1191,7 +1171,7 @@ PARAMS.LMANTimeCourse.BidirConsolPeriod_IndsFromBidirStart={...
 %       'wh4wh77', 'SeqDepPitchLMAN',[4 12], ...
 %       'wh25pk77', 'SeqDepPitchLMAN',[4 10], ...
 %       'bk34bk68', 'SeqDepPitchLMAN',[4 10]} % only keeping expt where is first phase
-
+   
 
 [OUTPUT_multidir, DATSTRUCT_multidir] =lt_seq_dep_pitch_ACROSSBIRDS_LMANTimeCourse(SeqDepPitch_AcrossBirds_LMAN, PARAMS, OnlyConsolPeriod_bidir, BinRelConsolDay1, TakeAverageWithinExpt, NumDaysInBin, GetAutoConsolWindows);
 
@@ -1206,16 +1186,16 @@ GetAutoConsolWindows=1;
 % NOTE: ACTUAL WINDOWS ARE AUTO, THEY ARE CALCULATED ON EACH RUN, CODE
 % OUTPUTS. THESE WINDOWS BELOW ARE OLD HAND CHOSEN.
 PARAMS.LMANTimeCourse.SamedirConsolPeriod_IndsFromSamedirStart={...
-    'rd23gr89', 'SeqDepPitchLMAN2',[5 10], ...
-    'bk34bk68', 'SeqDepPitchLMAN3',[2 11], ...
-    'wh4wh77', 'SeqDepPitchLMAN',[6 13], ...
-    'wh25pk77', 'SeqDepPitchLMAN',[4 9], ...
-    'rd28pu64', 'SeqDepPitchLMAN2',[5 12]};
-
+      'rd23gr89', 'SeqDepPitchLMAN2',[5 10], ...
+      'bk34bk68', 'SeqDepPitchLMAN3',[2 11], ...
+      'wh4wh77', 'SeqDepPitchLMAN',[6 13], ...
+      'wh25pk77', 'SeqDepPitchLMAN',[4 9], ...
+      'rd28pu64', 'SeqDepPitchLMAN2',[5 12]};
+     
 % PARAMS.LMANTimeCourse.SamedirConsolPeriod_IndsFromSamedirStart={...
 %       'rd23gr89', 'SeqDepPitchLMAN2',[5 10], ...
 %       'bk34bk68', 'SeqDepPitchLMAN3',[2 11]}; % only experiments that are first phase
-%
+% 
 
 [OUTPUT_samedir, DATSTRUCT_samedir]=lt_seq_dep_pitch_ACROSSBIRDS_LMANtc_SamDir(SeqDepPitch_AcrossBirds_LMAN, PARAMS, OnlyConsolPeriod_bidir, BinRelConsolDay1, TakeAverageWithinExpt, NumDaysInBin, GetAutoConsolWindows);
 
@@ -1232,7 +1212,7 @@ GetAutoConsolWindows=0; % KEEP THIS 0 for single targ (see below) but 1 for same
 %     'rd28pu64',  'SeqDepPitchLMAN2', [7 11], ...
 %     'bk34bk68',  'SeqDepPitchLMAN3', [3 8], ...
 %     'wh4wh77',  'SeqDepPitchLMAN', [4 12]};
-%
+% 
 % % EXPERIMENTS THAT HAVE DATA FOR ALL DAY BINS
 % PARAMS.LMANTimeCourse.SamedirConsolPeriod_IndsFromSamedirStart={...
 %     'pu11wh87', 'SeqDepPitchLMAN',[13 28], ...
@@ -1258,13 +1238,13 @@ PARAMS.LMANTimeCourse.SamedirConsolPeriod_IndsFromSamedirStart={...
     'wh4wh77',  'SeqDepPitchLMAN', [4 12], ...
     'wh25pk77',  'SeqDepPitchLMAN', [3 7]};
 
-
+ 
 [OUTPUT_singleTarg, DATSTRUCT_singleTarg]=lt_seq_dep_pitch_ACROSSBIRDS_LMANtc_SinTarg(SeqDepPitch_AcrossBirds_LMAN, PARAMS, OnlyConsolPeriod_bidir, BinRelConsolDay1, TakeAverageWithinExpt, NumDaysInBin, GetAutoConsolWindows);
 
 
 % ===== STATS COMPARE TWO DIR TO SAME DIR
 lt_seq_dep_pitch_ACROSSBIRDS_LMANtc_stats; % hand entered values
-lt_seq_dep_pitch_ACROSSBIRDS_LMANhitrate_1; % ad hoc, hand entered values
+lt_seq_dep_pitch_ACROSSBIRDS_LMANhitrate_1; % ad hoc, hand entered values 
 
 
 % note: for below, make sure the same dir and multidir codes used the same
@@ -1287,14 +1267,14 @@ AdHocExpt={};
 % --- if using MUSC baseline (default)
 if (0)
     AdHocExpt={'wh25pk77', 'SeqDepPitchLMAN', 'multiDir2', ...
-        {'ff_combined_PBS', 308.4 , 'ff_combined_MUSC', 191.3, 'ff_first_PBS', 215.4, 'ff_first_MUSC', 206.7, ...
-        'ff_second_PBS', -93, 'ff_second_MUSC', 15.4, 'phase_day1_relWN', 29},...
-        'bin 2 of 3-day binds'}; % 5-tuple cell arrays
-    % ---- if using PBS baseline for both musc and pbs data
+    {'ff_combined_PBS', 308.4 , 'ff_combined_MUSC', 191.3, 'ff_first_PBS', 215.4, 'ff_first_MUSC', 206.7, ...
+    'ff_second_PBS', -93, 'ff_second_MUSC', 15.4, 'phase_day1_relWN', 29},...
+    'bin 2 of 3-day binds'}; % 5-tuple cell arrays
+% ---- if using PBS baseline for both musc and pbs data 
     AdHocExpt={'wh25pk77', 'SeqDepPitchLMAN', 'multiDir2', ...
-        {'ff_combined_PBS', 308.45, 'ff_combined_MUSC', 230.3, 'ff_first_PBS', 215.35, 'ff_first_MUSC', 206.19, ...
-        'ff_second_PBS', -93.1 , 'ff_second_MUSC', -24.1 , 'phase_day1_relWN', 29},...
-        'bin 2 of 3-day binds'}; % 5-tuple cell arrays
+    {'ff_combined_PBS', 308.45, 'ff_combined_MUSC', 230.3, 'ff_first_PBS', 215.35, 'ff_first_MUSC', 206.19, ...
+    'ff_second_PBS', -93.1 , 'ff_second_MUSC', -24.1 , 'phase_day1_relWN', 29},...
+    'bin 2 of 3-day binds'}; % 5-tuple cell arrays
 end
 
 % BELOW: used 1st learning epoch, wrong vals.
@@ -1303,7 +1283,7 @@ end
 %     {'ff_combined_PBS', 242.5, 'ff_combined_MUSC', 180.8, 'ff_first_PBS', 217.5, 'ff_first_MUSC', 169.7, ...
 %     'ff_second_PBS', -25.1, 'ff_second_MUSC', -10.93, 'phase_day1_relWN', 29},...
 %     'bin 2 of 3-day binds'}; % 5-tuple cell arrays
-% % ---- if using PBS baseline for both musc and pbs data
+% % ---- if using PBS baseline for both musc and pbs data 
 % AdHocExpt={'wh25pk77', 'SeqDepPitchLMAN', 'multiDir2', ...
 %     {'ff_combined_PBS', 199.7, 'ff_combined_MUSC', 186.9, 'ff_first_PBS', 215.35, 'ff_first_MUSC', 206.19, ...
 %     'ff_second_PBS', 15.62 , 'ff_second_MUSC', 19.25 , 'phase_day1_relWN', 29},...
@@ -1372,11 +1352,11 @@ lt_seq_dep_pitch_ACROSSBIRDS_LMANseparation(SeqDepPitch_AcrossBirds_LMAN, PARAMS
 
 
 %% +++++++++++++++++++++ SEQUENCE LEARNING - EFFECT OF MUSC
-close all;
+close all; 
 [PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANsquence(SeqDepPitch_AcrossBirds_LMAN, PARAMS);
 
 % -- using user entered transitions
-close all;
+close all; 
 
 PARAMS.sequence_v2.birdname_exptname_Motifs= ...
     {'pu53wh88', 'SeqDepPitchLMAN', {'ab', 'ac'}, ...

@@ -970,7 +970,7 @@ Zname='Learning1_MPbias0';
 lt_figure; hold on;
 xlabel('target shift');
 ylabel('nontarg shift');
-title('blue: nontarg(same); bk: targ');
+title('blue: nontarg(same); bk: tFFvals_WithinTimeWindowarg');
 % --- LEARNING;
 x=X5(~isnan(X5)); % targ
 y=Learning_nontarg_all(~isnan(Learning_nontarg_all)); % nontarg
@@ -1006,10 +1006,10 @@ ystart=Learning_nontarg_all(~isnan(Learning_nontarg_all));
 
 % - plot lines that go up
 inds=y>=0;
-quiver(xstart(inds), ystart(inds), x(inds), y(inds), 0, 'Color','b');
+quiver(xstart(inds), ystart(inds), x(inds), y(inds), 0, 'Color','m');
 % - plot lines that go down
 inds=y<0;
-quiver(xstart(inds), ystart(inds), x(inds), y(inds), 0, 'Color','m');
+quiver(xstart(inds), ystart(inds), x(inds), y(inds), 0, 'Color','b');
     
 lt_plot_zeroline; lt_plot_zeroline_vert;    
 

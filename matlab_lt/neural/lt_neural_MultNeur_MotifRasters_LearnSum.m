@@ -84,8 +84,7 @@ for i=1:NumNeurons
         [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
             regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams);
         
-        
-        % -------- SAVE TIMING OF SPIKES FOR THIS NEURON
+                % -------- SAVE TIMING OF SPIKES FOR THIS NEURON
         MOTIFSTATS.neurons(i).motif(j).SegmentsExtract=SegmentsExtract;
         MOTIFSTATS.neurons(i).motif(j).Params=Params;
     end
@@ -278,13 +277,21 @@ for m=1:NumMotifs
                 line([boundaryAfterBase boundaryAfterBase], ylim, 'Color','k', 'LineStyle', '--');
             end
             
+            % ===== PLOT FF
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
             hsplots2=[hsplots2 hsplot];
             title(motif_regexpr_str{m}); ylabel('ff (hz)');
             plot(MedianDayVals, FFVals, 'sk');
             plot(MedianDayVals(logical(AreAllTrialsBaseline)), FFVals(logical(AreAllTrialsBaseline)), 'sb');
             plot(MedianDayVals(logical(AreAllTrialsDurWN)), FFVals(logical(AreAllTrialsDurWN)), 'sr');
-            
+            % -- running average
+            tvals_run = lt_running_stats(MedianDayVals, 15);
+            ffvals_run = lt_running_stats(FFVals, 15);
+            if length(tvals_run.Mean)>1
+            shadedErrorBar(tvals_run.Mean, ffvals_run.Mean, ffvals_run.SEM, {'Color', [0.7 0.7 0.7]}, 1)
+            end
+            line(xlim, [mean(FFVals(logical(AreAllTrialsBaseline))) ...
+                mean(FFVals(logical(AreAllTrialsBaseline)))], 'Color', [0.7 0.7 0.7]);
             
         end
         
