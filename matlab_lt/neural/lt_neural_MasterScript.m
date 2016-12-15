@@ -24,7 +24,7 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='bk7_161017_210629.rhd';
+filename='bk7_160822_112047.rhd';
 ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
@@ -36,9 +36,9 @@ neuralFiltLow=300;
 
 PlotWhat.raw=0;
 PlotWhat.filt=1;
-PlotWhat.rect_sm=1;
+PlotWhat.rect_sm=0;
 PlotWhat.raster=0;
-PlotWhat.digital=1;
+PlotWhat.digital=0;
 
 Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
 Raster.ThrXNoise=6; % threshold for units, used for all channels, uses absolute data for peak detection
@@ -51,6 +51,24 @@ lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, R
 %% ANALYSIS PIPELINE
 %% +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+%% ==================================================== VARIOUS THINGS
+%% PCA to try to remove common noise
+
+close all;
+ChansToUse=[8 9 12 15 17 19 20 22];
+ChansToUse=[8 12 19 20 22];
+batchf='batch_epoch3';
+plotOn = 0;
+save_raw_dat = 0;
+PlotAllChanSep = 1; % then makes one plot for each chan, comparing diff methods
+
+lt_neural_commonNoise(batchf, ChansToUse, plotOn, save_raw_dat, PlotAllChanSep);
+
+% NOTE (12/2/16) - currently regression method worked well for one set of
+% songs and PCA method for another. Neither method worked great. 
+
+
+
 %% ==================================================== PREPROCESSING
 %% label songs using modified evsonganaly
 clear all; close all;
@@ -59,8 +77,8 @@ batchf='BatchChan14Late';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
-ChansToPlot=[17];
-batchtoplot='Batch1750';
+ChansToPlot=[8 9 12 15 17 19 20 22];
+batchtoplot='batchall_sub';
 
 % -----  v1, plots just raw neural, filtered
 % batchtoplot=batchf;
@@ -76,8 +94,8 @@ lt_neural_concatExplore_v2(batchtoplot, ChansToPlot, PlotRectDat, PlotFiltDat); 
 % based on expectation of duration for single unit.
 % -- saves into downstream folder
 close all; clear all;
-batchf='Batch1750';
-channel_board=17;
+batchf='batchall_sub';
+channel_board=20;
 lt_neural_concatOneChan(batchf, channel_board)
 
 %% ==== run wave_clus on this concatted data
@@ -93,8 +111,8 @@ lt_neural_AlgnWavclus(batchf, channel_board, plotcols);
 %% ++++++++++ ANALYSIS (NEURONS ONE BY ONE) 
 %% ==== EXTRACT SONG, LABEL,SongDat ONSETS, SPIKE DATA
 close all;
-batchf='batchall';
-channel_board=17;
+batchf='BatchChan14good_v4';
+channel_board=14;
 [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
 
 
@@ -107,7 +125,7 @@ close all;
 % regexpr_str='(g)h'; % token determines where align. predur is relative to token.
 % regexpr_str='n(h)h'; % token determines where align. predur is relative to token.
 % regexpr_str='[^h](h)h'; % token determines where align. predur is relative to token.
-regexpr_str='kd(c)cbgh'; % token determines where align. predur is relative to token.
+regexpr_str='h(h)'; % token determines where align. predur is relative to token.
 predur=0.1;
 postdur=0.1;
 alignByOnset=1;
@@ -160,12 +178,12 @@ close all;
 % % MotifList_regexp={'[^b](b)', 'b(b)'};
 % MotifList_regexp={'(g)b', '(g)h'};
 % MotifList_regexp={'gh(h)hh'};
-MotifList_regexp={'kd(c)cbgh', 'wd(c)cbgh'};
+MotifList_regexp={'g(h)', 'n(h)', 'h(h)'};
 
 predur=0.1;
 postdur=0.1;
-LinearWarp=1; % 0=no; 1=yes, each motif individually; 2=yes, all motifs to global motif median dur
-suppressplots=1; % diagnostic plots.
+LinearWarp=0; % 0=no; 1=yes, each motif individually; 2=yes, all motifs to global motif median dur
+suppressplots=0; % diagnostic plots.
 onlyPlotMean=0; % then does not plot rasters, just means.
 
 lt_neural_motifRastMult(SongDat, NeurDat, Params, MotifList_regexp, ...

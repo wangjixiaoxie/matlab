@@ -86,6 +86,7 @@ if plotAllSegs==1
         
         % - spike times
         numclust=max(SegmentsExtract(i).spk_Clust);
+        if ~isempty(numclust)
         for j=1:numclust
             inds=find([SegmentsExtract(i).spk_Clust]==j);
             
@@ -111,7 +112,9 @@ if plotAllSegs==1
                 lt_plot_text(predur, 100, 'rescaled', 'g');
             end
         end
-        
+        else
+            j = 1;
+        end
         ylim([Ylim(1)-(j+2)*500 Ylim(2)]);
         
     end

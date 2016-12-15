@@ -72,7 +72,7 @@ if bk_red==1
     
     % Plot
     colormap('hot')
-    imagesc(t, f, flipud(sptemp), [Cmin+Cmin/10 Cmax]);
+    imagesc(t, f, sptemp, [Cmin+Cmin/10 Cmax]);
 else
             imagesc(t, f, sptemp);
 end

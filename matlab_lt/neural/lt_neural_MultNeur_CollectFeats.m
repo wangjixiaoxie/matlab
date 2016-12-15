@@ -1,5 +1,7 @@
-%% LT 9/29/16 - make data struct - each vocalization
+function SYLNEURDAT = lt_neural_MultNeur_CollectFeats(NeuronDatabase, FFparams, saveOn)
 
+%% LT 9/29/16 - make data struct - each vocalization
+plotFRvsPitch =0;
 NumNeurons=length(NeuronDatabase.neurons);
 
 %% == go thru each neuron, each song file, each vocalization, extract data
@@ -7,6 +9,8 @@ NumNeurons=length(NeuronDatabase.neurons);
 
 prepad=0.015; postpad=0.015; % get 15ms pre and post (acoustic dat)
 premotorlag=0.04; % getting spike dat.
+
+postmotorlag = 0.04; % for post activity
 
 SYLNEURDAT=struct;
 counter=0;
@@ -68,15 +72,20 @@ for i=1:NumNeurons
         
         syldat=SongDat.AllSongs(onset_samp-prepad*fs:offset_samp+postpad*fs);
         
+        syldur = offset_sec - onset_sec;
         
         % Pitch contour and FF ----------------------
         collectFF=1;
         
-        cell_of_FFtimebins={'h', [0.042 0.058], 'b', [0.053 0.07], ...
-            'v', [0.052 0.07]}; % in sec, relative to onset (i.e. see vector T)
+        % OLD VERSON, WROTE DIRECTLY INTO THIS CODE.
+        %         cell_of_FFtimebins={'h', [0.042 0.058], 'b', [0.053 0.07], ...
+        %             'v', [0.052 0.07]}; % in sec, relative to onset (i.e. see vector T)
+        %         cell_of_freqwinds={'h', [1100 2600], 'b', [2400 3500], ...
+        %             'v', [2450 4300]};
         
-        cell_of_freqwinds={'h', [1100 2600], 'b', [2400 3500], ...
-            'v', [2450 4300]};
+        % NEW VERSION: SPECIFY IN INPUT VARIABLE
+        cell_of_FFtimebins=FFparams.cell_of_FFtimebins;
+        cell_of_freqwinds=FFparams.cell_of_freqwinds;
         
         ind=find(strcmp(syl, cell_of_freqwinds));
         if isempty(ind)
@@ -124,12 +133,21 @@ for i=1:NumNeurons
         spike_rate_hz=numspikes/(offset_sec - onset_sec); % sp/sec
         
         
-        
+        % --- spikes (post window)
+        inds=NeurDat.spikes_cat.cluster_class(:,2) > (onset_sec + postmotorlag)*1000 ...
+            & NeurDat.spikes_cat.cluster_class(:,2) < (offset_sec + postmotorlag)*1000 ...
+            & NeurDat.spikes_cat.cluster_class(:,1) == NeuronDatabase.neurons(i).clustnum;
+        numspikes_post = sum(inds);
+        spike_rate_hz_postmotor = numspikes_post/(offset_sec - onset_sec);
+
         
         % ===== OUTPUT
         counter=counter+1;
         SYLNEURDAT.data_sylrend(counter).NumSpikes=numspikes;
         SYLNEURDAT.data_sylrend(counter).SpikeRate_hz=spike_rate_hz;
+        
+        SYLNEURDAT.data_sylrend(counter).NumSpikes_postmotor=numspikes_post;
+        SYLNEURDAT.data_sylrend(counter).SpikeRate_hz_postmotor=spike_rate_hz_postmotor;
         
         SYLNEURDAT.data_sylrend(counter).positionInAllLabels_thisBatchNeuron=j;
         SYLNEURDAT.data_sylrend(counter).post_ten_syls=post_ten_syls;
@@ -150,6 +168,7 @@ for i=1:NumNeurons
         %         SYLNEURDAT.data_sylrend(counter).PitchContour_F=F;
         SYLNEURDAT.data_sylrend(counter).FF=FF;
         
+        SYLNEURDAT.data_sylrend(counter).syldur = syldur;
         
     end
     
@@ -159,15 +178,132 @@ end
 clear SongDat;
 clear NeurDat;
 
-% ================ SAVE
-savedir='/bluejay4/lucas/birds/bk7/MultNeur_CollectFeats';
+%% ================ SAVE
+if saveOn ==1
+    savedir='/bluejay4/lucas/birds/bk7/SUMMARYDAT_MultNeur_CollectFeats';
 save([savedir '/SYLNEURDAT.mat'], 'SYLNEURDAT');
 
+disp('SAVED!!');
+end
 
 %% ====== DEBUG - across all neurons, plot pitch contours for each syl,
-% across all rends
 if (0)
+    % across all rends
+    if (0)
+        syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
+        figcount=1;
+        subplotcols=2;
+        subplotrows=ceil(length(syllist)/subplotcols);
+        fignums_alreadyused=[];
+        hfigs=[];
+        
+        for i=1:length(syllist)
+            syl=syllist{i};
+            
+            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+            title(syl);
+            
+            % extract all PC for this syl (across all neurons)
+            inds=strfind([SYLNEURDAT.data_sylrend.Syl], syl);
+            
+            for j=1:length(inds)
+                
+                T=SYLNEURDAT.data_sylrend(inds(j)).PitchContour_T;
+                pc=SYLNEURDAT.data_sylrend(inds(j)).PitchContour;
+                plot(T, pc, 'Color', [rand rand rand]);
+            end
+            try
+                indtmp=find(strcmp(cell_of_FFtimebins, syl));
+                mintime=cell_of_FFtimebins{indtmp+1}(1); % sec
+                [~, minind]=min(abs(T-mintime));
+                
+                maxtime=cell_of_FFtimebins{indtmp+1}(2);
+                [~, maxind]=min(abs(T-maxtime));
+                line([mintime mintime], ylim, 'Color', 'm');
+                line([maxtime maxtime], ylim, 'Color', 'm');
+            catch err
+            end
+            
+            axis tight;
+        end
+    end
+    
+    % ==== plot all FF vals
+    if (0)
+        syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
+        figcount=1;
+        subplotcols=2;
+        subplotrows=ceil(length(syllist)/subplotcols);
+        fignums_alreadyused=[];
+        hfigs=[];
+        
+        for i=1:length(syllist)
+            syl=syllist{i};
+            
+            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+            title(syl);
+            
+            % extract all PC for this syl (across all neurons)
+            inds=strfind([SYLNEURDAT.data_sylrend.Syl], syl);
+            
+            FFvals=[SYLNEURDAT.data_sylrend(inds).FF];
+            plot(FFvals, 'ok');
+            
+            axis tight;
+        end
+    end
+    
+    
+    
+    
+    % ======= PICK OUT INDS THAT HAVE WEIRD CONTOURS - CLIPPING
+    syltoget='b';
+    window=[250 300];
+    
     syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
+    figcount=1;
+    subplotcols=2;
+    subplotrows=ceil(length(syllist)/subplotcols);
+    fignums_alreadyused=[];
+    hfigs=[];
+    
+    for i=1:length(syllist)
+        syl=syllist{i};
+        
+        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+        title(syl);
+        
+        % extract all PC for this syl (across all neurons)
+        inds=strfind([SYLNEURDAT.data_sylrend.Syl], syl);
+        
+        for j=1:length(inds)
+            
+            T=SYLNEURDAT.data_sylrend(inds(j)).PitchContour_T;
+            pc=SYLNEURDAT.data_sylrend(inds(j)).PitchContour;
+            if strcmp(syl, syltoget)
+                %             disp(max(pc(250:287)));
+                if length(pc)<287
+                    disp('pc too short!!')
+                    disp([num2str(inds(j)) ': ' SYLNEURDAT.data_sylrend(inds(j)).songfname]);
+                    
+                    continue
+                end
+                if any(pc(250:287)>3325);
+                    plot(T, pc, 'Color', [rand rand rand]);
+                    disp([num2str(inds(j)) ': ' SYLNEURDAT.data_sylrend(inds(j)).songfname]);
+                    
+                end
+            end
+        end
+        
+        axis tight;
+    end
+    
+    
+    % ======= FOR EACH SYL, PLOT FF, ORDERED BY NEURON
+    syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
+    neuronlist=unique([SYLNEURDAT.data_sylrend.neuronID]);
+    
     figcount=1;
     subplotcols=2;
     subplotrows=ceil(length(syllist)/subplotcols);
@@ -189,231 +325,118 @@ if (0)
             pc=SYLNEURDAT.data_sylrend(inds(j)).PitchContour;
             plot(T, pc, 'Color', [rand rand rand]);
         end
-        try
-            indtmp=find(strcmp(cell_of_FFtimebins, syl));
-            mintime=cell_of_FFtimebins{indtmp+1}(1); % sec
-            [~, minind]=min(abs(T-mintime));
-            
-            maxtime=cell_of_FFtimebins{indtmp+1}(2);
-            [~, maxind]=min(abs(T-maxtime));
-            line([mintime mintime], ylim, 'Color', 'm');
-            line([maxtime maxtime], ylim, 'Color', 'm');
-        catch err
-        end
         
         axis tight;
     end
+    
 end
-
-% ==== plot all FF vals
-if (0)
-    syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
-    figcount=1;
-    subplotcols=2;
-    subplotrows=ceil(length(syllist)/subplotcols);
-    fignums_alreadyused=[];
-    hfigs=[];
-    
-    for i=1:length(syllist)
-        syl=syllist{i};
-        
-        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-        title(syl);
-        
-        % extract all PC for this syl (across all neurons)
-        inds=strfind([SYLNEURDAT.data_sylrend.Syl], syl);
-        
-        FFvals=[SYLNEURDAT.data_sylrend(inds).FF];
-        plot(FFvals, 'ok');
-        
-        axis tight;
-    end
-end
-
-
-
-
-% ======= PICK OUT INDS THAT HAVE WEIRD CONTOURS - CLIPPING
-syltoget='b';
-window=[250 300];
-
-syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
-figcount=1;
-subplotcols=2;
-subplotrows=ceil(length(syllist)/subplotcols);
-fignums_alreadyused=[];
-hfigs=[];
-
-for i=1:length(syllist)
-    syl=syllist{i};
-    
-    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-    title(syl);
-    
-    % extract all PC for this syl (across all neurons)
-    inds=strfind([SYLNEURDAT.data_sylrend.Syl], syl);
-    
-    for j=1:length(inds)
-        
-        T=SYLNEURDAT.data_sylrend(inds(j)).PitchContour_T;
-        pc=SYLNEURDAT.data_sylrend(inds(j)).PitchContour;
-        if strcmp(syl, syltoget)
-            %             disp(max(pc(250:287)));
-            if length(pc)<287
-                disp('pc too short!!')
-                disp([num2str(inds(j)) ': ' SYLNEURDAT.data_sylrend(inds(j)).songfname]);
-                
-                continue
-            end
-            if any(pc(250:287)>3325);
-                plot(T, pc, 'Color', [rand rand rand]);
-                disp([num2str(inds(j)) ': ' SYLNEURDAT.data_sylrend(inds(j)).songfname]);
-                
-            end
-        end
-    end
-    
-    axis tight;
-end
-
-
-% ======= FOR EACH SYL, PLOT FF, ORDERED BY NEURON
-syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
-neuronlist=unique([SYLNEURDAT.data_sylrend.neuronID]);
-
-figcount=1;
-subplotcols=2;
-subplotrows=ceil(length(syllist)/subplotcols);
-fignums_alreadyused=[];
-hfigs=[];
-
-for i=1:length(syllist)
-    syl=syllist{i};
-    
-    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-    title(syl);
-    
-    % extract all PC for this syl (across all neurons)
-    inds=strfind([SYLNEURDAT.data_sylrend.Syl], syl);
-    
-    for j=1:length(inds)
-        
-        T=SYLNEURDAT.data_sylrend(inds(j)).PitchContour_T;
-        pc=SYLNEURDAT.data_sylrend(inds(j)).PitchContour;
-        plot(T, pc, 'Color', [rand rand rand]);
-    end
-    
-    axis tight;
-end
-
-
 %% ============================ FOR EACH NEURON, HOW DOES FIRING RATE CORRELATE WITH PITCH?
-
-useFiringRate=1; % if 0, then uses num spikes; if 1, then norms to duration of premotor window.
-
-NumNeurons=max([SYLNEURDAT.data_sylrend.neuronID]);
-syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
-
-for i=1:NumNeurons
+if plotFRvsPitch ==1
+    useFiringRate=1; % if 0, then uses num spikes; if 1, then norms to duration of premotor window.
     
-    figcount=1;
-    subplotcols=3;
-    subplotrows=ceil(length(syllist)/subplotcols);
-    fignums_alreadyused=[];
-    hfigs=[];
+    NumNeurons=max([SYLNEURDAT.data_sylrend.neuronID]);
+    syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
     
-    
-    % === for each syl, plot corr between firing rate and pitch
-    for j=1:length(syllist)
-        syl=syllist{j};
-        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-        title(['neuron: ' num2str(i) '; syl: ' syl]);
+    for i=1:NumNeurons
         
-        % ================== PITCH VS. SPIKES
-        inds=find([SYLNEURDAT.data_sylrend.neuronID]==i & ...
-            [SYLNEURDAT.data_sylrend.Syl] == syl); % for this syl and neuron
+        figcount=1;
+        subplotcols=3;
+        subplotrows=ceil(length(syllist)/subplotcols);
+        fignums_alreadyused=[];
+        hfigs=[];
         
-        if ~isempty(inds)
-            if useFiringRate==1
-                x_spikes=[SYLNEURDAT.data_sylrend(inds).SpikeRate_hz];
-                xlab='firing rate (hz)';
-                
-            else
-                x_spikes=[SYLNEURDAT.data_sylrend(inds).NumSpikes]; % take raw spikes num
-                xlab='num spks';
-            end
-            y_FF=[SYLNEURDAT.data_sylrend(inds).FF];
+        
+        % === for each syl, plot corr between firing rate and pitch
+        for j=1:length(syllist)
+            syl=syllist{j};
+            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+            title(['neuron: ' num2str(i) '; syl: ' syl]);
             
-            if length(y_FF)==1 & isnan(y_FF)
-                continue
-            else
-                lt_regress(y_FF, x_spikes, 1, 0, 1, 1, 'b');
+            % ================== PITCH VS. SPIKES
+            inds=find([SYLNEURDAT.data_sylrend.neuronID]==i & ...
+                [SYLNEURDAT.data_sylrend.Syl] == syl); % for this syl and neuron
+            
+            if ~isempty(inds)
+                if useFiringRate==1
+                    x_spikes=[SYLNEURDAT.data_sylrend(inds).SpikeRate_hz];
+                    xlab='firing rate (hz)';
+                    
+                else
+                    x_spikes=[SYLNEURDAT.data_sylrend(inds).NumSpikes]; % take raw spikes num
+                    xlab='num spks';
+                end
+                y_FF=[SYLNEURDAT.data_sylrend(inds).FF];
+                
+                if length(y_FF)==1 & isnan(y_FF)
+                    continue
+                else
+                    lt_regress(y_FF, x_spikes, 1, 0, 1, 1, 'b');
+                end
             end
+            
+            xlabel(xlab);
+            ylabel('ff');
+            
         end
-        
-        xlabel(xlab);
-        ylabel('ff');
-        
     end
-end
-
-
-%% ============== SEPARATE BY SEQUENTIAL CONTEXT
-
-% For this neuron, for each syl, plot FF vs spike rate for each potential
-% preceding syl (ie. each context)
-
-useFiringRate=1; % if 0, then uses num spikes; if 1, then norms to duration of premotor window.
-
-NumNeurons=max([SYLNEURDAT.data_sylrend.neuronID]);
-syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
-
-for i=1:NumNeurons
     
-    figcount=1;
-    subplotcols=3;
-    subplotrows=ceil(length(syllist)/subplotcols);
-    fignums_alreadyused=[];
-    hfigs=[];
+    %% ============== SEPARATE BY SEQUENTIAL CONTEXT
     
+    % For this neuron, for each syl, plot FF vs spike rate for each potential
+    % preceding syl (ie. each context)
     
-    % === for each syl, plot corr between firing rate and pitch
-    for j=1:length(syllist)
-        syl=syllist{j};
-        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-        title(['neuron: ' num2str(i) '; syl: ' syl]);
+    useFiringRate=1; % if 0, then uses num spikes; if 1, then norms to duration of premotor window.
+    
+    NumNeurons=max([SYLNEURDAT.data_sylrend.neuronID]);
+    syllist=unique([{SYLNEURDAT.data_sylrend.Syl}]);
+    
+    for i=1:NumNeurons
+        
+        figcount=1;
+        subplotcols=3;
+        subplotrows=ceil(length(syllist)/subplotcols);
+        fignums_alreadyused=[];
+        hfigs=[];
         
         
-        % ================== PITCH VS. SPIKES
-        inds=find([SYLNEURDAT.data_sylrend.neuronID]==i & ...
-            [SYLNEURDAT.data_sylrend.Syl] == syl); % for this syl and neuron
-        
-        preSylList=[{SYLNEURDAT.data_sylrend(inds).pre_syl}];
-        
-        % ======= For each context
-        presyl='';
-        if ~isempty(inds)
-            if useFiringRate==1
-                x_spikes=[SYLNEURDAT.data_sylrend(inds).SpikeRate_hz];
-                xlab='firing rate (hz)';
-                
-            else
-                x_spikes=[SYLNEURDAT.data_sylrend(inds).NumSpikes]; % take raw spikes num
-                xlab='num spks';
-            end
-            y_FF=[SYLNEURDAT.data_sylrend(inds).FF];
+        % === for each syl, plot corr between firing rate and pitch
+        for j=1:length(syllist)
+            syl=syllist{j};
+            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+            title(['neuron: ' num2str(i) '; syl: ' syl]);
             
-            if length(y_FF)==1 & isnan(y_FF)
-                continue
-            else
-                lt_regress(y_FF, x_spikes, 1, 0, 1, 1, 'b');
+            
+            % ================== PITCH VS. SPIKES
+            inds=find([SYLNEURDAT.data_sylrend.neuronID]==i & ...
+                [SYLNEURDAT.data_sylrend.Syl] == syl); % for this syl and neuron
+            
+            preSylList=[{SYLNEURDAT.data_sylrend(inds).pre_syl}];
+            
+            % ======= For each context
+            presyl='';
+            if ~isempty(inds)
+                if useFiringRate==1
+                    x_spikes=[SYLNEURDAT.data_sylrend(inds).SpikeRate_hz];
+                    xlab='firing rate (hz)';
+                    
+                else
+                    x_spikes=[SYLNEURDAT.data_sylrend(inds).NumSpikes]; % take raw spikes num
+                    xlab='num spks';
+                end
+                y_FF=[SYLNEURDAT.data_sylrend(inds).FF];
+                
+                if length(y_FF)==1 & isnan(y_FF)
+                    continue
+                else
+                    lt_regress(y_FF, x_spikes, 1, 0, 1, 1, 'b');
+                end
             end
+            
+            xlabel(xlab);
+            ylabel('ff');
+            
+            
         end
-        
-        xlabel(xlab);
-        ylabel('ff');
-        
-        
     end
 end
 

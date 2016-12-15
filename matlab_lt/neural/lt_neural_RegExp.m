@@ -142,6 +142,8 @@ for i=1:length(tokenExtents)
         % align by offset of token syl
         ontime=AllOffsets(ind); % sec
     end
+    
+    
     ontime=ontime-predur; % - adjust on time
     onsamp=round(ontime*fs);
     

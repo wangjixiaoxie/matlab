@@ -1,4 +1,4 @@
-function lt_neural_MultNeur_MotifRasters_v2(NeuronDatabase, motif_regexpr_str, motif_predur, motif_postdur, LinScaleGlobal)
+function lt_neural_MultNeur_MotifRasters_v2(NeuronDatabase, motif_regexpr_str, motif_predur, motif_postdur, LinScaleGlobal, WHOLEBOUTS_edgedur)
 %% v2 - can input multiple motifs, will align all of them and compare firing rate for each neuron across motifs
 % now:
 % motif_regexpr_str is cell array, each ind with one motif
@@ -39,8 +39,10 @@ for i=1:NumNeurons
         predur=motif_predur; % sec
         postdur=motif_postdur; % sec
         alignByOnset=1;
-        WHOLEBOUTS_edgedur=''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
+        if ~exist('WHOLEBOUTS_edgedur', 'var')
+            WHOLEBOUTS_edgedur = ''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
         % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
+        end
         [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
             regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur);
         
@@ -316,11 +318,12 @@ for m=1:NumMotifs
         end
         
         % -- convert to smoothed rate
+        if length(Yspks)>1
         [xbin, ~, ~, ymean_hz, ysem_hz] = lt_neural_plotRastMean(Yspks, window, windshift, 0, '');
         
         % --- plot
         shadedErrorBar(xbin, ymean_hz, ysem_hz, {'Color', plotcols{i}}, 1);
-        
+        end
         % -- line for motif onset
         line([motif_predur motif_predur], ylim, 'Color','k');
         if LinScaleGlobal==1
@@ -500,10 +503,12 @@ for i=1:NumNeurons
         end
         
         % -- convert to smoothed rate
+        if length(Yspks)>1
         [xbin, ~, ~, ymean_hz, ysem_hz] = lt_neural_plotRastMean(Yspks, window, windshift, 0, '');
         
         % --- plot
         shadedErrorBar(xbin, ymean_hz, ysem_hz, {'Color', plotcols_motif{m}}, 1);
+        end
         
         % -- line for motif onset
         line([motif_predur motif_predur], ylim, 'Color','k');
