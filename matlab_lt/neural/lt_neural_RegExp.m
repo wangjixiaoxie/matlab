@@ -46,7 +46,6 @@ UseLastSylAsToken=0;
 %% === extract stuff from inputs
 
 
-AllSongs=SongDat.AllSongs;
 AllLabels=SongDat.AllLabels;
 AllOnsets=SongDat.AllOnsets;
 AllOffsets=SongDat.AllOffsets;
@@ -153,8 +152,6 @@ for i=1:length(tokenExtents)
     offtime=offtime+postdur;
     offsamp=round(offtime*fs);
     
-    % - collect
-    songseg=AllSongs(onsamp:offsamp);
     
     spkinds=(spikes_cat.cluster_class(:,2) > ontime*1000) & ...
         (spikes_cat.cluster_class(:,2) < offtime*1000);
@@ -164,6 +161,10 @@ for i=1:length(tokenExtents)
     % +++++++++++++++++++++++++++++++++++++++++++++++++++++++
     % Extract FF of a specific syllable [OPTIONAL]
     if FFparams.collectFF==1
+        % - collect
+        AllSongs=SongDat.AllSongs;
+        songseg=AllSongs(onsamp:offsamp);
+        
         FF_PosRelToken=FFparams.FF_PosRelToken;
         FF_sylName=FFparams.FF_sylName;
         cell_of_freqwinds=FFparams.cell_of_freqwinds;
@@ -255,11 +256,13 @@ for i=1:length(tokenExtents)
         SegmentsExtract(i).hit_WN=wasTrialHit;
         SegmentsExtract(i).WNonset_sec=WNonset/fs;
         SegmentsExtract(i).WNoffset_sec=WNoffset/fs;
-       
+        
         
         SegmentsExtract(i).FF_val=FF;
         SegmentsExtract(i).FF_pitchcontour=PC;
         SegmentsExtract(i).FF_timebase=T;
+        SegmentsExtract(i).songdat=songseg;
+        
     end
     % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
@@ -268,7 +271,7 @@ for i=1:length(tokenExtents)
     globalOnsetSamp=globalOnsetTime*fs;
     cumOnsSamps=cumsum([0 NeurDat.metaDat.numSamps]);
     songind=find((globalOnsetSamp-cumOnsSamps)>0, 1, 'last');
-%     disp(['songind = ' num2str(songind)]);
+    %     disp(['songind = ' num2str(songind)]);
     songfname=NeurDat.metaDat(songind).filename;
     
     SegmentsExtract(i).song_filename=songfname;
@@ -278,7 +281,6 @@ for i=1:length(tokenExtents)
     
     % +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
-    SegmentsExtract(i).songdat=songseg;
     SegmentsExtract(i).spk_Clust=spk_ClustTimes(:,1)';
     SegmentsExtract(i).spk_Times=(spk_ClustTimes(:,2)/1000)'-ontime;
     SegmentsExtract(i).global_ontime_motifInclFlank=ontime;

@@ -17,6 +17,10 @@ function [xbin, ymean, ysem, ymean_hz, ysem_hz, ystd, ystd_hz] = lt_neural_plotR
 %     Yspks{i}=spktimes;
 % end
 
+% _--- OR ---
+
+%  Yspks = {SegmentsExtract.spk_Times}
+
 %% === input params
 % plotcol='k';
 % Yspks; a cell, where each ind is a vector of spike times. each ind is a

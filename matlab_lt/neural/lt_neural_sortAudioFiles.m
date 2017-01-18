@@ -419,7 +419,7 @@ function checkbox7_Callback(hObject, eventdata, handles)
 % ----- Plots spec for this song
 function fn_PlotSpec(fline)
 % ===== if no more songs, then tell user, and quit program
-useAmplWave=1;
+useAmplWave=0;
 
 if ~ischar(fline)
     plot([1 100], [1 10], 'r');
@@ -452,6 +452,10 @@ else
     
     % ==== filter song
     songdat=board_adc_data;
+    if isempty(songdat)
+        disp('PROBLEM - no song data detected...');
+    end
+    
     filter_type='hanningfir';
     F_low  = 500;
     F_high = 8000;

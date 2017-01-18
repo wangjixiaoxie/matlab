@@ -290,6 +290,10 @@ plotOnlySummary = 1 ; %then will auto skip or close figs other than summaries.
 lt_neural_MultNeur_pseudopop(NeuronDatabase, TRANSMATRIX, branchtype, plotOnlySummary);
 
 
+%% ====== REVISED VERSION OF ABOVE - CAN COMPARE ANY BRANCHES, NOT JUST ONE BACK
+close all;
+lt_neural_MultNeur_AnovaTcourse(NeuronDatabase)
+
 %% +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %% ========================== BUILD LINEAR MODEL OF FIRING RATES
 

@@ -24,12 +24,13 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='bk7_160822_112047.rhd';
+filename='r87gr4_4_20_2015_DV1200_150420_150330.rhd';
 ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
 % ChansToPlot.AmpChans_zero=[9];
-ChansToPlot.AmpChans_zero=[23];
+ChansToPlot.AmpChans_zero=[8 9 11 16 17 20 21];
+ChansToPlot.AmpChans_zero=[8 9 16 17 20 21];
 
 % neuralFiltLow=500;
 neuralFiltLow=300;
@@ -44,6 +45,9 @@ Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
 Raster.ThrXNoise=6; % threshold for units, used for all channels, uses absolute data for peak detection
 Raster.PosOrNeg=-1; % -1 or +1, for crossings.
 lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster)
+
+%% ======= clean song files
+
 
 
 
