@@ -26,12 +26,21 @@ MOTIFSTATS=struct;
 for i=1:NumNeurons
     cd(NeuronDatabase.global.basedir);
     
+%     % - find day folder
+%     dirdate=NeuronDatabase.neurons(i).date;
+%     tmp=dir([dirdate '*']);
+%     assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+%     cd(tmp(1).name);
+    
     % - find day folder
     dirdate=NeuronDatabase.neurons(i).date;
     tmp=dir([dirdate '*']);
-    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(i).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
     cd(tmp(1).name);
-    
+
     % - load data for this neuron
     batchf=NeuronDatabase.neurons(i).batchfile;
     channel_board=NeuronDatabase.neurons(i).chan;
@@ -46,6 +55,7 @@ for i=1:NumNeurons
         alignByOnset=1;
         WHOLEBOUTS_edgedur=''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
         % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
+        FFparams.collectFF=1;
         [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
             regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams);
         
@@ -204,7 +214,7 @@ for i=1:NumNeurons
         end
         %         subplotinds=sort([25 26]);
         hsplot = lt_subplot(2, 1, 1); hold on; hsplots =[hsplots hsplot];
-        imagesc(tt, 1:numtrials, (AllSongAmpl));
+        imagesc(tt, 1:numtrials, (AllSongAmpl), [0 0.03]);
         % ---- SMOOTHED MEAN FR
         figure(hfig1);
         hsplot=lt_subplot(8,4,29:30); hold on; hsplots=[hsplots hsplot];
@@ -291,7 +301,7 @@ for i=1:NumNeurons
             AllSongAmpl(j, :) = smdat;
         end
         hsplot = lt_subplot(2, 1, 2); hold on; hsplots =[hsplots hsplot];
-        imagesc(tt, 1:numtrials, AllSongAmpl);
+        imagesc(tt, 1:numtrials, AllSongAmpl, [0 0.03]);
         
         % ---- SMOOTHED MEAN FR
         figure(hfig1);
@@ -342,7 +352,7 @@ for i=1:NumNeurons
         % trials that are within that window +/- T minutes.
         N=NumTrialsBin;
         numtrials=length(segextract_WNon);
-        assert(numtrials/N<=16, 'not enough subplot slots!!');
+        assert(numtrials/N<=15, 'not enough subplot slots!!');
         for j=1:ceil(numtrials/N)
             trialsToPlot=((j-1)*N+1):min(max(numtrials), j*N);
             hsplot=lt_subplot(5, 3, j); hold on;
@@ -410,7 +420,95 @@ for i=1:NumNeurons
         
         linkaxes(hsplots, 'xy');
         
-        % ================================ ANOTHER FIGURE; PLOT FF
+
+        %% BINNED COMPARISON OF VARIANCE
+        
+                % ========================= BINNED COMPARISONS OF SMOOTH RATE
+        lt_figure; hold on;
+        hsplots=[];
+        hsplots2=[];
+        segextract_WNon=segextract([segextract.hit_WN]==1);
+        segextract_WNoff=segextract([segextract.hit_WN]~=1);
+        buffertime=10; % 10 minutes pre and post limits determined by earlies and latest WN on song (to find WN off songs)
+        
+        % --- takes bin on N trials with WN on, and compares to all WN off
+        % trials that are within that window +/- T minutes.
+        N=NumTrialsBin;
+        numtrials=length(segextract_WNon);
+        assert(numtrials/N<=15, 'not enough subplot slots!!');
+        for j=1:ceil(numtrials/N)
+            trialsToPlot=((j-1)*N+1):min(max(numtrials), j*N);
+            hsplot=lt_subplot(5, 3, j); hold on;
+            ylabel('std (hz)');
+            hsplots=[hsplots hsplot];
+            hsplots2=[hsplots2 hsplot];
+            
+            Yspks={};
+            for jj=trialsToPlot
+                inds=segextract_WNon(jj).spk_Clust==clustnum;
+                spktimes=segextract_WNon(jj).(spktimefield)(inds);
+                Yspks=[Yspks spktimes];
+            end
+            % -- convert to smoothed rate
+            [xbin, ~, ~, ~, ~, ~, ystd_hz] = lt_neural_plotRastMean(Yspks, window, windshift, 0, '');
+            ytmp_text=max(ystd_hz);
+            lt_plot_text(0, ytmp_text+40, ['WN on trial ' num2str(trialsToPlot(1)) '-' num2str(trialsToPlot(end))], 'r');
+            
+%             % -- save first bin to overlay over other bins
+%             if j==1;
+%                 xbin1=xbin;
+%                 ymean1=ymean_hz;
+%                 ysem1=ysem_hz;
+%             else
+%                 shadedErrorBar(xbin1, ymean1, ysem1, {'Color', [0.75 0.75 0.75]}, 1);
+%             end
+
+            % --- plot
+            if length(trialsToPlot)>1 % mean
+%                 shadedErrorBar(xbin, ymean_hz, ysem_hz, {'Color', plotcols{i}}, 1);
+                 plot(xbin, ystd_hz, '-','Color', plotcols{i});
+               lt_plot_zeroline
+                ylim([0 160]);
+            end
+            
+            % --- get WN OFF TRIALS WITHIN THIS TIME PERIOD
+            periodON=segextract_WNon(trialsToPlot(1)).song_datenum;
+            periodOFF=segextract_WNon(trialsToPlot(end)).song_datenum;
+            % add buffer pre and post
+            buffertime_days=buffertime/(24*60);
+            periodON=periodON-buffertime_days;
+            periodOFF=periodOFF+buffertime_days;
+            trialsToPlot=find([segextract_WNoff.song_datenum] >= periodON ...
+                & [segextract_WNoff.song_datenum] <= periodOFF);
+            
+            lt_plot_text(0, ytmp_text+20, ['WN off trial ' num2str(trialsToPlot(1)) '-' num2str(trialsToPlot(end))], 'k');
+            
+            Yspks={};
+            for jj=trialsToPlot
+                inds=segextract_WNoff(jj).spk_Clust==clustnum;
+                spktimes=segextract_WNoff(jj).(spktimefield)(inds);
+                Yspks=[Yspks spktimes];
+            end
+            % -- convert to smoothed rate
+            [xbin, ~, ~, ~, ~, ~, ystd_hz] = lt_neural_plotRastMean(Yspks, window, windshift, 0, '');
+            
+            % --- plot
+            if length(trialsToPlot)>1 % mean
+%                 shadedErrorBar(xbin, ymean_hz, ysem_hz, {'Color', 'k'}, 1);
+                 plot(xbin, ystd_hz, '-','Color', 'k');
+            end
+            
+            % ----------------
+            
+            
+            axis tight
+        end
+        
+        linkaxes(hsplots, 'xy');
+        
+
+        
+        %% ================================ ANOTHER FIGURE; PLOT FF
         % TRAJECTORY
         FFvals=[segextract.FF_val];
         Tvals=[segextract.song_datenum];
@@ -452,4 +550,31 @@ for i=1:NumNeurons
     %
     %     pause; close all;
     %
+    
+    %% ========== save
+        %% ==== SAVE FIGURES
+    cd(NeuronDatabase.global.basedir);
+
+    % - find day folder
+    dirdate=NeuronDatabase.neurons(i).date;
+    tmp=dir([dirdate '*']);
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(i).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
+    cd(tmp(1).name);
+    
+    try cd('FIGS')
+    catch err
+        mkdir('FIGS')
+        cd('FIGS')
+    end
+    
+    tstamp = lt_get_timestamp(0);
+    
+    mkdir(['WNacute_' tstamp]);
+    cd(['WNacute_' tstamp]);
+    lt_save_all_figs;    
+
+    
 end

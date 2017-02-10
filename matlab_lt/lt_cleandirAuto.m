@@ -4,7 +4,7 @@
 % program would think there ar eno notes, and discard song. (see line 56
 % for mod)
 
-function cleandirAuto(batch,wind,numwind,numnote)
+function cleandirAuto(batch,wind,numwind,numnote, filetype)
 % cleandirAuto(batch,wind,numwind,numnote,CHANSPEC)
 % 
 % wind is the window size in MS
@@ -13,6 +13,10 @@ function cleandirAuto(batch,wind,numwind,numnote)
 %
 % Threshold is calculated by mbatchamphist() based on distributiuon of 
 % amplitude values across files in batch.
+
+if ~exist('filetype', 'var')
+    filetype = '';
+end
 
 if (~exist('TH'))
     TH=5;
@@ -56,20 +60,26 @@ disp(['working...']);
 
 [pks,pksloc] = findpeaks(batchhist,'SORTSTR','descend');
 
-figure; 
-bar(batchbins, batchhist);
 
-minind=find(batchbins>=3.2,1,'first'); % LT, thresh should be greater than 3
-PeakToUse=find(pksloc>=minind,1,'first');
+if ~strcmp(filetype, 'rhd')
+    minind=find(batchbins>=3.2, 1, 'first'); % LT, thresh should be greater than 3
+    PeakToUse=find(pksloc>=minind,1,'first');
+else
+    minind=find(batchbins>=-4.2, 1, 'first'); % LT, thresh should be greater than 3
+    PeakToUse=find(pksloc>=minind,1,'first');
+end
 
 if PeakToUse~=2
     % 2 is default, if not 2, then tell user
     disp(['NOTE: Using peak loc of ' num2str(PeakToUse) ' isntead of 2 as in original code (LT) - prob due to many noise files']);
 end
-
 threshold = 10^(batchbins(pksloc(PeakToUse)));
 
 disp(['threshold = ' num2str(threshold)]);
+
+figure;
+bar(batchbins, batchhist);
+line([batchbins(pksloc(PeakToUse)) batchbins(pksloc(PeakToUse))], ylim, 'Color','r');
 
 while (1)
     fn=fgetl(fid);
@@ -92,6 +102,11 @@ while (1)
     elseif(strcmp(ext,'.wav'))
         [dat,fs]=wavread(fn);
         sm=mquicksmooth(dat,fs);
+                elseif(strcmp(ext, '.rhd'))
+            [frequency_parameters, board_adc_data] = pj_readIntanNoGui_AudioOnly(fn);
+            fs=frequency_parameters.amplifier_sample_rate; % for neural, analog, and dig
+            dat = board_adc_data(1,:);
+            sm=mquicksmooth(dat,fs);
     end
     %[ons,offs]=evsegment(sm,fs,5.0,30.0,TH);
     

@@ -1,4 +1,6 @@
-function SYLNEURDAT = lt_neural_MultNeur_CollectFeats(NeuronDatabase, FFparams, saveOn)
+function SYLNEURDAT = lt_neural_MultNeur_CollectFeats(NeuronDatabase, FFparams, saveOn, plotSpec)
+
+% plotSpec = 1 then for each rend taht calcs PC, plot over spectrogram
 
 %% LT 9/29/16 - make data struct - each vocalization
 plotFRvsPitch =0;
@@ -19,11 +21,20 @@ for i=1:NumNeurons
     cd(NeuronDatabase.global.basedir);
     
     % - find day folder
+%     dirdate=NeuronDatabase.neurons(i).date;
+%     tmp=dir([dirdate '*']);
+%     assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+%     cd(tmp(1).name);
+    
+    % - find day folder
     dirdate=NeuronDatabase.neurons(i).date;
     tmp=dir([dirdate '*']);
-    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(i).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
     cd(tmp(1).name);
-    
+
     % - load data for this neuron
     batchf=NeuronDatabase.neurons(i).batchfile;
     channel_board=NeuronDatabase.neurons(i).chan;
@@ -90,7 +101,7 @@ for i=1:NumNeurons
         ind=find(strcmp(syl, cell_of_freqwinds));
         if isempty(ind)
             % tel;l use
-            disp('EMPTY FREQ WINDOW!!');
+            disp(['NO FREQ WINDOW SPECIFIED FOR SYL ' syl ' !!']);
             collectFF=0;
         elseif isempty(cell_of_freqwinds{ind+1})
             collectFF=0;
@@ -112,7 +123,9 @@ for i=1:NumNeurons
             mintime=cell_of_FFtimebins{ind+1}(1); % sec
             maxtime=cell_of_FFtimebins{ind+1}(2);
             
-            [FF, PC, T]= lt_calc_FF(syldat, fs, [F_low F_high], [mintime maxtime]);
+            disp(syl);
+            [FF, PC, T]= lt_calc_FF(syldat, fs, [F_low F_high], [mintime maxtime], plotSpec);
+            
         end
         
         

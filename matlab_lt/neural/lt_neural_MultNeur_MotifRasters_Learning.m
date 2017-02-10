@@ -53,7 +53,7 @@ determineTrialBinBasedOnBaselineN=1; % if 1, then chooses binsize based on
 % baseline num songs (i.e. baseNumSongs/DivisorBaseSongs); if 0, then = TrialBinSize
 % note: assumes WNchangeDateStrings{1} is transition from baseline to WN
 % on.
-DivisorBaseSongs=2;
+DivisorBaseSongs=1; % divide base N with this
 % TrialBinSize=10;
 
 
@@ -65,8 +65,12 @@ for i=1:NumNeurons
     % - find day folder
     dirdate=NeuronDatabase.neurons(i).date;
     tmp=dir([dirdate '*']);
-    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(i).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
     cd(tmp(1).name);
+    
     
     % - load data for this neuron
     batchf=NeuronDatabase.neurons(i).batchfile;
@@ -96,11 +100,11 @@ doclose=input('type "c" to close figures (otherwise ENTER)', 's');
 if strcmp(doclose, 'c');
     close all;
 end
-% 
+%
 % disp('PRESS ANYTHING TO CONTINUE');
 % pause;
 % close all;
-% 
+%
 %% === MAKE SURE ALL TRIALS ARE IN TEMPORAL ORDER
 
 for i=1:NumNeurons
@@ -395,10 +399,10 @@ for i=1:NumNeurons
                 AllTrialsDurWN=[AllTrialsDurWN 0];
             elseif segextract(trialbins(1)).song_datenum >= dnum
                 AllTrialsPreBase=[AllTrialsPreBase 0];
-                AllTrialsDurWN=[AllTrialsDurWN 1];                
+                AllTrialsDurWN=[AllTrialsDurWN 1];
             else
                 AllTrialsPreBase=[AllTrialsPreBase 0];
-                AllTrialsDurWN=[AllTrialsDurWN 0];                                
+                AllTrialsDurWN=[AllTrialsDurWN 0];
             end
             
             [xtime, ~, ~, ymean_hz, ~, ~, ystd_hz] = lt_neural_plotRastMean(Yspks(trialbins), window, windshift, 0, '');
@@ -468,7 +472,7 @@ for i=1:NumNeurons
         
         % =========== ALTERNATIVELY, PLOT HEAT MAP ACROSS TIME
         lt_figure; hold on;
-                title(['neuron' num2str(i) ': ' motif_regexpr_str{m}]);
+        title(['neuron' num2str(i) ': ' motif_regexpr_str{m}]);
         xmax=min(cellfun(@length, AllDprimeTraj));
         AllDprimeMat=nan(length(AllDprimeTraj), xmax);
         for j=1:length(AllDprimeTraj)
@@ -484,159 +488,185 @@ for i=1:NumNeurons
             sum(AllTrialsPreBase)+0.5], 'Color','k');
         line(xlim, [sum(~AllTrialsDurWN)-0.5 ...
             sum(~AllTrialsDurWN)-0.5], 'Color','k');
-            
+        
         line(xlim, [TrialBinSize+0.5 TrialBinSize+0.5], 'Color','k','LineStyle', '--');
         lt_plot_text(0.01, TrialBinSize+0.6, 'nonoverlap with base bin', [0.4 0.4 0.4]);
-                    % ==== plot time of trial
-            if plotTimesOnRaster==1
-                for j=1:length(AllMedianTimes)
+        % ==== plot time of trial
+        if plotTimesOnRaster==1
+            for j=1:length(AllMedianTimes)
                 lt_plot_text(0, j, num2str(AllMedianTimes(j),'%3.3g'), [0.4 0.4 0.4]);
-                end
             end
-
+        end
+        
         
     end
+    
+    
+    %% ==== save figures
+    cd(NeuronDatabase.global.basedir);
+
+    % - find day folder
+    dirdate=NeuronDatabase.neurons(i).date;
+    tmp=dir([dirdate '*']);
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(i).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
+    cd(tmp(1).name);
+    
+    try cd('FIGS')
+    catch err
+        mkdir('FIGS')
+        cd('FIGS')
+    end
+    
+    tstamp = lt_get_timestamp(0);
+    
+    mkdir(['MotifRasters_Learning_' tstamp]);
+    cd(['MotifRasters_Learning_' tstamp]);
+    lt_save_all_figs;    
+    
 end
 
 
 %% === SUMMARIZE BY TAKING MEAN DPRIME OVER PREMOTOR WINODW
 if (0) % SKIP, SINCE DOES THIS IN SUMMARY CODE.
-for i=1:NumNeurons
-    figcount=1;
-    subplotrows=6;
-    subplotcols=2;
-    fignums_alreadyused=[];
-    hfigs=[];
-    hsplots1=[];
-    hsplots2=[];
-    
-    
-    for m=1:NumMotifs
+    for i=1:NumNeurons
+        figcount=1;
+        subplotrows=6;
+        subplotcols=2;
+        fignums_alreadyused=[];
+        hfigs=[];
+        hsplots1=[];
+        hsplots2=[];
         
         
-        segextract=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
-        clustnum=NeuronDatabase.neurons(i).clustnum;
-        
-        % --- IF ONLY PLOT NO HIT, THEN FIRST PULL OUT THOSE TRIALS
-        if OnlyPlotNoHit==1
-            indsWithNoHits=[segextract.hit_WN]~=1;
-            segextract=segextract(indsWithNoHits);
-        end
-        
-        
-        % ===================== collect spikes for all trials
-        numtrials=length(segextract);
-        Yspks={};
-        for j=1:numtrials
-            inds=segextract(j).spk_Clust==clustnum;
-            spktimes=segextract(j).(spktimefield)(inds);
-            Yspks{j}=spktimes;
-        end
-        
-        % ===================== BASELINE mean and std spiking
-        datestring=WNchangeDateStrings{1}; % assumes this is WN on.
-        dnum=datenum(datestring, 'ddmmmyyyy-HHMM');
-        inds=[segextract.song_datenum] < dnum; %
-        [xbase, ~, ~, ymean_hz_base, ~, ~, ystd_hz_base] = ...
-            lt_neural_plotRastMean(Yspks(inds), window, windshift, 0, '');
-        
-        
-        % ========================= GET RUNNING D-PRIME OVER TIME, IN
-        % SPECIFIC PREMOTOR WINDOW
-        premotor_wind=[-0.08 0.02]; % in sec, relative to onset of token in motif.
-        DprimeVals=[];
-        AbsDprimeVals=[];
-        MedianDatenumVals = [];
-        MedianDayVals=[];
-        FFVals=[];
-        AreAllTrialsBaseline = [];
-        AreAllTrialsDurWN = [];
-        
-        
-        for j=1:(numtrials-TrialBinSize+1);
-            trialbins=j:(j+TrialBinSize-1);
+        for m=1:NumMotifs
             
-            [x, ~, ~, ymean_hz, ~, ~, ystd_hz] =  ...
-                lt_neural_plotRastMean(Yspks(trialbins), window, windshift, 0, '');
             
-            % -- calc d-prime
-            xinds=1:min([length(ymean_hz) length(ymean_hz_base)]);
-            numer_tmp=ymean_hz(xinds)-ymean_hz_base(xinds);
-            denom_tmp=sqrt(0.5*(ystd_hz_base(xinds).^2 + ystd_hz(xinds).^2));
-            dprime=numer_tmp./denom_tmp;
+            segextract=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
+            clustnum=NeuronDatabase.neurons(i).clustnum;
             
-            % -- slice dprime within premotor window
-            xinds_to_keep = x>=(motif_predur + premotor_wind(1) + window/2) ...
-                & x<=(motif_predur + premotor_wind(2) - window/2); % accounting for smoothing window size.
-            
-            dprime_val = mean(dprime(xinds_to_keep));
-            DprimeVals=[DprimeVals dprime_val];
-            
-            abs_dprime_val = mean(abs(dprime(xinds_to_keep)));
-            AbsDprimeVals=[AbsDprimeVals abs_dprime_val];
-            
-            % -- get median time for this bin
-            median_datenum=median([segextract(trialbins).song_datenum]);
-            firstday=datestr(segextract(1).song_datenum, 'ddmmmyyyy');
-            eventtime=datestr(median_datenum, 'ddmmmyyyy-HHMM');
-            tmp=lt_convert_EventTimes_to_RelTimes(firstday, {eventtime}); % days from start of expt
-            
-            MedianDatenumVals = [MedianDatenumVals median_datenum];
-            MedianDayVals = [MedianDayVals tmp.FinalValue];
-            
-            % -- FF
-            mean_FF=mean([segextract(trialbins).FF_val]);
-            FFVals=[ FFVals mean_FF];
-            
-            % -- all trials baseline?
-            datestring=WNchangeDateStrings{1};
-            dnum=datenum(datestring, 'ddmmmyyyy-HHMM');
-            if segextract(trialbins(end)).song_datenum < dnum
-                AreAllTrialsBaseline = [AreAllTrialsBaseline 1]; % all trials base
-                AreAllTrialsDurWN = [AreAllTrialsDurWN 0];
-            elseif segextract(trialbins(1)).song_datenum >= dnum
-                AreAllTrialsBaseline = [AreAllTrialsBaseline 0];
-                AreAllTrialsDurWN = [AreAllTrialsDurWN 1];
-            else
-                AreAllTrialsBaseline = [AreAllTrialsBaseline 0];
-                AreAllTrialsDurWN = [AreAllTrialsDurWN 0];
+            % --- IF ONLY PLOT NO HIT, THEN FIRST PULL OUT THOSE TRIALS
+            if OnlyPlotNoHit==1
+                indsWithNoHits=[segextract.hit_WN]~=1;
+                segextract=segextract(indsWithNoHits);
             end
             
             
+            % ===================== collect spikes for all trials
+            numtrials=length(segextract);
+            Yspks={};
+            for j=1:numtrials
+                inds=segextract(j).spk_Clust==clustnum;
+                spktimes=segextract(j).(spktimefield)(inds);
+                Yspks{j}=spktimes;
+            end
+            
+            % ===================== BASELINE mean and std spiking
+            datestring=WNchangeDateStrings{1}; % assumes this is WN on.
+            dnum=datenum(datestring, 'ddmmmyyyy-HHMM');
+            inds=[segextract.song_datenum] < dnum; %
+            [xbase, ~, ~, ymean_hz_base, ~, ~, ystd_hz_base] = ...
+                lt_neural_plotRastMean(Yspks(inds), window, windshift, 0, '');
+            
+            
+            % ========================= GET RUNNING D-PRIME OVER TIME, IN
+            % SPECIFIC PREMOTOR WINDOW
+            premotor_wind=[-0.08 0.02]; % in sec, relative to onset of token in motif.
+            DprimeVals=[];
+            AbsDprimeVals=[];
+            MedianDatenumVals = [];
+            MedianDayVals=[];
+            FFVals=[];
+            AreAllTrialsBaseline = [];
+            AreAllTrialsDurWN = [];
+            
+            
+            for j=1:(numtrials-TrialBinSize+1);
+                trialbins=j:(j+TrialBinSize-1);
+                
+                [x, ~, ~, ymean_hz, ~, ~, ystd_hz] =  ...
+                    lt_neural_plotRastMean(Yspks(trialbins), window, windshift, 0, '');
+                
+                % -- calc d-prime
+                xinds=1:min([length(ymean_hz) length(ymean_hz_base)]);
+                numer_tmp=ymean_hz(xinds)-ymean_hz_base(xinds);
+                denom_tmp=sqrt(0.5*(ystd_hz_base(xinds).^2 + ystd_hz(xinds).^2));
+                dprime=numer_tmp./denom_tmp;
+                
+                % -- slice dprime within premotor window
+                xinds_to_keep = x>=(motif_predur + premotor_wind(1) + window/2) ...
+                    & x<=(motif_predur + premotor_wind(2) - window/2); % accounting for smoothing window size.
+                
+                dprime_val = mean(dprime(xinds_to_keep));
+                DprimeVals=[DprimeVals dprime_val];
+                
+                abs_dprime_val = mean(abs(dprime(xinds_to_keep)));
+                AbsDprimeVals=[AbsDprimeVals abs_dprime_val];
+                
+                % -- get median time for this bin
+                median_datenum=median([segextract(trialbins).song_datenum]);
+                firstday=datestr(segextract(1).song_datenum, 'ddmmmyyyy');
+                eventtime=datestr(median_datenum, 'ddmmmyyyy-HHMM');
+                tmp=lt_convert_EventTimes_to_RelTimes(firstday, {eventtime}); % days from start of expt
+                
+                MedianDatenumVals = [MedianDatenumVals median_datenum];
+                MedianDayVals = [MedianDayVals tmp.FinalValue];
+                
+                % -- FF
+                mean_FF=mean([segextract(trialbins).FF_val]);
+                FFVals=[ FFVals mean_FF];
+                
+                % -- all trials baseline?
+                datestring=WNchangeDateStrings{1};
+                dnum=datenum(datestring, 'ddmmmyyyy-HHMM');
+                if segextract(trialbins(end)).song_datenum < dnum
+                    AreAllTrialsBaseline = [AreAllTrialsBaseline 1]; % all trials base
+                    AreAllTrialsDurWN = [AreAllTrialsDurWN 0];
+                elseif segextract(trialbins(1)).song_datenum >= dnum
+                    AreAllTrialsBaseline = [AreAllTrialsBaseline 0];
+                    AreAllTrialsDurWN = [AreAllTrialsDurWN 1];
+                else
+                    AreAllTrialsBaseline = [AreAllTrialsBaseline 0];
+                    AreAllTrialsDurWN = [AreAllTrialsDurWN 0];
+                end
+                
+                
+            end
+            
+            
+            % ==== PLOT
+            if (0) % set as 1 to plot mean dprime, otherwise plots mean abs(dprime)
+                [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+                hsplots1=[hsplots1 hsplot];
+                title(motif_regexpr_str{m}); ylabel('mean premotor dprime');
+                plot(MedianDayVals, DprimeVals, 'ok');
+                plot(MedianDayVals(logical(AreAllTrialsBaseline)), DprimeVals(logical(AreAllTrialsBaseline)), 'ob');
+                plot(MedianDayVals(logical(AreAllTrialsDurWN)), DprimeVals(logical(AreAllTrialsDurWN)), 'or');
+            else
+                [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+                hsplots1=[hsplots1 hsplot];
+                title(motif_regexpr_str{m}); ylabel('mean abs(premotor dprime)');
+                plot(MedianDayVals, AbsDprimeVals, 'ok');
+                plot(MedianDayVals(logical(AreAllTrialsBaseline)), AbsDprimeVals(logical(AreAllTrialsBaseline)), 'ob');
+                plot(MedianDayVals(logical(AreAllTrialsDurWN)), AbsDprimeVals(logical(AreAllTrialsDurWN)), 'or');
+            end
+            
+            
+            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+            hsplots2=[hsplots2 hsplot];
+            title(motif_regexpr_str{m}); ylabel('ff (hz)');
+            plot(MedianDayVals, FFVals, 'sk');
+            plot(MedianDayVals(logical(AreAllTrialsBaseline)), FFVals(logical(AreAllTrialsBaseline)), 'sb');
+            plot(MedianDayVals(logical(AreAllTrialsDurWN)), FFVals(logical(AreAllTrialsDurWN)), 'sr');
+            
+            
         end
         
-        
-        % ==== PLOT
-        if (0) % set as 1 to plot mean dprime, otherwise plots mean abs(dprime)
-            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-            hsplots1=[hsplots1 hsplot];
-            title(motif_regexpr_str{m}); ylabel('mean premotor dprime');
-            plot(MedianDayVals, DprimeVals, 'ok');
-            plot(MedianDayVals(logical(AreAllTrialsBaseline)), DprimeVals(logical(AreAllTrialsBaseline)), 'ob');
-            plot(MedianDayVals(logical(AreAllTrialsDurWN)), DprimeVals(logical(AreAllTrialsDurWN)), 'or');
-        else
-            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-            hsplots1=[hsplots1 hsplot];
-            title(motif_regexpr_str{m}); ylabel('mean abs(premotor dprime)');
-            plot(MedianDayVals, AbsDprimeVals, 'ok');
-            plot(MedianDayVals(logical(AreAllTrialsBaseline)), AbsDprimeVals(logical(AreAllTrialsBaseline)), 'ob');
-            plot(MedianDayVals(logical(AreAllTrialsDurWN)), AbsDprimeVals(logical(AreAllTrialsDurWN)), 'or');
-        end
-        
-        
-        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-        hsplots2=[hsplots2 hsplot];
-        title(motif_regexpr_str{m}); ylabel('ff (hz)');
-        plot(MedianDayVals, FFVals, 'sk');
-        plot(MedianDayVals(logical(AreAllTrialsBaseline)), FFVals(logical(AreAllTrialsBaseline)), 'sb');
-        plot(MedianDayVals(logical(AreAllTrialsDurWN)), FFVals(logical(AreAllTrialsDurWN)), 'sr');
-        
-        
+        linkaxes(hsplots1, 'xy');
+        linkaxes(hsplots2, 'xy');
+        lt_subtitle(['neuron' num2str(i)]);
     end
-    
-    linkaxes(hsplots1, 'xy');
-    linkaxes(hsplots2, 'xy');
-    lt_subtitle(['neuron' num2str(i)]);
-end
 end
 

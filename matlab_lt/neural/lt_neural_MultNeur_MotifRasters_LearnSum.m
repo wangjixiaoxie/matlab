@@ -1,5 +1,6 @@
 function lt_neural_MultNeur_MotifRasters_LearnSum(NeuronDatabase, motif_regexpr_str, motif_predur, ...
-    motif_postdur, LinScaleGlobal, FFparams, OnlyPlotNoHit, UseEntireBaseline, TypesToPlot,TrialBinSize )
+    motif_postdur, LinScaleGlobal, FFparams, OnlyPlotNoHit, UseEntireBaseline, TypesToPlot,TrialBinSize, ...
+    premotor_wind)
 
 %% for each motif and each neuron, make one plot, showing progression over time of
 % motif_regexpr_str={'g(h)'};
@@ -50,7 +51,7 @@ if LinScaleGlobal ==0
 end
 
 % for taking d-prime, relative to token onset
-premotor_wind=[-0.08 0.02]; % in sec, relative to onset of token in motif.
+% premotor_wind=[-0.08 0.02]; % in sec, relative to onset of token in motif.
 
 % UseEntireBaseline = 0; % if 1, uses entire baseline, otherwise uses 1st bin.
 
@@ -64,7 +65,10 @@ for i=1:NumNeurons
     % - find day folder
     dirdate=NeuronDatabase.neurons(i).date;
     tmp=dir([dirdate '*']);
-    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(i).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
     cd(tmp(1).name);
     
     % - load data for this neuron
@@ -84,7 +88,7 @@ for i=1:NumNeurons
         [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
             regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams);
         
-                % -------- SAVE TIMING OF SPIKES FOR THIS NEURON
+        % -------- SAVE TIMING OF SPIKES FOR THIS NEURON
         MOTIFSTATS.neurons(i).motif(j).SegmentsExtract=SegmentsExtract;
         MOTIFSTATS.neurons(i).motif(j).Params=Params;
     end
@@ -131,11 +135,10 @@ for kkk=1:length(TypesToPlot)
         hsplots2=[];
         
         clear WNchangeDateStrings;
-WNchangeDateStrings{1}=NeuronDatabase.neurons(i).LEARN_WNonDatestr;
-WNchangeDateStrings=[WNchangeDateStrings NeuronDatabase.neurons(i).LEARN_WNotherImportantDates];
-
-for m=1:NumMotifs
-            
+        WNchangeDateStrings{1}=NeuronDatabase.neurons(i).LEARN_WNonDatestr;
+        WNchangeDateStrings=[WNchangeDateStrings NeuronDatabase.neurons(i).LEARN_WNotherImportantDates];
+        
+        for m=1:NumMotifs
             
             segextract=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
             clustnum=NeuronDatabase.neurons(i).clustnum;
@@ -177,7 +180,7 @@ for m=1:NumMotifs
             DprimeVals=[];
             AbsDprimeVals=[];
             DprimeStd=[]; % variance of d-prime values across time bins
-            CorrCoeff = []; 
+            CorrCoeff = [];
             MedianDatenumVals = [];
             MedianDayVals=[];
             FFVals=[];
@@ -222,6 +225,7 @@ for m=1:NumMotifs
                 % -- FF
                 mean_FF=mean([segextract(trialbins).FF_val]);
                 FFVals=[ FFVals mean_FF];
+                
                 
                 % -- all trials baseline?
                 datestring=WNchangeDateStrings{1};
@@ -268,7 +272,7 @@ for m=1:NumMotifs
                 title(motif_regexpr_str{m}); ylabel('corr coeff of smooth fr');
                 plot(MedianDayVals, CorrCoeff, 'ok');
                 plot(MedianDayVals(logical(AreAllTrialsBaseline)), CorrCoeff(logical(AreAllTrialsBaseline)), 'ob');
-                plot(MedianDayVals(logical(AreAllTrialsDurWN)), CorrCoeff(logical(AreAllTrialsDurWN)), 'or');                
+                plot(MedianDayVals(logical(AreAllTrialsDurWN)), CorrCoeff(logical(AreAllTrialsDurWN)), 'or');
             end
             
             if         UseEntireBaseline==0
@@ -288,10 +292,16 @@ for m=1:NumMotifs
             tvals_run = lt_running_stats(MedianDayVals, 15);
             ffvals_run = lt_running_stats(FFVals, 15);
             if length(tvals_run.Mean)>1
-            shadedErrorBar(tvals_run.Mean, ffvals_run.Mean, ffvals_run.SEM, {'Color', [0.7 0.7 0.7]}, 1)
+                shadedErrorBar(tvals_run.Mean, ffvals_run.Mean, ffvals_run.SEM, {'Color', [0.7 0.7 0.7]}, 1)
             end
             line(xlim, [mean(FFVals(logical(AreAllTrialsBaseline))) ...
                 mean(FFVals(logical(AreAllTrialsBaseline)))], 'Color', [0.7 0.7 0.7]);
+            
+            if         UseEntireBaseline==0
+                % -- note which bins overlap with baseline bin (i.e. first bin)
+                boundaryAfterBase=mean(MedianDayVals(TrialBinSize:TrialBinSize+1));
+                line([boundaryAfterBase boundaryAfterBase], ylim, 'Color','k', 'LineStyle', '--');
+            end
             
         end
         
@@ -301,3 +311,190 @@ for m=1:NumMotifs
     end
 end
 
+%% NOTE: beloe moved to lt_neural_MultNeur_LearningAnaly
+% %% CORRELATION BETWEEN CHANGE MEAN FR (FROM BASELINE) AND CHANGE IN FF
+% % NOTE; DIFFERENT FROM ABOVE, IN THAT HERE 1) DOES TRIAL BY TRIAL AND 2)
+% % DOES NOT AVERAGE OVER A MULTIPLE PREMOTOR BINS, BUT INSTEAD TAKES ONE BIN
+% 
+% % NOTE: ALWAYS PLOTS BOTH HITS AND MISSES, EVEN IF OnlyPlotNoHit =1
+% % NOTE: ALWAYS USES ENTIRE BASELINE
+% 
+% for i=1:NumNeurons
+%     
+%     clear WNchangeDateStrings;
+%     WNchangeDateStrings{1}=NeuronDatabase.neurons(i).LEARN_WNonDatestr;
+%     WNchangeDateStrings=[WNchangeDateStrings NeuronDatabase.neurons(i).LEARN_WNotherImportantDates];
+%     
+%     
+%     for m=1:NumMotifs
+%         segextract=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
+%         clustnum=NeuronDatabase.neurons(i).clustnum;
+%         
+%         
+%         % ===================== collect spikes for all trials
+%         numtrials=length(segextract);
+%         Yspks={};
+%         for j=1:numtrials
+%             inds=segextract(j).spk_Clust==clustnum;
+%             spktimes=segextract(j).(spktimefield)(inds);
+%             Yspks{j}=spktimes;
+%         end
+%         
+%         
+%         % ===================== BASELINE
+%         % 1) mean and std spiking
+%         datestring=WNchangeDateStrings{1}; % assumes this is WN on.
+%         dnum=datenum(datestring, 'ddmmmyyyy-HHMM');
+%         inds=[segextract.song_datenum] < dnum; %
+%         
+%         windowstart = motif_predur + premotor_wind(1);
+%         windowend = motif_predur + premotor_wind(2); % time of end of window (rel to data onset)
+%         TMPSTRUCT = lt_neural_GetStatsSingleWindow(Yspks(inds), windowstart, windowend);
+%         ymean_hz_base=TMPSTRUCT.FrateMean;
+%         ystd_hz_base=TMPSTRUCT.FrateStd;
+%         
+%         % 2) FF
+%         mean_FF_base=mean([segextract(inds).FF_val]);
+%         std_FF_base = std([segextract(inds).FF_val]);
+%         
+%         
+%         % ======== FOR EACH TRIAL (INCLUDING BASELINE)
+%         numtrials = length(segextract);
+%         assert(length(Yspks) == numtrials, 'asdfasdcas');
+%         
+%         Frate_All = [];
+%         FF_All = [];
+%         Is_Baseline = [];
+%         TimeDayvals_All = [];
+%         
+%         
+%         for j=1:numtrials
+%             % 1) FRate
+%             tmpstruct = lt_neural_GetStatsSingleWindow(Yspks(j), windowstart, windowend);
+%             Frate_All = [Frate_All tmpstruct.FrateMean];
+%             
+%             % 2) FF
+%             FF_All = [FF_All segextract(j).FF_val];
+%             
+%             % 3) time
+%             firstday=datestr(segextract(1).song_datenum, 'ddmmmyyyy');
+%             eventtime=datestr(segextract(j).song_datenum, 'ddmmmyyyy-HHMM');
+%             tmp=lt_convert_EventTimes_to_RelTimes(firstday, {eventtime}); % days from start of expt
+%             TimeDayvals_All = [TimeDayvals_All tmp.FinalValue];
+%             
+%             % 4) is baseline?
+%             datestring=WNchangeDateStrings{1}; % assumes this is WN on.
+%             dnum=datenum(datestring, 'ddmmmyyyy-HHMM');
+%             Is_Baseline = [Is_Baseline double(segextract(j).song_datenum < dnum)];
+%         end
+%         
+%         %% 5) FF, deviation from local mean
+%         if (1) % REPLACES ABOVE VARIABLES
+%         localbinsize = 15;
+%         
+%         tmp = lt_running_stats(FF_All, localbinsize);
+%         tmp2 = FF_All(ceil(localbinsize/2):end-floor(localbinsize/2)); % get middle FF for each local bin
+%         FF_All_localdev = tmp2 - tmp.Mean;
+%         
+% %         tmp = lt_running_stats(Frate_All, localbinsize);
+% %         tmp2 = Frate_All(ceil(localbinsize/2):end-floor(localbinsize/2)); % get middle FF for each local bin
+% %         Frate_All = tmp2 - tmp.Mean;
+% 
+%         TimeDayvals_All_localdev = TimeDayvals_All(ceil(localbinsize/2):end-floor(localbinsize/2)); % get middle FF for each local bin
+%         Frate_All_localdev = Frate_All(ceil(localbinsize/2):end-floor(localbinsize/2)); % get middle FF for each local bin
+%         Is_Baseline_localdev = Is_Baseline(ceil(localbinsize/2):end-floor(localbinsize/2)); % get middle FF for each local bin
+%         
+%         end
+%         
+%         
+%         %% ====================== PLOT
+%         lt_figure; hold on;
+%         
+%         hsplots = [];
+%         
+%         % 1) FF
+%         lt_subplot(6,1,1); hold on;
+%         title(['neuron ' num2str(i) ', ' motif_regexpr_str{m}]);
+%         ylabel('FF');
+%         xlabel('time (days from expt start');
+%         plot(TimeDayvals_All, FF_All, 'or');
+%         inds = Is_Baseline==1;
+%         plot(TimeDayvals_All(inds), FF_All(inds), 'ok');
+%         shadedErrorBar(xlim, [mean_FF_base mean_FF_base], [std_FF_base std_FF_base], {'Color','k'}, 1)
+% %         tmpy = lt_running_stats(FF_All, 15); % smooth
+% %         tmpx = lt_running_stats(TimeDayvals_All, 15); % smooth
+% %         plot(tmpx.Mean, tmpy.Mean, '-ok');
+%         
+%         % 2) rate of change of FF (i.e. LMAN imposing bias)
+%         
+% 
+%         % 2) hz
+%         lt_subplot(6,1,2); hold on;
+%         title(['neuron ' num2str(i) ', ' motif_regexpr_str{m}]);
+%         ylabel('Frate');
+%         xlabel('time (days from expt start');
+%         plot(TimeDayvals_All, Frate_All, 'o');
+%         inds = Is_Baseline==1;
+%         plot(TimeDayvals_All(inds), Frate_All(inds), 'ok');
+%         shadedErrorBar(xlim, [ymean_hz_base ymean_hz_base], [ystd_hz_base ystd_hz_base], {'Color','k'}, 1)
+%         
+%         
+%         % 3) 
+%         hsplot = lt_subplot(6,2,5); hold on;
+%         hsplots = [hsplots hsplot];
+%         title('baseline');
+%         inds = Is_Baseline==1;
+%         xlabel('Frate_All')
+%         ylabel('FF');
+%                     lt_regress(FF_All(inds), Frate_All(inds), 1, 0, 1, 1, 'k')
+%         
+%         % --- one plot for each day
+%         numdays = max(floor(TimeDayvals_All));
+%         for k=1:numdays
+%             hsplot = lt_subplot(6,2,5+k); hold on;
+%             hsplots = [hsplots hsplot];
+%             title(['[WN] day ' num2str(k)]);
+%             xlabel('Frate_All')
+%             ylabel('FF');
+%             
+%             inds = Is_Baseline == 0 & floor(TimeDayvals_All) == k;
+%             if any(inds)
+%                         lt_regress(FF_All(inds), Frate_All(inds), 1, 0, 1, 1, 'r')
+%             end
+%         end
+%         numsubplots = 5+k;
+%         % --
+%         linkaxes(hsplots, 'xy');
+%         
+%         % ============ plot using local deviation of FF
+%         % 1) --- baseline
+%         lt_subplot(6, 2, numsubplots+1); hold on;
+%          title(['baseline [local FF dev, bin' num2str(localbinsize) ']']);
+%         inds = Is_Baseline_localdev==1;
+%         xlabel('Frate_All')
+%         ylabel('FF');
+%                     lt_regress(FF_All_localdev(inds), Frate_All_localdev(inds), 1, 0, 1, 1, 'k')
+%        
+%                     numsubplots = numsubplots + 1;
+%                     
+%                     % 2) WN days
+%          numdays = max(floor(TimeDayvals_All_localdev));
+%         for k=1:numdays
+%             lt_subplot(6,2,numsubplots+k); hold on;
+%             title(['[WN] day ' num2str(k) '[local FF dev]']);
+%             xlabel('Frate_All')
+%             ylabel('FF');
+%             
+%             inds = Is_Baseline_localdev == 0 & floor(TimeDayvals_All_localdev) == k;
+%             if any(inds)
+%                         lt_regress(FF_All_localdev(inds), Frate_All_localdev(inds), 1, 0, 1, 1, 'r')
+%             end
+%         end
+%        
+% 
+% 
+%         
+%         
+%     end
+%     
+% end

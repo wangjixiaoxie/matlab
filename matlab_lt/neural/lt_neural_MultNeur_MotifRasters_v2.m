@@ -1,4 +1,10 @@
-function lt_neural_MultNeur_MotifRasters_v2(NeuronDatabase, motif_regexpr_str, motif_predur, motif_postdur, LinScaleGlobal, WHOLEBOUTS_edgedur)
+function [MOTIFSTATS, MotifTime_med, spktimefield] = lt_neural_MultNeur_MotifRasters_v2(NeuronDatabase, motif_regexpr_str, motif_predur, motif_postdur, LinScaleGlobal, WHOLEBOUTS_edgedur)
+%% outputs
+
+% MotifTime_med = [], unless do global, then gives median across all.
+% [currently gives [] if do warp local to a motif/neuron
+
+
 %% v2 - can input multiple motifs, will align all of them and compare firing rate for each neuron across motifs
 % now:
 % motif_regexpr_str is cell array, each ind with one motif
@@ -22,11 +28,18 @@ for i=1:NumNeurons
     cd(NeuronDatabase.global.basedir);
     
     % - find day folder
+%     dirdate=NeuronDatabase.neurons(i).date;
+%     tmp=dir([dirdate '*']);
+%     assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+%     cd(tmp(1).name);
     dirdate=NeuronDatabase.neurons(i).date;
     tmp=dir([dirdate '*']);
-    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(i).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
     cd(tmp(1).name);
-    
+
     % - load data for this neuron
     batchf=NeuronDatabase.neurons(i).batchfile;
     channel_board=NeuronDatabase.neurons(i).chan;
@@ -43,8 +56,9 @@ for i=1:NumNeurons
             WHOLEBOUTS_edgedur = ''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
         % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
         end
+        keepRawSongDat = 1;
         [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
-            regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur);
+            regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, '', keepRawSongDat);
         
         % -------- SAVE TIMING OF SPIKES FOR THIS NEURON
         MOTIFSTATS.neurons(i).motif(j).SegmentsExtract=SegmentsExtract;
@@ -54,6 +68,7 @@ end
 
 
 %% ========================== PLOT COMBINED RASTERS
+MotifTime_med = [];
 if LinScaleGlobal==1
     % =================== OPTIONAL, LINEARLY TIME WARP ALL TO SAME DURATION[DEFAULT]
     spktimefield='spk_Times_scaled';

@@ -37,6 +37,11 @@ while (1)
         elseif(strcmp(ext,'.wav'))
             [dat,fs]=wavread(fn);
             sm=mquicksmooth(dat,fs);
+        elseif(strcmp(ext, '.rhd'))
+            [frequency_parameters, board_adc_data] = pj_readIntanNoGui_AudioOnly(fn);
+            fs=frequency_parameters.amplifier_sample_rate; % for neural, analog, and dig
+            dat = board_adc_data(1,:);
+            sm=mquicksmooth(dat,fs);
         end
         
         sm = log10(sm);

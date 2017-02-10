@@ -1,6 +1,6 @@
 %% LT 6/3/15 - Takes config file and desired notenum, and runs evtaf sim to get all detects, give hit infomration and freq
 
-function [AllSongsData_toplot, AllData]=lt_check_hit_templ_freq_NoLabelRequired(Params)
+function [AllSongsData_toplot, AllData, AllSongsDataMatrix_Legend]=lt_check_hit_templ_freq_NoLabelRequired(Params)
 % Instructions:
 % Run in day folder. Only works for data collected with evtafv4 (since used
 % notenum)
@@ -90,7 +90,9 @@ for i=1:NumSongs;
         % --- 3) Catch status of each trial
         
         % -- 4) Collect offline data
-        AllSongsDataMatrix=[AllSongsDataMatrix; i*ones(n,1), timeofsong_days*ones(n,1), AllData(i).data_OfflineAllDetects, online_inds_that_are_hit_LOGICALS];
+        AllSongsDataMatrix=[AllSongsDataMatrix; i*ones(n,1), timeofsong_days*ones(n,1), ...
+            AllData(i).data_OfflineAllDetects, online_inds_that_are_hit_LOGICALS, ...
+            AllData(i).datenum_filestart_SecResol*ones(n,1)];
     end
 end
 
@@ -100,6 +102,8 @@ end
 
 AllSongsDataMatrix=AllSongsDataMatrix(inds,:);
 
+AllSongsDataMatrix_Legend = {'songnum', 'timeofsong_days', 'trigtime_offline', ...
+    'notenum', 'FFvals', 'Ampvals', 'HitIndicator', 'datenum'};
 
 %% Sort out just datapoints that are detects of desired note
 AllSongsData_toplot=AllSongsDataMatrix(AllSongsDataMatrix(:,4)==Params.NoteNum_to_plot,:);
@@ -108,7 +112,7 @@ AllSongsData_toplot=AllSongsDataMatrix(AllSongsDataMatrix(:,4)==Params.NoteNum_t
 %% ==== PLOT DATA
 RunBin=20;
 
-% ====== 1) ALL RENDS (by time)
+% ====== 1) ALL RENDS (by relative time)
 lt_figure; hold on;
 title(['FF of all detects of notenum: ' num2str(Params.NoteNum_to_plot) ' (by time)']);
 xlabel('time (hours)');
@@ -136,6 +140,30 @@ plot(X,Y,'or','MarkerFaceColor','r');
 
 % overlay running avg
 shadedErrorBar(X_sm.Mean,Y_sm.Mean,Y_sm.SEM,{'-k'},1);
+
+
+% ===== 1.5) ALL RENDS (by actual time)
+lt_figure; hold on;
+title(['FF of all detects of notenum: ' num2str(Params.NoteNum_to_plot)]);
+xlabel('time (date-time)');
+ylabel('FF (hz)');
+
+% all rends
+X=AllSongsData_toplot(:,8); % time values
+Y=AllSongsData_toplot(:,5); % freq values
+plot(X, Y,'o','MarkerFaceColor','b');
+% overlay online hits
+IndsOfTriggeredRends=find(AllSongsData_toplot(:,7)==1);
+X=AllSongsData_toplot(IndsOfTriggeredRends,8); % only those triggered
+Y=AllSongsData_toplot(IndsOfTriggeredRends,5);
+plot(X,Y,'or','MarkerFaceColor','r');
+
+% set(gca, 'XTick', linspace(min(X), max(X), 10))
+set(gca, 'XMinorTick', 'on')
+% set(gca, 'XTick', min(X):0.5:max(X));
+datetick('x','dd-HH:MM', 'keepticks');
+
+
 
 
 % ===== 2) RUNNING PERCENTILES

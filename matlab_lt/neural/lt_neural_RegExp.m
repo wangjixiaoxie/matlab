@@ -1,7 +1,15 @@
 %% lt 8/18/16 - input regexpt, outputs segments,each of which is the regexp +/- duration.
 
 function [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
-    regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams)
+    regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, keepRawSongDat)
+%% keepRawSongDat
+
+% will keep raw dat if ask for FF.
+% will discard if don't ask, (unless set keepRawSongDat = 1 [default = 0]);
+
+if ~exist('keepRawSongDat', 'var')
+    keepRawSongDat = 0;
+end
 
 %% --
 % FFparams.collectFF=1;
@@ -19,7 +27,8 @@ function [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ..
 %%
 % regexpr_str='ghh'; % if 'WHOLEBOUTS' then will automatically extract
 % bouts by onset and offsets.
-% predur=4; % sec
+% predur=4; % sec, time before token onset (or offset, depending on
+% alignByOnset)
 % postdur=4; % sec
 % SongDat, NeurDat, Params, shoudl correspond to same dataset, extracted using lt_neural_ExtractDat
 % alignByOnset=1, then aligns all by the onset of token ind. if 0, then by offset of token ind.
@@ -31,7 +40,10 @@ if ~exist('FFparams', 'var')
     FFparams.collectFF=0;
 end
 
-
+if isempty(FFparams)
+    FFparams.collectFF=0;
+end
+ 
 
 if ~exist('WHOLEBOUTS_edgedur', 'var');
     WHOLEBOUTS_edgedur=[];
@@ -158,6 +170,13 @@ for i=1:length(tokenExtents)
     spk_ClustTimes = spikes_cat.cluster_class(spkinds, :); % in sec, relative to onset of the segment
     
     
+    if keepRawSongDat ==1
+        % this effectively does nothing if also collecting FF.
+        AllSongs=SongDat.AllSongs;
+        songseg=AllSongs(onsamp:offsamp);
+        SegmentsExtract(i).songdat=songseg;
+    end
+    
     % +++++++++++++++++++++++++++++++++++++++++++++++++++++++
     % Extract FF of a specific syllable [OPTIONAL]
     if FFparams.collectFF==1
@@ -262,8 +281,8 @@ for i=1:length(tokenExtents)
         SegmentsExtract(i).FF_pitchcontour=PC;
         SegmentsExtract(i).FF_timebase=T;
         SegmentsExtract(i).songdat=songseg;
-        
     end
+    
     % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     % ========= TIME OF SONG FILE FOR THIS SEGMENT

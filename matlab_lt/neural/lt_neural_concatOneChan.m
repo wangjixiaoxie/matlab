@@ -64,8 +64,8 @@ if ~exist(dirsavename, 'dir')
     
     % --- save
     data=ampDat_all; % wave_clus needs this name change
-    save(['data.mat'], 'data');  % save vector
-    save(['MetaDat.mat'], 'metaDat'); % save metadata
+    save(['data.mat'], 'data', '-v7.3');  % save vector
+    save(['MetaDat.mat'], 'metaDat', '-v7.3'); % save metadata
     eval(['!cp ../' batchf ' .']) % copy batchfile over
 else
     if strcmp(input('data already exists - overwrite? (y or n) ' , 's'), 'y')
@@ -77,8 +77,8 @@ else
         
         % --- save
         data=ampDat_all; % wave_clus needs this name change
-        save(['data.mat'], 'data');  % save vector
-        save(['MetaDat.mat'], 'metaDat'); % save metadata
+        save(['data.mat'], 'data', '-v7.3');  % save vector
+        save(['MetaDat.mat'], 'metaDat', '-v7.3'); % save metadata
         eval(['!cp ../' batchf ' .']) % copy batchfile over
     else
         % then don't save data

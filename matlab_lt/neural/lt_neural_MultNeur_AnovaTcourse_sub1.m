@@ -104,3 +104,7 @@ for ii=1:length(GroupLabels)
     end
     
 end
+
+    if ~exist('ANOVA_STRUCT', 'var')
+ANOVA_STRUCT=struct;
+    end

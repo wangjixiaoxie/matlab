@@ -1,10 +1,15 @@
-
 % %% neuron database [NONLEARNING (CODING)]
 % clear NeuronDatabase;
 % NeuronDatabase.global.basedir='/bluejay4/lucas/birds/bk7/NEURAL';
 % ind=0;
 
+%% TO DO LIST
+
+% 1) FR - pitch correaltion, do for each time bin peri-syllable
+% 2) 
+
 %% NOTE: CAN CURRENTLY ONLY DO ONE BIRD AT A TIME!!
+clear all; close all;
 
 %% ===== bk7
 
@@ -14,6 +19,10 @@ bk7_analysis_NeuronDatabase
 
 pk17gr57_analysis_NeuronDatabase
 
+
+%% ====== bu77
+
+bu77wh13_analysis_NeuronDatabase
 
 %% ======== CONVERT TO TABLE
 NeuronDatabase_table=struct2table(NeuronDatabase.neurons);
@@ -237,10 +246,10 @@ close all;
 % motif_predur=0.3;
 % motif_postdur=0.2;
 % 
-motif_regexpr_str={'g(h)', 'n(h)', 'g(v)', 'g(b)'};
-motif_predur=0.1;
-motif_postdur=0.1;
-
+% motif_regexpr_str={'g(h)', 'n(h)', 'g(v)', 'g(b)'};
+% motif_predur=0.1;
+% motif_postdur=0.1;
+% 
 % ------------------------------------ pk17
 % motif_regexpr_str={'g(h)', 'n(h)', 'g(v)', 'g(b)'};
 % motif_regexpr_str={'k(d)ccbgh', 'w(d)ccbgh'};
@@ -251,6 +260,13 @@ motif_postdur=0.1;
 % motif_predur=0.2;
 % motif_postdur=0.1;
 
+
+% ------------------------- BU77
+motif_regexpr_str={'a(b)bh', 'j(b)h'};
+motif_predur=0.25;
+motif_postdur=0.5;
+% 
+% 
 
 LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
 WHOLEBOUTS_edgedur = '';
@@ -264,6 +280,19 @@ WHOLEBOUTS_edgedur = '';
 % --
 
 lt_neural_MultNeur_MotifRasters_v2(NeuronDatabase, motif_regexpr_str, motif_predur, motif_postdur, LinScaleGlobal, WHOLEBOUTS_edgedur);
+
+%% ======== ARRANGE RESPONSES BASED ON CHANNEL AND DEPTH
+% PLOT RESPONSE arranged by channel, depth, and date.
+
+motif_regexpr_str={'a(b)', 'j(b)'};
+motif_predur=0.1;
+motif_postdur=0.2;
+
+LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
+WHOLEBOUTS_edgedur = '';
+
+lt_neural_MultNeur_ArrangeResponses(NeuronDatabase, motif_regexpr_str, ...
+    motif_predur, motif_postdur, LinScaleGlobal, WHOLEBOUTS_edgedur);
 
 
 %% ======== EXTRACT ALL ONE-BACK TRANSITIONS (including probabilities and frequencies, both div and conv)
@@ -292,10 +321,18 @@ lt_neural_MultNeur_pseudopop(NeuronDatabase, TRANSMATRIX, branchtype, plotOnlySu
 
 %% ====== REVISED VERSION OF ABOVE - CAN COMPARE ANY BRANCHES, NOT JUST ONE BACK
 close all;
-lt_neural_MultNeur_AnovaTcourse(NeuronDatabase)
+closeEarlyFigs = 1;
+NCycles = 1000; % cycles to perform shuffles
+lt_neural_MultNeur_AnovaTcourse(NeuronDatabase, NCycles, closeEarlyFigs)
+
+% TO DO: 
+% each time point, compare cdf of anova.
+% each time point, plot pdf of pvalues (shuffle comparison)
+
 
 %% +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %% ========================== BUILD LINEAR MODEL OF FIRING RATES
+close all;
 
 % ========================= FREQ WINDOWS 
 % 1) bk7
@@ -308,11 +345,23 @@ FFparams.cell_of_FFtimebins={'h', [0.042 0.058], 'b', [0.053 0.07], ...
 % FFparams.cell_of_FFtimebins={'h', [0.034 0.038], 'b', [0.053 0.07], ...
 %             'v', [0.052 0.07]}; % WN on g H
 
+
+% 2) bu77
+FFparams.cell_of_freqwinds={'b', [2700 3900], 'h', [2600 3900], 'a', [1300 2600]};
+FFparams.cell_of_FFtimebins={'b', [0.031 0.04], 'h', [0.038 0.052], 'a', [0.056 0.081]}; % in sec, relative to onset (i.e. see vector T)
+
+
 saveOn = 1; % then saves SYLNEURDAT
-SYLNEURDAT = lt_neural_MultNeur_CollectFeats(NeuronDatabase, FFparams, saveOn);
+plotSpec = 1; % to plot raw spec overlayed with PC and windows.
+SYLNEURDAT = lt_neural_MultNeur_CollectFeats(NeuronDatabase, FFparams, saveOn, plotSpec);
 
 % NOTE DOWN PARAMS OF LAST RUN:
 % good (all neurons)
+
+%% ================= MOVING WINDOW CORRELATION BETWEEN FR AND FF
+
+
+
 
 %% ======= LOAD LAST SAVED STRUCT
 
@@ -332,6 +381,7 @@ lt_neural_MultNeur_MixedEffects(SYLNEURDAT);
 %% +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % IMPORTANT - THIS CODE IS FOR ONE NEURON ONLY - WILL TAKE FIRST NEURON IN NEURONDATABASE
 
+% ==========================================================BK7
 % FOR EACH NEURON, PLOT RASTER AND SMOOTHED FIRING FOR A GIVEN MOTIF ACROSS
 % TIME allsyls
 % - I.E. same as above code, except noting when learning began, gets FF,
@@ -348,7 +398,7 @@ motif_predur=0.1;
 motif_postdur=0.1;
 LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
 
-
+% NOTE: for below, run linear model stuff above
 FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will 
 FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
     % +1 is 1 after token
@@ -367,32 +417,90 @@ FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incomp
 OnlyPlotNoHit=0; % then only plots trials that were not hit (WN)
 TrialBinSize=10;
 
+
+% ================================================================== bu77
+
+% FOR EACH NEURON, PLOT RASTER AND SMOOTHED FIRING FOR A GIVEN MOTIF ACROSS
+% TIME allsyls
+% - I.E. same as above code, except noting when learning began, gets FF,
+% hit/escape, and catch song information
+close all; 
+motif_regexpr_str={'a(b)bh', 'j(b)h'};
+
+motif_predur=0.25;
+motif_postdur=0.25; 
+LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
+
+% NOTE: for below, run linear model stuff above
+FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will 
+FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
+    % +1 is 1 after token
+FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
+    % not required (can set as []);
+% NOTE: will also determine whether was hit or miss, based on WN sound
+% detection.
+        
+% LEARNING PARAMS
+% WNchangeDateStrings={'05Oct2016-1348'}; % LearnLMAN1 - first epoch
+% WNchangeDateStrings={'06Oct2016-1225'}; % LearnLMAN1 - second epoch
+% WNchangeDateStrings={'17Oct2016-1332'}; % LearnLMAN2
+% WNchangeDateStrings={'17Oct2016-1940'}; % LearnLMAN2 - second epoch - arbitrary, since did not actually change WN during this.
+
+
+OnlyPlotNoHit=0; % then only plots trials that were not hit (WN)
+TrialBinSize=15; % default 10
+
+
 % === ONLY DOES ONE NEURON AT A TIME!! - FIRST INDEX IN NeuronDatabase;
 lt_neural_MultNeur_MotifRasters_Learning(NeuronDatabase, motif_regexpr_str, ...
     motif_predur, motif_postdur, LinScaleGlobal, FFparams, OnlyPlotNoHit, TrialBinSize)
 
+% IN PROGRESS!!:: LinScaleGlobal.
 
-%% ====== [USE PARAMS ABOVE] - only plots summary figures
+%% ====== SUMMARY OF D-PRIME STUFF (BIN OVER TIME AND TRIALS) only plots summary figures
 % d-prime of firing rate change in premotor window summary plots, relative
 % to learning timepoints and FF change
 close all;
 % === NEW PARAMS.
+motif_regexpr_str={'a(b)', 'j(b)', 'jb(h)', 'ab(b)', 'abb(h)', '(a)b', '(j)b'};
+% motif_regexpr_str={'a(b)'};
 UseEntireBaseline = 0; % if 1, uses entire baseline, otherwise uses 1st bin.
+TypesToPlot={'mean'}; % for d-prime summary metric (which ones to plot?)
 % TypesToPlot={'mean', 'abs', 'std', 'corr'}; % for d-prime summary metric (which ones to plot?)
-TypesToPlot={'abs'}; % for d-prime summary metric (which ones to plot?)
-TrialBinSize=5;
+LinScaleGlobal = 0; % NOTE: IN PROGRESS
+TrialBinSize=10;
+premotor_wind=[-0.1 0.04]; % in sec, relative to onset of token in motif.
 
 lt_neural_MultNeur_MotifRasters_LearnSum(NeuronDatabase, motif_regexpr_str, ...
     motif_predur, motif_postdur, LinScaleGlobal, FFparams, ...
-    OnlyPlotNoHit, UseEntireBaseline, TypesToPlot, TrialBinSize)
+    OnlyPlotNoHit, UseEntireBaseline, TypesToPlot, TrialBinSize, premotor_wind)
+
+
+%% ============ SUMMARY, TRIAL BY TRIAL [IMPORTANT]
+
+close all;
+
+motif_regexpr_str={'a(b)', 'j(b)', 'jb(h)', 'ab(b)', 'abb(h)', '(a)b', '(j)b'};
+% motif_regexpr_str={'a(b)', 'j(b)'};
+motif_predur=0.15;
+motif_postdur=0.2; 
+
+LinScaleGlobal = 0; % NOTE: IN PROGRESS
+premotor_wind=[-0.1 0.05]; % in sec, relative to onset of token in motif.
+
+lt_neural_MultNeur_LearningAnaly(NeuronDatabase, motif_regexpr_str, ...
+    motif_predur, motif_postdur, LinScaleGlobal, FFparams, premotor_wind);
+
 
 
 %% ====== ACUTE EFFECT OF WN?
+% NOTE: RUN ABOVE PARAMS FIRST
 close all;
-motif_regexpr_str={'g(h)h'};
-motif_predur=0.1;
-motif_postdur=0.1;
-NumTrialsBin=10;
+motif_regexpr_str={'g(h)h'}; % bk7
+motif_regexpr_str={'a(b)bh'}; % bu77
+motif_predur=0.25;
+motif_postdur=0.4;
+NumTrialsBin=20;
 LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
 
 lt_neural_MultNeur_MotifRasters_WNacute(NeuronDatabase, motif_regexpr_str, ...

@@ -429,7 +429,7 @@ else
     
     % =======================================================
     % LT - plot (Intan)
-    [~, ~, frequency_parameters, board_adc_data]=pj_readIntanNoGui(fline);
+    [frequency_parameters, board_adc_data]=pj_readIntanNoGui_AudioOnly(fline);
     
     % --- NOTE ON THE OUTPUT VARIABLES
     

@@ -24,7 +24,7 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='r87gr4_4_20_2015_DV1200_150420_150330.rhd';
+filename='r87gr4_5_6_2015_DV2800_150506_163621.rhd';
 ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
@@ -81,8 +81,8 @@ batchf='BatchChan14Late';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
-ChansToPlot=[8 9 12 15 17 19 20 22];
-batchtoplot='batchall_sub';
+ChansToPlot=[9];
+batchtoplot='Batch2150Sub';
 
 % -----  v1, plots just raw neural, filtered
 % batchtoplot=batchf;
@@ -98,8 +98,8 @@ lt_neural_concatExplore_v2(batchtoplot, ChansToPlot, PlotRectDat, PlotFiltDat); 
 % based on expectation of duration for single unit.
 % -- saves into downstream folder
 close all; clear all;
-batchf='batchall_sub';
-channel_board=20;
+batchf='Batch2150Sub';
+channel_board=9;
 lt_neural_concatOneChan(batchf, channel_board)
 
 %% ==== run wave_clus on this concatted data
