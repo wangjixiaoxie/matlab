@@ -1,4 +1,4 @@
-function lt_switch_uievtafsim_version(version);
+function lt_switch_uievtafsim_version(version)
 %% LT 4/9/15 - run this before running uievtafsim. this adds or removes dir for evtafv4 version to paths.(0=amp, 1=v4)
 % This is necessary because both versions have same name, and also same
 % name for called functions (but actually diff functions).

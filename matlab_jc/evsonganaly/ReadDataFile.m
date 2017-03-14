@@ -63,7 +63,7 @@ elseif (strcmp(ext,'.raw'))
 elseif (strcmp(ext,'.rhd'))
 %     fullfname=[pth '/' nm ext]
 %     [dat,fs]=IntanRHDReadSong('',fullfname);
-    [fs, dat] = pj_readIntanNoGui_AudioOnly(fullfname);
+    [fs, dat] = pj_readIntanNoGui_AudioOnly(fullfname, 1);
     fs = fs.amplifier_sample_rate;
     ISR=0;chan=-1;
 else

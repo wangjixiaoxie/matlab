@@ -1,5 +1,5 @@
 
-function lt_Opto_Stim_analy_SUMMARY_MultDayAnaly_v3(Params_metadata, Params_glob)
+function lt_Opto_Stim_analy_SUMMARY_MultDayAnaly_v3(Params_metadata, Params_glob, KeepOutliers)
 %% LT version 3 - 7/9/15 - MODIFIED TO AUTOMATICALLY FIND DIR NAMES (uses lt_metadata analysis)
 % IMPORTANT: dirs must be structured as (for e.g.)
 % /bluejay4/lucas/birds/pk32/070115_Reversion1_preWN_STIMoff
@@ -7,6 +7,8 @@ function lt_Opto_Stim_analy_SUMMARY_MultDayAnaly_v3(Params_metadata, Params_glob
 
 % ALSO: Stim epochs must be catch trials (because will use StimCatch and
 % StimNotCatch fields to filter data)
+
+% WILL TAKE ALL LABELED SONGS
 
 % RUN THIS IN BIRD FOLDER
 
@@ -141,15 +143,12 @@ for i=1:NumDirs;
     
     % RUN
     RunStats=1;
-    KeepOutliers=0; % for running stats and plotting.
     [StatsStruct, Params]=lt_Opto_Stim_analy_PLOT_TimeWindow_v2(StatsStruct,Params,RunStats,KeepOutliers);
     
     
     % ===== PLOT OVER TIME
-    Params.SmthBin=20; % smooth # rends
-    KeepOutliers=0;
-    
-    [StatsStruct,Params]=lt_Opto_Stim_analy_PLOT_TimeWindow_OverTime_v2(StatsStruct,Params,1,KeepOutliers);
+    Params.SmthBin=15; % smooth # rends
+    [StatsStruct, Params]=lt_Opto_Stim_analy_PLOT_TimeWindow_OverTime_v2(StatsStruct,Params,1,KeepOutliers);
     close all;
     
 end

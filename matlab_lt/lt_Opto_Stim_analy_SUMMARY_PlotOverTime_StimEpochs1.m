@@ -54,6 +54,7 @@ TrialTypes={'StimCatch','StimNotCatch','All_preceding'};
                         Tvals_sm=lt_running_stats(Tvals, RunBin);
                         
                         % plot
+                        if length(Yvals_sm.Mean)>1
                         switch trialtype
                             case 'StimCatch'
                                 shadedErrorBar(ii+Tvals_sm.Median./24,Yvals_sm.Mean,Yvals_sm.SEM,{'-r','LineWidth',2},1);
@@ -65,7 +66,7 @@ TrialTypes={'StimCatch','StimNotCatch','All_preceding'};
                                 shadedErrorBar(ii+Tvals_sm.Median./24,Yvals_sm.Mean,Yvals_sm.SEM,{'-k','LineWidth',2},1);
                                 %                             plot(ii+Tvals_sm.Median./24,Yvals_sm.Mean,'-k');
                         end
-                        
+                        end
                         
                         % 2) get means and plot
 %                         figure(h(2));

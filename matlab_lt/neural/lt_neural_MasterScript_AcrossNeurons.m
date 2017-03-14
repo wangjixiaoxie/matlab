@@ -262,9 +262,9 @@ close all;
 
 
 % ------------------------- BU77
-motif_regexpr_str={'a(b)bh', 'j(b)h'};
-motif_predur=0.25;
-motif_postdur=0.5;
+motif_regexpr_str={'abb(h)', 'jb(h)'};
+motif_predur=0.2;
+motif_postdur=0.3;
 % 
 % 
 
@@ -425,10 +425,12 @@ TrialBinSize=10;
 % - I.E. same as above code, except noting when learning began, gets FF,
 % hit/escape, and catch song information
 close all; 
-motif_regexpr_str={'a(b)bh', 'j(b)h'};
+motif_regexpr_str={'a(b)', 'j(b)'};
+motif_regexpr_str={'a(b)', 'j(b)', 'jb(h)', 'ab(b)', 'abb(h)', '(a)b', '(j)b'};
+motif_regexpr_str={'a(b)'};
 
-motif_predur=0.25;
-motif_postdur=0.25; 
+motif_predur=0.4;
+motif_postdur=0.2; 
 LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
 
 % NOTE: for below, run linear model stuff above
@@ -481,12 +483,13 @@ lt_neural_MultNeur_MotifRasters_LearnSum(NeuronDatabase, motif_regexpr_str, ...
 close all;
 
 motif_regexpr_str={'a(b)', 'j(b)', 'jb(h)', 'ab(b)', 'abb(h)', '(a)b', '(j)b'};
+motif_regexpr_str={'a(b)'};
 % motif_regexpr_str={'a(b)', 'j(b)'};
 motif_predur=0.15;
 motif_postdur=0.2; 
 
 LinScaleGlobal = 0; % NOTE: IN PROGRESS
-premotor_wind=[-0.1 0.05]; % in sec, relative to onset of token in motif.
+premotor_wind=[-0.03 0.01]; % in sec, relative to onset of token in motif.
 
 lt_neural_MultNeur_LearningAnaly(NeuronDatabase, motif_regexpr_str, ...
     motif_predur, motif_postdur, LinScaleGlobal, FFparams, premotor_wind);

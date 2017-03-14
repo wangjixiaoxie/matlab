@@ -96,7 +96,8 @@ for i=1:NumNeurons
     end
 end
 
-doclose=input('type "c" to close figures (otherwise ENTER)', 's');
+% doclose=input('type "c" to close figures (otherwise ENTER)', 's');
+doclose='c';
 if strcmp(doclose, 'c');
     close all;
 end

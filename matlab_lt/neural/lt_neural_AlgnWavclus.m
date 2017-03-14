@@ -1,12 +1,12 @@
 %% LT 8/18/16 - takes rsults from wave clus spike sorting and aligns results to raw dat
-function lt_neural_AlgnWavclus(batchf, channel_board, plotcols)
+function lt_neural_AlgnWavclus(batchf, channel_board, plotcols, PlotSecondChan, SecondChan)
 
 % batchf='batch_test'
 % channel_board=14;
 % NOTE: these have to match exactly the batch name and channel used for the
 % lt_neural_concatOneChan function which did the concat before waveclus.
 
-plotRawSound=0;
+plotRawSound=1;
 
 %% go to data folder
 datdir=['Chan' num2str(channel_board) 'amp-' batchf];
@@ -27,8 +27,10 @@ AllOnsets=[];
 AllOffsets=[];
 cumulative_filedur=0; % keeps track as concatenating
 
+AllNeural_SecondChan = [];
+
 cd ..
-if isfield(metaDat, 'songDat');
+if isfield(metaDat, 'songDat') && PlotSecondChan==0
     % audio was saved before
     
     AllSongs_old=[metaDat.songDat];
@@ -54,8 +56,6 @@ if isfield(metaDat, 'songDat');
     end
 else
     % --- load audio and old neural (from actual files)
-    
-    
     for i=1:length(metaDat)
         
         % -- load original sound and neural
@@ -81,6 +81,12 @@ else
         % duration of this song file (sec)
         filedur=metaDat(i).numSamps/metaDat(i).fs;
         cumulative_filedur=cumulative_filedur + filedur;
+        
+        % =========== IF WANT SECOND CHAN, COLLECT THAT
+        if PlotSecondChan==1
+            ind=find([amplifier_channels.chip_channel]==SecondChan);
+            AllNeural_SecondChan=[AllNeural_SecondChan amplifier_data(ind, :)];
+        end
     end
 end
 tt=[1:length(AllNeural_old)]/metaDat(1).fs;
@@ -120,6 +126,9 @@ for mm=1:numfigs
     else
     subplotrows=2;
     end
+    if PlotSecondChan==1
+        subplotrows = subplotrows+1;
+    end
     subplotcols=1;
     fignums_alreadyused=[];
     hfigs=[];
@@ -130,14 +139,15 @@ for mm=1:numfigs
     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     plot(tt(indsamp)-timefirst, AllSongs_old(indsamp));
     hsplots=[hsplots hsplot];
-    end
     
+    else
     % - b. song spec
     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     lt_plot_spectrogram(AllSongs_old(indsamp), metaDat(1).fs, '', 0)
     title(['first song: ' stargsongname]);
-    
     hsplots=[hsplots hsplot];
+    end
+    
     
     % onsets and labels
     inds_ons_off=AllOnsets>timefirst & AllOnsets<timelast;
@@ -176,6 +186,15 @@ for mm=1:numfigs
             spktime=spktime-1000*timefirst;
             line([spktime spktime]/1000, [0 40]-i*20, 'Color', plotcols{i}, 'LineWidth',2);
         end
+    end
+    
+    if PlotSecondChan==1
+    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+    [datfilt] =lt_neural_filter(AllNeural_SecondChan(indsamp), metaDat(1).fs);
+    plot(tt(indsamp)-timefirst, datfilt, 'k');
+    hsplots=[hsplots hsplot];
+    title(['second chan (' num2str(SecondChan) ')']);
+
     end
     
     % --- link all

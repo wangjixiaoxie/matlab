@@ -108,7 +108,7 @@ while (1)
         [datFull,fs]=evsoundin('',fn,CHANSPEC);
         sm=SmoothData(datFull,fs,1,'hanningfirff');
         sm(1)=0.0; sm(end)=0.0;
-        [ons,offs]=SegmentNotes(sm,fs,min_int,min_dur,ampThresh);
+        [ons,offs]=SegmentNotesJC(sm,fs,min_int,min_dur,ampThresh);
         onsets=ons*1e3;offsets=offs*1e3;
         labels = char(ones([1,length(onsets)])*fix('-'));
     else
@@ -124,7 +124,7 @@ while (1)
             [datFull,fs]=evsoundin('',fn,CHANSPEC);
             sm=SmoothData(datFull,fs,1,'hanningfirff');
             sm(1)=0.0;sm(end)=0.0;
-            [ons,offs]=SegmentNotes(sm,fs,min_int,min_dur,ampThresh);
+            [ons,offs]=SegmentNotesJC(sm,fs,min_int,min_dur,ampThresh);
             onsets=ons*1e3;offsets=offs*1e3;
             labels = char(ones([1,length(onsets)])*fix('-'));
             

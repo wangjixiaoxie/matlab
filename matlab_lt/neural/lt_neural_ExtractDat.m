@@ -14,7 +14,9 @@ datdir=['Chan' num2str(channel_board) 'amp-' batchf];
 cd(datdir)
 
 %% EXTRACT AND CONCAT ALL SONG FILES and neural files
+tic
 load('MetaDat.mat'); % contains file names
+toc
 % --- load concat neural and spikes
 % neural_cat=load('data.mat');
 spikes_cat=load('times_data.mat');
@@ -23,29 +25,53 @@ spikes_cat=load('times_data.mat');
 % --- load audio and old neural (from actual files)
 cd ..
 
-AllSongs=[];
+AllSongs=nan(1, sum([metaDat.numSamps]));
 % AllNeural_old=[];
 AllLabels=[];
 AllOnsets=[];
 AllOffsets=[];
 cumulative_filedur=0; % keeps track as concatenating
 
+tic
+counter = 1;
 for i=1:length(metaDat)
     
     if isfield(metaDat, 'songDat')
         % then don't need to reload raw
-        AllSongs=[AllSongs metaDat(i).songDat];
+% OLD VERSION
+%         AllSongs=[AllSongs metaDat(i).songDat];
+        
+% NEW VERSION
+        inds = counter:(counter+length(metaDat(i).songDat(1,:))-1);
+%         assert(all(isnan(AllSongs(inds))), 'asdfasdf');
+        AllSongs(inds) = metaDat(i).songDat(1,:);
+%         assert(length(inds) ==length(metaDat(i).songDat(1,:)), 'asdfasdf');
+
+        counter = counter+length(metaDat(i).songDat(1,:));
+        
+%         disp([inds(1) inds(end) length(metaDat(i).songDat(1,:))]);
+
     else
         % relaod raw
         
         % -- load original sound and neural
-        [amplifier_data,~,frequency_parameters, board_adc_data, ...
-            board_adc_channels, amplifier_channels, ~] = pj_readIntanNoGui(metaDat(i).filename);
+        [~, board_adc_data] = pj_readIntanNoGui_AudioOnly(metaDat(i).filename);
 %         ind=find([amplifier_channels.chip_channel]==channel_board);
+ 
+% OLD VERSION
+%         AllSongs=[AllSongs board_adc_data(1,:)];
         
-        AllSongs=[AllSongs board_adc_data(1,:)];
+% NEW VERSION
+        inds = counter:(counter+length(board_adc_data(1,:))-1);
+%         assert(all(isnan(AllSongs(inds))), 'asdfasdf');
+        AllSongs(inds) = board_adc_data(1,:);
+%         assert(length(inds) ==length(board_adc_data(1,:)), 'asdfasdf');
+
+        counter = counter+length(board_adc_data(1,:));
         
-        %    AllNeural_old=[AllNeural_old amplifier_data(ind, :)];
+%         disp([inds(1) inds(end) length(board_adc_data(1,:))]);
+        
+%    AllNeural_old=[AllNeural_old amplifier_data(ind, :)];
     end
     
     % -- load labels, onsets, offsets
@@ -64,7 +90,7 @@ for i=1:length(metaDat)
     filedur=metaDat(i).numSamps/metaDat(i).fs;
     cumulative_filedur=cumulative_filedur + filedur;
 end
-
+toc
 
 
 SongDat.AllSongs=AllSongs;

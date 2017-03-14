@@ -1345,9 +1345,9 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                     case 'StimCatch'
                         plot(X+ii,Y,'r.')
                     case 'StimNotCatch'
-                        plot(X+ii,Y,'g.')
+                        plot(X+ii,Y,'.', 'Color', 'b')
                     case 'DIR_All'
-                        plot(X+ii,Y,'b.')
+                        plot(X+ii,Y,'m.')
                         
                 end
                 
@@ -1364,9 +1364,9 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                     case 'StimCatch'
                         errorbar(ii+1+iii*0.05,ffmean,ffsem,'ro','MarkerSize',9,'MarkerFaceColor','r')
                     case 'StimNotCatch'
-                        errorbar(ii+1+iii*0.05,ffmean,ffsem,'go','MarkerSize',9,'MarkerFaceColor','g')
-                    case 'DIR_All'
                         errorbar(ii+1+iii*0.05,ffmean,ffsem,'bo','MarkerSize',9,'MarkerFaceColor','b')
+                    case 'DIR_All'
+                        errorbar(ii+1+iii*0.05,ffmean,ffsem,'mo','MarkerSize',9,'MarkerFaceColor','m')
                 end
             end
             
@@ -1410,7 +1410,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                 Ysem=Ystd./sqrt(PARAMS.global.RunBin-1);
                 
                 if length(X)>1;
-                shadedErrorBar(X+ii,Y,Ysem,{'-','Color',[0.1 0.6 0.1],'LineWidth',2},1);
+                shadedErrorBar(X+ii,Y,Ysem,{'-','Color','b','LineWidth',2},1);
                 end
                 %                 plot(X+ii,Y,'-','Color',[0.1 0.6 0.1],'LineWidth',2);
             end
@@ -1425,7 +1425,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                 Ysem=Ystd./sqrt(PARAMS.global.RunBin-1);
                 
                 if length(X)>1
-                shadedErrorBar(X+ii,Y,Ysem,{'b-','LineWidth',2},1);
+                shadedErrorBar(X+ii,Y,Ysem,{'m-','LineWidth',2},1);
                 end
                 %             plot(X+ii,Y,'-','Color','b','LineWidth',2);
             end
@@ -1446,7 +1446,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                 ffn=length(Ytot);
                 ffsem=ffstd/sqrt(ffn-1);
                 
-                errorbar(ii+1+iii*0.05,ffmean,ffsem,'bo','MarkerSize',12)
+                errorbar(ii+1+iii*0.05,ffmean,ffsem,'ko','MarkerSize',12)
                 
             end
             
@@ -1456,6 +1456,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
             
         end
     end
+    lt_plot_annotation(1, 'red = catch', 'r');
 end
 
 
@@ -1491,9 +1492,9 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                     case 'StimCatch'
                         errorbar(ii+iii*0.05,ffmean,ffsem,'ro','MarkerSize',9,'MarkerFaceColor','r')
                     case 'StimNotCatch'
-                        errorbar(ii+iii*0.05,ffmean,ffsem,'go','MarkerSize',9,'MarkerFaceColor','g')
-                    case 'DIR_All'
                         errorbar(ii+iii*0.05,ffmean,ffsem,'bo','MarkerSize',9,'MarkerFaceColor','b')
+                    case 'DIR_All'
+                        errorbar(ii+iii*0.05,ffmean,ffsem,'mo','MarkerSize',9,'MarkerFaceColor','m')
                 end
             end
             
@@ -1512,7 +1513,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                 ffn=length(Ytot);
                 ffsem=ffstd/sqrt(ffn-1);
                 
-                errorbar(ii+iii*0.05,ffmean,ffsem,'bo','MarkerSize',12)
+                errorbar(ii+iii*0.05,ffmean,ffsem,'ko','MarkerSize',12)
                 
             end
             
@@ -1522,6 +1523,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
             
         end
     end
+    lt_plot_annotation(1, 'red = catch', 'r');
 end
 
 
@@ -1562,9 +1564,9 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                     case 'StimCatch'
                         plot(X+ii,Y,'r.')
                     case 'StimNotCatch'
-                        plot(X+ii,Y,'g.')
-                    case 'DIR_All'
                         plot(X+ii,Y,'b.')
+                    case 'DIR_All'
+                        plot(X+ii,Y,'m.')
                         
                 end
                 
@@ -1581,9 +1583,9 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                     case 'StimCatch'
                         errorbar(ii+1+iii*0.05,ffmean,ffsem,'ro','MarkerSize',9,'MarkerFaceColor','r')
                     case 'StimNotCatch'
-                        errorbar(ii+1+iii*0.05,ffmean,ffsem,'go','MarkerSize',9,'MarkerFaceColor','g')
-                    case 'DIR_All'
                         errorbar(ii+1+iii*0.05,ffmean,ffsem,'bo','MarkerSize',9,'MarkerFaceColor','b')
+                    case 'DIR_All'
+                        errorbar(ii+1+iii*0.05,ffmean,ffsem,'mo','MarkerSize',9,'MarkerFaceColor','m')
                 end
             end
             
@@ -1630,7 +1632,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                 Ysem=Ystd./sqrt(PARAMS.global.RunBin-1);
                 
                                 if length(X)>1;
-                shadedErrorBar(X+ii,Y,Ysem,{'-','Color',[0.1 0.6 0.1],'LineWidth',2},1);
+                shadedErrorBar(X+ii,Y,Ysem,{'-','Color','b','LineWidth',2},1);
                                 end                
                 %                 plot(X+ii,Y,'-','Color',[0.1 0.6 0.1],'LineWidth',2);
             end
@@ -1645,7 +1647,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                 Ysem=Ystd./sqrt(PARAMS.global.RunBin-1);
                 
                                 if length(X)>1;
-                shadedErrorBar(X+ii,Y,Ysem,{'b-','LineWidth',2},1);
+                shadedErrorBar(X+ii,Y,Ysem,{'m-','LineWidth',2},1);
                                 end                
                 %             plot(X+ii,Y,'-','Color','b','LineWidth',2);
             end
@@ -1666,7 +1668,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                 ffn=length(Ytot);
                 ffsem=ffstd/sqrt(ffn-1);
                 
-                errorbar(ii+1+iii*0.05,ffmean,ffsem,'bo','MarkerSize',12)
+                errorbar(ii+1+iii*0.05,ffmean,ffsem,'ko','MarkerSize',12)
                 
             end
             
@@ -1676,6 +1678,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
             
         end
     end
+    lt_plot_annotation(1, 'red = catch', 'r');
 end
 
 
@@ -1711,9 +1714,9 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                     case 'StimCatch'
                         errorbar(ii+iii*0.05,ffmean,ffsem,'ro','MarkerSize',9,'MarkerFaceColor','r')
                     case 'StimNotCatch'
-                        errorbar(ii+iii*0.05,ffmean,ffsem,'go','MarkerSize',9,'MarkerFaceColor','g')
-                    case 'DIR_All'
                         errorbar(ii+iii*0.05,ffmean,ffsem,'bo','MarkerSize',9,'MarkerFaceColor','b')
+                    case 'DIR_All'
+                        errorbar(ii+iii*0.05,ffmean,ffsem,'mo','MarkerSize',9,'MarkerFaceColor','m')
                 end
             end
             
@@ -1732,7 +1735,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                 ffn=length(Ytot);
                 ffsem=ffstd/sqrt(ffn-1);
                 
-                errorbar(ii+iii*0.05,ffmean,ffsem,'bo','MarkerSize',12)
+                errorbar(ii+iii*0.05,ffmean,ffsem,'ko','MarkerSize',12)
                 
             end
             
@@ -1742,6 +1745,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
             
         end
     end
+    lt_plot_annotation(1, 'red = catch', 'r');
 end
 
 
@@ -1855,9 +1859,9 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                     case 'StimCatch'
                         plot(X+ii,Y,'r.')
                     case 'StimNotCatch'
-                        plot(X+ii,Y,'g.')
-                    case 'DIR_All'
                         plot(X+ii,Y,'b.')
+                    case 'DIR_All'
+                        plot(X+ii,Y,'m.')
                         
                 end
                 
@@ -1874,9 +1878,9 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                     case 'StimCatch'
                         errorbar(ii+1+iii*0.05,ffmean,ffsem,'ro','MarkerSize',9,'MarkerFaceColor','r')
                     case 'StimNotCatch'
-                        errorbar(ii+1+iii*0.05,ffmean,ffsem,'go','MarkerSize',9,'MarkerFaceColor','g')
-                    case 'DIR_All'
                         errorbar(ii+1+iii*0.05,ffmean,ffsem,'bo','MarkerSize',9,'MarkerFaceColor','b')
+                    case 'DIR_All'
+                        errorbar(ii+1+iii*0.05,ffmean,ffsem,'mo','MarkerSize',9,'MarkerFaceColor','m')
                 end
                 
                 
@@ -1894,9 +1898,9 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                     case 'StimCatch'
                         color='r';
                     case 'StimNotCatch'
-                        color='g';
-                    case 'DIR_All'
                         color='b';
+                    case 'DIR_All'
+                        color='m';
                 end
                 
                 if length(Xsm)>1 & ~isnan(Ysm);
@@ -1922,7 +1926,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                 ffn=length(Ytot);
                 ffsem=ffstd/sqrt(ffn-1);
                 
-                errorbar(ii+1+iii*0.05,ffmean,ffsem,'bo','MarkerSize',12)
+                errorbar(ii+1+iii*0.05,ffmean,ffsem,'ko','MarkerSize',12)
                 
             end
             
@@ -1932,6 +1936,8 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
             
         end
     end
+        lt_plot_annotation(1, 'red = catch', 'r');
+
 end
 
 
@@ -1967,9 +1973,9 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                     case 'StimCatch'
                         errorbar(ii+iii*0.05,ffmean,ffsem,'ro','MarkerSize',9,'MarkerFaceColor','r')
                     case 'StimNotCatch'
-                        errorbar(ii+iii*0.05,ffmean,ffsem,'go','MarkerSize',9,'MarkerFaceColor','g')
-                    case 'DIR_All'
                         errorbar(ii+iii*0.05,ffmean,ffsem,'bo','MarkerSize',9,'MarkerFaceColor','b')
+                    case 'DIR_All'
+                        errorbar(ii+iii*0.05,ffmean,ffsem,'mo','MarkerSize',9,'MarkerFaceColor','m')
                 end
             end
             
@@ -1988,7 +1994,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                 ffn=length(Ytot);
                 ffsem=ffstd/sqrt(ffn-1);
                 
-                errorbar(ii+iii*0.05,ffmean,ffsem,'bo','MarkerSize',12)
+                errorbar(ii+iii*0.05,ffmean,ffsem,'ko','MarkerSize',12)
                 
             end
             
@@ -1998,6 +2004,7 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
             
         end
     end
+    lt_plot_annotation(1, 'red = catch', 'r');
 end
 
 
@@ -2210,8 +2217,8 @@ if plotStimEpochs==1;
     
     
     % == PLOT STIM EPOCHS, ETC.
-    RunBin=20;
-    NumEdgeTrials=20;
+    RunBin=4;
+    NumEdgeTrials=4;
     StimEpochs_aligned=lt_Opto_Stim_analy_SUMMARY_PlotOverTime_StimEpochs1(PARAMS, DATSTRUCT, StimEpochs, RunBin, NumEdgeTrials, TimeFieldsOfInterest, statfield);
     
     % == REGRESSIONS, day level stats

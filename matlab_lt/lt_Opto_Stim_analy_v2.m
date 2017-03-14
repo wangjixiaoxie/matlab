@@ -293,7 +293,17 @@ KeepOutliers=0;
 %% ============== SUMMARY ANALYSES
 
 %% EXCTRACTING DATA ACROSS DAYS
-% RUN THIS IN BIRD FOLDER.
+% IMPORTANT: dirs must be structured as (for e.g.)
+% /bluejay4/lucas/birds/pk32/070115_Reversion1_preWN_STIMoff
+% (date_experiment_somethingelse_STIMoff[or STIMon]).
+
+% ALSO: Stim epochs must be catch trials (because will use StimCatch and
+% StimNotCatch fields to filter data)
+
+% WILL TAKE ALL LABELED SONGS
+
+% RUN THIS IN BIRD FOLDER
+
 clear all; close all;
 
 % =======, to find directories
@@ -349,12 +359,17 @@ lt_Opto_Stim_analy_SUMMARY_MultDayAnaly_v3(Params_metadata, Params_glob);
 
 %% PLOTTING DATA ACROSS DAYS - One analysis for each experiment
 
+
+
 % ==== Params for analysis
 BirdDir='/bluejay3/lucas/birds/wh73pk61/';
 TimeFieldsOfInterest = 1:4; % i.e. time windows in pitch contour
 statfield='ffvals';
 BaselineDays=1:3;
 plotStimEpochs=1; % if 1, then separates all data to stim epochs (even if multiple in one day)
+ListOfDirs1={};
+ListOfDirs2={};
+
 
 % ====== ENTER DIRECTORIES OF INTEREST 2 WAYS - manually and with auto
 % metadata collection (can do both)

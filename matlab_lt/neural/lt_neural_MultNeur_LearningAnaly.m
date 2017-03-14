@@ -299,6 +299,10 @@ for i=1:NumNeurons
         linkaxes(hsplots, 'xy');
         
         % ============ plot using local deviation of FF
+        if numsubplots+numdays+1 > 6*numcols
+            lt_figure; hold on;
+            numsubplots = 0;
+        end  
         % 1) --- baseline
         lt_subplot(6,numcols, numsubplots+1); hold on;
         title(['baseline [local FF dev, bin' num2str(localbinsize) ']']);
@@ -322,6 +326,7 @@ for i=1:NumNeurons
                 lt_regress(FF_All_localdev(inds), Frate_All_localdev(inds), 1, 0, 1, 1, 'r')
             end
         end
+        
         
     end
 end

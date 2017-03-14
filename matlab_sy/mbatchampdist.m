@@ -33,6 +33,9 @@ while (1)
             sm=evsmooth(dat,fs,0.01);
         elseif(strcmp(ext,'.cbin'))
             [dat,fs]=ReadCbinFile(fn);
+            if size(dat,2)>1 % extract audio channel
+                dat = dat(:,1);
+            end
             sm=mquicksmooth(dat,fs);
         elseif(strcmp(ext,'.wav'))
             [dat,fs]=wavread(fn);

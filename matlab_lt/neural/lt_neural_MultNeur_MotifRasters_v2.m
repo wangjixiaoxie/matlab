@@ -41,10 +41,11 @@ for i=1:NumNeurons
     cd(tmp(1).name);
 
     % - load data for this neuron
+    tic
     batchf=NeuronDatabase.neurons(i).batchfile;
     channel_board=NeuronDatabase.neurons(i).chan;
     [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
-    
+    toc
     % --- EXTRACT DAT
     % - do this one time for each desired motif
     for j=1:NumMotifs
@@ -66,6 +67,8 @@ for i=1:NumNeurons
     end
 end
 
+clear SongDat
+clear NeurDat
 
 %% ========================== PLOT COMBINED RASTERS
 MotifTime_med = [];

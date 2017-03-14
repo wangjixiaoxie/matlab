@@ -1,3 +1,5 @@
+%% LT 2/18/17 - added output with segment of analog data that is extra channels (i.e. not audio)
+
 %% LT 6/15/15 - added catch song output (not just catch trial as before)
 %% LT 12/21/14 -
 % added:
@@ -95,7 +97,16 @@ while (1)
         disp(['hey no data!']);
         continue;
     end
-    %[sm,sp,t,f]=evsmooth(dat,fs,0);
+
+    %% ============== read data from other channels if exist
+    dat_otherchans = {};
+    if rd.nchan>1
+        for i=2:rd.nchan
+       [dat_otherchans{i-1},fs]=ReadDataFile(fnn(1:pos(end)-1),num2str(i-1)); 
+        end 
+    end
+    
+    %%
     
     % ------------------------
     % Pick out syls that have both pre and note match.
@@ -208,6 +219,7 @@ while (1)
         fvalsstr(note_cnt).offs=offsets;
         fvalsstr(note_cnt).lbl=labels;
         fvalsstr(note_cnt).NotePos=p(ii);
+        
         try
             fvalsstr(note_cnt).ttimes=rd.ttimes;
         catch err
@@ -237,6 +249,20 @@ while (1)
             fvalsstr(note_cnt).mxvals = [1,mxtmpvec];
             fvalsstr(note_cnt).fdat=fdattmp; % frequency data (squared fft).
         catch err
+        end
+        
+        % ==== IF EXTRA ANALOG CHANS, THEN SAVE
+        if rd.nchan>1
+            dat_otherchans_tmp = {};
+            for i=2:rd.nchan
+                % -- confirm is correct length
+                assert(length(dat_otherchans{i-1}) == length(dat), 'asdfasdf');
+                
+                % -- EXTRACT CORRECT TIMEPOINT
+                dat_otherchans_tmp{i-1} = dat_otherchans{i-1}([ti1:(ti1+NFFT-1)]);
+                            end
+            % --- save
+            fvalsstr(note_cnt).dat_otherchans=dat_otherchans_tmp; % sound data
         end
         
     end

@@ -11,18 +11,18 @@
 
 clear all; close all
 
-FileDir='/newhome/lucast4/.gvfs/data on egret/lena/acute stim rec/or78bk88';
+FileDir='/newhome/lucast4/.gvfs/data on egret/lucas/birds/or60/021317_AcuteOpto';
 AmplChansOfInterest_0to31=0:31; % array of nums 0 to 31.
 DigChan=0; % (usually 1 is individual stims, 2 is stim epochs), triggers
-ThrXNoise=4; % how many multiples of median noise to use as spike threshold.
-PSTH_bin=[0.01]; % bin in sec, if dont specificy ([]) then will use 1/10 of peri-stim dur.
+ThrXNoise=3; % how many multiples of median noise to use as spike threshold.
+PSTH_bin=[0.04]; % bin in sec, if dont specificy ([]) then will use 1/10 of peri-stim dur.
 
 
 % FILENAME
 % generally only one filenmae. But Intan starts new file at 60s, so can put
 % multiple. 
 % make sure they are in chronolgical order
-fn{1}='914ym_5s200ms50ms_knob825_160810_164144.rhd';
+fn{1}='or60_L_3200um_200ms_800ms_15mWNominal_170213_181956.rhd';
 % fn{2}='Xleft_Site2_2975Vfromsurf_HVCStim_Surface_250ms_1500ms_100s_k75_150508_222918.rhd';
 % fn{3}='Xleft_4750V_HVCstim_200umLeft_Surface_250ms_1500ms_100s_k775_150508_210749.rhd';
 % fn{4}='Xleft_4750V_HVCstim_200umLeft_Surface_250ms_1500ms_100s_k775_150508_210847.rhd';

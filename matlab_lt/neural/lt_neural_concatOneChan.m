@@ -17,7 +17,7 @@ filenames=lt_batchsong_NamesToCell(batchf);
 fs_all=[];
 ampDat_all=[];
 metaDat=struct;
-
+tic
 % ----- COLLECT DATA
 for i=1:length(filenames)
     
@@ -41,7 +41,7 @@ for i=1:length(filenames)
     metaDat(i).fs=frequency_parameters.amplifier_sample_rate; % fs
     metaDat(i).songDat=board_adc_data(1,:);
 end
-
+toc
 
 % --- confirm that all have same sample rate
 if length(fs_all)>1

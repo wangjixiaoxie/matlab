@@ -65,7 +65,7 @@ if ~strcmp(filetype, 'rhd')
     minind=find(batchbins>=3.2, 1, 'first'); % LT, thresh should be greater than 3
     PeakToUse=find(pksloc>=minind,1,'first');
 else
-    minind=find(batchbins>=-4.2, 1, 'first'); % LT, thresh should be greater than 3
+    minind=find(batchbins>=-3.7, 1, 'first'); % LT, thresh should be greater than 3
     PeakToUse=find(pksloc>=minind,1,'first');
 end
 
@@ -98,6 +98,9 @@ while (1)
         sm=evsmooth(dat,fs,0.01);
     elseif(strcmp(ext,'.cbin'))
         [dat,fs]=ReadCbinFile(fn);
+        if size(dat,2)>1
+            dat = dat(:,1);
+        end
         sm=mquicksmooth(dat,fs);
     elseif(strcmp(ext,'.wav'))
         [dat,fs]=wavread(fn);
