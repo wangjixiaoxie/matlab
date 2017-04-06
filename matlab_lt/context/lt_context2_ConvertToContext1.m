@@ -17,6 +17,10 @@ function [AllSongsDataMatrix, Params_alldays]= lt_context2_ConvertToContext1(ALL
 
 numdays = length(ALLDATSTRUCT);
 
+UseAutoNG = Params_global.ConvertToContext1.UseAutoNG;
+if UseAutoNG==1
+    Params_global.ConvertToContext1.NoteGroupNum_codes = {}; % delete entry, so no confusion later.
+end
 
 %%
 AllSongsDataMatrix=[];
@@ -29,7 +33,7 @@ for n=1:num_notenums
     
     syl=Params_global.ConvertToContext1.NoteNum_codes{2*n-1};
     notenum=Params_global.ConvertToContext1.NoteNum_codes{2*n};
-  
+    
     for i=1:numdays
         
         if isempty(ALLDATSTRUCT(i).data);
@@ -44,7 +48,7 @@ for n=1:num_notenums
             % then is regexp
             DATSTRUCT_isolated=ALLDATSTRUCT(i).data_regexp.(syl);
         end
-            
+        
         
         datmatrix_output=nan(length(DATSTRUCT_isolated), 9); % for output
         
@@ -57,22 +61,25 @@ for n=1:num_notenums
         
         
         % condition - convert to note groups (1, 2, 3, ...)
-        Condition_cell={DATSTRUCT_isolated.condition};
-        condition_mat=nan(1,length(Condition_cell));
-        
-        for j=1:length(Condition_cell)
-            cond_current=Condition_cell{j};
-            
-            indtmp=find(strcmp(Params_global.ConvertToContext1.NoteGroupNum_codes, cond_current));
-            
-            if isempty(indtmp)
-                disp('PROBLEM - there are data with conditions not coded into Params_global.ConvertToContext1.NoteGroupNum_codes: GIVING nan for NGnum');
-                NGnum=nan;
-            else
-            NGnum=Params_global.ConvertToContext1.NoteGroupNum_codes{indtmp+1};
+        if UseAutoNG==1
+            condition_mat = [DATSTRUCT_isolated.NoteGroup];
+        else
+            Condition_cell={DATSTRUCT_isolated.condition};
+            condition_mat=nan(1,length(Condition_cell));
+            for j=1:length(Condition_cell)
+                cond_current=Condition_cell{j};
+                
+                indtmp=find(strcmp(Params_global.ConvertToContext1.NoteGroupNum_codes, cond_current));
+                
+                if isempty(indtmp)
+                    disp('PROBLEM - there are data with conditions not coded into Params_global.ConvertToContext1.NoteGroupNum_codes: GIVING nan for NGnum');
+                    NGnum=nan;
+                else
+                    NGnum=Params_global.ConvertToContext1.NoteGroupNum_codes{indtmp+1};
+                end
+                
+                condition_mat(j)=NGnum;
             end
-            
-            condition_mat(j)=NGnum;
         end
         
         datmatrix_output(:, 2)=tvals';
@@ -132,4 +139,8 @@ Params_alldays.firstday=Params_global.CompilePC.FirstDay;
 Params_alldays.ConvertToContext1.all_conditions_in_order=Params_global.CompilePC.all_conditions;
 Params_alldays.ConvertToContext1.NoteGroupNum_codes = Params_global.ConvertToContext1.NoteGroupNum_codes;
 Params_alldays.ConvertToContext1.NoteNum_codes = Params_global.ConvertToContext1.NoteNum_codes;
+Params_alldays.ConvertToContext1.UseAutoNG = Params_global.ConvertToContext1.UseAutoNG;
+
+
+disp('DONE! ...');
 

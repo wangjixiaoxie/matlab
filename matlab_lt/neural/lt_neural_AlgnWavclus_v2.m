@@ -172,6 +172,21 @@ for mm=1:length(metaDat)
         end
     end
     
+    % check if any are hand removed by lt_neural_CheckClust
+    indstmp=find([spikes_cat.cluster_class(:,1)]==-1 & ...
+        spikes_cat.cluster_class(:,2)>cumulativetime_ms ...
+        & spikes_cat.cluster_class(:,2)<=cumulativetime_ms+datdur_ms);
+    if any(indstmp)
+        disp('FOUND SOME HAND REMOVED SPIKES!! (clust # = -1) -- PLOTTING AS CIRCLE');
+        for iii=1:length(indstmp)
+            ii=indstmp(iii);
+            spktime=spikes_cat.cluster_class(ii, 2); % in ms
+            spktime=spktime-cumulativetime_ms;
+            lt_plot(spktime/1000, 40, {'Color','r'});
+        end
+    end
+    
+    
     if PlotSecondChan==1
         ind =find([amplifier_channels.chip_channel]==SecondChan);
         [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);

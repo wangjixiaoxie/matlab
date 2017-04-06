@@ -440,10 +440,16 @@ if isfield(SylDat, 'dat_otherchans') && strcmp(Params.ExptID, 'Stim')
         if max(tmp) > 100*median(abs(tmp)) & min(tmp) < -100*median(abs(tmp));
             % then this is stim trial
             ThrCrosses = midcross(SylDat(i).dat_otherchans{1}, Params.Fs);
-            assert(mod(length(ThrCrosses), 2)==0, 'THR CROSSES FOR LASER NOT EVEN!');
+%             assert(mod(length(ThrCrosses), 2)==0, 'THR CROSSES FOR LASER NOT EVEN!');
+            if mod(length(ThrCrosses), 2)~=0
+                % then 'THR CROSSES FOR LASER NOT EVEN!. assume that first
+                % cross is onset of first stim...
+            LaserOnsets_secFromSegmentOn = ThrCrosses(1:2:end-2);
+            LaserOffsets_secFromSegmentOn = ThrCrosses(2:2:end-1);
+            else
             LaserOnsets_secFromSegmentOn = ThrCrosses(1:2:end-1);
             LaserOffsets_secFromSegmentOn = ThrCrosses(2:2:end);
-            
+            end
         else
             LaserOnsets_secFromSegmentOn = [];
             LaserOffsets_secFromSegmentOn = [];
@@ -459,7 +465,7 @@ if isfield(SylDat, 'dat_otherchans') && strcmp(Params.ExptID, 'Stim')
         laser_catch = SylDat(i).MostRecentTrig.(lasernote).TrigCatch;
         laser_time_onset = 1000*Params.PreDur - SylDat(i).MostRecentTrig.(lasernote).TimeSince; % milseconds
         
-        if ~isempty(laser_catch)
+        if ~isempty(laser_catch) & ~isempty(LaserOnsets_secFromSegmentOn);
             if laser_catch == 1
                 % then there should be no pulse recorded
                 LaserOnsets_CatchTrials =[LaserOnsets_secFromSegmentOn'];

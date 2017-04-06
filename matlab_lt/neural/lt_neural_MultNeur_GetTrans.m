@@ -9,12 +9,19 @@ maxInterval=0.25; % sec (offset - offset, to count as a transition)
 %% 
 clear TRANSMATRIX
 for i=1:NumNeurons
-    cd(NeuronDatabase.global.basedir);
-    
+    try
+        cd(NeuronDatabase.global.basedir);
+    catch err
+        cd(NeuronDatabase.neurons(i).basedir);
+    end
+        
         % - find day folder
-    dirdate=NeuronDatabase.neurons(i).date;
+        dirdate=NeuronDatabase.neurons(i).date;
     tmp=dir([dirdate '*']);
-    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(i).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
     cd(tmp(1).name);
     
     % - load data for this neuron

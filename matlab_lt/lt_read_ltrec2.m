@@ -94,7 +94,7 @@ if RunDefaults==1;
 elseif RunDefaults==0; % then file name was specified
     savename=[fname_ltrec(1:end-7) '_structure']; % take name string excluding '.ltrec' part
     save(savename, 'RecDatStruct');
-
+    
     disp(['savename: ' savename]);
 end
 
@@ -102,56 +102,56 @@ disp('Done, saved!')
 
 %% OPTIONAL - make batch
 
-    % then make one batch for each note group log
-    if makebatch==1;
-        
-        % get list of songs in current directory - will only put in batch the
-        % songs in the dir
-        SongsInDir=dir('*.cbin');
-        
-        % MAKE BATCH FILE
-        AllNoteGroups=unique(RecDatStruct.CurrNoteGroup); % note groups
-        NumNoteGroups=length(AllNoteGroups);
-        
-        % open batch files
-        for i=1:NumNoteGroups;
-            fid(i)=fopen(['batch.NoteGroup_' num2str(AllNoteGroups(i))],'w');
-        end
-        
-        % go through all songs and see which note group it fits into
-        for i=1:length(RecDatStruct.SongFname_cbin);
-            
-            if ~isempty(findstr([SongsInDir.name],RecDatStruct.SongFname_cbin{i})); % true if this song exists in todays folder
-                
-                ind=find(AllNoteGroups==RecDatStruct.CurrNoteGroup(i)); % Index of fid
-                
-                fprintf(fid(ind),'%s\n',RecDatStruct.SongFname_cbin{i});
-            end
-        end
-        
-        % close all batch
-        for i=1:NumNoteGroups;
-            fclose(fid(i));
-        end
-        
-        
-        
-        
-        
-        %% OF THOSE BATCHES, GET SONGS THAT HAVE REC WITH FB (I.E. REAL SONGS)
-        if getrecFB==1;
-            for i=1:NumNoteGroups;
-                try
-                    batchf=['batch.NoteGroup_' num2str(AllNoteGroups(i))];
-                    lt_rec_files_find_FB_v3(batchf);
-                    close all;
-                catch err
-                    continue
-                end
-            end
-        end
-        
+% then make one batch for each note group log
+if makebatch==1;
+    
+    % get list of songs in current directory - will only put in batch the
+    % songs in the dir
+    SongsInDir=dir('*.cbin');
+    
+    % MAKE BATCH FILE
+    AllNoteGroups=unique(RecDatStruct.CurrNoteGroup); % note groups
+    NumNoteGroups=length(AllNoteGroups);
+    
+    % open batch files
+    for i=1:NumNoteGroups;
+        fid(i)=fopen(['batch.NoteGroup_' num2str(AllNoteGroups(i))],'w');
     end
+    
+    % go through all songs and see which note group it fits into
+    for i=1:length(RecDatStruct.SongFname_cbin);
+        
+        if ~isempty(findstr([SongsInDir.name],RecDatStruct.SongFname_cbin{i})); % true if this song exists in todays folder
+            
+            ind=find(AllNoteGroups==RecDatStruct.CurrNoteGroup(i)); % Index of fid
+            
+            fprintf(fid(ind),'%s\n',RecDatStruct.SongFname_cbin{i});
+        end
+    end
+    
+    % close all batch
+    for i=1:NumNoteGroups;
+        fclose(fid(i));
+    end
+    
+    
+    
+    
+    
+    %% OF THOSE BATCHES, GET SONGS THAT HAVE REC WITH FB (I.E. REAL SONGS)
+    if getrecFB==1;
+        for i=1:NumNoteGroups;
+            try
+                batchf=['batch.NoteGroup_' num2str(AllNoteGroups(i))];
+                lt_rec_files_find_FB_v3(batchf);
+                close all;
+            catch err
+                continue
+            end
+        end
+    end
+    
+end
 
 
 

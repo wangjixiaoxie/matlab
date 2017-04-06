@@ -25,7 +25,11 @@ window=0.02; windshift=0.004;
 %% EXTRACT DATA
 MOTIFSTATS=struct;
 for i=1:NumNeurons
-    cd(NeuronDatabase.global.basedir);
+    
+    try cd(NeuronDatabase.global.basedir);
+    catch err
+         cd(NeuronDatabase.neurons(i).basedir);
+    end
     
     % - find day folder
 %     dirdate=NeuronDatabase.neurons(i).date;
@@ -44,7 +48,8 @@ for i=1:NumNeurons
     tic
     batchf=NeuronDatabase.neurons(i).batchfile;
     channel_board=NeuronDatabase.neurons(i).chan;
-    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
+    extractSound = 1;
+    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, extractSound);
     toc
     % --- EXTRACT DAT
     % - do this one time for each desired motif

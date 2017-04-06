@@ -62,6 +62,7 @@ end
 % get pdf 
 if pdfON==1;
     Ybinned=Ybinned./sum(Ybinned);
+    Ybinned./(Xcenters(2)-Xcenters(1));
 end
 
 

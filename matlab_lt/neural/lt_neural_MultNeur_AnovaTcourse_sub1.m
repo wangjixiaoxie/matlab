@@ -13,8 +13,10 @@ for ii=1:length(GroupLabels)
     alignByOnset = 1;
     
     % - Extract data
+    suppressout = 1;
     [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, '', ...
-        regexpr_str, predur, postdur, alignByOnset, '');
+        regexpr_str, predur, postdur, alignByOnset, '', [], 0, ...
+        suppressout);
     
     % ---- TAKE RANDOM SUBSET IF NEEDED
     if ~isnan(GroupSampleSizes(ii))

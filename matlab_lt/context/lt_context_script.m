@@ -44,7 +44,7 @@ Params.metadata.only_labeled_dirs=0;
 % analysis params
 Params.analysis.batch='batch.keep';
 % last version config (template used at very end of SeqDepPitch)
-Params.analysiALL AL [EDGES FP REMOVED], edges checked s.config = '/bluejay4/lucas/birds/pu35wh17/061215_SeqDepPitch_durWN_day9/config_061115.evconfig2';
+Params.analysis.config = '/bluejay4/lucas/birds/pu35wh17/061215_SeqDepPitch_durWN_day9/config_061115.evconfig2';
 Params.analysis.dataID='All'; % e.g. id of data (e.g. 'All' for all data in data). if blank, uses batch name.
 Params.analysis.Make_BatchKeep=1; % will make a new batch.keep for each day
 
@@ -94,21 +94,26 @@ lt_context_CompileAndPlot(Params_alldays);
 clear all; close all;
 
 Params.syl_list={'b'}; % single syls
-Params.freq_range_list={[3000 4000]};
+Params.freq_range_list={[4150 5100]};
 Params.pc_dur_list=[0.11];
 Params.pc_harms_list=[1];
 
-Params.batch='batch.labeled.all.edges';
-Params.experiment = 'CtxtDepPitch';
+Params.batch='batch.labeled.all';
+Params.experiment = 'Association2';
 
-date_range={'15Nov2015','18Nov2015'}; % e.g. {'20Apr2015','20May2015'}. leave blank ('') for all days
+date_range={'02Apr2017','02Apr2017'}; % e.g. {'20Apr2015','20May2015'}. leave blank ('') for all days
 
-lt_extract_AllDaysPC(Params, date_range)
+% ---- 2) Collect note group information? 
+CollectNoteGroup = 1; % set to 1 if want to use online NoteGroups. Otherwise will do context stuff using the 
+% [context_name] condition in the folder name - i.e. for bulk context, not
+% rapid switching experiments. 
+
+lt_extract_AllDaysPC(Params, date_range, CollectNoteGroup)
 
 
 %% %% Compiling data - go to "extract" folder first
 clear all; close all;
-Params_global.CompilePC.PC_window_list={'b', [40 70]}; % syl, value pairs [single syls]
+Params_global.CompilePC.PC_window_list={'b', [22 74]}; % syl, value pairs [single syls]
 Params_global.CompilePC.FirstDay='';
 Params_global.CompilePC.LastDay='';
 plotON=1; % pitch contours, all days, all syls
@@ -116,8 +121,8 @@ saveON=1;
 
 % Regular expressions - first calculates FF etc, then performs regular
 % expressions
-Params_global.CompilePC.regexp_list={'c(b)'}; % e.g. {'dcc(b)', 'ab+(g)'} : dcc(b) means match dccb, and give me ind of b in parantheses.  ab+g means match ab... (anly length repeat), then g. give me ind of g
-Params_global.CompilePC.regexp_fieldnames={'dccB','bccB'}; % whatever
+Params_global.CompilePC.regexp_list={'c(b)'}; % e.g. {'dcc(b)', 'ab+(g)'} : dcc(b) means match dccb, and give me ind of b in parantheses.  ab+(g) means match ab... (anly length repeat), then g. give me ind of g
+Params_global.CompilePC.regexp_fieldnames={'cB'}; % whatever
 % want to call structure field (if this cell array not defined, then will
 % attempt to use the regexp names.
     
@@ -126,13 +131,23 @@ Params_global.CompilePC.regexp_fieldnames={'dccB','bccB'}; % whatever
 
 %% Convert to context1 format
 % --- TO BE ABLE TO RUN USING CONTEXT PLOT SAME AS FOR METHOD 1
-Params_global.ConvertToContext1.NoteGroupNum_codes={'away', 1, 'home', 2, 'awayProbe', 3}; % {NoteGroup_name, NoteGroupNum} pairs - name must match what is in "condition" field. NoteGroupNum can be anything (keep it from 1, 2, ...);
 % Params_global.ConvertToContext1.NoteNum_codes={'dcc_b_', 1, 'bcc_b_', 2}; % {notestring, notenum} pairs - notestring either single syl (e.g. 'a') or regexp, using underscores (e.g. 'dcc_b_')
-Params_global.ConvertToContext1.NoteNum_codes={'c_b_', 1}; % {notestring, notenum} pairs - notestring either single syl (e.g. 'a') or regexp, using underscores (e.g. 'dcc_b_')
+Params_global.ConvertToContext1.NoteNum_codes={'cB', 1}; % {notestring, notenum} pairs - notestring either single syl (e.g. 'a') or regexp, using underscores (e.g. 'dcc_b_')
+
 % syl='b';
+
+Params_global.ConvertToContext1.UseAutoNG = 1; % if 1, this uses .ltrec2 saved note group information (this was extracted in lt_extract_AllDaysPC)
+% if 0, then uses the names of directories - assumes that each directory
+% (for a given day) was a different context
+% ([date]_[experimentname]_[context_name]); if 0, then need to fill this
+% out. If 1, then don't need this - can leave the field as whatever, will
+% delete the entry.
+Params_global.ConvertToContext1.NoteGroupNum_codes={'away', 1, 'home', 2}; % {NoteGroup_name, NoteGroupNum} pairs - name must match what is in "condition" field. NoteGroupNum can be anything (keep it from 1, 2, ...);
+
 
 
 [AllSongsDataMatrix, Params_alldays]= lt_context2_ConvertToContext1(ALLDATSTRUCT, Params_global);
+
 
 
 %% PLOT

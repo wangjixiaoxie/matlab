@@ -98,10 +98,11 @@ lt_neural_commonNoise(batchf, ChansToUse, plotOn, save_raw_dat, ...
 %% +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %% ==================================================== PREPROCESSING
 clear all; close all;
+% channel_board = [8 11 14 18 20]; % wh6
 % channel_board = [9 11 12 14 15 18]; % bu77
-channel_board = [8 11 14 18 20]; % wh6
-channel_board = [11];
-batchf = 'Batch1438to1909';
+% channel_board = [18];
+channel_board = 18;
+batchf = 'Batch1036to1445';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
@@ -158,7 +159,7 @@ lt_neural_concatOneChan(batchf, channel_board)
 cd(['Chan' num2str(channel_board) 'amp-' batchf]);
 
 
-%% ==== run wave_clus on this concatted data
+ %% ==== run wave_clus on this concatted data
 
 
 
@@ -185,6 +186,39 @@ figsstepsize = 5; % num figs to jump thru, useful if many song. 1 is default. DO
 lt_neural_AlgnWavclus_v2(batchf, channel_board, plotcols, PlotSecondChan, SecondChan, maxfiguuresopen, figsstepsize);
 
 
+%% ===== HAND REMOVE NOISY SPIKES
+% IMPORTANT!!: only run this once you are satisfied with wave-clus cluster
+% assignments. If reassign clusters in wave_clus, then will delete all
+% hand-removed clusters (cluster -1)
+% NOTE: can check which spikes removed using lt_neural_AlgnWavclus_v2
+
+close all;
+
+SecondChan = 18;
+lt_neural_CheckClust(channel_board, batchf, SecondChan);
+
+
+% ========== TROUBLESHOOTING
+% i.e. made mistake of hand checking before finalized (consolidated)
+% clusters. THen run below (MODIFIED!) to manually change cluster numbers,
+% whithout wiping out hand checked (cluster -1)
+
+if (0) 
+tmp = load('times_data_TMPBACKUP.mat');
+
+% to convert cluster 2 to 0
+inds = tmp.cluster_class(:,1)==2;
+tmp.cluster_class(inds,1) = 0;
+
+% to convert clusters 3 and 4 to 1
+inds = tmp.cluster_class(:,1) == 3 | tmp.cluster_class(:,1) == 4;
+tmp.cluster_class(inds,1) = 1;
+
+% to save
+ver = '-v6';
+save('times_data.mat', '-struct', 'tmp' , ver);
+disp('SAVED');
+end
 %% +++++++++++++++++++++++++++++++++++++== NOTES THINGS TO UPDATE WITH ANALYSIS PIPELINE
 
 % save all things to a common folder. Levels:
@@ -205,7 +239,7 @@ lt_neural_AlgnWavclus_v2(batchf, channel_board, plotcols, PlotSecondChan, Second
 %% ++++++++++ ANALYSIS (NEURONS ONE BY ONE) 
 %% ==== EXTRACT SONG, LABEL,SongDat ONSETS, SPIKE DATA
 close all;
-batchf='BatchChan14good_v4';
+batchf='Batch1307to1424';
 channel_board=14;
 [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
 
@@ -219,24 +253,26 @@ close all;
 % regexpr_str='(g)h'; % token determines where align. predur is relative to token.
 % regexpr_str='n(h)h'; % token determines where align. predur is relative to token.
 % regexpr_str='[^h](h)h'; % token determines where align. predur is relative to token.
-regexpr_str='h(h)'; % token determines where align. predur is relative to token.
-predur=0.1;
-postdur=0.1;
+regexpr_str='(l)'; % token determines where align. predur is relative to token.
+predur=0.2;
+postdur=0.2;
 alignByOnset=1;
 
 % - entire motifs
-regexpr_str='(S)[\w-]*?E'; % gets any S ---- E
-predur=6; % sec
-postdur=8; % sec
-alignByOnset=1;
+% regexpr_str='(S)[\w-]*?E'; % gets any S ---- E
+% predur=6; % sec
+% postdur=8; % sec
+% alignByOnset=1;
 
 % - Extract song motifs (onset and offset) automatically)
-regexpr_str='WHOLEBOUTS';
-predur=8; % sec
-postdur=3; % sec
-alignByOnset=0;
+% regexpr_str='WHOLEBOUTS';
+% predur=8; % sec
+% postdur=3; % sec
+% alignByOnset=0;
 
-[SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, regexpr_str, predur, postdur, alignByOnset);
+keepRawSongDat = 1;
+[SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
+    regexpr_str, predur, postdur, alignByOnset, [], [], keepRawSongDat);
 
 
 

@@ -98,14 +98,26 @@ NumNeurons=length(NeuronDatabase.neurons);
 % ================ MOTIF STATISTICS (E.G. FIRING RATE, BURSTS, ...)
 MOTIFSTATS=struct;
 for i=1:NumNeurons
+    try 
     cd(NeuronDatabase.global.basedir);
+    catch err
+        cd(NeuronDatabase.neurons(i).basedir);
+    end
     
     % - find day folder
-    dirdate=NeuronDatabase.neurons(i).date;
+%     dirdate=NeuronDatabase.neurons(i).date;
+%     tmp=dir([dirdate '*']);
+%     assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+%     cd(tmp(1).name);
+   
+        dirdate=NeuronDatabase.neurons(i).date;
     tmp=dir([dirdate '*']);
-    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(i).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
     cd(tmp(1).name);
-    
+
     % - load data for this neuron
     batchf=NeuronDatabase.neurons(i).batchfile;
     channel_board=NeuronDatabase.neurons(i).chan;

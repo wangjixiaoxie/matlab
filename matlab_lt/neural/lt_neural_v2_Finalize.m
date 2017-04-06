@@ -1,11 +1,11 @@
 function lt_neural_v2_Finalize(DesiredClust, electrode_depth, Notes, LearningParams, deleteAudioFromMetadat)
-%% HOW TO FORMAT NOTES
-
-% Notes = {'SUnit_0'}; single unit?
 
 
 %% LT 3/7/17 - by default removes the concatenated audio file from metadat 
 % file size too large. can extract relatively easily from raw files.
+% not done yet !!!! alternatively convert from double to single - confirmed
+% that does not affect pitch estimates singifincatly (i.e. ADC is only
+% 16bit)
 
 %% LT 2/24/17 - Run in waveclus folder after happy with clustering -
 % save information about data, metadata, etc. to a final structure that
@@ -19,6 +19,11 @@ function lt_neural_v2_Finalize(DesiredClust, electrode_depth, Notes, LearningPar
 % DesiredClust = []; % single number, which clust to save?
 % electrode_depth = [];
 % Notes = {};
+    % HOW TO FORMAT NOTES
+    % Notes = {'SUnit_0', 'Location_LMAN', 'Random stuff....'}; not single unit. in LMAN
+    %   Location can be: 'LMAN', 'X', 'LMAN?', 'X?', '?'
+    %   SUnit can be 0 or 1
+    % e.g. lt_neural_v2_Finalize(1, 1900, {'SUnit_0', 'could get more song'})
 
 % LearningParams{1} = '05Feb2017-1718'; % time of WN on
 % LearningParams{2} = {'07Feb2017-1509', '07Feb2017-1725'}; % cell aray,
@@ -150,6 +155,12 @@ else
 end
 
 
+% =========== LOCATION.
+inds = regexp(Notes, 'Location');
+locationstr = Notes{~cellfun(@isempty, inds)};
+probeLocation = locationstr(10:end);
+
+
 %% ========== ENTER DATA
 % KEEP EACH ISOLATED UNIT(CLUSTER) AS A SEPARATE NEURON
 
@@ -163,6 +174,7 @@ SummaryStruct.birds(BirdInd).neurons(NeuronInd).clustnum = DesiredClust;
 SummaryStruct.birds(BirdInd).neurons(NeuronInd).electrode_depth = electrode_depth;
 SummaryStruct.birds(BirdInd).neurons(NeuronInd).Notes = Notes;
 SummaryStruct.birds(BirdInd).neurons(NeuronInd).NOTE_is_single_unit = IsSU;
+SummaryStruct.birds(BirdInd).neurons(NeuronInd).NOTE_Location = probeLocation;
 
 SummaryStruct.birds(BirdInd).neurons(NeuronInd).Filedatestr_unsorted = DatestrAll;
 SummaryStruct.birds(BirdInd).neurons(NeuronInd).Filedatenum_unsorted = DatenumAll;

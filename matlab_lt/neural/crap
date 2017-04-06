@@ -19,11 +19,7 @@ SYLNEURDAT=struct;
 counter=0;
 
 for i=1:NumNeurons
-    try
-        cd(NeuronDatabase.global.basedir);
-    catch err
-        cd(NeuronDatabase.neurons(i).basedir);
-    end
+    cd(NeuronDatabase.global.basedir);
     
     % - find day folder
 %     dirdate=NeuronDatabase.neurons(i).date;

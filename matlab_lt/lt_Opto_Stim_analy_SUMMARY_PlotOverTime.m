@@ -1,4 +1,5 @@
-function lt_Opto_Stim_analy_SUMMARY_PlotOverTime(BirdDir,ListOfDirs,TimeFieldsOfInterest,statfield,BaselineDays,plotStimEpochs, MetaParams)
+function lt_Opto_Stim_analy_SUMMARY_PlotOverTime(BirdDir,ListOfDirs,TimeFieldsOfInterest, ...
+    statfield,BaselineDays,plotStimEpochs, MetaParams)
 % plotStimEpochs=0 (skips plotting).
 % MetaParams = data structure containing experiemnt info (e.g. what days
 % paired stim + WN up).
@@ -154,10 +155,12 @@ for i=1:NumStructs;
             % stimnotcatch is not there
             sts.StatsStruct.StimCatch=sts.StatsStruct.NotStim;
             sts.StatsStruct=rmfield(sts.StatsStruct,'NotStim');
-            
         else
             % stimnotcatch already exists
-            disp('problem - both NotStim and StimCatch in same day of structure - will overwrite, need to modify code to support this')
+            lt_figure; hold on;
+            lt_plot_text(0.5,0.5, ...
+                'NotStim and StimCatch in same day of structure - will keep both instead of overwriting NotStim (i.e. will not plot NotStim)', 'r');
+%             disp('problem - both NotStim and StimCatch in same day of structure - will overwrite, need to modify code to support this')
         end
     end
     
@@ -170,7 +173,7 @@ for i=1:NumStructs;
             sts.StatsStruct=rmfield(sts.StatsStruct,'Stim');
         else
             % stimnotcatch already exists
-            disp('problem - both Stim and StimNotCatch in same day of structure - will overwrite, need to modify code to support this')
+            disp('problem - both Stim and StimNotCatch in same day of structure - will onlyo plot StimNotCatch')
         end
     end
     
@@ -456,10 +459,14 @@ for ii=1:NumDays;
                 if any(strcmp(trialtypes,'All')); % then this day also has non-stim
                     
                     %  make matrix with StimCatch times and id = 6
-                    Tvals_StimCatch=[DATSTRUCT.data{ii}.timewindow{i}.StimCatch.timevals];
+                    if isfield(DATSTRUCT.data{ii}.timewindow{i}, 'StimCatch');
+                        Tvals_StimCatch=[DATSTRUCT.data{ii}.timewindow{i}.StimCatch.timevals];
                     ID_StimCatch=6*ones(1,length(Tvals_StimCatch));
                     Index_StimCatch=1:length(Tvals_StimCatch);
                     StimCatchMat=[Index_StimCatch; ID_StimCatch; Tvals_StimCatch];
+                    else
+                        StimCatchMat = [];
+                    end
                     
                     %  make matrix with StimNotCatch times and id=5;
                     Tvals_StimNotCatch = [DATSTRUCT.data{ii}.timewindow{i}.StimNotCatch.timevals];
@@ -634,7 +641,13 @@ for ii=1:NumDays;
                     % just a stim epoch, no pre and post
                     k=1;
                     StimEpochs{ii}.epoch{k}.StimNotCatch=1:length(DATSTRUCT.data{ii}.timewindow{1}.StimNotCatch.timevals);
+                    
+                    if isfield(DATSTRUCT.data{ii}.timewindow{1}, 'StimCatch');
                     StimEpochs{ii}.epoch{k}.StimCatch=1:length(DATSTRUCT.data{ii}.timewindow{1}.StimCatch.timevals);
+                    else
+                    StimEpochs{ii}.epoch{k}.StimCatch=[];
+                    end
+                    
                 end
                 
             end
@@ -1381,8 +1394,9 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                 Y=DATSTRUCT.data{ii}.timewindow{i}.All.MINUSBaseHrBins.([statfield '_fudgeDST_SmMean']);
                 Ystd=DATSTRUCT.data{ii}.timewindow{i}.All.MINUSBaseHrBins.([statfield '_fudgeDST_SmSTD']);
                 Ysem=Ystd./sqrt(PARAMS.global.RunBin-1);
-                
+                if length(X)>1
                 shadedErrorBar(X+ii,Y,Ysem,{'k-','LineWidth',2},1);
+                end
             end
             
             % plot stim catch
@@ -1457,6 +1471,26 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
         end
     end
     lt_plot_annotation(1, 'red = catch', 'r');
+    
+        if exist('MetaParams', 'var')
+        if isfield(MetaParams, 'WNonDates')
+            
+            for j=1:length(MetaParams.WNonDates)
+               wndate = MetaParams.WNonDates{j}(1:14);
+               upordown = MetaParams.WNonDates{j}(16:17);
+               
+               tmp = lt_convert_EventTimes_to_RelTimes(PARAMS.global.FirstDate_str, ...
+                   {wndate});
+               
+               Ylim = ylim;
+               
+               plot([tmp.FinalValue tmp.FinalValue], ylim, 'Color', 'm')
+               lt_plot_text(tmp.FinalValue+0.05, Ylim(2)-70, upper(upordown), 'm');
+            end
+            
+        end
+    end
+
 end
 
 
@@ -1679,6 +1713,26 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
         end
     end
     lt_plot_annotation(1, 'red = catch', 'r');
+    
+    % =========== PUT LINES FOR WN TRANSITION DAYS
+    if exist('MetaParams', 'var')
+        if isfield(MetaParams, 'WNonDates')
+            
+            for j=1:length(MetaParams.WNonDates)
+               wndate = MetaParams.WNonDates{j}(1:14);
+               upordown = MetaParams.WNonDates{j}(16:17);
+               
+               tmp = lt_convert_EventTimes_to_RelTimes(PARAMS.global.FirstDate_str, ...
+                   {wndate});
+               
+               Ylim = ylim;
+               
+               plot([tmp.FinalValue tmp.FinalValue], ylim, 'Color', 'm')
+               lt_plot_text(tmp.FinalValue+0.05, Ylim(2)-70, upper(upordown), 'm');
+            end
+            
+        end
+    end
 end
 
 
@@ -1937,6 +1991,26 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
         end
     end
         lt_plot_annotation(1, 'red = catch', 'r');
+        
+            if exist('MetaParams', 'var')
+        if isfield(MetaParams, 'WNonDates')
+            
+            for j=1:length(MetaParams.WNonDates)
+               wndate = MetaParams.WNonDates{j}(1:14);
+               upordown = MetaParams.WNonDates{j}(16:17);
+               
+               tmp = lt_convert_EventTimes_to_RelTimes(PARAMS.global.FirstDate_str, ...
+                   {wndate});
+               
+               Ylim = ylim;
+               
+               plot([tmp.FinalValue tmp.FinalValue], ylim, 'Color', 'm')
+               lt_plot_text(tmp.FinalValue+0.05, Ylim(2)-70, upper(upordown), 'm');
+            end
+            
+        end
+    end
+
 
 end
 

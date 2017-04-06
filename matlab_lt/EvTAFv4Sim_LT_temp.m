@@ -1,4 +1,9 @@
 function [AllSongsAllTrigsCollected]=EvTAFv4Sim_LT(batchf,configfile,ChanSpec)
+%% LT 3/15/17 - handles manual trigs
+% previously issue was looked for tmeplate in rec file, but did not find
+% since it was a manual trig. now puts a "nan" instead of template number.
+% see line ~215
+
 %% LT 6/5/15 - Polished. UP TO DATE SUMMARY:
 % Does 3 things:
 % 1) Gets offline detects (for all note numbers) using evtaf sim.  Saves those data to a) rec file (X.rec) and to output structure
@@ -207,6 +212,14 @@ for IFile=1:length(inputfiles)
     for iii=1:length(rd.pbname); % get notenum of triggers
         ind=findstr(rd.pbname{iii},'Templ');
         
+        if isempty(ind) % then this is likley a manual trig. ignore it.
+            assert(any(findstr(rd.pbname{iii},'Manual Trig')), 'PROBLEM, why si this not a real template or a manual trig?');
+
+                    AllSongsAllTrigsCollected(IFile).data_OnlineTrigs.trignotes(iii)=nan;
+
+                    continue
+        end
+        
         % == trig note
         AllSongsAllTrigsCollected(IFile).data_OnlineTrigs.trignotes(iii)=str2num(rd.pbname{iii}(ind+8));
         
@@ -232,6 +245,15 @@ for IFile=1:length(inputfiles)
     
     for iii=1:length(rd.pbname); % get notenum of triggers
         ind=findstr(rd.pbname{iii},'Templ');
+        
+                if isempty(ind) % then this is likley a manual trig. ignore it.
+            assert(any(findstr(rd.pbname{iii},'Manual Trig')), 'PROBLEM, why si this not a real template or a manual trig?');
+
+        rd.trignoteActualTrig(iii)=nan;
+
+                    continue
+        end
+
         rd.trignoteActualTrig(iii)=str2num(rd.pbname{iii}(ind+8));
     end
 

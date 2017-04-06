@@ -79,7 +79,7 @@ for currenttime_bin=1:size(sonogram,2)
     freqbin_estimate(currenttime_bin)=Freqbinest; % weighted average of all harms.
 end
 PC=freqbin_estimate*(Nyquist/(freqbins-1));
-
+PC=single(PC); % less memory use
 
 % ==== extract FF
 [~, minind]=min(abs(T-mintime));

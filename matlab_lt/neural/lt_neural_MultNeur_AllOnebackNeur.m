@@ -1,4 +1,4 @@
-function lt_neural_MultNeur_AllOnebackNeur(NeuronDatabase, TRANSMATRIX)
+function lt_neural_MultNeur_AllOnebackNeur(NeuronDatabase, TRANSMATRIX, mindatFreq)
 %% by default ignores transitions containing "-"
 
 
@@ -12,7 +12,7 @@ spktimefield='spk_Times';
 window = 0.02;
 windshift = 0.004;
 
-mindatFreq=8; % only analyze transitions with N or more cases
+% mindatFreq=8; % only analyze transitions with N or more cases
 %%
 
 assert(length(TRANSMATRIX.neuron) == length(NeuronDatabase.neurons), 'asdfacadac');
@@ -24,13 +24,21 @@ branchtype = 'conv';
 for i=1:NumNeurons
     lt_figure; hold on;
     % ========================= FIRST, extract data
-    cd(NeuronDatabase.global.basedir);
+    try
+        cd(NeuronDatabase.global.basedir);
+    catch err
+        cd(NeuronDatabase.neurons(i).basedir);
+    end
+        
     
     % - find day folder
     dirdate=NeuronDatabase.neurons(i).date;
     tmp=dir([dirdate '*']);
-    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
-    cd(tmp(1).name);
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(i).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
+    cd(tmp(1).name);    
     
     % - load data for this neuron
     batchf=NeuronDatabase.neurons(i).batchfile;
@@ -150,12 +158,19 @@ branchtype = 'div';
 for i=1:NumNeurons
     lt_figure; hold on;
     % ========================= FIRST, extract data
+    try
     cd(NeuronDatabase.global.basedir);
+    catch err
+        cd(NeuronDatabase.neurons(i).basedir);
+    end
     
     % - find day folder
     dirdate=NeuronDatabase.neurons(i).date;
     tmp=dir([dirdate '*']);
-    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(i).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
     cd(tmp(1).name);
     
     % - load data for this neuron

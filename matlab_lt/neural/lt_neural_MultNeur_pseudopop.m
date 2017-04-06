@@ -33,13 +33,25 @@ DATSTRUCT = struct;
 for nn=1:NumNeurons
     disp(['neuron : ' num2str(nn)]);
     % 1) -- load dat
-    cd(NeuronDatabase.global.basedir);
-    
-    % - find day folder
+    try
+        cd(NeuronDatabase.global.basedir);
+    catch err
+        cd(NeuronDatabase.neurons(nn).basedir);
+    end
+        
     dirdate=NeuronDatabase.neurons(nn).date;
     tmp=dir([dirdate '*']);
-    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(nn).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
     cd(tmp(1).name);
+    
+%     % - find day folder
+%     dirdate=NeuronDatabase.neurons(nn).date;
+%     tmp=dir([dirdate '*']);
+%     assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+%     cd(tmp(1).name);
     
     % - load data for this neuron
     batchf=NeuronDatabase.neurons(nn).batchfile;

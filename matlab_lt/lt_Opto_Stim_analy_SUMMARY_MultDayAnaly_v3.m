@@ -121,8 +121,16 @@ for i=1:NumDirs;
     if strcmp(Params.ExptID, 'All');
         Params.FieldsToCheck{1}='All';
     elseif strcmp(Params.ExptID, 'Stim');
-        Params.FieldsToCheck{1}='StimCatch';
-        Params.FieldsToCheck{2}='StimNotCatch';
+            Params.FieldsToCheck{1}='NotStim';
+            Params.FieldsToCheck{2}='StimCatch';
+            Params.FieldsToCheck{3}='StimNotCatch';
+%         if isempty(DatStructCompiled.StimCatch) & ~isempty(DatStructCompiled.NotStim)
+%             Params.FieldsToCheck{1}='Stim';
+%             Params.FieldsToCheck{2}='NotStim';
+%         else
+%             Params.FieldsToCheck{1}='StimCatch';
+%             Params.FieldsToCheck{2}='StimNotCatch';
+%         end
     end
     
     % RUN

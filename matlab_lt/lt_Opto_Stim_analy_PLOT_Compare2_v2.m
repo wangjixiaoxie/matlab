@@ -31,14 +31,24 @@ StimDur=Params.StimDur;
 %% Extract Stats for each field
 
 StatsStruct=struct;
-
+fieldstoremove = [];
 for k=1:NumFields;
     
     % INITIATE
     fieldname=Params.FieldsToCheck{k};
+    
+    % make sure has this field
+    if isempty(DatStructCompiled.(fieldname))
+        fieldstoremove = [fieldstoremove k];
+        Params.FieldsToCheck{k}=[];
+        continue
+    end
+    
+    %
     DatStruct=DatStructCompiled.(fieldname); % get data structure
     
     NumSyls=length(DatStruct); % how many renditions?
+    
     
     % 1) Pitch contour
     
@@ -95,6 +105,10 @@ end
 
 end
 
+
+% ================== REMOVE EMPTY FIELDS
+Params.FieldsToCheck(fieldstoremove) = [];
+NumFields = length(Params.FieldsToCheck);
 
 
 % ASIDE: Adjust timebins so that spectrograms and pitchcountour are aligned

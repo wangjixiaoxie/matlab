@@ -2,8 +2,15 @@
 % Run from day folder. run after performing wave_clus and verifying
 % results.
 
-function [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board)
+function [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, extractSound) 
+%% making it optional to extract sound data
 
+if ~exist('extractSound', 'var')
+    extractSound = 0;
+end
+
+
+%%
 % channel_board=14; neural
 % batchf='BatchTest'; the file used when first concat neural data for
 % the above must be the names used for original concatenation - i.e.
@@ -30,73 +37,96 @@ AllSongs=nan(1, sum([metaDat.numSamps]));
 AllLabels=[];
 AllOnsets=[];
 AllOffsets=[];
+AllSongNum = []; 
 cumulative_filedur=0; % keeps track as concatenating
+
+if extractSound==1
+    % look for saved sound file
+    soundfilename = ['SongDat_' batchf '.mat'];
+    if exist(soundfilename, 'file') ==2
+        load(soundfilename); % to SongCellArray
+        assert(length(SongCellArray)==length(metaDat), 'problem!');
+    else
+        disp('NO SAVED SOUND FILE !');
+    end
+end
 
 tic
 counter = 1;
 for i=1:length(metaDat)
     
-    if isfield(metaDat, 'songDat')
-        % then don't need to reload raw
-% OLD VERSION
-%         AllSongs=[AllSongs metaDat(i).songDat];
+    if extractSound==1
         
-% NEW VERSION
-        inds = counter:(counter+length(metaDat(i).songDat(1,:))-1);
-%         assert(all(isnan(AllSongs(inds))), 'asdfasdf');
-        AllSongs(inds) = metaDat(i).songDat(1,:);
-%         assert(length(inds) ==length(metaDat(i).songDat(1,:)), 'asdfasdf');
-
-        counter = counter+length(metaDat(i).songDat(1,:));
+        if exist('SongCellArray', 'var')==1 % ideally use this.
+            dattmp = SongCellArray{i};
+        else
+            if isfield(metaDat, 'songDat') % old version (obsolete after remove songdart from metadat)
+                % then don't need to reload raw
+                dattmp = metaDat(i).songDat(1,:);
+                
+            else
+                % relaod raw
+                
+                % -- load original sound and neural
+                [~, board_adc_data] = pj_readIntanNoGui_AudioOnly(metaDat(i).filename);
+                
+                % NEW VERSION
+                dattmp = board_adc_data(1,:);
+            end
+        end
         
-%         disp([inds(1) inds(end) length(metaDat(i).songDat(1,:))]);
-
-    else
-        % relaod raw
+        inds = counter:(counter+length(dattmp)-1);
+        AllSongs(inds) = dattmp;
         
-        % -- load original sound and neural
-        [~, board_adc_data] = pj_readIntanNoGui_AudioOnly(metaDat(i).filename);
-%         ind=find([amplifier_channels.chip_channel]==channel_board);
- 
-% OLD VERSION
-%         AllSongs=[AllSongs board_adc_data(1,:)];
-        
-% NEW VERSION
-        inds = counter:(counter+length(board_adc_data(1,:))-1);
-%         assert(all(isnan(AllSongs(inds))), 'asdfasdf');
-        AllSongs(inds) = board_adc_data(1,:);
-%         assert(length(inds) ==length(board_adc_data(1,:)), 'asdfasdf');
-
-        counter = counter+length(board_adc_data(1,:));
-        
-%         disp([inds(1) inds(end) length(board_adc_data(1,:))]);
-        
-%    AllNeural_old=[AllNeural_old amplifier_data(ind, :)];
+        counter = counter+length(dattmp);
     end
     
+    
     % -- load labels, onsets, offsets
-    tmp=load([metaDat(i).filename '.not.mat']);
-    AllLabels=[AllLabels tmp.labels];
-    
-    % convert onsets to onset relative to start of entire concatenated file
-    onsets_cum=(tmp.onsets/1000)+cumulative_filedur; % sec
-    offsets_cum=(tmp.offsets/1000)+cumulative_filedur;
-    
-    AllOnsets=[AllOnsets onsets_cum'];
-    AllOffsets=[AllOffsets offsets_cum'];
-    
-    
+    if exist([metaDat(i).filename '.not.mat'], 'file')==2
+        % then file .notmat exists
+        tmp=load([metaDat(i).filename '.not.mat']);
+        AllLabels=[AllLabels tmp.labels];
+        
+        % convert onsets to onset relative to start of entire concatenated file
+        onsets_cum=(tmp.onsets/1000)+cumulative_filedur; % sec
+        offsets_cum=(tmp.offsets/1000)+cumulative_filedur;
+        
+        AllOnsets=[AllOnsets onsets_cum'];
+        AllOffsets=[AllOffsets offsets_cum'];
+        AllSongNum = [AllSongNum ones(1, length(tmp.labels))*i];
+    else
+        disp(['NOTE: miossing .not.mat for ' metaDat(i).filename ' (SKIPPING)']);
+    end
     % duration of this song file (sec)
     filedur=metaDat(i).numSamps/metaDat(i).fs;
     cumulative_filedur=cumulative_filedur + filedur;
+    
 end
 toc
 
+    % =============== INLCUDE PREVIOUSLY EXTRACTED STATS (E.G. FF)
+    cd(datdir)
+    % ------ 1) FF
+    if exist('extractFF.mat', 'file')
+        FFvals = load('extractFF.mat');
+        FFparams = load('extractFF_params');
+        
+        % sanity check - compare params to current params
+        assert(all(FFparams.Params.allLabels == AllLabels), 'PROBLEM');
+%         assert(all((FFparams.Params.AllOnsets - AllOnsets)<0.002), 'PROBLEM');
+        
+        SongDat.FFvals = FFvals.FFvals;
+    end
 
+if extractSound==1
 SongDat.AllSongs=AllSongs;
+end
+
 SongDat.AllLabels=AllLabels;
 SongDat.AllOnsets=AllOnsets;
 SongDat.AllOffsets=AllOffsets;
+SongDat.AllSongNum=AllSongNum;
 NeurDat.spikes_cat=spikes_cat;
 NeurDat.metaDat=metaDat;
 Params.batchf=batchf;
@@ -130,3 +160,59 @@ Params.channel_board=channel_board;
 
 disp('DONE ! ...');
 
+%% old version saved [right before implemented extractSound as option (i.e. saveds ound outside of metadat)
+if(0)
+    if extractSound==1
+        
+        if isfield(metaDat, 'songDat')
+            % then don't need to reload raw
+            % OLD VERSION
+            %         AllSongs=[AllSongs metaDat(i).songDat];
+            
+            % NEW VERSION
+            dattmp = metaDat(i).songDat(1,:);
+            
+            % inds = counter:(counter+length(dattmp)-1);
+            % %         assert(all(isnan(AllSongs(inds))), 'asdfasdf');
+            %         AllSongs(inds) = dattmp;
+            % %         assert(length(inds) ==length(metaDat(i).songDat(1,:)), 'asdfasdf');
+            %
+            %         counter = counter+length(dattmp);
+            
+            %         disp([inds(1) inds(end) length(metaDat(i).songDat(1,:))]);
+            
+        else
+            % relaod raw
+            
+            % -- load original sound and neural
+            [~, board_adc_data] = pj_readIntanNoGui_AudioOnly(metaDat(i).filename);
+            %         ind=find([amplifier_channels.chip_channel]==channel_board);
+            
+            % OLD VERSION
+            %         AllSongs=[AllSongs board_adc_data(1,:)];
+            
+            % NEW VERSION
+            dattmp = board_adc_data(1,:);
+            
+            %         inds = counter:(counter+length(dattmp)-1);
+            % %         assert(all(isnan(AllSongs(inds))), 'asdfasdf');
+            %         AllSongs(inds) = dattmp;
+            % %         assert(length(inds) ==length(board_adc_data(1,:)), 'asdfasdf');
+            %
+            %         counter = counter+length(dattmp);
+            
+            %         disp([inds(1) inds(end) length(board_adc_data(1,:))]);
+            
+            %    AllNeural_old=[AllNeural_old amplifier_data(ind, :)];
+        end
+        
+        
+        inds = counter:(counter+length(dattmp)-1);
+        %         assert(all(isnan(AllSongs(inds))), 'asdfasdf');
+        AllSongs(inds) = dattmp;
+        %         assert(length(inds) ==length(board_adc_data(1,:)), 'asdfasdf');
+        
+        counter = counter+length(dattmp);
+    end
+
+end

@@ -1,4 +1,4 @@
-function lt_extract_AllDaysPC(Params, date_range)
+function lt_extract_AllDaysPC(Params, date_range, CollectNoteGroup)
 
 %% Run in bird directory
 
@@ -51,6 +51,63 @@ for i=1:length(ListOfDirs);
     cd(ListOfDirs(i).dirname);
     DatStruct=struct;
     
+    % =======
+    if CollectNoteGroup==1
+        % Optional: extract note group information
+        % 1) -------------- CHECK THAT THIS DAY HAS NOTEGROUPS FOR ALL
+        % DATAPOINTS
+        % -- COllect note group data
+        disp('Collecting note group data...')
+        
+        % get list of notegroup files in current day folder
+        NoteGroupFiles=dir('*.ltrec2');
+        
+        % Collect note group log data from multiple files into one structure.
+        AllNoteGroupData=struct('SongFname_cbin',[],'NotesInGroup',[], 'CurrNoteGroup',[]);
+        for j=1:length(NoteGroupFiles);
+            disp(['found ' NoteGroupFiles(j).name]);
+            
+            tmp=lt_read_ltrec2(NoteGroupFiles(j).name,0);
+            
+            % slot into global structure
+            AllNoteGroupData.SongFname_cbin=[AllNoteGroupData.SongFname_cbin tmp.SongFname_cbin];
+            AllNoteGroupData.NotesInGroup=[AllNoteGroupData.NotesInGroup tmp.NotesInGroup];
+            AllNoteGroupData.CurrNoteGroup=[AllNoteGroupData.CurrNoteGroup tmp.CurrNoteGroup];
+        end
+        
+        % -- check that all songs have note group info
+        lt_make_batch(3);
+        fid=fopen('batch');
+        songname=fgetl(fid);
+        c=1;
+        check=0;
+        while ischar(songname);
+            
+            if ~any(strcmp(AllNoteGroupData.SongFname_cbin,songname))
+                % then this song does not have note group log
+                check=1;
+                disp(['PROBLEM: song num ' num2str(c) ' ('  songname ') is missing from note group logs (skipping)']);
+            end
+            
+            % update song
+            c=c+1;
+            songname=fgetl(fid);
+        end
+        
+        if check ==1;
+            continue_input=input('found missing song from note group log. continue? (y or n) ', 's');
+            
+            if continue_input=='n';
+                dafdsf; % this causes error
+            end
+        else
+            disp('---- GOOD: all songs found in .ltrec2 file');
+        end
+        
+    end
+    
+    
+    % ===============    
     for ii=1:NumSylTypes;
         syl=Params.syl_list{ii};
         freq_range=Params.freq_range_list{ii};
@@ -83,6 +140,26 @@ for i=1:length(ListOfDirs);
             DatStruct.(syl)(j).Pitch_contour=PC_raw(:,j); % pitch contour
             DatStruct.(syl)(j).pitch_contour_T=pc_T;
             DatStruct.(syl)(j).pitch_contour_F=pc_F;
+            
+            % --- what note group is this?
+                     DatStruct.(syl)(j).NoteGroup = [];
+                    DatStruct.(syl)(j).NotesInNoteGroup = [];
+           if CollectNoteGroup==1
+                ind = find(strcmp(AllNoteGroupData.SongFname_cbin, fvals(j).fn(1:end-8)));
+                
+                if isempty(ind)
+                    % then no NG data
+                    disp(['PROBLEM: song ' fvals(j).fn(1:end-8) ' no note group data... [leaving empty] ']);
+                elseif length(ind)>1
+                    % then multiple represntations...
+                    disp(['PROBLEM: song ' fvals(j).fn(1:end-8) ' multiple note group data... [leaving empty] ']);
+                else
+                    DatStruct.(syl)(j).NoteGroup = AllNoteGroupData.CurrNoteGroup(ind);
+                    DatStruct.(syl)(j).NotesInNoteGroup = AllNoteGroupData.NotesInGroup{ind};
+                end                    
+            end
+            
+            
         end
         
         

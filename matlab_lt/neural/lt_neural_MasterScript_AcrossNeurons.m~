@@ -27,9 +27,8 @@ bu77wh13_analysis_NeuronDatabase
 
 %% ++++++++++++++++++++++++++++++++ NEW METHOD (SUMMARY STRUCT)
 
-BirdsToKeep = {'wh6pk36'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
-BrainArea = {};
-[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, BrainArea);
+BirdsToKeep = {'bk7'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, {'LMAN'});
 
 
 %% ======== CONVERT TO TABLE
@@ -432,21 +431,15 @@ FFparamsAll.bird(2).FFparams.cell_of_FFtimebins={'b', [0.031 0.04], 'h', [0.038 
 FFparamsAll.bird(3).birdname = 'wh6pk36';
 FFparamsAll.bird(3).FFparams.cell_of_freqwinds={'c', [2100 3100], 'h', [2800 4000], 'b', [2700 3800], ...
     'a', [1300 2200], 's', [4000 5100], 'd', [900 2000],  'n', [3300 4300], 'v', [2600 4000]};
-FFparamsAll.bird(3).FFparams.cell_of_FFtimebins={'c', [0.035 0.05], 'h', [0.023 0.033], 'b', [0.034 0.038], ...
-    'a', [0.06 0.08], 's', [0.02 0.023], 'd', [0.02 0.027],  'n', [0.029 0.05], 'v', [0.028 0.036]};
+FFparamsAll.bird(3).FFparams.cell_of_FFtimebins={'c', [0.035 0.05], 'h', [0.023 0.033], 'b', [0.034 0.044], ...
+    'a', [0.06 0.08], 's', [0.018 0.022], 'd', [0.02 0.027],  'n', [0.029 0.05], 'v', [0.028 0.036]};
 
 
-overWrite = 1; % note, will only overwrite if detects chagnes (IN PROGRESS - currenrly always overwrites)
+overWrite = 1;
 plotSpec = 0; % to plot raw spec overlayed with PC and windows.
 plotOnSong = 2; % will only start plotting spec once hit this song num.
 plotSyl = ''; % to focus on just one syl. NOT DONE YET
 lt_neural_v2_EXTRACT_FF(SummaryStruct, FFparamsAll, overWrite, ...
-    plotSpec, plotOnSong, plotSyl);
-
-%% ===== EXTRACT WN HITS
-
-% IN PROGRESS ! see inside
-lt_neural_v2_EXTRACT_WNhit(SummaryStruct, FFparamsAll, overWrite, ...
     plotSpec, plotOnSong, plotSyl);
 
 
@@ -644,10 +637,6 @@ end
 
 % ===============
 close all; 
-% bk7
-motif_regexpr_str={'g(h)', 'nn(h)h','v(b)bb', 'g(b)'};
-
-% - wh6
 motif_regexpr_str={'nl(c)chbg', 'ajkl(c)chbg', 'amksd(v)b'}; % LMANlearn1
 motif_regexpr_str={'nlcch(b)', 'klcch(b)', 'dv(b)', 'l(c)', 'lc(c)', 'lcc(h)', ...
     'k(s)', 'd(v)', 'g(a)'}; % wh6
@@ -783,7 +772,7 @@ for i=1:numbirds
         numsongs = length(metadat.metaDat);
         SongCellArray = {};
         for j=1:numsongs            
-            SongCellArray = [SongCellArray single(metadat.metaDat(j).songDat)];
+            SongCellArray = [SongCellArray metadat.metaDat(j).songDat];
         end
         
         % save

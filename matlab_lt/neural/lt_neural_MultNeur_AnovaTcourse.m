@@ -1,6 +1,11 @@
 %% LT 12/19/16 - ANOVA timecourse, shuffling transitions, etc.
-function lt_neural_MultNeur_AnovaTcourse(NeuronDatabase, NCycles, closeEarlyFigs)
+function lt_neural_MultNeur_AnovaTcourse(NeuronDatabase, NCycles, closeEarlyFigs, saveFigs)
 
+%% lt 3/22/17 -
+% made sure no pair of digrams for pos shuffle share first or second syl
+
+
+%%
 % 1) multiple back (e.g. 2 back) -
 % 2) positive control - ab vs. cd
 
@@ -8,11 +13,14 @@ window_fr = 0.02;
 windshift_fr = 0.005;
 min_trials_for_FR_and_ANOVA = 5; % for fr, actual data, and digrams shuffled.
 
+ANOVApredur = 0.15;
+ANOVApostdur = 0.1;
+
 % wind_anova = 0.04; %
 % windshift_anova = 0.01;
 
-wind_anova = 0.05; %
-windshift_anova = 0.05;
+wind_anova = 0.025; %
+windshift_anova = 0.025;
 
 max_gap_dur = 0.2; % for shuffled digrams and for actual data
 
@@ -27,13 +35,26 @@ NumNeurons = length(NeuronDatabase.neurons);
 for nn=1:NumNeurons
     disp(['neuron : ' num2str(nn)]);
     % 1) -- load dat
+    try
     cd(NeuronDatabase.global.basedir);
+    catch err
+        cd(NeuronDatabase.neurons(nn).basedir);
+    end
     
     % - find day folder
-    dirdate=NeuronDatabase.neurons(nn).date;
+        dirdate=NeuronDatabase.neurons(nn).date;
     tmp=dir([dirdate '*']);
-    assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+    if length(tmp)>1
+        tmp = dir([dirdate '_' NeuronDatabase.neurons(nn).exptID '*']);
+        assert(length(tmp) ==1,' daiosfhasiohfioawe');
+    end
     cd(tmp(1).name);
+
+%     
+%     dirdate=NeuronDatabase.neurons(nn).date;
+%     tmp=dir([dirdate '*']);
+%     assert(length(tmp)==1, 'PROBLEM - issue finding day folder');
+%     cd(tmp(1).name);
     
     % - load data for this neuron
     batchf=NeuronDatabase.neurons(nn).batchfile;
@@ -60,9 +81,11 @@ end
 %% CONVERGENT TRANSITION
 
 OUTSTRUCT = struct;
-
+Shufflefailures = 0;
+Shufflesuccesses = 0;
 for nn=1:NumNeurons
-    
+    lt_figure; 
+    lt_plot_text(0, 0.5, ['neuron: ' num2str(nn)]);
     allsyls = unique(DATSTRUCT.neuron(nn).song_labels);
     
     % --- format data for this neuron in manner useful for upcoming
@@ -126,8 +149,8 @@ for nn=1:NumNeurons
         % 2) EXTRACT ANOVA STRUCT
         % PREVIOUS version, before put into function, stored below (1.2)
         % added here: throws out transition if not enough trials
-        predur = 0.15;
-        postdur = 0.02;
+        predur = ANOVApredur;
+        postdur = ANOVApostdur;
         ANOVA_STRUCT = lt_neural_MultNeur_AnovaTcourse_sub1(GroupLabels, ...
             GroupSampleSizes, predur, postdur, SongDat, NeurDat, NeuronDatabase, nn, ...
             min_trials_for_FR_and_ANOVA);
@@ -250,6 +273,9 @@ for nn=1:NumNeurons
             Digrams_Chosen = {};
             Digrams_Chosen_inds = [];
             Digrams_DesiredSampSize = [];
+            DigramFirstSyls = {};
+            DigramSecondSyls = {};
+           
             UniqueLabels_shuffled = UniqueLabels(randperm(length(UniqueLabels))); % so that all labels have equal opportunity to start with entire pool of digrams available.
             for j=1:length(UniqueLabels_shuffled)
                 uniquelabel = UniqueLabels_shuffled{j};
@@ -261,12 +287,25 @@ for nn=1:NumNeurons
                 inds_potentialdigrams = find(Alldigrams_samplesize >= samplesize);
                 
                 tmp = 0;
+                failurecounter = 0;
                 while tmp ==0
+                    if failurecounter ==1000;
+                        disp('PROBLEM!!     KEEPS FAILING SHUFFLE');
+                        ShuffleWentWell = 0;
+                        break
+                    end
+                    
                     digram_chosen_ind =inds_potentialdigrams(randi(length(inds_potentialdigrams)));
+                    digramfirstsyl = Alldigrams_final{digram_chosen_ind}(1);
+                    digramsecondsyl =  Alldigrams_final{digram_chosen_ind}(2);
                     % make sure this ind has not been chosen before
-                    if any(Digrams_Chosen_inds == digram_chosen_ind)
+%                     if any(Digrams_Chosen_inds == digram_chosen_ind) ...
+%                         || any(strcmp(DigramFirstSyls, digramfirstsyl)) || ...
+%                         any(strcmp(DigramSecondSyls, digramsecondsyl)); % then problem, choose new digram
+                    if any(Digrams_Chosen_inds == digram_chosen_ind); % then problem, choose new digram
+                    
                         tmp =0;
-                        
+                        failurecounter = failurecounter +1;
                         if all(ismember(inds_potentialdigrams, Digrams_Chosen_inds))
                             % then potential digrams make a subset of the chosen digrams -
                             % i.e. no digram left to choose
@@ -323,6 +362,8 @@ for nn=1:NumNeurons
                 Digrams_Chosen = [Digrams_Chosen Alldigrams_final{digram_chosen_ind}];
                 Digrams_Chosen_inds = [Digrams_Chosen_inds digram_chosen_ind];
                 Digrams_DesiredSampSize = [Digrams_DesiredSampSize samplesize];
+                DigramFirstSyls = [DigramFirstSyls digramfirstsyl];
+                DigramSecondSyls = [DigramSecondSyls digramsecondsyl];
             end
             
             if plot_digram_choices == 1
@@ -330,6 +371,7 @@ for nn=1:NumNeurons
             end
             
             % ==== EXTRACT ANOVA STRUCT
+            if ShuffleWentWell==1
             GroupLabels = {};
             GroupSampleSizes = []; % if use nan, then will take all. if use a number, then take random
             for j=1:length(Digrams_Chosen)
@@ -343,8 +385,8 @@ for nn=1:NumNeurons
             % 2) EXTRACT ANOVA STRUCT
             % PREVIOUS version, before put into function, stored below (1.2)
             % added here: throws out transition if not enough trials
-            predur = 0.15;
-            postdur = 0.02;
+            predur = ANOVApredur;
+            postdur = ANOVApostdur;
             ANOVA_STRUCT_SHUFF = lt_neural_MultNeur_AnovaTcourse_sub1(GroupLabels, ...
                 GroupSampleSizes, predur, postdur, SongDat, NeurDat, NeuronDatabase, nn, ...
                 min_trials_for_FR_and_ANOVA);
@@ -373,12 +415,14 @@ for nn=1:NumNeurons
                 ylim([-0.1 0.3]); lt_plot_zeroline
                 pause
             end
+            end
         end
         
         %         pause;
         %         close(hfig);
         
         if ShuffleWentWell ==1
+            Shufflesuccesses = Shufflesuccesses+1;
             % ================================== COMPARE ACTUAL OMEGA SQUARED
             % TIMECOURSE TO DISTRIBUTION OF SHUFFLED
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
@@ -435,6 +479,7 @@ for nn=1:NumNeurons
             
             
         else
+            Shufflefailures = Shufflefailures +1;
             disp(['SHUFFLE FAILED so skipped syl ' allsyls(i) '; neuron ' num2str(nn)]);
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
@@ -543,7 +588,9 @@ for nn=1:NumNeurons
     end
 end
 
+if closeEarlyFigs==0
 pause
+end
 close all;
 
 %% PLOT SUMMARY DISTRIBUTIONS FOR EACH NEURON AND ACROSS NEURONS [SHUFFLED PR]
@@ -557,13 +604,13 @@ subplotcols=2;
 fignums_alreadyused=[];
 hfigs=[];
 
-for nn = 1:NumNeurons
+for nn = 1:NumNeurons 
     
     % +++++++++++++++++++++++++++++++++++ 1A) VS SHUFFLED DIGRAMS
     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     title(['neuron ' num2str(nn) ' (line=branch)']);
     ylabel(['pr omega(shuff digrams)>data']);
-    xlabel('sec');
+    xlabel(['bin (' num2str(wind_anova) ')']);
     
     shufflechoice = 'data_vs_shuffdigrams';
     plotdist = 0; % plot raw dat + box
@@ -684,6 +731,7 @@ lt_neural_MultNeur_AnovaTcourse_sub2(OUTSTRUCT, transition_type, ...
 % --- histogram of premotor window
 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
 timeWindRelSylOnset = [-0.04 0.02];
+% timeWindRelSylOnset = [-0.05 0.05];
 title(['timewind (RelSylOns): ' num2str(timeWindRelSylOnset)]);
 ylabel(['pr omega(shuff digrams)>data']);
 
@@ -756,7 +804,11 @@ zlim([0 0.3]);
 
 
 %% ====================== SUMMARY PLOT [ANOVA RESULTS]
-
+% NOTE MOST INFORMATION (plots scatter of omega of actual vs. scatter - problem is that 
+% shuffles are not really that related to the actual data, especially for digrams, so
+% 45 degree plot is not too important).
+if (0) % IMPORTANT: need to make numTimeBins accurate !!
+    
 transition_type = 'convergent';
 
 for nn = 1:NumNeurons
@@ -769,7 +821,7 @@ for nn = 1:NumNeurons
     fignums_alreadyused=[];
     hfigs=[];
     
-    numTimeBins = length(omega_dat);
+    numTimeBins = 5;
     
     % +++++++++++++++++++++++++++++++++++++++++++ SHUFF DIGRAMS
     for j=1:numTimeBins
@@ -888,7 +940,7 @@ for nn = 1:NumNeurons
     
     
 end
-
+end
 
 %% +++ PLOT DISTRIBUTIONS OF ANOVA (simple plot)
 
@@ -938,7 +990,7 @@ for nn=1:NumNeurons
     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     title([shufflechoice]);
     lt_plot_mult2dhist(Omega2_All_mat, Xval(1:xmin), Xcenters);
-    zlim([0 0.5]);
+zlim([0 0.8]);
 
     % +++++++++++++++++++++++++++++++++++++++++++++++++ 2) DIGRAM SHUFFLED
     shufflechoice = 'shuffdigrams';
@@ -974,7 +1026,7 @@ for nn=1:NumNeurons
     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     title([shufflechoice]);   
     lt_plot_mult2dhist(Omega2_All_mat, Xval(1:xmin), Xcenters);
-    zlim([0 0.5]);
+zlim([0 0.8]);
 
     
     % +++++++++++++++++++++++++++++++++++++++++++++++++ 3) CTXT SHUFFLED
@@ -1011,7 +1063,10 @@ for nn=1:NumNeurons
     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     title([shufflechoice]);   
     lt_plot_mult2dhist(Omega2_All_mat, Xval(1:xmin), Xcenters);
-    zlim([0 0.5]);
+zlim([0 0.8]);
+    
+    lt_subtitle(['neuron ' num2str(nn)]);
+    
 
 end
 
@@ -1066,8 +1121,10 @@ end
 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
 title(['all neurons: ' shufflechoice]);
 lt_plot_mult2dhist(Omega2_All_mat, Xval(1:xmin), Xcenters);
-    zlim([0 0.5]);
-    
+zlim([0 0.8]);
+xlabel('pr(shuffle omega>actual)');
+ylabel('time (sec)');
+zlabel('prob mass');
     
     % +++++++++++++++++++++++++++++++++++++++++++++++++ 1) DATA
 shufflechoice = 'shuffdigrams';
@@ -1109,7 +1166,7 @@ end
 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
 title(['all neurons: ' shufflechoice]);
 lt_plot_mult2dhist(Omega2_All_mat, Xval(1:xmin), Xcenters);
-    zlim([0 0.5]);
+zlim([0 0.8]);
     
 
     % +++++++++++++++++++++++++++++++++++++++++++++++++ 1) DATA
@@ -1152,7 +1209,7 @@ end
 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
 title(['all neurons: ' shufflechoice]);
 lt_plot_mult2dhist(Omega2_All_mat, Xval(1:xmin), Xcenters);
-zlim([0 0.5]);
+zlim([0 0.8]);
     
 %% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ SAME, BUT
 % COMBINING ACROSS ALL NEURONS
@@ -1204,7 +1261,10 @@ end
 % running histgarm
 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
 lt_plot_mult2dhist(Omega2_All_mat, Xval(1:xmin), Xcenters);
-    
+    xlabel('pr(shuffle omega>actual)');
+ylabel('time (sec)');
+zlabel('prob mass');
+
     
     % 2) then plot shuffle
 shufflechoice = 'shuffdigrams';
@@ -1335,6 +1395,32 @@ zlim([0 0.5]);
 xlim([-0.2 1]);
 grid on;    
 
+
+%%  =============== SAVE FIGS and output struct
+
+lt_neural_v2_GoToFolder;
+
+
+cd FIGS/
+try 
+    cd MultNeur_AnovaTcourse
+catch err
+    mkdir MultNeur_AnovaTcourse
+    cd MultNeur_AnovaTcourse
+end
+
+tstamp = lt_get_timestamp(0);
+mkdir(tstamp)
+cd(tstamp)
+
+if saveFigs==1
+lt_save_all_figs
+end
+
+save('OUTSTRUCT', 'OUTSTRUCT');
+save('NeuronDatabase', 'NeuronDatabase');
+save('Shufflefailures' ,'Shufflefailures');
+save('Shufflesuccesses', 'Shufflesuccesses');
 
 end
 

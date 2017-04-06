@@ -304,6 +304,17 @@ KeepOutliers=0;
 
 % RUN THIS IN BIRD FOLDER
 
+% NOTE: will extract stim types (StimCatch StimNotCatch) and NotStim fields.
+% NOTE: in the PlotOverTime code I
+% convert Stim --> StimNotCatch and NotStim --> StimCatch, so is not a
+% problem. (will end up with 2 filds for stim and no stim in the end)
+
+% NOTE: does not currently support use of both Note groups and catch. In
+% that case would have NotStim and StimCatch as different. Currently
+% PlotOverTime overrides NotStim witm StimCatch instead of combining.
+
+
+
 clear all; close all;
 
 % =======, to find directories
@@ -440,5 +451,19 @@ end
 % ===== COMBINE DIRS
 ListOfDirs_all=[ListOfDirs1 ListOfDirs2_modified];
 
+% ====== OPTIONAL, FOR ASSOCAITION EXPERIMENT
+% ASSOC EXP: Params telling what days are stim + UP vs stim + DN, etc.
+MetaParams.AssocExpt.Timeline.Stim_WNup_UniDir={'02Apr2015','03Apr2015','06Apr2015'};
+MetaParams.AssocExpt.Timeline.Stim_WNdn_UniDir={'04Apr2015','05Apr2015'};
+MetaParams.AssocExpt.Timeline.Stim_WNup_BiDir={'07Apr2015','08Apr2015','09Apr2015','10Apr2015'};
+MetaParams.AssocExpt.Timeline.noStim_WNup={'11Apr2015'};
+MetaParams.AssocExpt.Timeline.noStim_WNdn={'12Apr2015'};
+MetaParams.AssocExpt.Timeline.Stim_WNup_probe={'15Apr2015'};
+MetaParams.AssocExpt.Timeline.Stim_WNdn_probe={'13Apr2015','14Apr2015'};
 
-lt_Opto_Stim_analy_SUMMARY_PlotOverTime(BirdDir, ListOfDirs_all,TimeFieldsOfInterest,statfield,BaselineDays,plotStimEpochs)
+% ========= OPTIONAL, for deliniting WN switch times
+MetaParams.WNonDates = {'13Mar2017-2312-up', '15Mar2017-2300-dn', '18Mar2017-1432-of'}; % times when WN epochs began
+
+
+lt_Opto_Stim_analy_SUMMARY_PlotOverTime(BirdDir, ListOfDirs_all, ...
+    TimeFieldsOfInterest,statfield,BaselineDays,plotStimEpochs, MetaParams)

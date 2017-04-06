@@ -204,6 +204,30 @@ if (0)
     plot_time_boundary_lines
     
     
+     % ========== 1) PLOT (by time) [color by note group]
+     plotcols = {'b', 'r', 'm', 'c', 'k'};
+    lt_figure; hold on;
+    title(['FF of all detects of notenum: ' num2str(NoteToPlot) ' (by time)']);
+    xlabel('time (hr)');
+    ylabel('FF (hz)');
+    
+    % all rends
+    notegroupnums = unique(AllSongsData_toplot(:,8));
+    for i=1:length(notegroupnums)
+        indstmp = AllSongsData_toplot(:,8) == notegroupnums(i);
+    X=AllSongsData_toplot(indstmp,2); % time values
+    Y=AllSongsData_toplot(indstmp,5); % freq values
+    lt_plot(X, Y, {'Color', plotcols{i}});
+    lt_plot_annotation(1, ['NG ' num2str(i)], plotcols{i});
+    end
+    
+%     Ylim=ylim;
+%     plot(X,Ylim(1)+50+Y.*(Ylim(2)-Ylim(1))/2,'-g');
+    
+    % overlay experiment time boundaries
+    plot_time_boundary_lines
+    
+    
     % =============== PLOT JUST A SINGLE DAY
     day=3;
     lt_figure; hold on;
@@ -580,7 +604,11 @@ for i=1:length(NoteGroupList);
         % not change params in middle of epoch. however sometimes changes
         % params, and restarts epoch, giving two phases.
         SORTED_DATA.ByNoteGroup(i).Stats_OneDataPtPerEpoch.PhaseNum{ii}=unique(PhaseNumvals); % this can be multiple numbers, but usually is one.
-        
+        if length(unique(PhaseNumvals))==1
+        SORTED_DATA.ByNoteGroup(i).Stats_OneDataPtPerEpoch.PhaseNum_array(ii)=unique(PhaseNumvals); % this can be multiple numbers, but usually is one.
+        else
+        SORTED_DATA.ByNoteGroup(i).Stats_OneDataPtPerEpoch.PhaseNum_array(ii)=nan; % this can be multiple numbers, but usually is one.
+        end            
         
         %         bootstats=lt_bootstrap(FFvals,'cv');
         %         SORTED_DATA.ByNoteGroup(i).Stats_OneDataPtPerEpoch.cvFF(ii)=bootstats.MEAN;
@@ -685,8 +713,70 @@ for i=1:length(StatToPlotList);
     plot_epochs(StatToPlot, beginning_or_end, SORTED_DATA, NoteGroupList);
 end
 
+% ================ FOR EACH PHASE, COMPARE DISTRIBUTIONS FOR ALL NOTEGROUPS
+numphases = length(Params_alldays.Phases_DayBounds);
+count = 1;
+stattoplot = 'meanFF';
+% plotcols = lt_make_plot_colors(length(SORTED_DATA.ByNoteGroup), 0,0);
+lt_figure; hold on;
+     plotcols = {'m', 'c', 'k', 'b'};
+
+for i=1:numphases
+    phasebounds = Params_alldays.Phases_DayBounds{i};
+    numNoteGroups = length(SORTED_DATA.ByNoteGroup);
+    
+    for ii=1:numNoteGroups
+        
+        inds = SORTED_DATA.ByNoteGroup(ii).Stats_OneDataPtPerEpoch.PhaseNum_array == i;
+        
+        if any(inds)
+            % plot
+            FFvals = SORTED_DATA.ByNoteGroup(ii).Stats_OneDataPtPerEpoch.(stattoplot)(inds);
+            distributionPlot(FFvals', 'Color', plotcols{ii}, 'xValues', count, 'showMM', 4, ...
+                'addSpread', 1);
+            
+            count = count +1;
+        end
+    end
+    
+    line([count-0.5 count-0.5], [min(FFvals) max(FFvals)], 'Color','k');
+    lt_plot_text(count-1.5,  1.01*max(FFvals), ['phase' num2str(i)]);
+end
+
+numphases = length(Params_alldays.Phases_DayBounds);
+count = 1;
+stattoplot = 'meanFF';
+% plotcols = lt_make_plot_colors(length(SORTED_DATA.ByNoteGroup), 0,0);
+lt_figure; hold on;
+plotcols = {'b', 'r', 'm', 'c', 'k'};
+numNoteGroups = length(SORTED_DATA.ByNoteGroup);
+
+for i=1:numphases
+    
+    for ii=1:numNoteGroups
+        
+        inds = SORTED_DATA.ByNoteGroup(ii).Stats_OneDataPtPerEpoch.PhaseNum_array == i;
+        
+        if any(inds)
+            % plot
+            FFvals = SORTED_DATA.ByNoteGroup(ii).Stats_OneDataPtPerEpoch.(stattoplot)(inds);
+            lt_plot(count, mean(FFvals), {'Errors', lt_sem(FFvals), 'Color', plotcols{ii}});
+            
+            count = count +1;
+        end
+    end
+%     
+    line([count-0.5 count-0.5], [min(FFvals) max(FFvals)], 'Color','k');
+    lt_plot_text(count-1.5,  1.01*max(FFvals), ['phase' num2str(i)]);
+end
+
+xlabel('NG num');
+title(stattoplot);
+
 pause;
 close all;
+
+
 
 %% GET STATS OF TRANSITIONS BETWEEN EPOCHS
 
@@ -1721,6 +1811,7 @@ if isfield(Params_alldays, 'Probe_CSplus');
     end
     
 end
+
 %% TTEST COMPARING TRANSITION DATA FOR SPECIFIC TRANSTIONS
 
 Transition_one=[1 2]; % [from to] (in Note group num)

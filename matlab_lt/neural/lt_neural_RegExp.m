@@ -1,7 +1,21 @@
 %% lt 8/18/16 - input regexpt, outputs segments,each of which is the regexp +/- duration.
 
 function [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
-    regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, keepRawSongDat)
+    regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, keepRawSongDat, suppressout)
+%% note on FF stuff
+% WNhit collection is only performed if FF collection is performed - can
+% modify easily to make them independent. Needs raw audio to extract WNhit
+% data...
+
+%% note 3/21/17
+% Might miss some whole bouts. reason is potential motifs are first detected by
+% the onset_pre_threshold criterion (which is about 1s). then I ask how many of
+% those are preceded and followed by gap larger than WHOLEBOUTS_edgedur, which
+% is larger than onset_pre_threshold. So some will fail. If want all that pass
+% onset_pre_threshold to be included, then make  onset_pre_threshold = WHOLEBOUTS_edgedur;
+% (i.e. make WHOLEBOUTS_edgedur shorter). problem with that is that then might
+% get some bouts with some calls ppreceding and following motif.
+
 %% keepRawSongDat
 
 % will keep raw dat if ask for FF.
@@ -10,6 +24,11 @@ function [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ..
 if ~exist('keepRawSongDat', 'var')
     keepRawSongDat = 0;
 end
+
+if ~exist('suppressout', 'var')
+    suppressout = 0;
+end
+
 
 %% --
 % FFparams.collectFF=1;
@@ -36,6 +55,7 @@ end
 %     WHOLEBOUTS_edgedur=6; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
 %     % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
 
+
 if ~exist('FFparams', 'var')
     FFparams.collectFF=0;
 end
@@ -43,7 +63,7 @@ end
 if isempty(FFparams)
     FFparams.collectFF=0;
 end
- 
+
 
 if ~exist('WHOLEBOUTS_edgedur', 'var');
     WHOLEBOUTS_edgedur=[];
@@ -71,7 +91,8 @@ Params.REGEXP.postdur=postdur;
 
 if strcmp(regexpr_str, 'WHOLEBOUTS')
     
-    onset_pre_threshold=2; % in seconds, minimum time preceding and following bout [DO NOT CHANGE! THIS IS FOR "DEFINING" SONG BOUT]
+    %      onset_pre_threshold=2; % OLD (changed on 3/21/17, based on wh6pk36)
+    onset_pre_threshold=1; % in seconds, minimum time preceding and following bout [DO NOT CHANGE! THIS IS FOR "DEFINING" SONG BOUT]
     % If you only want to keep those with a long enough quiet time, then do
     % following
     
@@ -96,6 +117,10 @@ if strcmp(regexpr_str, 'WHOLEBOUTS')
     bout_firstsyls=potentialOnsets(inds_tmp);
     bout_lastsyls=potentialOnsets(inds_tmp+1)-1; % minus 1 because want to end of the current bout, not the start of the next bout.
     
+    bout_firstsyls_beforeflankfilter = bout_firstsyls;
+    bout_lastsyls_beforeflankfilter = bout_lastsyls;
+    
+    
     % ------------
     % === ONLY KEEP THOSE WHICH HAVE FLANKING GAP DURS LONGER THAN
     % CRITERION
@@ -107,6 +132,47 @@ if strcmp(regexpr_str, 'WHOLEBOUTS')
         bout_firstsyls=bout_firstsyls(inds_tmp2);
         bout_lastsyls=bout_lastsyls(inds_tmp2);
     end
+    
+    % ============================== TROUBLESHOOTING - PLOT ALL ONSETS IN A
+    % LINE PLOT
+    if (0)
+        % 1) song
+        hsplots = [];
+        lt_figure; hold on;
+        
+        hsplot= lt_subplot(2,1,1); hold on;
+        plot([1:length(SongDat.AllSongs)]./NeurDat.metaDat(1).fs, ...
+            SongDat.AllSongs, 'k');
+        title('song');
+        hsplots = [hsplots hsplot];
+        
+        % 2) syls
+        hsplot = lt_subplot(2,1,2); hold on;
+        for i=1:length(AllOnsets)
+            line([AllOnsets(i) AllOffsets(i)], [0 0], 'LineWidth', 2);
+        end
+        
+        for i=1:length(bout_firstsyls)
+            line([AllOnsets(bout_firstsyls(i)) AllOnsets(bout_firstsyls(i))]-WHOLEBOUTS_edgedur,...
+                ylim, 'Color', 'g');
+            line([AllOffsets(bout_lastsyls(i)) AllOffsets(bout_lastsyls(i))]+WHOLEBOUTS_edgedur, ...
+                ylim , 'Color', 'r');
+        end
+        
+        for i=1:length(bout_firstsyls_beforeflankfilter)
+            line([AllOnsets(bout_firstsyls_beforeflankfilter(i)) AllOnsets(bout_firstsyls_beforeflankfilter(i))],...
+                ylim, 'Color', 'b');
+            line([AllOffsets(bout_lastsyls_beforeflankfilter(i)) AllOffsets(bout_lastsyls_beforeflankfilter(i))], ...
+                ylim , 'Color', 'b');
+        end
+        hsplots = [hsplots hsplot];
+        
+        title('blue: potential motifs...redgreen: those that pass edge_dur test');
+        xlabel('time of syl (s)');
+        
+        linkaxes(hsplots, 'x');
+    end
+    
     % ----------------------
     
     
@@ -171,6 +237,8 @@ for i=1:length(tokenExtents)
     
     
     if keepRawSongDat ==1
+        assert(isfield(SongDat, 'AllSongs'), 'PROBLEM - need to extract songdat before running this');
+        
         % this effectively does nothing if also collecting FF.
         AllSongs=SongDat.AllSongs;
         songseg=AllSongs(onsamp:offsamp);
@@ -180,19 +248,99 @@ for i=1:length(tokenExtents)
     % +++++++++++++++++++++++++++++++++++++++++++++++++++++++
     % Extract FF of a specific syllable [OPTIONAL]
     if FFparams.collectFF==1
+        
+        PC=nan;
+        FF=nan;
+        T=nan;
+        
+        if isfield(SongDat, 'FFvals');
+%         if (1)
+            % -- take old vals
+            FF = SongDat.FFvals(ind);
+            
+        else
+            %% === OLD METHOD (CALCULATE FROM RAW AUDIO HERE)
+            disp('HAVE TO DO FFVALS MANUALLY :( ');
+            % - collect
+            AllSongs=SongDat.AllSongs;
+            songseg=AllSongs(onsamp:offsamp);
+            
+            FF_PosRelToken=FFparams.FF_PosRelToken;
+            FF_sylName=FFparams.FF_sylName;
+            cell_of_freqwinds=FFparams.cell_of_freqwinds;
+            cell_of_FFtimebins=FFparams.cell_of_FFtimebins;
+            
+            prepad_forFF=0.015; postpad_forFF=0.015; % don't change, as this affects temporal window for FF
+            
+            indForFF=tokenExtents(i)+FF_PosRelToken;
+            sylForFF=AllLabels(indForFF);
+            
+            ontime_forFF=AllOnsets(indForFF);
+            ontime_forFF=ontime_forFF-prepad_forFF;
+            onsamp_forFF=round(ontime_forFF*fs);
+            
+            offtime_forFF=AllOffsets(indForFF);
+            offtime_forFF=offtime_forFF+postpad_forFF;
+            offsamp_forFF=round(offtime_forFF*fs);
+            
+            songseg_forFF=AllSongs(onsamp_forFF:offsamp_forFF);
+            
+            % -- debug
+            if (0)
+                lt_figure; hold on;
+                lt_plot_spectrogram(songseg_forFF, fs, 1,0);
+                pause
+                close all;
+            end
+            
+            % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ EXTRACT FF
+            % -- defaults, sets output (e.g., ff) to this if don't collect
+            % actual FF
+            collectFF=1;
+            
+            % ---------------- GO THROUGH POTENTIAL REASONS TO NOT COLLECT FF
+            if ~isempty(FF_sylName)
+                %             assert(strcmp(FF_sylName, sylForFF)==1, 'Syl is not the desired syl!! - stopping');
+                if strcmp(FF_sylName, sylForFF)==0
+                    collectFF=0;
+                end
+            end
+            
+            indtmp=find(strcmp(sylForFF, cell_of_freqwinds));
+            if isempty(indtmp)
+                % tel;l use
+                disp('EMPTY FREQ WINDOW!! - giving nan for FF');
+                collectFF=0;
+            elseif isempty(cell_of_freqwinds{indtmp+1})
+                disp('EMPTY TIME WINDOW!! - giving nan for FF');
+                collectFF=0;
+            end
+            
+            % ------ COLLECT
+            if collectFF==1
+                indtmp=find(strcmp(sylForFF, cell_of_freqwinds));
+                F_high=cell_of_freqwinds{indtmp+1}(2);
+                F_low=cell_of_freqwinds{indtmp+1}(1);
+                
+                indtmp=find(strcmp(cell_of_FFtimebins, sylForFF));
+                mintime=cell_of_FFtimebins{indtmp+1}(1); % sec
+                maxtime=cell_of_FFtimebins{indtmp+1}(2);
+                
+                [FF, PC, T]= lt_calc_FF(songseg_forFF, fs, [F_low F_high], [mintime maxtime]);
+            end
+        end
+        
+        SegmentsExtract(i).FF_val=FF;
+        %% ===================================================
+        % FIGURE OUT IF WN HIT ON THIS TRIAL (based on clipping of sound)
         % - collect
         AllSongs=SongDat.AllSongs;
         songseg=AllSongs(onsamp:offsamp);
         
         FF_PosRelToken=FFparams.FF_PosRelToken;
-        FF_sylName=FFparams.FF_sylName;
-        cell_of_freqwinds=FFparams.cell_of_freqwinds;
-        cell_of_FFtimebins=FFparams.cell_of_FFtimebins;
-        
         prepad_forFF=0.015; postpad_forFF=0.015; % don't change, as this affects temporal window for FF
         
-        indForFF=tokenExtents(i)+FF_PosRelToken;
-        sylForFF=AllLabels(indForFF);
+        indForFF=tokenExtents(i)+FF_PosRelToken; % can use this to look for WN in flanking syls.
         
         ontime_forFF=AllOnsets(indForFF);
         ontime_forFF=ontime_forFF-prepad_forFF;
@@ -204,53 +352,7 @@ for i=1:length(tokenExtents)
         
         songseg_forFF=AllSongs(onsamp_forFF:offsamp_forFF);
         
-        % -- debug
-        if (0)
-            lt_figure; hold on;
-            lt_plot_spectrogram(songseg_forFF, fs, 1,0);
-            pause
-            close all;
-        end
         
-        % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ EXTRACT FF
-        collectFF=1;
-        % ---------------- GO THROUGH POTENTIAL REASONS TO NOT COLLECT FF
-        if ~isempty(FF_sylName)
-            %             assert(strcmp(FF_sylName, sylForFF)==1, 'Syl is not the desired syl!! - stopping');
-            if strcmp(FF_sylName, sylForFF)==0
-                collectFF=0;
-            end
-        end
-        ind=find(strcmp(sylForFF, cell_of_freqwinds));
-        if isempty(ind)
-            % tel;l use
-            disp('EMPTY FREQ WINDOW!! - giving nan for FF');
-            collectFF=0;
-        elseif isempty(cell_of_freqwinds{ind+1})
-            disp('EMPTY TIME WINDOW!! - giving nan for FF');
-            collectFF=0;
-        end
-        
-        % -- defaults, sets output (e.g., ff) to this if don't collect
-        % actual FF
-        PC=nan;
-        FF=nan;
-        T=nan;
-        
-        if collectFF==1
-            ind=find(strcmp(sylForFF, cell_of_freqwinds));
-            F_high=cell_of_freqwinds{ind+1}(2);
-            F_low=cell_of_freqwinds{ind+1}(1);
-            
-            ind=find(strcmp(cell_of_FFtimebins, sylForFF));
-            mintime=cell_of_FFtimebins{ind+1}(1); % sec
-            maxtime=cell_of_FFtimebins{ind+1}(2);
-            
-            [FF, PC, T]= lt_calc_FF(songseg_forFF, fs, [F_low F_high], [mintime maxtime]);
-        end
-        
-        % ===================================================
-        % FIGURE OUT IF WN HIT ON THIS TRIAL (based on clipping of sound)
         wasTrialHit=[];
         WNonset=[];
         WNoffset=[];
@@ -277,10 +379,8 @@ for i=1:length(tokenExtents)
         SegmentsExtract(i).WNoffset_sec=WNoffset/fs;
         
         
-        SegmentsExtract(i).FF_val=FF;
-        SegmentsExtract(i).FF_pitchcontour=PC;
-        SegmentsExtract(i).FF_timebase=T;
-        SegmentsExtract(i).songdat=songseg;
+        %         SegmentsExtract(i).FF_pitchcontour=PC;
+        %         SegmentsExtract(i).FF_timebase=T;
     end
     
     % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -317,8 +417,9 @@ for i=1:length(tokenExtents)
     
 end
 
-disp(['DONE! EXTRACTED ' num2str(length(SegmentsExtract)) ' segments']);
-
+if suppressout==0
+    disp(['DONE! EXTRACTED ' num2str(length(SegmentsExtract)) ' segments']);
+end
 
 
 
