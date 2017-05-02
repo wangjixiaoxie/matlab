@@ -162,6 +162,8 @@ Params_alldays.Edge_Num_Rends = 40; % num rends to call "edges"
 Params_alldays.throw_out_if_epoch_diff_days=0; % throws out any transitions that overlap with O/N (potentially 2 per O/N)
 one_switch_a_day=1; % manual switching experiemnts.
 
+plotIndTrials = 1;
+
 lt_context_PLOT(AllSongsDataMatrix, Params_alldays, one_switch_a_day);
 
 

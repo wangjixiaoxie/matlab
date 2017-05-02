@@ -475,7 +475,7 @@ extract_repeats=0;
 
 
 
-%% +++++++++++++++++++++++ SHOULD DO
+%% +++++++++++++++++++++++ SHOULD DO ++++++++++++++++++++++++++++++++++++++++++++
 %% =============== [OPTIONAL - EITHER DO HERE OR AFTER REMOVE REPEATS - REDEFINE SYL SIMILARITY AND SEQUENCE
 % SIMILARITY USING ACOUSTIC DISTANCE]
 % ==== ACOUSTIC SIMILARITY STUFF
@@ -508,7 +508,7 @@ close all
 [SeqDepPitch_AcrossBirds, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_AdHocChanges(SeqDepPitch_AcrossBirds, PARAMS);
 
 
-%% +++++++++++++++++++++++++++++++++++++++++++++++++==
+%% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 %% ========== plots distribition of all pairwise acoustic distances across all experiments
@@ -1010,8 +1010,12 @@ ExcludeSeqLearning=0;
 ExcludeNotFullyLabeled=1; % ad hoc, expt with unresolvable holes. (e.g. reprobing, mistakes, see code)
 ExcludeIfHasSameDirBeforeDiffDir=1;
 ExcludeIfFirstTargDriveMore=1; % ad hoc, remove expt where first targ drove more.
-DaysToPlot=[3 5]; % [num days before bidir day 1, num days during bidir (inclusize)]
-[SeqDepPitch_AcrossBirds_MULTIDIR, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_MULTIDIR_v2(SeqDepPitch_AcrossBirds, PARAMS, RepeatsOnly,OnlyUseSylsInSylsUnique, DaysToPlot, ExcludeSeqLearning, ExcludeNotFullyLabeled, ExcludeIfHasSameDirBeforeDiffDir, ExcludeIfFirstTargDriveMore);
+DaysToPlot=[3 9]; % [num days before bidir day 1, num days during bidir (inclusize)]
+RawShowOnlySameType = 1; % if 0, then show all raw expts; if 1 then only if pairs are sametype.
+UseOldVersion = 1; % keep at 1.
+[SeqDepPitch_AcrossBirds_MULTIDIR, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_MULTIDIR_v2(SeqDepPitch_AcrossBirds, ...
+    PARAMS, RepeatsOnly,OnlyUseSylsInSylsUnique, DaysToPlot, ExcludeSeqLearning, ExcludeNotFullyLabeled, ...
+    ExcludeIfHasSameDirBeforeDiffDir, ExcludeIfFirstTargDriveMore, RawShowOnlySameType, UseOldVersion);
 
 
 
@@ -1038,11 +1042,11 @@ NullControl_splitday=0;
 same_type_thr=1.43;
 [~, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANbase(SeqDepPitch_AcrossBirds_LMAN, PARAMS, same_type_thr, NullControl_splitday);
 
-
-% ++++++++++++++++++++++++++++++++++++ LEARNING
 % 1) =============== PREPROCESS
 % --- reextract MUSc data without normalizing for baseline musc effect?
 [SeqDepPitch_AcrossBirds_LMAN, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANrenorm(SeqDepPitch_AcrossBirds_LMAN, PARAMS, musc_day_window_WNdayinds, musc_day_window_Bidirdayinds_Bidir, pu53_use_later_days, debugON);
+
+%% ++++++++++++++++++++++++++++++++++++ LEARNING
 
 %% MAIN LMAN STUFF
 % --- what day windows to use for analysis?
@@ -1144,7 +1148,18 @@ similar_only=1; % 0=only diff; 1=similar only; 2 = all;
 [PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANconsolGen(SeqDepPitch_AcrossBirds_LMAN, PARAMS, norm_by_targsyl, epochfield_input, similar_only);
 
 
-% +++++++++++++++++++++++++++++++
+%%  REVISIONS (started 4/23/17)
+
+close all;
+norm_by_targsyl=0; % normalize within each experiment
+% epochfield_input='days_consolid_early';
+epochfield_input='final_extracted_window';
+UseBaselineForCV=0; % then uses baseline data for CV reduction analysis
+DispEachSylCVpval=0; % if 1, lists p vals
+[PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANrevisions(SeqDepPitch_AcrossBirds_LMAN, PARAMS, norm_by_targsyl, epochfield_input, UseBaselineForCV, DispEachSylCVpval);
+
+
+%% +++++++++++++++++++++++++++++++ LMAN BIDIR
 
 % ++++++++++++++++++++++++++= PLOT FOR BIDIR LEARNING
 close all;

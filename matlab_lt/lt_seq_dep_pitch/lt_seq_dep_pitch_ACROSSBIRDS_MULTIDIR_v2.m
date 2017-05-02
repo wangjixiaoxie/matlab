@@ -1,4 +1,6 @@
-function [SeqDepPitch_AcrossBirds, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_MULTIDIR(SeqDepPitch_AcrossBirds, PARAMS, RepeatsOnly, OnlyUseSylsInSylsUnique, DaysToPlot, ExcludeSeqLearning, ExcludeNotFullyLabeled, ExcludeIfHasSameDirBeforeDiffDir, ExcludeIfFirstTargDriveMore)
+function [SeqDepPitch_AcrossBirds, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_MULTIDIR(SeqDepPitch_AcrossBirds, ...
+    PARAMS, RepeatsOnly, OnlyUseSylsInSylsUnique, DaysToPlot, ExcludeSeqLearning, ExcludeNotFullyLabeled,...
+    ExcludeIfHasSameDirBeforeDiffDir, ExcludeIfFirstTargDriveMore, RawShowOnlySameType, UseOldVersion)
 %% LT 12/27/15 - plots day to day shift at two targets. Are they constrained to shift together?
 % ExcludeSeqLearning=1; % then skips pu53, since sequence learning
 % ExcludeNotFullyLabeled = 1; ad hoc, remove experiemtns I notice don't
@@ -11,7 +13,6 @@ end
 if ~exist('ExcludeIfHasSameDirBeforeDiffDir', 'var');
     ExcludeIfHasSameDirBeforeDiffDir=0;
 end
-
 
 %% EXTRACT ONLY EXPERIMENTS WITH MULTIDIR
 NumBirds=length(SeqDepPitch_AcrossBirds.birds);
@@ -214,7 +215,11 @@ for i=1:NumBirds;
         
         % trim end if reaches end of bidir
         if daystokeep(end)>MDoff_ind;
-            daystokeep(end)=MDoff_ind;
+            if UseOldVersion==1
+                daystokeep(end) = MDoff_ind;
+            else
+                daystokeep= daystokeep(daystokeep<=MDoff_ind);
+            end
         end
         
         % === save the number of WN single dir days that occurred before
@@ -298,6 +303,29 @@ for i=1:NumBirds;
         FFvals=FFvals.*targLearnDir;
 
         DATSTRUCT.data.SecondTarg(Exptcount).MeanFFRelBase=FFvals;
+        % signifincatly diff from 0?
+        ffvalsRaw = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(secondtarg).FFvals(daystokeep);
+        ffbase = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.EpochData.Baseline.(secondtarg).meanFF_RecalcDays;
+
+        pvalsAll = [];
+        FFsemAll = [];
+        for k=1:length(ffvalsRaw)
+            ffvalstmp = cell2mat(ffvalsRaw{k});
+            ffvalstmp = ffvalstmp - ffbase;
+if isempty(ffvalstmp)
+    p = nan;
+    FFsemAll = [FFsemAll nan];
+    continue
+end
+    
+            p = signrank(ffvalstmp);
+            pvalsAll = [pvalsAll p];
+            FFsemAll = [FFsemAll lt_sem(ffvalstmp)];
+        end
+        DATSTRUCT.data.SecondTarg(Exptcount).pvalsAll_signrankRelZero=pvalsAll;
+        DATSTRUCT.data.SecondTarg(Exptcount).FFsemAll=FFsemAll;
+            
+        
         
         % VALUE TO NORM ALL TO
         FFvals=FFvals./ValueToNormAllTo;
@@ -469,13 +497,17 @@ fignums_alreadyused=[];
 hfigs=[];
 
 
-
 for i=1:numexpts
     
     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     title([DATSTRUCT.information(i).birdname '-' DATSTRUCT.information(i).exptname]);
     
     X=DATSTRUCT.information(i).dayIndsUsed;
+    
+    if ~DATSTRUCT.information(i).targ2_sametype_rel_targ1
+        lt_plot_text(0, 0.5, 'skipped, since not sametype', 'r');
+        continue
+    end
     
     % ----- targ 1
     Y=DATSTRUCT.data.FirstTarg(i).MeanFFRelBase;
@@ -507,8 +539,93 @@ for i=1:numexpts
     
     line([xx+0.5 xx+0.5], ylim);
     
-    
 end
+
+
+%% ==== PLOT DATAPOINTS FOR EACH DAY (BARS, REL TO BIDIR START) [OVERLAY ALL EXPERIMENTS
+numexpts=length(DATSTRUCT.data.FirstTarg);
+
+lt_figure; hold on;
+onlyKeepExptIfFullData =1;
+if onlyKeepExptIfFullData==1
+    title('only expt with at least this much data');
+else
+    title('all expt, regardless if enough data');
+end
+xlabel('day (bidir start at 1)');
+ylabel('change in FF, rel baseline (red means p<0.005 from base)');
+
+
+Yall_targ = [];
+Yall_sametype = [];
+
+for i=1:numexpts
+    X=DATSTRUCT.information(i).dayIndsUsed;
+    bidirStart = DATSTRUCT.information(i).numPreBidirDays+DATSTRUCT.information(i).dayIndsUsed(1)-1;
+    X = X - bidirStart;
+    
+    if ~DATSTRUCT.information(i).targ2_sametype_rel_targ1
+        continue
+    end
+    
+    if onlyKeepExptIfFullData==1
+        
+        if sum(~isnan(DATSTRUCT.data.FirstTarg(i).MeanFFRelBase))<sum(DaysToPlot)
+            continue
+        end
+    disp(DATSTRUCT.data.FirstTarg(i).MeanFFRelBase)
+    end
+    
+    
+    % ----- targ 1
+    Y=DATSTRUCT.data.FirstTarg(i).MeanFFRelBase;
+    
+    plot(X, Y, '-k', 'LineWidth', 1.5);
+    Yall_targ = [Yall_targ; Y'];
+    
+    
+    
+    % ---- targ 2
+    Y=DATSTRUCT.data.SecondTarg(i).MeanFFRelBase;
+    
+    pValsAll = DATSTRUCT.data.SecondTarg(i).pvalsAll_signrankRelZero;
+    FFsemAll = DATSTRUCT.data.SecondTarg(i).FFsemAll;
+    
+    indstmp = pValsAll<0.005; % those that are diff from baseline (0))\
+    if sum(indstmp) >0;
+        lt_plot(X(indstmp), Y(indstmp), {'Errors', FFsemAll(indstmp), 'Color','r'});
+    end
+    
+%     indstmp = pValsAll>=0.05;
+%     if sum(indstmp) >0;
+%         lt_plot(X(indstmp), Y(indstmp), {'Errors', FFsemAll(indstmp), 'MarkerFaceColor', 'none'});
+%     end
+    
+    
+    plot(X, Y, '-b', 'LineWidth', 2);
+    Yall_sametype = [Yall_sametype; Y'];
+    disp(DATSTRUCT.information(i).dayIndsUsed)
+    %     % --- others (same);
+    %     Y=DATSTRUCT.data.OthersSameType(i).MeanFFRelBase;
+    %     if ~isempty(Y);
+    %         plot(X, Y, '-m');
+    %     end
+    %
+    %     % --- others (siff);
+    %     Y=DATSTRUCT.data.OthersDiffType(i).MeanFFRelBase;
+    %     if ~isempty(Y);
+    %         plot(X, Y, '-r');
+    %     end
+end
+
+% === plot mean
+% lt_plot(X, mean(Yall_targ), {'Errors', lt_sem(Yall_targ)});
+% lt_plot(X, mean(Yall_sametype), {'Errors', lt_sem(Yall_sametype)});
+
+% ---
+axis normal
+line(xlim, [0 0], 'Color','m');
+line([0.5 0.5], ylim, 'Color', 'm');
 
 
 

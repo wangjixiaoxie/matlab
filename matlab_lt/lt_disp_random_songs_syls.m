@@ -193,6 +193,13 @@ if SongOrSyl==0; % then plot songs
         % Advance by 1
         c=c+1;
         
+        if fignum > 10;
+           if strcmp(input('enter "c" to close current figs ', 's'), 'c')
+               close all;
+               c = 1;
+           end
+        end
+        
     end
     
     linkaxes(h1,'y')

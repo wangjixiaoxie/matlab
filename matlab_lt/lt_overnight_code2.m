@@ -1,3 +1,73 @@
+%% or1 autolabel PART 1
+
+clear all; close all;
+
+ListOfDirs = {...
+    '/bluejay5/lucas/birds/or1/042617_Association1_durWN_STIMon', ...
+    '/bluejay5/lucas/birds/or1/042717_Association1_durWN_STIMon', ...
+    '/bluejay5/lucas/birds/or1/042817_Association1_durWN_STIMon'};
+
+
+%% PART 2
+
+for i=1:length(ListOfDirs)
+    
+    cd(ListOfDirs{i});
+    
+%     lt_make_batch(4);
+%     lt_sort_batch_by_labeled('batch.rec_FB');
+%     batch = 'batch.rec_FB.UNLABELED';
+
+    lt_make_batch(1);
+    lt_sort_batch_by_labeled('batch.keep');
+    batch = 'batch.keep.UNLABELED';
+    
+    config='/bluejay5/lucas/birds/or1/config_autolabel.evconfig2';
+    
+    config = '/bluejay5/lucas/birds/or1/config_autolabel.evconfig2';
+
+    syl.targ='c';
+    syl.pre='kkmhdef';
+    syl.post=''; 
+    NoteNum=0; 
+
+    ampThresh=9000;
+    min_dur=20;
+    min_int=5;
+
+    overwrite_notmat=1; % will always make backup folder
+    
+    [fnames, sylnum, vlsorfn, vlsorind]=lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat);
+    
+    
+end
+
+if (0)
+    %% ======= POST STUFF
+    
+    lt_v2_db_transfer_calls(2);
+    
+    batch = 'batch.labeled.all';
+    syl.targ='c';
+    syl.pre='kkmhdef';
+    syl.post=''; 
+    
+    [fnames, sylnum]=lt_jc_chcklbl(batch, syl.targ, 0.025,0.025,'','','');
+    [vlsorfn vlsorind]=jc_vlsorfn(batch, syl.targ,'','');
+    
+    %%
+    evsonganaly
+    
+    
+    %% ============ 3) Replace hand-checekd mislabeld syls
+    lt_autolabel_FixHandCheckedSyls(fnames, sylnum, vlsorfn, vlsorind)
+    
+    
+end
+
+
+
+
 %% ========================== 12/6/15 - pu11 context autolabel
 clear all; close all;
 batch = 'batch.keep';

@@ -1,14 +1,17 @@
-function lt_neural_concatExplore_v2(batchf, ChansToPlot, PlotRectDat, PlotFiltDat)
+function lt_neural_concatExplore_v2(batchf, ChansToPlot, PlotRectDat, PlotFiltDat, PosAndNeg)
 
 %% note: collects spikes individually for each song (i.e. within song threshold)
 
-spkthresh_mult=3; % times median std.
+spkthresh_mult=3.5; % times median std.
 Spk_PosOrNeg=-1; % 1 or -1
 durPreSpike=0.7; % ms
 durPostSpike=1; % ms
 
 % NOTE: ONLY WORKS IF CHECKING A SINGLE CHANNEL!!!
 
+if ~exist('PosAndNeg', 'var')
+    PosAndNeg=0;
+end
 
 %% lt 8/17/16 - exploratory only - concats neural (all chans) + song
 % does not save anything
@@ -74,8 +77,14 @@ for i=1:length(filenames)
     SpikeThreshold=spkthresh_mult*MedianNoise;
     MedianNoiseCollect=[MedianNoiseCollect MedianNoise];
     
-    [SpikePks, SpikeInds]=findpeaks(Spk_PosOrNeg*datfilt,'minpeakheight',...
-        SpikeThreshold,'minpeakdistance',floor(0.0003*frequency_parameters.board_adc_sample_rate)); % 0.3ms min separation btw peaks.
+    
+    if PosAndNeg==0 % then gets negative
+     [SpikePks, SpikeInds]=findpeaks(Spk_PosOrNeg*datfilt,'minpeakheight',...
+        SpikeThreshold,'minpeakdistance',floor(0.00025*frequency_parameters.board_adc_sample_rate)); % 0.3ms min separation btw peaks.
+    else
+     [SpikePks, SpikeInds]=findpeaks(abs(datfilt),'minpeakheight',...
+        SpikeThreshold,'minpeakdistance',floor(0.00025*frequency_parameters.board_adc_sample_rate)); % 0.3ms min separation btw peaks.        
+    end
     
     numsampstmp=length(datfilt);
     % --- collect spike waveforms

@@ -95,8 +95,9 @@ for i=1:NumNeurons
         alignByOnset=1;
         WHOLEBOUTS_edgedur=''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
         % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
+        keepRawSongDat=1;
         [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
-            regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams);
+            regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, keepRawSongDat);
         
         
         % -------- SAVE TIMING OF SPIKES FOR THIS NEURON

@@ -108,8 +108,11 @@ for mm=1:length(metaDat)
     neurdat = amplifier_data(indsamp, :);
     
     % -- load labels, onsets, offsets
+    try
     tmp=load([metaDat(mm).filename '.not.mat']);
     AllLabels=[AllLabels tmp.labels];
+    catch err
+    end
     
     tt = [1:length(board_adc_data(1,:))]/frequency_parameters.amplifier_sample_rate;
     
@@ -138,11 +141,13 @@ for mm=1:length(metaDat)
     end
     
     % onsets and labels
+    try
     for i=1:length(tmp.onsets)
         line([tmp.onsets(i) tmp.offsets(i)]/1000, [1.65 1.65], 'LineWidth', 2, 'Color', 'r');
         lt_plot_text(tmp.onsets(i)/1000, 1.5, tmp.labels(i), 'r')
     end
-    
+    catch err
+    end
     %     % - c. neural (old)
     %     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     %     [datfilt] =lt_neural_filter(AllNeural_old(indsamp), frequency_parameters);

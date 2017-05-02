@@ -24,8 +24,11 @@ TrialBinSize=10;
 %% EXTRACT DATA (for each neuron x motif)
 MOTIFSTATS=struct;
 for i=1:NumNeurons
+    try
     cd(NeuronDatabase.global.basedir);
-    
+    catch err
+        cd(NeuronDatabase.neurons(i).basedir)
+    end
 %     % - find day folder
 %     dirdate=NeuronDatabase.neurons(i).date;
 %     tmp=dir([dirdate '*']);
@@ -44,7 +47,8 @@ for i=1:NumNeurons
     % - load data for this neuron
     batchf=NeuronDatabase.neurons(i).batchfile;
     channel_board=NeuronDatabase.neurons(i).chan;
-    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
+    keepsound=1;
+    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, keepsound);
     
     % --- EXTRACT DAT
     % - do this one time for each desired motif
@@ -56,8 +60,9 @@ for i=1:NumNeurons
         WHOLEBOUTS_edgedur=''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
         % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
         FFparams.collectFF=1;
+        keepsound=1;
         [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
-            regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams);
+            regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, keepsound);
         
         
         % -------- SAVE TIMING OF SPIKES FOR THIS NEURON
@@ -553,8 +558,12 @@ for i=1:NumNeurons
     
     %% ========== save
         %% ==== SAVE FIGURES
-    cd(NeuronDatabase.global.basedir);
-
+    try
+        cd(NeuronDatabase.global.basedir);
+    catch err
+        cd(NeuronDatabase.neurons(i).basedir)
+    end
+    
     % - find day folder
     dirdate=NeuronDatabase.neurons(i).date;
     tmp=dir([dirdate '*']);

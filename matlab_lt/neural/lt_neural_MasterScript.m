@@ -5,8 +5,8 @@
 
 %% ===== plot song
 
-songname='bk7_160809_110736.rhd';
-songnotmat='bk7_160809_110736.rhd.not.mat';
+songname='br92br54_170416_111151.rhd';
+% songnotmat='bk7_160809_110736.rhd.not.mat';
 
 lt_neural_extractaudio(songname);
 
@@ -24,13 +24,13 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='bk7_160809_101259.rhd';
+filename='bu77wh13_170206_123138.rhd';
 ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
 ChansToPlot.AmpChans_zero=[9 11 12 14 1 18];
 % ChansToPlot.AmpChans_zero=[8 9 11 16 17 20 21];
-% ChansToPlot.AmpChans_zero=[8 9 16 17 20 21];
+ChansToPlot.AmpChans_zero=0:31;
 
 % neuralFiltLow=500;
 neuralFiltLow=300;
@@ -94,15 +94,15 @@ lt_neural_commonNoise(batchf, ChansToUse, plotOn, save_raw_dat, ...
 
 
 
-
+e
 %% +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %% ==================================================== PREPROCESSING
 clear all; close all;
 % channel_board = [8 11 14 18 20]; % wh6
 % channel_board = [9 11 12 14 15 18]; % bu77
-% channel_board = [18];
+% channel_board = [14];
 channel_board = 18;
-batchf = 'Batch1036to1445';
+batchf = 'Batch0922to1251';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
@@ -114,8 +114,10 @@ lt_neural_concatExplore(batchf, channel_board);
 % ----- v2, plots filtered neural, smoothed, and spike waveforms
 PlotRectDat=0; % 1, plots, 0 skips.
 PlotFiltDat=1; % usually 1, filt neural.
+PosAndNeg =1; % then gets both. if 0, then just downwards
 
-lt_neural_concatExplore_v2(batchf, channel_board, PlotRectDat, PlotFiltDat); % WAVEFORMS ONLY PLOTTED FOR ONE CHANNEL!!
+
+lt_neural_concatExplore_v2(batchf, channel_board, PlotRectDat, PlotFiltDat,PosAndNeg); % WAVEFORMS ONLY PLOTTED FOR ONE CHANNEL!!
 
 % ------- v3 -plots song by song
 close all;
@@ -159,7 +161,7 @@ lt_neural_concatOneChan(batchf, channel_board)
 cd(['Chan' num2str(channel_board) 'amp-' batchf]);
 
 
- %% ==== run wave_clus on this concatted data
+%% ==== run wave_clus on this concatted data
 
 
 
@@ -172,7 +174,7 @@ lt_neural_AutoMakeNotmat(batchf);
 % -- makes multiple plots if too much dat.
 close all;
 PlotSecondChan = 1;
-SecondChan = 14;
+SecondChan = 11;
 plotcols={'m', 'r','c', 'b', 'g'};
 
 % want to plot 2nd channel to compare noise?
@@ -238,10 +240,11 @@ end
 %% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
 %% ++++++++++ ANALYSIS (NEURONS ONE BY ONE) 
 %% ==== EXTRACT SONG, LABEL,SongDat ONSETS, SPIKE DATA
-close all;
-batchf='Batch1307to1424';
+close all; clear all;
+batchf='Batch1107to2239';
 channel_board=14;
-[SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
+extractsound = 1;
+[SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, extractsound);
 
 
 %% ===== Extract song segments that match the desired regexp 
@@ -253,9 +256,9 @@ close all;
 % regexpr_str='(g)h'; % token determines where align. predur is relative to token.
 % regexpr_str='n(h)h'; % token determines where align. predur is relative to token.
 % regexpr_str='[^h](h)h'; % token determines where align. predur is relative to token.
-regexpr_str='(l)'; % token determines where align. predur is relative to token.
-predur=0.2;
-postdur=0.2;
+regexpr_str='ag(c)c'; % token determines where align. predur is relative to token.
+predur=0.25;
+postdur=0.1;
 alignByOnset=1;
 
 % - entire motifs

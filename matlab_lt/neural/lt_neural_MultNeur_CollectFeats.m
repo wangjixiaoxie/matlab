@@ -43,7 +43,8 @@ for i=1:NumNeurons
     % - load data for this neuron
     batchf=NeuronDatabase.neurons(i).batchfile;
     channel_board=NeuronDatabase.neurons(i).chan;
-    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
+    extractSound=1;
+    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, extractSound);
     
     
     % ========= Go thru all labeled syls, for each, collect data and store

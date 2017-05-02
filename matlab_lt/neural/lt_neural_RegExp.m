@@ -256,7 +256,7 @@ for i=1:length(tokenExtents)
         if isfield(SongDat, 'FFvals');
 %         if (1)
             % -- take old vals
-            FF = SongDat.FFvals(ind);
+            FF = SongDat.FFvals(tokenExtents(i));
             
         else
             %% === OLD METHOD (CALCULATE FROM RAW AUDIO HERE)

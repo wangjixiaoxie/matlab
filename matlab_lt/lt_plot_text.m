@@ -9,5 +9,5 @@ if ~exist('fontsize','var');
     fontsize=13;
 end
 
+text(double(x), double(y), string, 'FontSize', fontsize, 'FontWeight', 'bold', 'Color', color);
 
-text(x, y,string, 'FontSize', fontsize, 'FontWeight', 'bold', 'Color', color);

@@ -1,4 +1,4 @@
-function lt_neural_MultNeur_MotifRasters_Learning(NeuronDatabase, motif_regexpr_str, motif_predur, ...
+function lt_neural_MultNeur_MotifRasters_Learning2(NeuronDatabase, motif_regexpr_str, motif_predur, ...
     motif_postdur, LinScaleGlobal, FFparams, OnlyPlotNoHit, TrialBinSize)
 %% constrain to 1 neuron, as WNchangeDateStrings is for only one expt - and lots of figures
 
@@ -40,12 +40,14 @@ WNchangeDateStrings=[WNchangeDateStrings NeuronDatabase.neurons(1).LEARN_WNother
 % OnlyPlotNoHit=1; % then only plots trials that were not hit (WN)
 
 
+
+
 %% PARAMS
 NumMotifs=length(motif_regexpr_str);
 NumNeurons=length(NeuronDatabase.neurons);
 
 % smoothing window (neural)
-window=0.02; windshift=0.004;
+window=0.01; windshift=0.002;
 
 plotTimesOnRaster=1; % hh:mm on raster plot
 
@@ -63,7 +65,7 @@ for i=1:NumNeurons
     try
     cd(NeuronDatabase.global.basedir);
     catch err
-    cd(NeuronDatabase.neurons(i).basedir)
+    cd(NeuronDatabase.neurons(i).basedir);    
     end
     
     % - find day folder
@@ -79,8 +81,10 @@ for i=1:NumNeurons
     % - load data for this neuron
     batchf=NeuronDatabase.neurons(i).batchfile;
     channel_board=NeuronDatabase.neurons(i).chan;
-    keepsong = 1;
-    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, keepsong);
+    extractSound = 1;
+    tic
+    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, extractSound);
+    toc
     
     % --- EXTRACT DAT
     % - do this one time for each desired motif
@@ -91,9 +95,8 @@ for i=1:NumNeurons
         alignByOnset=1;
         WHOLEBOUTS_edgedur=''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
         % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
-        extractsound=1;
         [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
-            regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, extractsound);
+            regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams);
         
         
         % -------- SAVE TIMING OF SPIKES FOR THIS NEURON
@@ -132,6 +135,8 @@ for i=1:NumNeurons
 end
 
 %% ===== PLOT, FOR EACH MOTIF AND EACH NEURON, PLOT SUMMARY PLOT
+PlotSmallTimeWindow = 1; % then cuts off end of motif. keeps only based on what is specified in postdur.
+
 spktimefield='spk_Times';
 plotcols=lt_make_plot_colors(NumNeurons, 0, 0);
 
@@ -143,9 +148,10 @@ for i=1:NumNeurons
         hsplots=[];
         hsplots2=[];
         
+        numrows = 10;
         
         % ===== SONG SPECTROGRAM
-        hsplot= lt_subplot(8, 4, 1:3); hold on; hsplots =[hsplots hsplot];
+        hsplot= lt_subplot(numrows, 5, 2:3); hold on; hsplots =[hsplots hsplot];
         % then pick a random song
         tmp=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
         songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(tmp).songdat;
@@ -155,10 +161,14 @@ for i=1:NumNeurons
         %        line([motif_predur motif_predur], ylim, 'Color','w');
         
         axis tight
+        if PlotSmallTimeWindow==1
+            xlim([0 motif_predur+0.15]);
+        end
+        
         
         % ===== RASTERS
-        subplotinds=sort([5:4:25 6:4:26 7:4:27]);
-        hsplot = lt_subplot(8, 4, subplotinds); hold on; hsplots =[hsplots hsplot];
+        subplotinds=sort([7:5:50 8:5:50]);
+        hsplot = lt_subplot(numrows, 5, subplotinds); hold on; hsplots =[hsplots hsplot];
         yind=1; % will increment to plot all
         segextract=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
         params=MOTIFSTATS.neurons(i).motif(m).Params;
@@ -175,6 +185,11 @@ for i=1:NumNeurons
         for j=1:numtrials
             inds=segextract(j).spk_Clust==clustnum;
             spktimes=segextract(j).(spktimefield)(inds);
+            
+            if PlotSmallTimeWindow ==1
+               windowtmp = [0 motif_predur+0.15];
+                spktimes = spktimes(spktimes>windowtmp(1) & spktimes<windowtmp(2));
+            end
             
             if ~isempty(spktimes)
                 for jj=1:length(spktimes)
@@ -203,6 +218,7 @@ for i=1:NumNeurons
             end
             
         end
+        line([motif_predur motif_predur], ylim)
         axis tight
         
         % ====== ANNOTATE WN CHANGE TIMEPOINTS
@@ -218,22 +234,22 @@ for i=1:NumNeurons
         end
         
         
-        % ===== RUNNING AVERAGE FOR ENTIRE DAY
-        hsplot=lt_subplot(8,4,29:31); hold on; hsplots=[hsplots hsplot];
-        
-        numtrials=length(segextract);
-        Yspks={};
-        for j=1:numtrials
-            inds=segextract(j).spk_Clust==clustnum;
-            spktimes=segextract(j).(spktimefield)(inds);
-            Yspks{j}=spktimes;
-        end
-        % -- convert to smoothed rate
-        [xbin, ~, ~, ymean_hz, ysem_hz] = lt_neural_plotRastMean(Yspks, window, windshift, 0, '');
-        % --- plot
-        shadedErrorBar(xbin, ymean_hz, ysem_hz, {'Color', plotcols{i}}, 1);
-        lt_plot_zeroline
-        ylim([0 300]);
+%         % ===== RUNNING AVERAGE FOR ENTIRE DAY
+%         hsplot=lt_subplot(8,4,29:31); hold on; hsplots=[hsplots hsplot];
+%         
+%         numtrials=length(segextract);
+%         Yspks={};
+%         for j=1:numtrials
+%             inds=segextract(j).spk_Clust==clustnum;
+%             spktimes=segextract(j).(spktimefield)(inds);
+%             Yspks{j}=spktimes;
+%         end
+%         % -- convert to smoothed rate
+%         [xbin, ~, ~, ymean_hz, ysem_hz] = lt_neural_plotRastMean(Yspks, window, windshift, 0, '');
+%         % --- plot
+%         shadedErrorBar(xbin, ymean_hz, ysem_hz, {'Color', plotcols{i}}, 1);
+%         lt_plot_zeroline
+%         ylim([0 300]);
         
         
         % ===== RUNNING AVERAGE OF SMOOTHED FIRING RATE (OVER HANDFUL OF TRIALS
@@ -249,13 +265,20 @@ for i=1:NumNeurons
         for j=1:ceil(numtrials/N);
             trialsToPlot=((j-1)*N+1):min(max(numtrials), j*N);
             
-            hsplot=lt_subplot(ceil(numtrials/(N)), 4, 4*(j)); hold on; hsplots=[hsplots hsplot];
+            hsplot=lt_subplot(ceil(numtrials/(N)), 5, [5*(j)-1 5*j]); hold on; hsplots=[hsplots hsplot];
             hsplots2=[hsplots2 hsplot];
             lt_plot_text(0, 250, ['trial ' num2str(trialsToPlot(1)) '-' num2str(trialsToPlot(end))], 'b');
             Yspks={};
             for jj=trialsToPlot
                 inds=segextract(jj).spk_Clust==clustnum;
                 spktimes=segextract(jj).(spktimefield)(inds);
+                
+                            if PlotSmallTimeWindow ==1
+               windowtmp = [0 motif_predur+0.15];
+                spktimes = spktimes(spktimes>windowtmp(1) & spktimes<windowtmp(2));
+                            end
+
+            
                 Yspks=[Yspks spktimes];
             end
             % -- convert to smoothed rate
@@ -274,23 +297,23 @@ for i=1:NumNeurons
                 shadedErrorBar(xbin, ymean_hz, ysem_hz, {'Color', plotcols{i}}, 1);
                 lt_plot_zeroline
                 ylim([0 300]);
+                line([motif_predur motif_predur], ylim);
             end
         end
         
-        % === all subplots
-        linkaxes(hsplots, 'x');
-        linkaxes(hsplots2, 'xy');
-        lt_subtitle(['neuron ' num2str(i) ', motif: ' motif_regexpr_str{m}]);
         
-        % ================================ ANOTHER FIGURE; PLOT FF
+        % === PLOT FF
         % TRAJECTORY
         FFvals=[segextract.FF_val];
         Tvals=[segextract.song_datenum];
         if ~isempty(FFvals)
-            lt_figure; hold on;
-            lt_subplot(1,2,1); hold on; % by rendition
-            xlabel('rendition');
-            plot(FFvals, 'o', 'Color', plotcols{i});
+            subplotinds=sort([6:5:50]);
+            lt_subplot(numrows,5,subplotinds); hold on; % by rendition
+            
+            ylabel('rendition');
+            xlabel('FF');
+            plot(FFvals, -[1:length(FFvals)], 'o', 'Color', plotcols{i});
+            
             % WN change points
             for dd=1:length(WNchangeDateStrings)
                 datestring=WNchangeDateStrings{dd};
@@ -299,37 +322,90 @@ for i=1:NumNeurons
                 allsongdnums=[segextract.song_datenum];
                 sylind=find(allsongdnums>dnum, 1, 'first');
                 
-                line([sylind-0.5 sylind-0.5], ylim, 'Color', 'k');
-                lt_plot_text(sylind+0.5, FFvals(1), datestring, 'k');
+                line(xlim, -[sylind-0.5 sylind-0.5], 'Color', 'k');
+                lt_plot_text(FFvals(1), -(sylind+0.5), datestring, 'k');
             end
             
-            lt_subplot(1,2,2); hold on; % by time
-            xlabel('time');
-            plot(Tvals, FFvals, 'o', 'Color', plotcols{i});
-            datetick('x', 'ddmmm-HHMM', 'keepticks');
-            % WN change points
-            for dd=1:length(WNchangeDateStrings)
-                datestring=WNchangeDateStrings{dd};
+            % ----- overlay +/- 1 SD of baseline
+                datestring=WNchangeDateStrings{1};
                 dnum=datenum(datestring, 'ddmmmyyyy-HHMM');
                 
-                line([dnum dnum], ylim, 'Color', 'k');
-                %                 lt_plot_text(sylind+0.5, FFvals(1), datestring, 'k');
-            end
-            lt_subtitle(motif_regexpr_str{m})
+                allsongdnums=[segextract.song_datenum];
+                baseinds=allsongdnums<dnum;
+                 baseFF_mean = mean(FFvals(baseinds));
+                 baseFF_STD = std(FFvals(baseinds));
+                 
+                 line([baseFF_mean baseFF_mean], ylim, 'Color', 'k');
+                 line([baseFF_mean-baseFF_STD baseFF_mean-baseFF_STD], ...
+                     ylim, 'Color', 'k', 'LineStyle', '--');
+                 line([baseFF_mean+baseFF_STD baseFF_mean+baseFF_STD], ...
+                     ylim, 'Color', 'k', 'LineStyle', '--');
+                 
+% ==== overlay mean FF for the windows used to extract FR
+        RendMean = [];
+        FFmeans = [];
+        FFsems = [];
+        FFstds = [];
+        for j=1:ceil(numtrials/N);
+            trialsToPlot=((j-1)*N+1):min(max(numtrials), j*N);
+            
+            ffvalstmp = FFvals(trialsToPlot);
+            
+            ffmean = mean(ffvalstmp);
+            ffsem = lt_sem(ffvalstmp);
+            ffstd = std(ffvalstmp);
+            
+            RendMean = [RendMean mean(trialsToPlot)];
+            FFmeans = [FFmeans ffmean];
+            FFsems = [FFsems ffsem];
+            FFstds = [FFstds ffstd];
+         end
+         plot(FFmeans, -RendMean, 'o-', 'MarkerSize',8, 'Color', 'k', 'LineWidth', 2);  
+         for j=1:length(FFstds)
+            line([FFmeans(j)-FFstds(j) FFmeans(j)+FFstds(j)], ...
+                -[RendMean(j) RendMean(j)], 'Color', 'k', 'LineWidth', 2);
+         end
+            
+         axis tight
+%             lt_subplot(1,2,2); hold on; % by time
+%             xlabel('time');
+%             plot(Tvals, FFvals, 'o', 'Color', plotcols{i});
+%             datetick('x', 'ddmmm-HHMM', 'keepticks');
+%             % WN change points
+%             for dd=1:length(WNchangeDateStrings)
+%                 datestring=WNchangeDateStrings{dd};
+%                 dnum=datenum(datestring, 'ddmmmyyyy-HHMM');
+%                 
+%                 line([dnum dnum], ylim, 'Color', 'k');
+%                 %                 lt_plot_text(sylind+0.5, FFvals(1), datestring, 'k');
+%             end
+%             lt_subtitle(motif_regexpr_str{m})
             
         end
         
+                % === all subplots
+        linkaxes(hsplots, 'x');
+        linkaxes(hsplots2, 'xy');
+        lt_subtitle(['neuron ' num2str(i) ', motif: ' motif_regexpr_str{m}]);
+
+        
     end
-    %
-    %     pause; close all;
-    %
+    
 end
+
+%% ONE PLOT FOR EACH NEURON (SHOW ALL MOTIFS)
+
+
+
+
+
 
 
 
 %% ===== SUMMARY PLOT, PLOT RUNNING AVERAGE OF Z-SCORE RELATIVE TO BASELINE
 % PLOT VS. TIME OR VS. REND
 
+if (0)
 %% ===== PLOT, FOR EACH MOTIF AND EACH NEURON, PLOT SUMMARY PLOT
 spktimefield='spk_Times';
 plotcols=lt_make_plot_colors(NumNeurons, 0, 0);
@@ -534,7 +610,7 @@ for i=1:NumNeurons
     lt_save_all_figs;    
     
 end
-
+end
 
 %% === SUMMARIZE BY TAKING MEAN DPRIME OVER PREMOTOR WINODW
 if (0) % SKIP, SINCE DOES THIS IN SUMMARY CODE.

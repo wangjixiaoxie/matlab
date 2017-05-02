@@ -1,5 +1,6 @@
 function [NeuronDatabase, SummarStruct_filtered] = ...
-    lt_neural_v2_ConvertSummary2Database(BirdsToKeep, BrainArea, ExptToKeep)
+    lt_neural_v2_ConvertSummary2Database(BirdsToKeep, BrainArea, ExptToKeep, ...
+    RecordingDepth, LearningOnly)
 
 %% TO DO:
 % 1) Extract "notes" from summary struct
@@ -12,7 +13,8 @@ function [NeuronDatabase, SummarStruct_filtered] = ...
 % BirdsToKeep = {'bk7', []}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 % BrainArea = {'LMAN', 'X'}; % empty for all.
 % ExptToKeep = {'LMANlearn2'}; % emopty for all;'
-
+% RecordingDepth = [1800 1950] % in microns
+% LearningOnly = 1; % then only if has WN on/switch time date
 
 %%
 SummaryStruct =  lt_neural_v2_LoadSummary;
@@ -27,6 +29,14 @@ end
 
 if ~exist('ExptToKeep', 'var');
     ExptToKeep = {};
+end
+
+if ~exist('RecordingDepth', 'var')
+    RecordingDepth = [];
+end
+
+if ~exist('LearningOnly', 'var')
+    LearningOnly = 0;
 end
 
 %% =====
@@ -62,13 +72,29 @@ for i=1:numbirds
         if ~isempty(ExptToKeep)
             if ~any(strcmp(SummaryStruct.birds(i).neurons(ii).exptID, ExptToKeep))
                 disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' wrong experiment (' ...
-                    SummaryStruct.birds(i).neurons(ii).exptID ')']);                
+                    SummaryStruct.birds(i).neurons(ii).exptID ')']);
                 continue
             end
         end
-            
+        
+        if ~isempty(RecordingDepth)
+            if ~any(SummaryStruct.birds(i).neurons(ii).electrode_depth == RecordingDepth)
+                disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' not correct depth (' ...
+                    num2str(SummaryStruct.birds(i).neurons(ii).electrode_depth) ')']);
+                continue
+            end
+        end
+        
+        if LearningOnly==1
+           if isempty(SummaryStruct.birds(i).neurons(ii).LEARN_WNonDatestr)
+                             disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' (not learning)']);
+               continue
+           end
+        end
+        
         tmpstruct = SummaryStruct.birds(i).neurons(ii);
-        disp(['---- EXTRACTING TO NEURON DATABASE ... bird ' num2str(i) ' neuron ' num2str(ii)]);
+        disp(['---- EXTRACTING TO NEURON DATABASE ... ' SummaryStruct.birds(i).birdname ...
+            ' neuron ' num2str(ii)]);
         
         NeuronDatabase.neurons(count).birdname = birdname; %
         NeuronDatabase.neurons(count).exptID=tmpstruct.exptID; %

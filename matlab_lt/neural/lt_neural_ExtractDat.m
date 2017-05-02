@@ -105,19 +105,24 @@ for i=1:length(metaDat)
 end
 toc
 
-    % =============== INLCUDE PREVIOUSLY EXTRACTED STATS (E.G. FF)
-    cd(datdir)
-    % ------ 1) FF
-    if exist('extractFF.mat', 'file')
-        FFvals = load('extractFF.mat');
-        FFparams = load('extractFF_params');
-        
-        % sanity check - compare params to current params
+% =============== INLCUDE PREVIOUSLY EXTRACTED STATS (E.G. FF)
+cd(datdir)
+% ------ 1) FF
+if exist('extractFF.mat', 'file')
+    FFvals = load('extractFF.mat');
+    FFparams = load('extractFF_params');
+    
+    % sanity check - compare params to current params
+    if (0) % old version, now just don't extract if fail
         assert(all(FFparams.Params.allLabels == AllLabels), 'PROBLEM');
-%         assert(all((FFparams.Params.AllOnsets - AllOnsets)<0.002), 'PROBLEM');
-        
-        SongDat.FFvals = FFvals.FFvals;
     end
+    %         assert(all((FFparams.Params.AllOnsets - AllOnsets)<0.002), 'PROBLEM');
+    if length(FFparams.Params.allLabels) == length(AllLabels)
+        if all(FFparams.Params.allLabels == AllLabels);
+            SongDat.FFvals = FFvals.FFvals;
+        end
+    end
+end
 
 if extractSound==1
 SongDat.AllSongs=AllSongs;

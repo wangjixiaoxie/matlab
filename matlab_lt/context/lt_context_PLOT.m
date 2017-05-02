@@ -1,4 +1,4 @@
-function lt_context_PLOT(AllSongsDataMatrix, Params_input, one_switch_a_day)
+function lt_context_PLOT(AllSongsDataMatrix, Params_input, one_switch_a_day, plotIndTrials)
 %% LT 11/15/15 - this is all the plot code in lt_context_CompileAndPlot.
 % Params_alldays.NoteToPlot=1;
 % Params_alldays.RunBin=10;
@@ -17,7 +17,12 @@ function lt_context_PLOT(AllSongsDataMatrix, Params_input, one_switch_a_day)
 % Params_alldays.throw_out_if_epoch_diff_days=0; % throws out any transitions that overlap with O/N (potentially 2 per O/N)
 % one_switch_a_day=1; % AM: home --> away;  PM: away --> home; analysis will focus on a day as a unit of analysis
 
+% plotIndTrials = 1; wil plot trials, coded by NG and hits/escapes
 %%
+
+if ~exist('plotIndTrials', 'var')
+    plotIndTrials = 0;
+end
 
 global Params_alldays
 Params_alldays=Params_input;
@@ -166,8 +171,49 @@ ylabel('num songs');
 lt_plot(1:NumDays,SongsPerDay);
 
 %% Plot all datapoints
+if plotIndTrials==1
+          notegroupnums = unique(AllSongsData_toplot(:,8));
+   % ========== 1) PLOT (by time) [color by note group]
+     plotcols = {'b', 'r', 'm', 'c', 'k'};
+    lt_figure; hold on;
+    title(['FF of all detects notenum: ' num2str(NoteToPlot) ' (sq = hit)']);
+    xlabel('time (hr)');
+    ylabel('FF (hz)');
+    
+    % all rends
+%     notegroupnums = unique(AllSongsData_toplot(:,8));
+%     for i=1:length(notegroupnums)
+%         indstmp = AllSongsData_toplot(:,8) == notegroupnums(i);
+%     X=AllSongsData_toplot(indstmp,2); % time values
+%     Y=AllSongsData_toplot(indstmp,5); % freq values
+%     lt_plot(X, Y, {'Color', plotcols{i}});
+%     lt_plot_annotation(1, ['NG ' num2str(i)], plotcols{i});
+%     end
+    
+    for i=1:length(notegroupnums)
+        % HITS
+indstmp = AllSongsData_toplot(:,8) == notegroupnums(i) & AllSongsData_toplot(:,7)==1;
+    X=AllSongsData_toplot(indstmp,2); % time values
+    Y=AllSongsData_toplot(indstmp,5); % freq values
+    plot(X, Y, 'LineStyle', 'none', 'Color', plotcols{i}, 'Marker', 's', 'MarkerSize', 5, 'MarkerFaceColor', plotcols{i});
+    lt_plot_annotation(1, ['NG ' num2str(i)], plotcols{i});
+    % ESCAPES
+indstmp = AllSongsData_toplot(:,8) == notegroupnums(i) & AllSongsData_toplot(:,7)==0;
+    X=AllSongsData_toplot(indstmp,2); % time values
+    Y=AllSongsData_toplot(indstmp,5); % freq values
+    lt_plot(X, Y, {'Color', plotcols{i}});
+%     lt_plot_annotation(1, ['NG ' num2str(i)], plotcols{i});
+    end
+    
+    %     Ylim=ylim;
+%     plot(X,Ylim(1)+50+Y.*(Ylim(2)-Ylim(1))/2,'-g');
+    
+    % overlay experiment time boundaries
+    plot_time_boundary_lines
+end
 
-if (0)
+
+if (0) % OTHER VERSIONS OF PLOTTING RAW DAT
     % ========== 1) PLOT (by time)
     lt_figure; hold on;
     title(['FF of all detects of notenum: ' num2str(NoteToPlot) ' (by time)']);
@@ -581,6 +627,11 @@ for i=1:length(NoteGroupList);
         SORTED_DATA.ByNoteGroup(i).Stats_OneDataPtPerEpoch.RAW.PhaseNumvals{ii}=PhaseNumvals;
         
         
+        % SUMMARY (first song)
+        songs_unique = unique(Tvals);
+        indtmptmp = find(Tvals == songs_unique(1)); % first song
+        SORTED_DATA.ByNoteGroup(i).Stats_OneDataPtPerEpoch.meanFF_firstsong(ii)=mean(FFvals(indtmptmp));
+
         % summary stats
         if startind>1; % i.e. a previous epoch exists.
             SORTED_DATA.ByNoteGroup(i).Stats_OneDataPtPerEpoch.TIME_LastSongInPreviousEpoch(ii)=AllSongsData_toplot(startind-1,2); % doesn't matter what epoch number last epoch was.
@@ -702,7 +753,7 @@ close all;
 %% == PLOT STATS, ACROSS TIME (ONE EPOCH AS ONE DATAPOINT)
 % Time: median of epoch
 
-StatToPlotList={'meanFF'};
+StatToPlotList={'meanFF', 'meanFF_firstsong'};
 % StatToPlotList={'meanFF','slope','intercept','N','cvFF', 'medianFF'};
 beginning_or_end=[]; % if 0, beginning, if 1, end, if [] (or if not defined) then entire epoch.
 
@@ -713,66 +764,73 @@ for i=1:length(StatToPlotList);
     plot_epochs(StatToPlot, beginning_or_end, SORTED_DATA, NoteGroupList);
 end
 
+
 % ================ FOR EACH PHASE, COMPARE DISTRIBUTIONS FOR ALL NOTEGROUPS
 numphases = length(Params_alldays.Phases_DayBounds);
-count = 1;
-stattoplot = 'meanFF';
-% plotcols = lt_make_plot_colors(length(SORTED_DATA.ByNoteGroup), 0,0);
-lt_figure; hold on;
-     plotcols = {'m', 'c', 'k', 'b'};
-
-for i=1:numphases
-    phasebounds = Params_alldays.Phases_DayBounds{i};
+for i=1:length(StatToPlotList)
+    stattoplot = StatToPlotList{i};
+    
+    count = 1;
+    % plotcols = lt_make_plot_colors(length(SORTED_DATA.ByNoteGroup), 0,0);
+    lt_figure; hold on;
+    title(stattoplot);
+    plotcols = {'m', 'c', 'k', 'b'};
+    
+    for i=1:numphases
+        phasebounds = Params_alldays.Phases_DayBounds{i};
+        numNoteGroups = length(SORTED_DATA.ByNoteGroup);
+        
+        for ii=1:numNoteGroups
+            
+            inds = SORTED_DATA.ByNoteGroup(ii).Stats_OneDataPtPerEpoch.PhaseNum_array == i;
+            
+            if any(inds)
+                % plot
+                FFvals = SORTED_DATA.ByNoteGroup(ii).Stats_OneDataPtPerEpoch.(stattoplot)(inds);
+                distributionPlot(FFvals', 'Color', plotcols{ii}, 'xValues', count, 'showMM', 4, ...
+                    'addSpread', 1);
+                
+                count = count +1;
+            end
+        end
+        
+        line([count-0.5 count-0.5], [min(FFvals) max(FFvals)], 'Color','k');
+        lt_plot_text(count-1.5,  1.01*max(FFvals), ['phase' num2str(i)]);
+        if i<numphases
+        lt_plot_text(count-0.5, 0.99*min(FFvals), Params_alldays.BoundaryTimes{i});
+        end
+    end
+    
+    numphases = length(Params_alldays.Phases_DayBounds);
+    count = 1;
+    % plotcols = lt_make_plot_colors(length(SORTED_DATA.ByNoteGroup), 0,0);
+    lt_figure; hold on;
+    title(stattoplot)
+    plotcols = {'b', 'r', 'm', 'c', 'k'};
     numNoteGroups = length(SORTED_DATA.ByNoteGroup);
     
-    for ii=1:numNoteGroups
+    for i=1:numphases
         
-        inds = SORTED_DATA.ByNoteGroup(ii).Stats_OneDataPtPerEpoch.PhaseNum_array == i;
-        
-        if any(inds)
-            % plot
-            FFvals = SORTED_DATA.ByNoteGroup(ii).Stats_OneDataPtPerEpoch.(stattoplot)(inds);
-            distributionPlot(FFvals', 'Color', plotcols{ii}, 'xValues', count, 'showMM', 4, ...
-                'addSpread', 1);
+        for ii=1:numNoteGroups
             
-            count = count +1;
+            inds = SORTED_DATA.ByNoteGroup(ii).Stats_OneDataPtPerEpoch.PhaseNum_array == i;
+            
+            if any(inds)
+                % plot
+                FFvals = SORTED_DATA.ByNoteGroup(ii).Stats_OneDataPtPerEpoch.(stattoplot)(inds);
+                lt_plot(count, mean(FFvals), {'Errors', lt_sem(FFvals), 'Color', plotcols{ii}});
+                
+                count = count +1;
+            end
         end
+        %
+        line([count-0.5 count-0.5], [min(FFvals) max(FFvals)], 'Color','k');
+        lt_plot_text(count-1.5,  1.01*max(FFvals), ['phase' num2str(i)]);
     end
     
-    line([count-0.5 count-0.5], [min(FFvals) max(FFvals)], 'Color','k');
-    lt_plot_text(count-1.5,  1.01*max(FFvals), ['phase' num2str(i)]);
+    xlabel('NG num');
+    title(stattoplot);
 end
-
-numphases = length(Params_alldays.Phases_DayBounds);
-count = 1;
-stattoplot = 'meanFF';
-% plotcols = lt_make_plot_colors(length(SORTED_DATA.ByNoteGroup), 0,0);
-lt_figure; hold on;
-plotcols = {'b', 'r', 'm', 'c', 'k'};
-numNoteGroups = length(SORTED_DATA.ByNoteGroup);
-
-for i=1:numphases
-    
-    for ii=1:numNoteGroups
-        
-        inds = SORTED_DATA.ByNoteGroup(ii).Stats_OneDataPtPerEpoch.PhaseNum_array == i;
-        
-        if any(inds)
-            % plot
-            FFvals = SORTED_DATA.ByNoteGroup(ii).Stats_OneDataPtPerEpoch.(stattoplot)(inds);
-            lt_plot(count, mean(FFvals), {'Errors', lt_sem(FFvals), 'Color', plotcols{ii}});
-            
-            count = count +1;
-        end
-    end
-%     
-    line([count-0.5 count-0.5], [min(FFvals) max(FFvals)], 'Color','k');
-    lt_plot_text(count-1.5,  1.01*max(FFvals), ['phase' num2str(i)]);
-end
-
-xlabel('NG num');
-title(stattoplot);
-
 pause;
 close all;
 
@@ -936,6 +994,12 @@ for i=1:length(NoteGroupList);
         EntireEpoch_medianFF_diff=Entire_median_current-Entire_median_previous;
         
         
+        % ----- DIFFERENCE IN FIRST SONG
+        Firstsong_mean_current = Stats_OfThisNoteGroup.meanFF_firstsong(Epoch_OfThisNoteGroup);
+        Firstsong_mean_previous = Stats_OfPreviousNoteGroup.meanFF_firstsong(EpochNum_PreviousNoteGroup);
+        Firstsong_meanFF_diff = Firstsong_mean_current - Firstsong_mean_previous;
+        
+        
         
         % ============ PUT INTO STRUCTURE
         if ~isfield(SORTED_DATA.ByNoteGroupTransitions, 'NG_first_to_second');
@@ -993,6 +1057,10 @@ for i=1:length(NoteGroupList);
         SORTED_DATA.ByNoteGroupTransitions.NG_first_to_second{ind, i}.EntireEpoch_medianFF_diff(tmp)=EntireEpoch_medianFF_diff;
         SORTED_DATA.ByNoteGroupTransitions.NG_first_to_second{ind, i}.EntireEpoch_medianFF_current(tmp)=Entire_median_current;
         SORTED_DATA.ByNoteGroupTransitions.NG_first_to_second{ind, i}.EntireEpoch_medianFF_previous(tmp)=Entire_median_previous;
+       
+        SORTED_DATA.ByNoteGroupTransitions.NG_first_to_second{ind, i}.Firstsong_meanFF_diff(tmp)=Firstsong_meanFF_diff;
+        SORTED_DATA.ByNoteGroupTransitions.NG_first_to_second{ind, i}.Firstsong_meanFF_current(tmp)=Firstsong_mean_current;
+        SORTED_DATA.ByNoteGroupTransitions.NG_first_to_second{ind, i}.Firstsong_meanFF_previous(tmp)=Firstsong_mean_previous;
     end
 end
 
@@ -1004,8 +1072,8 @@ RunBin_epochs=5; % smooth over N epochs
 
 % == PLOT ACROSS TIME
 % StatToPlot_List={'Edge_meanFF_diff','EntireEpoch_slope_diff', 'EntireEpoch_cvFF_diff', 'EntireEpoch_meanFF_diff'};
-StatToPlot_List={'EntireEpoch_meanFF_diff'};
 StatToPlot_List={'Edge_meanFF_diff', 'EntireEpoch_meanFF_diff', 'Edge_medianFF_diff', 'EntireEpoch_medianFF_diff'};
+StatToPlot_List={'EntireEpoch_meanFF_diff', 'Edge_meanFF_diff', 'Firstsong_meanFF_diff'};
 
 
 for j=1:length(StatToPlot_List);
@@ -1054,9 +1122,10 @@ for j=1:length(StatToPlot_List);
     linkaxes(hplot, 'xy');
 end
 
+StatToPlot = 'Firstsong_meanFF';
+StatToPlot='EntireEpoch_medianFF';
 StatToPlot='Edge_meanFF';
 StatToPlot='EntireEpoch_meanFF';
-
 % == PLOT DOTS (ALL DATA) - one figure for each experimental phase
 if one_switch_a_day~=1;
     for kk=1:length(Params_alldays.Phases_DayBounds); % num phases
@@ -1128,7 +1197,7 @@ if one_switch_a_day~=1;
         linkaxes(hplot, 'xy');
     end
     
-    
+    if (0) % redundant.
     % == PLOT DOTS (JUST MEANS /SEM) - one figure for each experimental phase
     for kk=1:length(Params_alldays.Phases_DayBounds); % num phases
         phasenum=kk;
@@ -1195,13 +1264,10 @@ if one_switch_a_day~=1;
         
         linkaxes(hplot, 'xy');
     end
-    
+    end
     
     
     % == PLOT HISTOGRAM OF DIFFERENCES - one figure for each experimental phase
-    StatToPlot='Edge_meanFF';
-    StatToPlot='Edge_medianFF';
-    % StatToPlot='EntireEpoch_meanFF';
     
     for kk=1:length(Params_alldays.Phases_DayBounds); % num phases
         phasenum=kk;
@@ -1248,6 +1314,7 @@ if one_switch_a_day~=1;
                 
                 % -- PLOT histogram
                 hist(Y);
+%                 lt_plot_histogram(Y)
                 
                 % vert line at 0
                 line([0 0], ylim, 'Color','k');
@@ -1257,7 +1324,12 @@ if one_switch_a_day~=1;
                     line([mean(Y) mean(Y)], ylim, 'Color', 'r');
                 end
                 
+                % - pval
+                p = signrank(Y);
+                lt_plot_pvalue(p);
+                
                 c=c+1;
+                axis tight
             end
             
         end
@@ -1269,6 +1341,102 @@ if one_switch_a_day~=1;
 end
 
 pause; close all;
+
+
+%% === COMPARE NG TRANSITIONS
+
+
+for kk=1:length(Params_alldays.Phases_DayBounds); % num phases
+            phasenum=kk;
+
+    SavedStats={};
+    NotegroupFirst = [];
+    NotegroupSecond = [];
+    % for each phase, get all potential transitions
+    for i=1:length(NoteGroupList); % the post note group
+        
+        for ii=1:length(NoteGroupList); % preceding note group
+            
+            if isempty(SORTED_DATA.ByNoteGroupTransitions.NG_first_to_second{ii,i});
+                continue
+                
+            end
+            
+            
+            % ==== collect stats
+            % == SORT OUT DATAPOINTS YOU WANT based on phase (i.e. only take
+            % those in this phase)
+            Phasenum_vals=SORTED_DATA.ByNoteGroupTransitions.NG_first_to_second{ii,i}.PhaseNum_BothEpochs;
+            
+            % find the inds that are this phase
+            IndsToKeep=Phasenum_vals==phasenum;
+            
+            % == GET VALUES TO PLOT (phase sorted)
+            % --- MEAN FF
+            Y=SORTED_DATA.ByNoteGroupTransitions.NG_first_to_second{ii,i}.([StatToPlot '_diff']); % current edge
+            
+            % -- sorted
+            Y=Y(IndsToKeep);
+            
+            % === skip if y are empty
+            if isempty(Y)
+                c=c+1;
+                continue
+            end
+            
+            % --- save Y
+            SavedStats= [SavedStats Y];
+            NotegroupFirst = [NotegroupFirst ii];
+            NotegroupSecond = [NotegroupSecond i];
+        end
+    end
+    if isempty(SavedStats)
+        continue
+    end
+    % === compare stats across all transitions
+    lt_figure; hold on;
+    title(['phasenum ' num2str(kk)]);
+    c = 1;
+    plotcols = lt_make_plot_colors(length(SavedStats), 0, 0);
+    XlabelNames = {};
+    for i = 1:length(SavedStats)
+       for ii = (i+1):length(SavedStats)
+           
+           color = [rand rand rand];
+           Y1 = SavedStats{i};
+           Y2 = SavedStats{ii};
+           
+           X1 = c-0.1;
+           X2 = c+0.1;
+           
+           plot([X1], [Y1], 'o', 'Color', plotcols{i});
+           if length(Y1)>1
+               lt_plot(X1, mean(Y1), {'Errors', lt_sem(Y1)});
+           end
+           
+           plot(X2, Y2, 'o', 'Color', plotcols{ii});
+           if length(Y2)>1
+               lt_plot(X2, mean(Y2), {'Errors', lt_sem(Y2)});
+           end
+           
+           % -- rank sum test
+           p = ranksum(Y1, Y2);
+           if p<0.15
+               lt_plot_text(c-0.1, 1.1*max([Y1 Y2]), ['p=' num2str(p, '%3.2g')], 'r');
+           end
+           
+           xlabname = [num2str(NotegroupFirst(i)) num2str(NotegroupSecond(i)) ...
+               '-' num2str(NotegroupFirst(ii)) num2str(NotegroupSecond(ii))];
+           XlabelNames = [XlabelNames xlabname];
+           c = c+1;
+           
+       end
+    end 
+    set(gca, 'XTick', 1:length(XlabelNames), 'XTickLabel' ,XlabelNames);
+    xlabel('NG1NG2 - NG3NG4');
+    lt_plot_zeroline;
+end
+
 
 %% ====== PLOTTING DAY BY DAY, for manual context experiments
 if one_switch_a_day==1;

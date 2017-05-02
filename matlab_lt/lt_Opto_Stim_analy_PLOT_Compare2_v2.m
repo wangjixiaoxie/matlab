@@ -252,6 +252,7 @@ if NumFields>1;
         
         % Plot mean PC (+ SEM)
         subplot(3,1,2); hold on;
+        if NumSyls>1
         PC_sd=std(PC');
         PC_sem=PC_sd/sqrt(NumSyls-1);
         
@@ -282,11 +283,14 @@ if NumFields>1;
         % PUT INTO STATS STRUCT
         StatsStruct.(fieldname).PC_sd=PC_sd;
         StatsStruct.(fieldname).PC_sem=PC_sem;
+        end
         
         
     end
+    try
     legend(hfig2,Params.FieldsToCheck);
-    
+    catch err
+    end
     
     
     % Second, amplitude
@@ -312,6 +316,7 @@ if NumFields>1;
         
         
         % Plot Mean contours
+        if NumSyls>1
         subplot(3,1,2); hold on;
         
         % Get STD of sm log
@@ -344,12 +349,14 @@ if NumFields>1;
         % PUT INTO STATS STRUCT
         StatsStruct.(fieldname).sm_log_SD=sm_log_SD;
         StatsStruct.(fieldname).sm_log_SEM=sm_log_SEM;
-        
+        end
         
     end
-    
+    try
     legend(hfig3,Params.FieldsToCheck);
-    
+        catch err
+    end
+
     
     % THIRD - Weiner Entropy
     figure; hold on;
@@ -375,6 +382,7 @@ if NumFields>1;
         
         
         % Plot Mean contours
+        if NumSyls>1
         subplot(3,1,2); hold on;
         
         shadedErrorBar(tSP*1000,WE_mean,WE_sem,{'Linewidth',2,'Color',PlotCols{i}},1); % mean
@@ -402,9 +410,13 @@ if NumFields>1;
         % PUT STD AND SEM INTO DATA STRUCTURE
         StatsStruct.(fieldname).WE_std=WE_std;
         StatsStruct.(fieldname).WE_sem=WE_sem;
-        
+        end
     end
+    try
     legend(hfig4,Params.FieldsToCheck);
+        catch err
+    end
+
 end
 
 %% REMOVE spectrograms, takes up too much memory

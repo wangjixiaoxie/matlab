@@ -25,7 +25,8 @@ function lt_neural_v2_Finalize(DesiredClust, electrode_depth, Notes, LearningPar
     %   SUnit can be 0 or 1
     % e.g. lt_neural_v2_Finalize(1, 1900, {'SUnit_0', 'could get more song'})
 
-% LearningParams{1} = '05Feb2017-1718'; % time of WN on
+% LearningParams{1} = '05Feb2017-1718'; % time of WN on [or when WN
+% switched first time for this neuron]
 % LearningParams{2} = {'07Feb2017-1509', '07Feb2017-1725'}; % cell aray,
 % each entry one important date (e.g. wn direction change) - mainly for
 % plotting
@@ -34,6 +35,14 @@ function lt_neural_v2_Finalize(DesiredClust, electrode_depth, Notes, LearningPar
 if ~exist('deleteAudioFromMetadat', 'var')
     deleteAudioFromMetadat = 0; % this removes field: metaDat.songDat, since is too large
 end
+
+%% save backup (overwrites old backup)
+
+currdir = pwd;
+targdir = ['/bluejay5/lucas/analyses/neural/'];
+cd(targdir);
+eval('!cp SummaryStruct.mat BACKUP/')
+cd(currdir);
 
 
 %% === query user as to which cluster to keep?
@@ -87,7 +96,6 @@ disp(['DesiredClust = ' num2str(DesiredClust)]);
 %% Update metadat structure
 disp('  ---  ');
 
-targdir = ['/bluejay5/lucas/analyses/neural/'];
 clear SummaryStruct
 load([targdir 'SummaryStruct']);
 

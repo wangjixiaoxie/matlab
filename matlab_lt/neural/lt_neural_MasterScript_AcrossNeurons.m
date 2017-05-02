@@ -27,9 +27,10 @@ bu77wh13_analysis_NeuronDatabase
 
 %% ++++++++++++++++++++++++++++++++ NEW METHOD (SUMMARY STRUCT)
 
-BirdsToKeep = {'wh6pk36'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BirdsToKeep = {'br92br54'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 BrainArea = {};
-[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, BrainArea);
+ExptToKeep = {'LMANlearn4'};
+[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, BrainArea, ExptToKeep);
 
 
 %% ======== CONVERT TO TABLE
@@ -232,9 +233,9 @@ close all;
 % motif_predur=0.1;
 % motif_postdur=0.1;
  
-% motif_regexpr_str={'g(h)', 'h(h)', 'n(h)'};
-% motif_predur=0.1;
-% motif_postdur=0.1;
+motif_regexpr_str={'g(h)', 'h(h)', 'n(h)'};
+motif_predur=0.1;
+motif_postdur=0.1;
 
 % motif_regexpr_str={'r(g)', 'v(g)', 'h(g)', 'b(g)', 'n(g)'};
 % motif_predur=0.05;
@@ -272,18 +273,25 @@ close all;
 
 
 % ------------------------- BU77
-motif_regexpr_str={'a(b)bh', 'j(b)h'};
-motif_predur=0.2;
-motif_postdur=0.3;
+% motif_regexpr_str={'a(b)bh', 'j(b)h'};
+% motif_predur=0.2;
+% motif_postdur=0.3;
 
 % ------------------ WH6
 % motif_regexpr_str={'nl(c)chbg', 'ajkl(c)chbg', 'amksd(v)b'};
 % motif_regexpr_str={'nl(c)chbg', 'ajkl(c)chbg', 'amksdv(b)', 'cch(b)', 'd(m)', 'a(m)'};
 % motif_regexpr_str={'nl(c)c', 'jkl(c)c', 'nlc(c)', 'jklc(c)'};
-motif_regexpr_str={'v(b)', 'klcch(b)', 'nlcch(b)'};
-% motif_regexpr_str={'d(m)', 'a(m)'};
-motif_predur=0.3;
-motif_postdur=0.2;
+% motif_regexpr_str={'v(b)', 'klcch(b)', 'nlcch(b)'};
+% % motif_regexpr_str={'d(m)', 'a(m)'};
+% motif_predur=0.3;
+% motif_postdur=0.2;
+
+% ------ BR92
+motif_regexpr_str={'nk(h)', 'dd(d)', 'ddd(h)', 'ag(c)c'};
+motif_regexpr_str={'nk(h)', 'd(d)d'};
+motif_predur=0.35;
+motif_postdur=0.1;
+
 
 
 LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
@@ -368,8 +376,8 @@ FFparams.cell_of_FFtimebins={'h', [0.042 0.058], 'b', [0.053 0.07], ...
             'v', [0.052 0.07]}; % in sec, relative to onset (i.e. see vector T)
 
 % use below for WN on h
-% FFparams.cell_of_FFtimebins={'h', [0.034 0.038], 'b', [0.053 0.07], ...
-%             'v', [0.052 0.07]}; % WN on g H
+FFparams.cell_of_FFtimebins={'h', [0.034 0.038], 'b', [0.053 0.07], ...
+            'v', [0.052 0.07]}; % WN on g H
 
 
 % 2) bu77
@@ -383,10 +391,13 @@ FFparams.cell_of_freqwinds={'c', [2100 3100], 'h', [2800 4000], 'b', [2700 3800]
 FFparams.cell_of_FFtimebins={'c', [0.035 0.05], 'h', [0.023 0.033], 'b', [0.034 0.038], ...
     'a', [0.06 0.08], 's', [0.02 0.023], 'd', [0.02 0.027],  'n', [0.029 0.05], 'v', [0.028 0.036]}; % in sec, relative to onset (i.e. see vector T)
 
+% 4) br92 - TEMPORARY
+FFparams.cell_of_freqwinds={'a', [800 1400], 'c', [1300 1800], 'h', [2300 3600], 'd', [1300 3400], 'k', [800 1800]};
+FFparams.cell_of_FFtimebins={'a', [0.04 0.049], 'c', [0.04 0.049], 'h', [0.040 0.049], 'd', [0.032 0.052], 'k', [0.05 0.055]}; % in sec, relative to onset (i.e. see vector T)
 
-saveOn = 1; % then saves SYLNEURDAT
-plotSpec = 0; % to plot raw spec overlayed with PC and windows.
-plotOnSong = 17; % will only start plotting spec once hit this song num.
+saveOn = 0; % then saves SYLNEURDAT
+plotSpec = 1; % to plot raw spec overlayed with PC and windows.
+plotOnSong = 15; % will only start plotting spec once hit this song num.
 plotSyl = ''; % to focus on just one syl. NOT DONE YET
 
 SYLNEURDAT = lt_neural_MultNeur_CollectFeats(NeuronDatabase, FFparams, saveOn, ...
@@ -422,11 +433,14 @@ FFparamsAll.bird(1).FFparams.cell_of_freqwinds={'h', [1100 2600], 'b', [2400 350
             'v', [2450 4300]};
 FFparamsAll.bird(1).FFparams.cell_of_FFtimebins={'h', [0.042 0.058], 'b', [0.053 0.07], ...
             'v', [0.052 0.07]}; % in sec, relative to onset (i.e. see vector T)
+FFparamsAll.bird(1).FFparams.cell_of_FFtimebins_DurLearn={'h', [0.034 0.038], 'b', [0.053 0.07], ...
+            'v', [0.052 0.07]}; % WN on g H
 
        
 FFparamsAll.bird(2).birdname = 'bu77wh13';
 FFparamsAll.bird(2).FFparams.cell_of_freqwinds={'b', [2700 3900], 'h', [2600 3900], 'a', [1300 2600]};
 FFparamsAll.bird(2).FFparams.cell_of_FFtimebins={'b', [0.031 0.04], 'h', [0.038 0.052], 'a', [0.056 0.081]}; % in sec, relative to onset (i.e. see vector T)
+FFparamsAll.bird(2).FFparams.cell_of_FFtimebins_DurLearn={'b', [0.031 0.04], 'h', [0.038 0.052], 'a', [0.056 0.081]}; % in sec, relative to onset (i.e. see vector T)
 
 
 FFparamsAll.bird(3).birdname = 'wh6pk36';
@@ -434,11 +448,23 @@ FFparamsAll.bird(3).FFparams.cell_of_freqwinds={'c', [2100 3100], 'h', [2800 400
     'a', [1300 2200], 's', [4000 5100], 'd', [900 2000],  'n', [3300 4300], 'v', [2600 4000]};
 FFparamsAll.bird(3).FFparams.cell_of_FFtimebins={'c', [0.035 0.05], 'h', [0.023 0.033], 'b', [0.034 0.038], ...
     'a', [0.06 0.08], 's', [0.02 0.023], 'd', [0.02 0.027],  'n', [0.029 0.05], 'v', [0.028 0.036]};
+FFparamsAll.bird(3).FFparams.cell_of_FFtimebins_DurLearn={'c', [0.035 0.05], 'h', [0.023 0.033], 'b', [0.034 0.038], ...
+    'a', [0.06 0.08], 's', [0.02 0.023], 'd', [0.02 0.027],  'n', [0.029 0.05], 'v', [0.028 0.036]};
 
 
-overWrite = 1; % note, will only overwrite if detects chagnes (IN PROGRESS - currenrly always overwrites)
+% TEMPORARY
+FFparamsAll.bird(4).birdname = 'br92br54';
+FFparamsAll.bird(4).FFparams.cell_of_freqwinds={'a', [750 1400], 'c', [1200 1800], ...
+    'h', [2350 3900], 'd', [1300 3400], 'k', [800 1800]};
+FFparamsAll.bird(4).FFparams.cell_of_FFtimebins={'a', [0.057 0.08], 'c', [0.044 0.055], ...
+    'h', [0.040 0.049], 'd', [0.032 0.052], 'k', [0.05 0.055]};
+FFparamsAll.bird(4).FFparams.cell_of_FFtimebins_DurLearn={'a', [0.057 0.08], 'c', [0.044 0.055], ...
+    'h', [0.040 0.049], 'd', [0.032 0.052], 'k', [0.05 0.055]};
+
+
+overWrite = 0; % note, will only overwrite if detects chagnes (IN PROGRESS - currenrly always overwrites)
 plotSpec = 0; % to plot raw spec overlayed with PC and windows.
-plotOnSong = 2; % will only start plotting spec once hit this song num.
+plotOnSong = 45; % will only start plotting spec once hit this song num.
 plotSyl = ''; % to focus on just one syl. NOT DONE YET
 lt_neural_v2_EXTRACT_FF(SummaryStruct, FFparamsAll, overWrite, ...
     plotSpec, plotOnSong, plotSyl);
@@ -608,11 +634,48 @@ lt_neural_MultNeur_MotifRasters_Learning(NeuronDatabase, motif_regexpr_str, ...
 
 % IN PROGRESS!!:: LinScaleGlobal.
 
+% ================================================================== wh6
 
+% FOR EACH NEURON, PLOT RASTER AND SMOOTHED FIRING FOR A GIVEN MOTIF ACROSS
+% TIME allsyls
+% - I.E. same as above code, except noting when learning began, gets FF,
+% hit/escape, and catch song information
+close all; 
+motif_regexpr_str={'ddd(h)', 'nk(h)'};
+
+motif_predur=0.4;
+motif_postdur=0.1; 
+LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
+
+% NOTE: for below, run linear model stuff above
+FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will 
+FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
+    % +1 is 1 after token
+FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
+    % not required (can set as []);
+% NOTE: will also determine whether was hit or miss, based on WN sound
+% detection.
+        
+% LEARNING PARAMS
+% WNchangeDateStrings={'05Oct2016-1348'}; % LearnLMAN1 - first epoch
+% WNchangeDateStrings={'06Oct2016-1225'}; % LearnLMAN1 - second epoch
+% WNchangeDateStrings={'17Oct2016-1332'}; % LearnLMAN2
+% WNchangeDateStrings={'17Oct2016-1940'}; % LearnLMAN2 - second epoch - arbitrary, since did not actually change WN during this.
+
+
+OnlyPlotNoHit=0; % then only plots trials that were not hit (WN)
+TrialBinSize=20; % default 10
+
+
+
+% === ONLY DOES ONE NEURON AT A TIME!! - FIRST INDEX IN NeuronDatabase;
+lt_neural_MultNeur_MotifRasters_Learning(NeuronDatabase, motif_regexpr_str, ...
+    motif_predur, motif_postdur, LinScaleGlobal, FFparams, OnlyPlotNoHit, TrialBinSize)
+
+% IN PROGRESS!!:: LinScaleGlobal.
 %% ============== LEARNING CONTOURS SUMMARY
 
 % === GIVEN ACTUAL MOTIFS FOR THIS BIRD, DETERMINE WHICH SYLS TO LOOK AT
-
 MotifsActual = {'nlcchb', 'jklcchb', 'ga', 'mksd'};
 motif_regexpr_str = {}; % will put motifs for extraction here
 
@@ -655,8 +718,11 @@ motif_regexpr_str={'nlcch(b)g', 'klcch(b)g', 'amksdv(b)'}; % LMANlearn2
 motif_regexpr_str={'nlcch(b)', 'klcch(b)', 'dv(b)', 'l(c)', 'lc(c)', 'lcc(h)', ...
     'k(s)', 'd(v)', 'g(a)', 'm(n)'}; % wh6
 
-motif_predur=0.15;
-motif_postdur=0.05; 
+% br92br54
+motif_regexpr_str={'ddd(h)', 'nk(h)'};
+
+motif_predur=0.4;
+motif_postdur=0.1; 
 LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
 
 % NOTE: for below, run linear model stuff above
@@ -685,6 +751,35 @@ lt_neural_MultNeur_MotifRasters_Learning2(NeuronDatabase, motif_regexpr_str, ...
     motif_predur, motif_postdur, LinScaleGlobal, FFparams, OnlyPlotNoHit, TrialBinSize)
 
 % IN PROGRESS!!:: LinScaleGlobal.
+
+
+%% ============== FOR EACH LEARNING EXPERIMENT, PLOT ALL NEURONS AND ALL MOTIFS
+% === 1) CHOOSE ONE LEARNING EXPT
+% ===== LMANlearn2
+BirdsToKeep = {'br92br54'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BrainArea = {};
+ExptToKeep = {'LMANlearn4'};
+RecordingDepth = [];
+LearningOnly = 1; % then only if has WN on/switch time date
+[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, ...
+    BrainArea, ExptToKeep, RecordingDepth, LearningOnly);
+
+% ==== 1) EXTRACT DATA FOR EACH NEURON, EACH MOTIF
+[MOTIFSTATS, SummaryStruct_filt] = lt_neural_v2_ANALY_LearningExtractMotif(SummaryStruct);
+
+close all;
+% motifs for this bird
+% learning expt id
+plottype = 'byneuron'; % 
+% 'byneuron' - each neuron one fig will all motifs [DEFAULT]
+% 'dotprod' - for each bin of trials get dot prod from IN PROGRESS
+% 'bysyl' - each plot one syl, all neurons.
+DivisorBaseSongs = 1;
+lt_neural_v2_ANALY_Learning(SummaryStruct_filt, MOTIFSTATS, plottype, DivisorBaseSongs);
+
+% ===== FOR ALL NEURONS, PLOT CHANGE AT TARG VS. OTHERS. ALSO, AVERAGE
+% DEVIATIONS ACROSS ALL EXPERIMENTS.
+
 
 
 %% ====== SUMMARY OF D-PRIME STUFF (BIN OVER TIME AND TRIALS) only plots summary figures
@@ -735,6 +830,7 @@ close all;
 motif_regexpr_str={'g(h)h'}; % bk7
 motif_regexpr_str={'a(b)bh'}; % bu77
 motif_regexpr_str={'lcch(b)g'}; % bu77
+motif_regexpr_str={'nk(h)'}; % br92
 
 motif_predur=0.4;
 motif_postdur=0.2;

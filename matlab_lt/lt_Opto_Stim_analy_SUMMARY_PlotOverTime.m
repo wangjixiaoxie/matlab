@@ -1593,14 +1593,22 @@ for i=1:length(TimeFieldsOfInterest); % for each window of interest
                 
                 
                 switch trialfield
+%                     case 'All'
+%                         lt_plot(X+ii,Y, {'Color', 'k'})
+%                     case 'StimCatch'
+%                         lt_plot(X+ii,Y, {'Color', 'r'})
+%                     case 'StimNotCatch'
+%                         lt_plot(X+ii,Y, {'Color', 'b'})
+%                     case 'DIR_All'
+%                         lt_plot(X+ii,Y, {'Color', 'm'})
                     case 'All'
-                        plot(X+ii,Y,'k.')
+                        plot(X+ii,Y,'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 5)
                     case 'StimCatch'
-                        plot(X+ii,Y,'r.')
+                        plot(X+ii,Y,'ro', 'MarkerFaceColor', 'r', 'MarkerSize', 5)
                     case 'StimNotCatch'
-                        plot(X+ii,Y,'b.')
+                        plot(X+ii,Y,'bo', 'MarkerFaceColor', 'b', 'MarkerSize', 5)
                     case 'DIR_All'
-                        plot(X+ii,Y,'m.')
+                        plot(X+ii,Y,'mo', 'MarkerFaceColor', 'm', 'MarkerSize', 5)
                         
                 end
                 
@@ -1843,7 +1851,13 @@ baseline_days=PARAMS.global.BaselineDays;
 baseline_mean.All=mean(baseline_vals.All);
 baseline_mean.StimCatch=mean(baseline_vals.StimCatch);
 baseline_mean.StimNotCatch=mean(baseline_vals.StimNotCatch);
-    
+if isfield(baseline_vals, 'NotStim');
+    baseline_mean.NotStim = mean(baseline_vals.NotStim);
+else
+    baseline_mean.NotStim = NaN;
+end
+
+
 DATSTRUCT.baseline_data.timewindow{i}.All.([statfield])=baseline_vals.All;
 DATSTRUCT.baseline_data.timewindow{i}.StimCatch.([statfield])=baseline_vals.StimCatch;
 DATSTRUCT.baseline_data.timewindow{i}.StimNotCatch.([statfield])=baseline_vals.StimNotCatch;
@@ -2289,21 +2303,22 @@ end
 
 if plotStimEpochs==1;
     
-    
     % == PLOT STIM EPOCHS, ETC.
     RunBin=4;
     NumEdgeTrials=4;
     StimEpochs_aligned=lt_Opto_Stim_analy_SUMMARY_PlotOverTime_StimEpochs1(PARAMS, DATSTRUCT, StimEpochs, RunBin, NumEdgeTrials, TimeFieldsOfInterest, statfield);
     
+    if (0) % Cant remember hiow this is diff from the next code (stimepochs3)
     % == REGRESSIONS, day level stats
     NumStimRends=25; % i.e. 25 stim and 25 nonstim.
     [StimEpochs_aligned, Y_day_level_regression]=lt_Opto_Stim_analy_SUMMARY_PlotOverTime_StimEpochs2(StimEpochs_aligned, PARAMS, DATSTRUCT, NumStimRends, TimeFieldsOfInterest, statfield);
+    end
     
     % == REGRESSIONS, one datapoint for each stim epoch (and stats based on
     % that epoch)
     % NOTE: GO IN HERE TO PERFORM PERMUTATION TESTS
-    NumTrials_prestim=200;
-    NumTrials_stim=50;
+    NumTrials_prestim=50;
+    NumTrials_stim=25;
     Conditions.Only_Plot_Days_With_One_Stim=0;
     Conditions.OnlyPlotFirstEpochOfDay=0;
     Conditions.OnlyPlotIfNoStimYesterday=0;
@@ -2324,6 +2339,7 @@ if plotStimEpochs==1;
     
     % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     % ========== PERFORM REGRESSIONS FOR VARYING SIZE WINDOWS
+    if (0)
     Conditions.Only_Plot_Days_With_One_Stim=1;
     Conditions.OnlyPlotFirstEpochOfDay=1;
     Conditions.OnlyPlotIfNoStimYesterday=1;
@@ -2462,6 +2478,7 @@ if plotStimEpochs==1;
         end
         lt_subtitle(['Slope: ' regressionstat])
         
+    end
     end
 end
 

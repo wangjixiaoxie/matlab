@@ -8,6 +8,10 @@ function lt_neural_v2_EXTRACT_FF(SummaryStruct, FFparamsAll, overWrite, ...
 % plotOnSong = 2; % will only start plotting spec once hit this song num.
 % plotSyl = ''; % to focus on just one syl. NOT DONE YET
 
+if overWrite == 1
+    assert(strcmp(input('sure you want to overwrite? (y or n) ', 's'), 'y'), 'stopping!!');
+end
+
 %% lt 3/22/17 - extract FF for all neurons in Summary struct. make note in struct.
 prepad=0.015; postpad=0.015; % get 15ms pre and post (acoustic dat) [DO NOT CHANGE!! - since
 % timebin windows are defined relative to this onset
@@ -58,9 +62,15 @@ for z = 1:Numbirds
         
         % -- extract infor for this bird.
         ind = find(strcmp({FFparamsAll.bird.birdname}, birdname)); % find info for this syl
+         cell_of_freqwinds=FFparamsAll.bird(ind).FFparams.cell_of_freqwinds; % then is not learning
+       
+        % if is learning experiement, then use diff, since WN will be over
+        % a syl
+        if isempty(datstruct.LEARN_WNonDatestr)
         cell_of_FFtimebins=FFparamsAll.bird(ind).FFparams.cell_of_FFtimebins;
-        cell_of_freqwinds=FFparamsAll.bird(ind).FFparams.cell_of_freqwinds;
-        
+        else
+        cell_of_FFtimebins=FFparamsAll.bird(ind).FFparams.cell_of_FFtimebins_DurLearn; % then is not learning            
+        end
         
         % ========= Go thru all labeled syls, for each, collect data and store
         % in output data structure
