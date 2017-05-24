@@ -1,4 +1,4 @@
-function [MOTIFSTATS, SummaryStruct] = lt_neural_v2_ANALY_Learning(SummaryStruct)
+function [MOTIFSTATS, SummaryStruct] = lt_neural_v2_ANALY_LearningExtractMotif(SummaryStruct)
 %% PARAMS
 
 motif_predur = 0.15;
@@ -19,19 +19,21 @@ motif_postdur = 0.05;
 NumBirds = length(SummaryStruct.birds);
 assert(NumBirds ==1, 'too many birds');
 
+MotifsActual = SummaryStruct.birds(1).neurons(1).POSTINFO.MotifsActual;
+
 % === GIVEN ACTUAL MOTIFS FOR THIS BIRD, DETERMINE WHICH SYLS TO LOOK AT
 if strcmp(SummaryStruct.birds(1).birdname, 'wh6pk36')
-    MotifsActual = {'nlcchb', 'jklcchb', 'ga', 'mksd' ,'vb'};
+%     MotifsActual = {'nlcchb', 'jklcchb', 'ga', 'mksd' ,'vb'};
     TargSyls = {'nlcch(b)', 'jklcch(b)'};
 elseif strcmp(SummaryStruct.birds(1).birdname, 'bk7')
-    MotifsActual = {'nnhh', 'gh', 'vbbb', 'gb', 'jkk', 'kl', 'gv', 'yoo', 'rs'}; % COULD IMPROVE
+%     MotifsActual = {'nnhh', 'gh', 'vbbb', 'gb', 'jkk', 'kl', 'gv', 'yoo', 'rs'}; % COULD IMPROVE
     TargSyls = {'g(h)'};
 elseif strcmp(SummaryStruct.birds(1).birdname, 'bu77wh13')
-    MotifsActual = {'kspj', 'ab', 'bh', 'jb', 'nkrs'}; % COULD IMPROVE
+%     MotifsActual = {'kspj', 'ab', 'bh', 'jb', 'nkrs'}; % COULD IMPROVE
     %       MotifsActual = {'kspj', 'ab', 'bh', 'ijbh', 'nkrs'}; % COULD IMPROVE
     TargSyls = {'a(b)'};
 elseif strcmp(SummaryStruct.birds(1).birdname, 'br92br54')
-    MotifsActual = {'nkh', 'ddd', 'dh', 'agc', 'cc'}; % COULD IMPROVE
+%     MotifsActual = {'nkh', 'ddd', 'dh', 'agc', 'cc'}; % COULD IMPROVE
     %       MotifsActual = {'kspj', 'ab', 'bh', 'ijbh', 'nkrs'}; % COULD IMPROVE
     if strcmp(SummaryStruct.birds(1).neurons(1).exptID, 'LMANlearn2')
         TargSyls = {'nk(h)'};
@@ -40,6 +42,8 @@ elseif strcmp(SummaryStruct.birds(1).birdname, 'br92br54')
     elseif strcmp(SummaryStruct.birds(1).neurons(1).exptID, 'LMANlearn4')
          TargSyls = {'nk(h)'};       
     end
+elseif strcmp(SummaryStruct.birds(1).birdname, 'or74bk35')
+         TargSyls = {'an(b)'};       
 end
 
 

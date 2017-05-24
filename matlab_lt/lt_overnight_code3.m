@@ -1,3 +1,82 @@
+close all;
+
+%% 1
+BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BrainArea = {'X'};
+ExptToKeep = {};
+RecordingDepth = [];
+LearningOnly = 2;
+[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, ...
+    BrainArea, ExptToKeep, RecordingDepth, LearningOnly);
+
+
+% === IMPORTANT!! - ASSUMES THAT ALL NEURONS FOR A GIVEN BIRD HAVE SAME
+% MOTIFS IN SAME ORDER (I.E. IN lt_neural_v2_PostInfo)
+PlotRaw = 0;
+lt_neural_v2_ANALY_BoutPositionJC(SummaryStruct,PlotRaw);
+
+% -- save
+lt_save_figs_to_folder('X_includingLearning',1);
+
+
+%% 2
+BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BrainArea = {'X', 'LMAN'};
+ExptToKeep = {};
+RecordingDepth = [];
+LearningOnly = 0;
+[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, ...
+    BrainArea, ExptToKeep, RecordingDepth, LearningOnly);
+
+
+% === IMPORTANT!! - ASSUMES THAT ALL NEURONS FOR A GIVEN BIRD HAVE SAME
+% MOTIFS IN SAME ORDER (I.E. IN lt_neural_v2_PostInfo)
+PlotRaw = 0;
+lt_neural_v2_ANALY_BoutPositionJC(SummaryStruct,PlotRaw);
+
+% -- save
+lt_save_figs_to_folder('X_LMAN_includingLearning',1);
+
+
+
+%% 2
+BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BrainArea = {'LMAN'};
+ExptToKeep = {};
+RecordingDepth = [];
+LearningOnly = 2;
+[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, ...
+    BrainArea, ExptToKeep, RecordingDepth, LearningOnly);
+
+
+% === IMPORTANT!! - ASSUMES THAT ALL NEURONS FOR A GIVEN BIRD HAVE SAME
+% MOTIFS IN SAME ORDER (I.E. IN lt_neural_v2_PostInfo)
+PlotRaw = 0;
+lt_neural_v2_ANALY_BoutPositionJC(SummaryStruct,PlotRaw);
+
+% -- save
+lt_save_figs_to_folder('LMAN_noLearning',1);
+
+
+%% 2
+BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BrainArea = {'LMAN'};
+ExptToKeep = {};
+RecordingDepth = [];
+LearningOnly = 0;
+[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, ...
+    BrainArea, ExptToKeep, RecordingDepth, LearningOnly);
+
+
+% === IMPORTANT!! - ASSUMES THAT ALL NEURONS FOR A GIVEN BIRD HAVE SAME
+% MOTIFS IN SAME ORDER (I.E. IN lt_neural_v2_PostInfo)
+PlotRaw = 0;
+lt_neural_v2_ANALY_BoutPositionJC(SummaryStruct,PlotRaw);
+
+% -- save
+lt_save_figs_to_folder('LMAN_withLearning',0);
+
+
 %% ========================== 11/18/15 - wh25 context autolabel
 clear all; close all;
 batch = 'batch.keep';

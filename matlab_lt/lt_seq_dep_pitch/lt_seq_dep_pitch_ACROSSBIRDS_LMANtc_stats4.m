@@ -2067,7 +2067,7 @@ plot(x, y, 'o', 'Color',color);
 lt_plot_bar(x, mean(y), {'Errors',lt_sem(y)});
 Yall{1}=y;
 % lt_plot_text(x, 1.4*mean(y), ['n=' num2str(length(y)) '; mean(sem)=' num2str(mean(y)) '(' num2str(lt_sem(y)) ')'])
-lt_plot_text(x, 1.5*mean(y), ['n=' num2str(length(y)) '; mean(sem)=' num2str(mean(1-y)) '(' num2str(lt_sem(1-y)) ')'])
+lt_plot_text(x, 1.5*mean(y), ['n=' num2str(length(y)) '; mean(sem)=' num2str(mean(y)) '(' num2str(lt_sem(y)) ')'])
 
 % -- multidir
 x=2;
@@ -2131,7 +2131,7 @@ for i=1:length(Yall)
         disp([num2str(i) ' - ' num2str(ii) '; p=' num2str(p)]);
         
         if p<0.2
-            lt_plot_text(i, 1.1*max(Yall{i}), [num2str(i) ' - ' num2str(ii) '; p=' num2str(p)], 'r');
+            lt_plot_text(i, 1.1*max(Yall{i}), [num2str(i) ' - ' num2str(ii) '; (ranksum)p=' num2str(p)], 'r');
         end
     end
 end

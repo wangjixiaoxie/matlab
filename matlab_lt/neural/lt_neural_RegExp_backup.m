@@ -2,7 +2,7 @@
 
 function [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
     regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
-    keepRawSongDat, suppressout, collectWNhit, collectWholeBoutPosition)
+    keepRawSongDat, suppressout, collectWNhit)
 %% note on FF stuff
 % WNhit collection is only performed if FF collection is performed - can
 % modify easily to make them independent. Needs raw audio to extract WNhit
@@ -32,10 +32,6 @@ end
 
 if ~exist('collectWNhit', 'var')
     collectWNhit=1;
-end
-
-if ~exist('collectWholeBoutPosition', 'var')
-    collectWholeBoutPosition=0; % to get position of a given datapoint within its bout
 end
 
 %% --
@@ -97,27 +93,25 @@ fs=NeurDat.metaDat(1).fs;
 Params.REGEXP.predur=predur;
 Params.REGEXP.postdur=postdur;
 
-% PARAMS ONLY USED FOR WHOLEBOUTS EXTRACTION
-%      onset_pre_threshold=2; % OLD (changed on 3/21/17, based on wh6pk36)
+if strcmp(regexpr_str, 'WHOLEBOUTS')
+    
+    %      onset_pre_threshold=2; % OLD (changed on 3/21/17, based on wh6pk36)
     onset_pre_threshold=1; % in seconds, minimum time preceding and following bout [DO NOT CHANGE! THIS IS FOR "DEFINING" SONG BOUT]
     % If you only want to keep those with a long enough quiet time, then do
     % following
     
     %     offset_post_threshold=3; % in seconds
-    min_syls_in_bout=10;
+    min_syls_in_bout=5;
+end
 
-    
-TotalSamps = sum([NeurDat.metaDat.numSamps]);
-TotalDurSec = TotalSamps/fs;
 
-    
 
 %% ------ find motifs
 
 SegmentsExtract=struct;
 
 if strcmp(regexpr_str, 'WHOLEBOUTS')
-    gapdurs=[AllOnsets(1) AllOnsets(2:end)-AllOffsets(1:end-1) TotalDurSec-AllOffsets(end)]; % first gap is just dur from start of file to first onset
+    gapdurs=[AllOnsets(1) AllOnsets(2:end)-AllOffsets(1:end-1)]; % first gap is just dur from start of file to first onset
     
     % - a motif is
     potentialOnsets=find(gapdurs>onset_pre_threshold); % ind of onset syl
@@ -141,8 +135,6 @@ if strcmp(regexpr_str, 'WHOLEBOUTS')
         
         bout_firstsyls=bout_firstsyls(inds_tmp2);
         bout_lastsyls=bout_lastsyls(inds_tmp2);
-    else
-        disp('PROBLEM - WHOLEBOUTS_edgedur is empty!!!');
     end
     
     % ============================== TROUBLESHOOTING - PLOT ALL ONSETS IN A
@@ -217,69 +209,8 @@ else
     tokenExtents=cellfun(functmp, tokenExtents); % convert from cell to vector.
 end
 
-
-%% =================== IF WANT TO GET WHOLEBOUTS INFO TO GET DATAPOINT
-% POSITION IN BOUT (BUT NOT ACTUALLY EXTRACT WHOLEBOUTS AS MAIN DATAPOINT)
-if collectWholeBoutPosition==1 & strcmp(regexpr_str, 'WHOLEBOUTS') ==0
-    gapdurs=[AllOnsets(1) AllOnsets(2:end)-AllOffsets(1:end-1) TotalDurSec-AllOffsets(end)]; % first gap is just dur from start of file to first onset; % last gap is just offset to end of file
-    
-    % - a motif is
-    potentialOnsets=find(gapdurs>onset_pre_threshold); % ind of onset syl
-    
-    inds_tmp=find(diff(potentialOnsets)>=min_syls_in_bout); % indexes thos bouts that pass min syls criterion
-    
-    wholebout_firstsyls=potentialOnsets(inds_tmp);
-    wholebout_lastsyls=potentialOnsets(inds_tmp+1)-1; % minus 1 because want to end of the current bout, not the start of the next bout.
-        
-    % ---- get match labels
-    wholebout_matchlabs={};
-    for j=1:length(wholebout_firstsyls)
-        wholebout_matchlabs{j}=AllLabels(wholebout_firstsyls(j):wholebout_lastsyls(j));
-    end
-    
-    % TROUBLESHOOT
-    if (0)
-        % 1) song
-        hsplots = [];
-        lt_figure; hold on;
-        
-%         hsplot= lt_subplot(2,1,1); hold on;
-%         plot([1:length(SongDat.AllSongs)]./NeurDat.metaDat(1).fs, ...
-%             SongDat.AllSongs, 'k');
-%         title('song');
-%         hsplots = [hsplots hsplot];
-        
-        % 2) syls
-        hsplot = lt_subplot(2,1,2); hold on;
-        for i=1:length(AllOnsets)
-            line([AllOnsets(i) AllOffsets(i)], [0 0], 'LineWidth', 2);
-%             lt_plot_text(AllOnsets(i), 0.01, AllLabels(i));
-        end
-        
-%         for i=tokenExtents
-%             lt_plot_text(AllOnsets(i), 0.01, AllLabels(i));
-%         end
-        for i=1:length(wholebout_firstsyls)
-            line([AllOnsets(wholebout_firstsyls(i)) AllOnsets(wholebout_firstsyls(i))],...
-                ylim, 'Color', 'g');
-            line([AllOffsets(wholebout_lastsyls(i)) AllOffsets(wholebout_lastsyls(i))], ...
-                ylim , 'Color', 'r');
-        end
-        
-        xlabel('time of syl (s)');
-
-        plot(AllOnsets(638), 0, 'ok')
-    end
-
-end
-
-%%
 HitSyls_TEMP={};
 MisSyls_TEMP={};
-
-BoutNumsAll = [];
-PosInBoutAll = [];
-RendInBoutAll = [];
 
 % -- for each match ind, extract audio + spikes
 for i=1:length(tokenExtents)
@@ -457,32 +388,6 @@ for i=1:length(tokenExtents)
             %         SegmentsExtract(i).FF_timebase=T;
         end
     end
-    
-    % =============== FIGURE OUT POSITION OF MOTIF WITHIN ITS BOUT
-    if collectWholeBoutPosition==1
-        ind; % current syl posotion
-        
-        boutnum = find(wholebout_firstsyls<=ind & wholebout_lastsyls>=ind);
-        if length(boutnum)==0
-            SegmentsExtract(i).BOUT_boutnum = nan;
-            SegmentsExtract(i).BOUT_posOfTokenInBout = nan;
-            SegmentsExtract(i).BOUT_RendInBout = nan;
-            
-        else
-            % assert(length(boutnum)==1, 'sdafasd');
-            positionOfTokenInBout = ind - wholebout_firstsyls(boutnum) + 1;
-            RendInBout = sum(BoutNumsAll == boutnum)+1;
-            
-            BoutNumsAll = [BoutNumsAll boutnum];
-            PosInBoutAll = [PosInBoutAll positionOfTokenInBout];
-            RendInBoutAll = [RendInBoutAll RendInBout];
-            
-            SegmentsExtract(i).BOUT_boutnum = boutnum;
-            SegmentsExtract(i).BOUT_posOfTokenInBout = positionOfTokenInBout;
-            SegmentsExtract(i).BOUT_RendInBout = RendInBout;
-        end
-    end
-    
     
     % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     

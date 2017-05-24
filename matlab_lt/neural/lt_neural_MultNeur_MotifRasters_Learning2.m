@@ -55,7 +55,7 @@ determineTrialBinBasedOnBaselineN=1; % if 1, then chooses binsize based on
 % baseline num songs (i.e. baseNumSongs/DivisorBaseSongs); if 0, then = TrialBinSize
 % note: assumes WNchangeDateStrings{1} is transition from baseline to WN
 % on.
-DivisorBaseSongs=1; % divide base N with this
+DivisorBaseSongs=3; % divide base N with this
 % TrialBinSize=10;
 
 

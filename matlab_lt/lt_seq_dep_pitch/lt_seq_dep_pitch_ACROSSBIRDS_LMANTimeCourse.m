@@ -1,4 +1,10 @@
 function [OUTPUT, DATSTRUCT_FirstBidirDayIndEqualsOne]=lt_seq_dep_pitch_ACROSSBIRDS_LMANTimeCourse(SeqDepPitch_AcrossBirds, Params, OnlyConsolPeriod_bidir, BinRelConsolDay1, TakeAverageWithinExpt, NumDaysInBin, GetAutoConsolWindows)
+%% NOTE:
+% OUTPUT has one datapoint for each bin. that datapoint is on the musc day
+% within that bin (both PBS and MUSC are constrained to be on same day). if
+% there are multiple days then averaged. if no days then leaves blank).
+
+
 %% LT 12/22/15
 
 NumBirds=length(SeqDepPitch_AcrossBirds.birds);
@@ -136,7 +142,7 @@ for i=1:NumBirds;
         
         % -- fill in musc days
         X=days_with_musc_relWNday1;
-        Y=CountExpt*ones(1, 1:length(X));
+        Y=CountExpt*ones(1, length(X));
         
         plot(X, Y, 'ok', 'MarkerFaceColor','k')
         
@@ -627,6 +633,8 @@ end
 % SYLS, THEN GET EXTENDED WINDOW
 DayWindowSizes=[6 5 4];
 targsylType='firsttarget';
+            numZ=0.75;
+
 for i=1:length(DATSTRUCT_FirstBidirDayIndEqualsOne.firsttarget);
     ChosenConsolDays=[];
     
@@ -650,7 +658,6 @@ for i=1:length(DATSTRUCT_FirstBidirDayIndEqualsOne.firsttarget);
             FFvals=DATSTRUCT_FirstBidirDayIndEqualsOne.(targsylType)(i).FFminusBase_Mean_PBS(DaysWind);
             meanFF_overall=mean(FFvals);
             meanSTD=mean(DATSTRUCT_FirstBidirDayIndEqualsOne.(targsylType)(i).ffSTD_PBS(DaysWind));
-            numZ=0.75;
             
             FFlims=[meanFF_overall-numZ*meanSTD meanFF_overall+numZ*meanSTD];
             
@@ -666,7 +673,6 @@ for i=1:length(DATSTRUCT_FirstBidirDayIndEqualsOne.firsttarget);
             FFvals=DATSTRUCT_FirstBidirDayIndEqualsOne.(targsylType)(i).FFminusBase_Mean_PBS(DaysWind);
             meanFF_overall=mean(FFvals);
             meanSTD=mean(DATSTRUCT_FirstBidirDayIndEqualsOne.(targsylType)(i).ffSTD_PBS(DaysWind));
-            numZ=0.75;
             
             FFlims=[meanFF_overall-numZ*meanSTD meanFF_overall+numZ*meanSTD];
             
@@ -691,7 +697,6 @@ for i=1:length(DATSTRUCT_FirstBidirDayIndEqualsOne.firsttarget);
                 FFvals=DATSTRUCT_FirstBidirDayIndEqualsOne.(targsylType)(i).FFminusBase_Mean_PBS(DaysWind);
                 meanFF_overall=mean(FFvals);
                 meanSTD=mean(DATSTRUCT_FirstBidirDayIndEqualsOne.(targsylType)(i).ffSTD_PBS(DaysWind));
-                numZ=0.75;
                 
                 FFlims=[meanFF_overall-numZ*meanSTD meanFF_overall+numZ*meanSTD];
                 
@@ -707,7 +712,6 @@ for i=1:length(DATSTRUCT_FirstBidirDayIndEqualsOne.firsttarget);
                 FFvals=DATSTRUCT_FirstBidirDayIndEqualsOne.(targsylType)(i).FFminusBase_Mean_PBS(DaysWind);
                 meanFF_overall=mean(FFvals);
                 meanSTD=mean(DATSTRUCT_FirstBidirDayIndEqualsOne.(targsylType)(i).ffSTD_PBS(DaysWind));
-                numZ=0.75;
                 
                 FFlims=[meanFF_overall-numZ*meanSTD meanFF_overall+numZ*meanSTD];
                 
@@ -991,7 +995,6 @@ for i=1:length(DATSTRUCT_FirstBidirDayIndEqualsOne.firsttarget);
         
         % ================= PUT MEAN PICH +/- 0.75 STD DURING MAINTAINED
         % SHIFT PERIOD
-        numZ=0.75;
         
         % - first targ
         meanFF=mean(DATSTRUCT_FirstBidirDayIndEqualsOne.firsttarget(i).FFminusBase_Mean_PBS(consolPeriod(1):consolPeriod(2)));
@@ -1640,6 +1643,7 @@ elseif BinRelConsolDay1==1;
                 % ============== first target
                 ffMUSC=DATSTRUCT_FirstBidirDayIndEqualsOne.firsttarget(j).FFminusBase_Mean_MUSC(day); % MUSC
                 ffPBS=DATSTRUCT_FirstBidirDayIndEqualsOne.firsttarget(j).FFminusBase_Mean_PBS(day); % PBS
+                disp(['day=' num2str(day) '; bin=' num2str(daybin) '; expt=' num2str(j)]);
                 
                 % --- flip sign if learning was neg
                 ffMUSC=ffMUSC*DATSTRUCT_FirstBidirDayIndEqualsOne.INFORMATION(j).targ_learn_dir;
@@ -1700,8 +1704,6 @@ elseif BinRelConsolDay1==1;
                 OUTPUT.INFORMATION(daybin).experimentNum=[OUTPUT.INFORMATION(daybin).experimentNum j];
                 OUTPUT.INFORMATION(daybin).birdname=[OUTPUT.INFORMATION(daybin).birdname birdname];
                 OUTPUT.INFORMATION(daybin).exptname=[OUTPUT.INFORMATION(daybin).exptname exptname];
-                
-                
                 
                 Exptcount=Exptcount+1;
             end
@@ -2017,6 +2019,83 @@ for i=1:length(X);
     end
     
 end
+
+%% PLOT (AFP BIAS);
+lt_figure; hold on;
+
+lt_subplot(2,1,1); hold on;
+title('ADP BIAS, from bidir day 1, all experiments');
+xlabel([ 'day bin  (binsize: ' num2str(NumDaysInBin) ')']);
+ylabel('FF');
+
+X=1:length(DayBins_StartEdges);
+subdivisions=0.1; % for plotting diff things in one ind
+
+for i=1:length(X);
+    
+    if isempty(OUTPUT.firsttarget.FFrelBaseInBin(i).MUSC)
+        continue
+    end
+    
+    
+    %=== first targ
+    x=i-subdivisions;
+    % -- plot each point
+    yPBS=OUTPUT.firsttarget.FFrelBaseInBin(i).PBS;
+    yMUSC=OUTPUT.firsttarget.FFrelBaseInBin(i).MUSC;
+    AFPbias = yPBS-yMUSC;
+    
+%     plot(x, AFPbias', 'ob');
+    
+    % -- means
+    if size([yPBS' yMUSC'],1)>1
+        %       lt_plot_bar(x-0.05, mean([yPBS' yMUSC']), {'Color', 'k', 'Errors', lt_sem([yPBS' yMUSC'])});
+        lt_plot_bar(x-0.5*subdivisions, mean(AFPbias), {'Color', 'b', 'Errors', lt_sem(AFPbias), 'BarWidth', 0.2});
+    end
+    
+    
+    % stats
+    [~, p]=ttest(yPBS, yMUSC);
+    [p]=signrank(yPBS, yMUSC);
+    if p<0.1;
+        lt_plot_text(x(1), max([AFPbias]), num2str(p, '%3.2g'));
+    end
+    AFPbias_first = AFPbias; % save for comparison.
+
+    % === second targ
+    x=i+subdivisions;
+    
+    % -- plot each point
+    yPBS=OUTPUT.secondtarg.FFrelBaseInBin(i).PBS;
+    yMUSC=OUTPUT.secondtarg.FFrelBaseInBin(i).MUSC;
+    AFPbias = yPBS-yMUSC;
+    
+%     plot(x, AFPbias', 'ob');
+    
+    % -- means
+    if size([yPBS' yMUSC'],1)>1
+        %       lt_plot_bar(x+0.05, mean([yPBS' yMUSC']), {'Color', 'b', 'Errors', lt_sem([yPBS' yMUSC'])});
+        lt_plot_bar(x+0.5*subdivisions, mean(AFPbias), {'Color', 'b', 'Errors', lt_sem(AFPbias), 'BarWidth', 0.2});
+    end
+    
+    % stats
+%     [~, p]=ttest(yPBS, yMUSC);
+    [p]=signrank(yPBS, yMUSC);
+    if p<0.1;
+        lt_plot_text(x(1), 1.1*min(AFPbias), num2str(p, '%3.2g'));
+    end
+    
+    % compare first and 2nd target
+    p = signrank(AFPbias_first, AFPbias);
+%     [~, p] = ttest(AFPbias_first, AFPbias);
+    if p<0.1
+        lt_plot_text(x(1), 1.1*max(AFPbias_first), ['vs: ' num2str(p, '%3.2g')], 'r');
+    end
+   
+    % lines connecting
+    plot([i-2*subdivisions i+subdivisions], [AFPbias_first' AFPbias'], '-b')
+end
+
 
 
 

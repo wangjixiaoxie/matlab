@@ -1,5 +1,6 @@
 function lt_neural_v2_Finalize(DesiredClust, electrode_depth, Notes, LearningParams, deleteAudioFromMetadat)
 
+% e.g. lt_neural_v2_Finalize(1, 1975, {'SUnit_0', 'Location_LMAN'}, {'29Apr2017-1200',{}})
 
 %% LT 3/7/17 - by default removes the concatenated audio file from metadat 
 % file size too large. can extract relatively easily from raw files.

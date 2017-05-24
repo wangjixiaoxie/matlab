@@ -27,10 +27,16 @@ bu77wh13_analysis_NeuronDatabase
 
 %% ++++++++++++++++++++++++++++++++ NEW METHOD (SUMMARY STRUCT)
 
-BirdsToKeep = {'br92br54'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database();
+
+
+BirdsToKeep = {'or74bk35'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 BrainArea = {};
-ExptToKeep = {'LMANlearn4'};
-[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, BrainArea, ExptToKeep);
+ExptToKeep = {};
+RecordingDepth= [2490];
+LearningOnly=0;
+[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, BrainArea, ExptToKeep, ...
+    RecordingDepth, LearningOnly);
 
 
 %% ======== CONVERT TO TABLE
@@ -53,58 +59,8 @@ t = uitable('Parent', f, 'Data',dat,'ColumnName',cnames, 'Position',[0 0 900 450
 %% ==== plot  spike waveforms for all neurons
 close all;
 numrandspikes=100;
-NumNeurons=length(NeuronDatabase.neurons);
 
-figcount=1;
-subplotrows=NumNeurons;
-subplotcols=1;
-fignums_alreadyused=[];
-hfigs=[];
-
-plotcols=lt_make_plot_colors(NumNeurons, 0, 0);
-
-for i=1:NumNeurons
-    
-    dirdate=NeuronDatabase.neurons(i).date;
-    tmp=dir([dirdate '*']);
-    if length(tmp)>1
-        tmp = dir([dirdate '_' NeuronDatabase.neurons(i).exptID '*']);
-        assert(length(tmp) ==1,' daiosfhasiohfioawe');
-    end
-    cd(tmp(1).name);
-    
-    % - load data for this neuron
-    batchf=NeuronDatabase.neurons(i).batchfile;
-    channel_board=NeuronDatabase.neurons(i).chan;
-    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
-    
-    
-    inds=find(NeurDat.spikes_cat.cluster_class(:,1)==NeuronDatabase.neurons(i).clustnum); % get desired clust
-    % get random subsamp
-    inds=inds(randperm(length(inds), numrandspikes)); % get subset of spikes
-    spkwaves=NeurDat.spikes_cat.spikes(inds, :);
-    fs=NeurDat.metaDat(1).fs;
-    
-    % -- plot individual spikes
-    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-    title(['neuron ' num2str(i)]);
-    tt=1:size(spkwaves,2);
-    tt=1000*tt/fs;
-    plot(tt, spkwaves', 'Color', plotcols{i});
-    
-    % -- overlay mean + std
-    spkwaves_mean=mean(spkwaves,1);
-    spkwaves_std=std(spkwaves,0, 1);
-    plot(tt, spkwaves_mean, 'Color', plotcols{i}, 'LineWidth', 3);
-    
-    if strcmp(NeuronDatabase.neurons(i).NOTE_is_single_unit, 'no')
-        % then is mu
-        lt_plot_text(tt(1), 200, 'MU');
-        
-    end
-    
-    axis tight
-end
+lt_neural_MultNeur_SpkWaveforms(NeuronDatabase, numrandspikes);
 
 
 %% FOR ALL NEURONS PLOT RASTERS, ETC, FOR A GIVEN MOTIF
@@ -170,15 +126,6 @@ Window_relOffset{2}=[5.5 6];
 lt_neural_MultNeur_SongMod(NeuronDatabase, regexpr_str, predur, postdur, ...
     alignByOnset, WHOLEBOUTS_edgedur, Window_relOnset, motifwind, Window_relOffset)
 
-
-%% ==== MOTIF MODULATION
-
-% ========== FOR A GIVEN NEURON, COMPARE RASTERS FOR TWO MOTIFS, ALIGNING
-% THOSE MOTIFS
-
-
-% ============= GIVEN A MOTIF, ALIGN RASTERS FOR ALL NEURONS (that have
-% data for that motif)
 
 %% COLLECT AND PLOT STATS ACROSS NEURONS [CHOOSE ONE MOTIF]
 close all;
@@ -278,19 +225,26 @@ motif_postdur=0.1;
 % motif_postdur=0.3;
 
 % ------------------ WH6
-% motif_regexpr_str={'nl(c)chbg', 'ajkl(c)chbg', 'amksd(v)b'};
-% motif_regexpr_str={'nl(c)chbg', 'ajkl(c)chbg', 'amksdv(b)', 'cch(b)', 'd(m)', 'a(m)'};
-% motif_regexpr_str={'nl(c)c', 'jkl(c)c', 'nlc(c)', 'jklc(c)'};
-% motif_regexpr_str={'v(b)', 'klcch(b)', 'nlcch(b)'};
-% % motif_regexpr_str={'d(m)', 'a(m)'};
-% motif_predur=0.3;
-% motif_postdur=0.2;
+motif_regexpr_str={'nl(c)chbg', 'ajkl(c)chbg', 'amksd(v)b'};
+motif_regexpr_str={'nl(c)chbg', 'ajkl(c)chbg', 'amksdv(b)', 'cch(b)', 'd(m)', 'a(m)'};
+motif_regexpr_str={'nl(c)c', 'jkl(c)c', 'nlc(c)', 'jklc(c)'};
+motif_regexpr_str={'v(b)', 'klcch(b)', 'nlcch(b)'};
+% motif_regexpr_str={'d(m)', 'a(m)'};
+motif_predur=0.2;
+motif_postdur=0.1;
 
 % ------ BR92
 motif_regexpr_str={'nk(h)', 'dd(d)', 'ddd(h)', 'ag(c)c'};
 motif_regexpr_str={'nk(h)', 'd(d)d'};
-motif_predur=0.35;
+motif_regexpr_str={'nk(h)', 'ag(c)'};
+motif_predur=0.2;
 motif_postdur=0.1;
+
+% ----- OR74
+% motif_regexpr_str={'a(b)g', 'an(b)g'};
+% motif_regexpr_str={'an(b)g'};
+% motif_predur=0.35;
+% motif_postdur=0.1;
 
 
 
@@ -310,9 +264,9 @@ lt_neural_MultNeur_MotifRasters_v2(NeuronDatabase, motif_regexpr_str, motif_pred
 %% ======== ARRANGE RESPONSES BASED ON CHANNEL AND DEPTH
 % PLOT RESPONSE arranged by channel, depth, and date.
 
-motif_regexpr_str={'a(b)', 'j(b)'};
-motif_predur=0.1;
-motif_postdur=0.2;
+motif_regexpr_str={'nk(h)'};
+motif_predur=0.2;
+motif_postdur=0.1;
 
 LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
 WHOLEBOUTS_edgedur = '';
@@ -425,94 +379,6 @@ lt_neural_MultNeur_MixedEffects(SYLNEURDAT);
 
 
 %% +++++++++++++++++++++++++++++++++++++++++++++++++ NEWER STUFF
-%% =================================================================
-%% ======== EXTRACT FF
-
-FFparamsAll.bird(1).birdname = 'bk7';
-FFparamsAll.bird(1).FFparams.cell_of_freqwinds={'h', [1100 2600], 'b', [2400 3500], ...
-            'v', [2450 4300]};
-FFparamsAll.bird(1).FFparams.cell_of_FFtimebins={'h', [0.042 0.058], 'b', [0.053 0.07], ...
-            'v', [0.052 0.07]}; % in sec, relative to onset (i.e. see vector T)
-FFparamsAll.bird(1).FFparams.cell_of_FFtimebins_DurLearn={'h', [0.034 0.038], 'b', [0.053 0.07], ...
-            'v', [0.052 0.07]}; % WN on g H
-
-       
-FFparamsAll.bird(2).birdname = 'bu77wh13';
-FFparamsAll.bird(2).FFparams.cell_of_freqwinds={'b', [2700 3900], 'h', [2600 3900], 'a', [1300 2600]};
-FFparamsAll.bird(2).FFparams.cell_of_FFtimebins={'b', [0.031 0.04], 'h', [0.038 0.052], 'a', [0.056 0.081]}; % in sec, relative to onset (i.e. see vector T)
-FFparamsAll.bird(2).FFparams.cell_of_FFtimebins_DurLearn={'b', [0.031 0.04], 'h', [0.038 0.052], 'a', [0.056 0.081]}; % in sec, relative to onset (i.e. see vector T)
-
-
-FFparamsAll.bird(3).birdname = 'wh6pk36';
-FFparamsAll.bird(3).FFparams.cell_of_freqwinds={'c', [2100 3100], 'h', [2800 4000], 'b', [2700 3800], ...
-    'a', [1300 2200], 's', [4000 5100], 'd', [900 2000],  'n', [3300 4300], 'v', [2600 4000]};
-FFparamsAll.bird(3).FFparams.cell_of_FFtimebins={'c', [0.035 0.05], 'h', [0.023 0.033], 'b', [0.034 0.038], ...
-    'a', [0.06 0.08], 's', [0.02 0.023], 'd', [0.02 0.027],  'n', [0.029 0.05], 'v', [0.028 0.036]};
-FFparamsAll.bird(3).FFparams.cell_of_FFtimebins_DurLearn={'c', [0.035 0.05], 'h', [0.023 0.033], 'b', [0.034 0.038], ...
-    'a', [0.06 0.08], 's', [0.02 0.023], 'd', [0.02 0.027],  'n', [0.029 0.05], 'v', [0.028 0.036]};
-
-
-% TEMPORARY
-FFparamsAll.bird(4).birdname = 'br92br54';
-FFparamsAll.bird(4).FFparams.cell_of_freqwinds={'a', [750 1400], 'c', [1200 1800], ...
-    'h', [2350 3900], 'd', [1300 3400], 'k', [800 1800]};
-FFparamsAll.bird(4).FFparams.cell_of_FFtimebins={'a', [0.057 0.08], 'c', [0.044 0.055], ...
-    'h', [0.040 0.049], 'd', [0.032 0.052], 'k', [0.05 0.055]};
-FFparamsAll.bird(4).FFparams.cell_of_FFtimebins_DurLearn={'a', [0.057 0.08], 'c', [0.044 0.055], ...
-    'h', [0.040 0.049], 'd', [0.032 0.052], 'k', [0.05 0.055]};
-
-
-overWrite = 0; % note, will only overwrite if detects chagnes (IN PROGRESS - currenrly always overwrites)
-plotSpec = 0; % to plot raw spec overlayed with PC and windows.
-plotOnSong = 45; % will only start plotting spec once hit this song num.
-plotSyl = ''; % to focus on just one syl. NOT DONE YET
-lt_neural_v2_EXTRACT_FF(SummaryStruct, FFparamsAll, overWrite, ...
-    plotSpec, plotOnSong, plotSyl);
-
-%% ===== EXTRACT WN HITS
-
-% IN PROGRESS ! see inside
-lt_neural_v2_EXTRACT_WNhit(SummaryStruct, FFparamsAll, overWrite, ...
-    plotSpec, plotOnSong, plotSyl);
-
-
-%% ======== VOCLATIONS --> predict neural
-
-close all;
-plotRaw = 0; % individaul neuronf igs (note, hand entering neuron ind currently, in code)
-% Binparams.Pretime = 0.2; % to start getting binned data (rel to onset)
-% Binparams.Posttime = 0.2; % to stop getting dat (rel to onset);
-% Binparams.Binsize = 0.025; % for getting spike counts
-Binparams.Pretime = 0.7; % to start getting binned data (rel to onset)
-Binparams.Posttime = 0.7; % to stop getting dat (rel to onset);
-Binparams.Binsize = 0.025; % for getting spike counts
-
-ConvOrDiv = 'conv';
-saveOn = 0;
-
-VOCALSTRUCTall = lt_neural_v2_ANALY_VocModel(SummaryStruct, Binparams, plotRaw, ConvOrDiv, saveOn);
-
-
-% ===== 1) FILTER VOCAL STRUCT
-
-
-% ===== 2) PLOT
-close all;
-birdnum = 1;
-neuronnum=1;
-timebin = 35;
-plotSmoothed = 0; 
-lt_neural_v2_ANALY_VocModel_plot(VOCALSTRUCTall, birdnum, neuronnum, timebin, plotSmoothed)
-
-
-% ===== 3) ANOVA (done for each time bin)
-% currerntly good. apply filter preceding to extract,e.g.. only one branch
-% point, and so on. 
-lt_neural_v2_ANALY_VocModel_anova(VOCALSTRUCTall)
-
-
-% ====== 4) 
-lt_neural_v2_ANALY_VocModel_glm(VOCALSTRUCTall)
 
 
 
@@ -721,6 +587,10 @@ motif_regexpr_str={'nlcch(b)', 'klcch(b)', 'dv(b)', 'l(c)', 'lc(c)', 'lcc(h)', .
 % br92br54
 motif_regexpr_str={'ddd(h)', 'nk(h)'};
 
+% or74
+motif_regexpr_str={'a(b)g', 'an(b)'};
+
+
 motif_predur=0.4;
 motif_postdur=0.1; 
 LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
@@ -751,34 +621,6 @@ lt_neural_MultNeur_MotifRasters_Learning2(NeuronDatabase, motif_regexpr_str, ...
     motif_predur, motif_postdur, LinScaleGlobal, FFparams, OnlyPlotNoHit, TrialBinSize)
 
 % IN PROGRESS!!:: LinScaleGlobal.
-
-
-%% ============== FOR EACH LEARNING EXPERIMENT, PLOT ALL NEURONS AND ALL MOTIFS
-% === 1) CHOOSE ONE LEARNING EXPT
-% ===== LMANlearn2
-BirdsToKeep = {'br92br54'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
-BrainArea = {};
-ExptToKeep = {'LMANlearn4'};
-RecordingDepth = [];
-LearningOnly = 1; % then only if has WN on/switch time date
-[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, ...
-    BrainArea, ExptToKeep, RecordingDepth, LearningOnly);
-
-% ==== 1) EXTRACT DATA FOR EACH NEURON, EACH MOTIF
-[MOTIFSTATS, SummaryStruct_filt] = lt_neural_v2_ANALY_LearningExtractMotif(SummaryStruct);
-
-close all;
-% motifs for this bird
-% learning expt id
-plottype = 'byneuron'; % 
-% 'byneuron' - each neuron one fig will all motifs [DEFAULT]
-% 'dotprod' - for each bin of trials get dot prod from IN PROGRESS
-% 'bysyl' - each plot one syl, all neurons.
-DivisorBaseSongs = 1;
-lt_neural_v2_ANALY_Learning(SummaryStruct_filt, MOTIFSTATS, plottype, DivisorBaseSongs);
-
-% ===== FOR ALL NEURONS, PLOT CHANGE AT TARG VS. OTHERS. ALSO, AVERAGE
-% DEVIATIONS ACROSS ALL EXPERIMENTS.
 
 
 
@@ -850,45 +692,74 @@ lt_neural_MultNeur_MotifRasters_WNacute(NeuronDatabase, motif_regexpr_str, ...
 %% +++++++++++++++++++++++++++++++++++++++++++++++++++++++ RANDOM THINGS
 
 %% remove song dat from metadat
+% THIS IS UP TO DATE. WILL SAVE SONG IN UPPER DIR AND REMOVE SONG DAT FROM
+% META DAT. RUNNING WILL NOT CORRUPT ANYTHING. 
+% RUN THIS FOR NEW FINALIZED NEURONS.
+
 numbirds = length(SummaryStruct.birds);
 for i=1:numbirds
     
     numneurons = length(SummaryStruct.birds(i).neurons);
     
     for ii=1:numneurons
-        disp(['bird ' num2str(i) ' neuron ' num2str(ii)]);
+        disp(['========= bird ' num2str(i) ' neuron ' num2str(ii) ', ' ...
+            SummaryStruct.birds(i).neurons(ii).batchfilename ' (if blank did nothing)']);
         
         Datstruct = SummaryStruct.birds(i).neurons(ii);
         cd(Datstruct.dirname)
         
-        % 1) save songdat to higher level (convert to single precision first)
-        % -- first make sure not already saved.
+        % 1) === IS THIS BATCH'S SONG ALREADY SAVED UP ONE LEVEL?
         cd ..
         songfname = ['SongDat_' Datstruct.batchfilename '.mat'];
+        songAlreadyExists = 0;
         if exist(songfname, 'file')==2
             % then already exists, skip
-            disp(['-- already extracted song, skipping']);
-            continue
+            songAlreadyExists = 1;
         end
         cd(Datstruct.dirname)
         
-        % -- if not saved, then save
-        metadat = load('MetaDat');
-        
-        % save song data in cell array
-        numsongs = length(metadat.metaDat);
-        SongCellArray = {};
-        for j=1:numsongs            
-            SongCellArray = [SongCellArray single(metadat.metaDat(j).songDat)];
+        % 2) ====  Extract and save song if necessary.
+        if songAlreadyExists == 0
+            disp('EXTRACTING SONG ...');
+            % -- if not saved, then save
+            metadat = load('MetaDat');
+            
+            % save song data in cell array
+            numsongs = length(metadat.metaDat);
+            SongCellArray = {};
+            for j=1:numsongs
+                SongCellArray = [SongCellArray single(metadat.metaDat(j).songDat)];
+            end
+            
+            % save
+            cd ..
+            save(songfname, 'SongCellArray', '-v7.3');
+            disp(['-- extracted and saved ! (' songfname ')']);
+            cd(Datstruct.dirname)            
         end
         
-        % save
-        cd ..
-        save(songfname, 'SongCellArray', '-v7.3');
-        disp(['-- extracted and saved ! (' songfname ')']);
-        
-        % 2) don't yet remove from metaDat (for backwards compatibility testing)
-        
+        % 3) ===== if Song not removed from MetaDat, then do that.
+        if exist('DONE_RemovedSongDatFromMetaDat', 'file') ==2
+            % then already removed, DO NOTHING.
+            
+        else
+            disp('REMOVING SONG FROM METADAT');
+            metadat = load('MetaDat');
+            % ------ 2) don't yet remove from metaDat (for backwards compatibility testing)
+            % INSTEAD CHANGE THE NAME. IF WORKS FINE, THEN REMOVE.
+            metaDat = rmfield(metadat.metaDat, 'songDat'); % also name change
+            
+            % move old metadat to new file name
+            % DELETE OLD METADAT
+            eval('!rm MetaDat.mat');
+            disp('DELETED OLD METADAT!');
+            
+            % save new
+            save('MetaDat.mat', 'metaDat');
+            
+            fid = fopen('DONE_RemovedSongDatFromMetaDat', 'w');
+            fclose(fid);
+        end
     end
 end
 

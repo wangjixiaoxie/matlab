@@ -410,7 +410,7 @@ xlim([-0.5 max(Xcenters)+0.5]);
 
 
 %% HIT RATE
-
+close all;
 [SeqDepPitch_AcrossBirds, PARAMS] = lt_seq_dep_pitch_ACROSSBIRDS_HITRATE(SeqDepPitch_AcrossBirds, PARAMS);
 
 pause;

@@ -1,5 +1,5 @@
 %% uses matlab code regress() but automatically adds 1 to X and formats X and Y. Also plots automatically
-function [b,bint,r,rint,stats,SummaryStats, hplot]=lt_regress(Y,X_no_ones,plotON,plotB_error, plotline, plot_summary, plotcol)
+function [b,bint,r,rint,stats,SummaryStats, hplot]=lt_regress(Y,X_no_ones,plotON,plotB_error, plotline, plot_summary, plotcol, plotOnlyLineSummary)
 
 % Y and X are vectors (can be columns or rows, currently only 1D) (do not
 % add 1s to X)
@@ -25,6 +25,10 @@ end
 
 if ~exist('plotcol','var');
     plotcol='b';
+end
+
+if ~exist('plotOnlyLineSummary', 'var')
+plotOnlyLineSummary=0;
 end
 
 %% put inputs into columns
@@ -82,5 +86,14 @@ if plotON==1;
     end
 end
 
-    
+    if plotOnlyLineSummary==1
+        plot(xlim,b(1) + b(2).*xlim,'-','Color',plotcol,'LineWidth',2);
+        
+Xlim=xlim;
+        Ylim=ylim;
+        
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-(Ylim(2)-Ylim(1))/10,['p=' num2str(SummaryStats.p)],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-2*(Ylim(2)-Ylim(1))/10,['R2=' num2str(SummaryStats.R2)],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-3*(Ylim(2)-Ylim(1))/10,['slope=' num2str(SummaryStats.slope)],'FontSize',13,'FontWeight','bold','Color',plotcol);
+end
     

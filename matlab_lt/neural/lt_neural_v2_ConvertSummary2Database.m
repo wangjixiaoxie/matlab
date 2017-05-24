@@ -1,6 +1,6 @@
-function [NeuronDatabase, SummarStruct_filtered] = ...
+function [NeuronDatabase, SummaryStruct_filtered] = ...
     lt_neural_v2_ConvertSummary2Database(BirdsToKeep, BrainArea, ExptToKeep, ...
-    RecordingDepth, LearningOnly)
+    RecordingDepth, LearningOnly, BatchesDesired, ChannelsDesired)
 
 %% TO DO:
 % 1) Extract "notes" from summary struct
@@ -14,10 +14,15 @@ function [NeuronDatabase, SummarStruct_filtered] = ...
 % BrainArea = {'LMAN', 'X'}; % empty for all.
 % ExptToKeep = {'LMANlearn2'}; % emopty for all;'
 % RecordingDepth = [1800 1950] % in microns
-% LearningOnly = 1; % then only if has WN on/switch time date
+% LearningOnly = 1; % then only if has WN on/switch time date; 2: then
+% excludes elarning expts
 
 %%
 SummaryStruct =  lt_neural_v2_LoadSummary;
+
+if ~exist('BirdsToKeep', 'var')
+    BirdsToKeep = {};
+end
 
 if isempty(BirdsToKeep)
     BirdsToKeep = unique({SummaryStruct.birds.birdname}); % keep all birds
@@ -26,6 +31,11 @@ end
 if ~exist('BrainArea', 'var');
     BrainArea = {};
 end
+
+if ~exist('BatchesDesired', 'var')
+    BatchesDesired = {};
+end
+   
 
 if ~exist('ExptToKeep', 'var');
     ExptToKeep = {};
@@ -39,13 +49,17 @@ if ~exist('LearningOnly', 'var')
     LearningOnly = 0;
 end
 
+if ~exist('ChannelsDesired', 'var')
+    ChannelsDesired = [];
+end
+
 %% =====
 
 numbirds = length(SummaryStruct.birds);
 NeuronDatabase = struct;
 count = 1;
 
-SummarStruct_filtered = struct; % pulls out only the desired neurons
+SummaryStruct_filtered = struct; % pulls out only the desired neurons
 birdcounter = 1;
 for i=1:numbirds
     
@@ -85,12 +99,37 @@ for i=1:numbirds
             end
         end
         
+        if ~isempty(ChannelsDesired)
+            if ~any(SummaryStruct.birds(i).neurons(ii).channel == ChannelsDesired)
+                disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' not correct chan (' ...
+                    num2str(SummaryStruct.birds(i).neurons(ii).channel) ')']);
+                continue
+            end
+        end
+        
+        if ~isempty(BatchesDesired)
+            if ~any(strcmp(SummaryStruct.birds(i).neurons(ii).batchfilename, BatchesDesired))
+                disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' wrong batchname (' ...
+                    SummaryStruct.birds(i).neurons(ii).batchfilename ')']);
+                continue
+            end
+        end
+        
+        
         if LearningOnly==1
-           if isempty(SummaryStruct.birds(i).neurons(ii).LEARN_WNonDatestr)
+            if isempty(SummaryStruct.birds(i).neurons(ii).LEARN_WNonDatestr)
                              disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' (not learning)']);
                continue
            end
         end
+ 
+        if LearningOnly==2
+           if ~isempty(SummaryStruct.birds(i).neurons(ii).LEARN_WNonDatestr)
+                             disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' (is learning)']);
+               continue
+           end
+        end
+ 
         
         tmpstruct = SummaryStruct.birds(i).neurons(ii);
         disp(['---- EXTRACTING TO NEURON DATABASE ... ' SummaryStruct.birds(i).birdname ...
@@ -124,10 +163,10 @@ for i=1:numbirds
         count = count +1;
         
         % ====== keep in filtered summarystruct
-        SummarStruct_filtered.birds(birdcounter).neurons(neuroncounter) ...
+        SummaryStruct_filtered.birds(birdcounter).neurons(neuroncounter) ...
             = SummaryStruct.birds(i).neurons(ii);
         
-        SummarStruct_filtered.birds(birdcounter).birdname = birdname;
+        SummaryStruct_filtered.birds(birdcounter).birdname = birdname;
         
         neuroncounter = neuroncounter +1;
         
@@ -135,6 +174,19 @@ for i=1:numbirds
     birdcounter = birdcounter+1;
 end
 
+% ========== IF ANY BIRDS EMPTY, REMOVE
+birdstoremove = [];
+for i=1:length(SummaryStruct_filtered.birds)
+    if isempty(SummaryStruct_filtered.birds(i).neurons)
+        birdstoremove = [birdstoremove i];
+    end
+end
+
+SummaryStruct_filtered.birds(birdstoremove) = [];
+
+%% =========== POST INFO
 
 
+
+SummaryStruct_filtered = lt_neural_v2_PostInfo(SummaryStruct_filtered);
 

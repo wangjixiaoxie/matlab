@@ -542,11 +542,11 @@ lt_seq_dep_pitch_ACROSSBIRDS_PlotAllTraj(SeqDepPitch_AcrossBirds_filtered, PARAM
 
 %% ===== PLOT SPECTROGRAMS OF MOTIFS, SYLS, FOR EACH BIRD
 close all;
-plotForIllustrator=1; % then greater resolution
+plotForIllustrator=0; % then greater resolution
 
 % == to plot specific or all birds/expts [for all, keep both entries as '')
-PARAMS.PlotSpec.BirdToPlot='bk34bk68'; % make this empty to plot all birds/expts
-PARAMS.PlotSpec.ExptToPlot='SeqDepPitchLMAN';
+PARAMS.PlotSpec.BirdToPlot='pu11wh87'; % make this empty to plot all birds/expts
+PARAMS.PlotSpec.ExptToPlot='SeqDepPitchLMAN2';
 PARAMS.PlotSpec.PlotAcousticDist=1;
 PARAMS.PlotSpec.PlotGeneralization=0;
 % --- syls
@@ -1010,7 +1010,7 @@ ExcludeSeqLearning=0;
 ExcludeNotFullyLabeled=1; % ad hoc, expt with unresolvable holes. (e.g. reprobing, mistakes, see code)
 ExcludeIfHasSameDirBeforeDiffDir=1;
 ExcludeIfFirstTargDriveMore=1; % ad hoc, remove expt where first targ drove more.
-DaysToPlot=[3 9]; % [num days before bidir day 1, num days during bidir (inclusize)]
+DaysToPlot=[3 7]; % [num days before bidir day 1, num days during bidir (inclusize)]
 RawShowOnlySameType = 1; % if 0, then show all raw expts; if 1 then only if pairs are sametype.
 UseOldVersion = 1; % keep at 1.
 [SeqDepPitch_AcrossBirds_MULTIDIR, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_MULTIDIR_v2(SeqDepPitch_AcrossBirds, ...
@@ -1161,6 +1161,10 @@ DispEachSylCVpval=0; % if 1, lists p vals
 
 %% +++++++++++++++++++++++++++++++ LMAN BIDIR
 
+% BACKUP OF ORIGINAL FIGURE PARAMS
+lt_seq_dep_pitch_ACROSSBIRDS_BackupParams1;
+
+
 % ++++++++++++++++++++++++++= PLOT FOR BIDIR LEARNING
 close all;
 use_final_extracted_windows=1; % if 0, then uses end of consolid and end of bidir (early if no). if 1, then uses consolid end + final extracted bidir window (above)
@@ -1207,7 +1211,6 @@ PARAMS.LMANTimeCourse.BidirConsolPeriod_IndsFromBidirStart={...
 %       'wh25pk77', 'SeqDepPitchLMAN',[4 10], ...
 %       'bk34bk68', 'SeqDepPitchLMAN',[4 10]} % only keeping expt where is first phase
 
-
 [OUTPUT_multidir, DATSTRUCT_multidir] =lt_seq_dep_pitch_ACROSSBIRDS_LMANTimeCourse(SeqDepPitch_AcrossBirds_LMAN, PARAMS, OnlyConsolPeriod_bidir, BinRelConsolDay1, TakeAverageWithinExpt, NumDaysInBin, GetAutoConsolWindows);
 
 
@@ -1236,6 +1239,9 @@ PARAMS.LMANTimeCourse.SamedirConsolPeriod_IndsFromSamedirStart={...
 
 
 % ++++++++++++++++++++ SINGLE TARG
+% NOTE: extracts both second targ (defined by bidir/same dir experiment)
+% and mean across all other same-type syls
+
 close all;
 OnlyConsolPeriod_bidir=1; %  still locked to start of bidir, but only plots days that fall in this window
 BinRelConsolDay1=1; % if 0, then bins rel to bidir day 1
@@ -1336,6 +1342,34 @@ lt_seq_dep_pitch_ACROSSBIRDS_LMANtc_stats4(SeqDepPitch_AcrossBirds_LMAN, OUTPUT_
     OUTPUT_samedir, OUTPUT_singleTarg, DATSTRUCT_multidir, DATSTRUCT_samedir, ...
     DATSTRUCT_singleTarg,  DayBinToUse, AdHocExpt, TakeAvg, ExpToAvg); % using output structures
 
+
+% ====================== REVISIONS (5/8/17) - plotting smoothed trajectory
+% across experiments
+close all;
+% CHOOSE 2 OF BELOW
+OUTPUT_any = OUTPUT_multidir;
+DATSTRUCT_any = DATSTRUCT_multidir;
+OUTPUT_any = OUTPUT_samedir;
+DATSTRUCT_any = DATSTRUCT_samedir;
+OUTPUT_any = OUTPUT_singleTarg;
+DATSTRUCT_any = DATSTRUCT_singleTarg;
+
+
+lt_seq_dep_pitch_ACROSSBIRDS_ConsolTimecourse(OUTPUT_any, DATSTRUCT_any);
+
+
+% ============= ACROSS 3 TYPES OF EXPERIMENTS, AFP BIAS AT SECOND CONTEXT
+% PREDICT CONSOLIDATION?
+close all;
+OUTPUTMASTER = struct; % put all into one structure to allow iteration
+OUTPUTMASTER.OUTPUT_multidir=OUTPUT_multidir;
+OUTPUTMASTER.OUTPUT_samedir=OUTPUT_samedir;
+OUTPUTMASTER.OUTPUT_singleTarg=OUTPUT_singleTarg;
+OUTPUTMASTER.DATSTRUCT_multidir=DATSTRUCT_multidir;
+OUTPUTMASTER.DATSTRUCT_samedir=DATSTRUCT_samedir;
+OUTPUTMASTER.DATSTRUCT_singleTarg=DATSTRUCT_singleTarg;
+
+lt_seq_dep_pitch_ACROSSBIRDS_ConsolVsBias(OUTPUTMASTER);
 
 
 

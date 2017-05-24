@@ -10,11 +10,11 @@ function [FiringRateOut BurstFracOut]=lt_neural_CalMeanFiring(SegmentsExtract, P
 % Window_relOnset{1}=[-20 -18]; % window rel 1st syl onset
 % Window_relOnset{2}=[-3 -2.5]; % window rel 1st syl onset
 % Window_relOnset{3}=[-0.6 -0.1]; % and so on, can have as many windows as desired
-% 
+%
 % Window_relOffset{1}=[0.1 0.6]; % window rel last syl offset... can have as many as desired
 % Window_relOffset{2}=[2.5 3];
 % Window_relOffset{3}=[18 20];
-% 
+%
 % clustwanted=1; % wave_clus cluster
 
 % --- OUTPUTS
@@ -49,16 +49,16 @@ for kk=1:numtrials
     
     % -- FIND ONSET WINDOWED SPIKES
     for j=1:length(Window_relOnset)
-       wind=Window_relOnset{j};
-       wind=wind + Params.REGEXP.predur; % find times relative to inds, by adding predur
-       spktimes_wind= spktimes(spktimes>wind(1) & spktimes<wind(2));
+        wind=Window_relOnset{j};
+        wind=wind + Params.REGEXP.predur; % find times relative to inds, by adding predur
+        spktimes_wind= spktimes(spktimes>wind(1) & spktimes<wind(2));
         assert(Params.REGEXP.predur>=-Window_relOnset{j}(1), 'PROBLEM - not enough post dur data to get wind'); % maek sure have enough data to do this
-       
-       % output
-       WindowedDat.relMotifOnset(j).windTimes_thistrial(kk, :)=wind;
+        
+        % output
+        WindowedDat.relMotifOnset(j).windTimes_thistrial(kk, :)=wind;
         WindowedDat.relMotifOnset(j).spktimes_inWind{kk}=spktimes_wind;
         WindowedDat.relMotifOnset(j).numspikes(kk)=length(spktimes_wind);
-       WindowedDat.relMotifOnset(j).Window_relOnset=Window_relOnset{j};
+        WindowedDat.relMotifOnset(j).Window_relOnset=Window_relOnset{j};
     end
     
     
@@ -77,10 +77,10 @@ for kk=1:numtrials
         spktimes_wind= spktimes(spktimes>wind(1) & spktimes<wind(2));
         
         % optput
-       WindowedDat.relMotifOffset(j).windTimes_thistrial(kk, :)=wind;
+        WindowedDat.relMotifOffset(j).windTimes_thistrial(kk, :)=wind;
         WindowedDat.relMotifOffset(j).spktimes_inWind{kk}=spktimes_wind;
         WindowedDat.relMotifOffset(j).numspikes(kk)=length(spktimes_wind);
-       WindowedDat.relMotifOffset(j).Window_relOffset=Window_relOffset{j};
+        WindowedDat.relMotifOffset(j).Window_relOffset=Window_relOffset{j};
     end
     
     
@@ -88,12 +88,12 @@ for kk=1:numtrials
     wind(1)=Params.REGEXP.predur+motifwind(1);
     wind(2)=timeOfMotifOffset+motifwind(2);
     
-        spktimes_wind= spktimes(spktimes>wind(1) & spktimes<wind(2));
-        % optput
-       WindowedDat.entireMotif.windTimes_thistrial(kk, :)=wind;
-        WindowedDat.entireMotif.spktimes_inWind{kk}=spktimes_wind;
-        WindowedDat.entireMotif.numspikes(kk)=length(spktimes_wind);
-       WindowedDat.entireMotif.Window_relOnsetOffset=motifwind;
+    spktimes_wind= spktimes(spktimes>wind(1) & spktimes<wind(2));
+    % optput
+    WindowedDat.entireMotif.windTimes_thistrial(kk, :)=wind;
+    WindowedDat.entireMotif.spktimes_inWind{kk}=spktimes_wind;
+    WindowedDat.entireMotif.numspikes(kk)=length(spktimes_wind);
+    WindowedDat.entireMotif.Window_relOnsetOffset=motifwind;
 end
 
 %% ======== DIAGNOSTIC
@@ -101,18 +101,18 @@ if (0)
     % THIS IS USEFUL, PLOTS EACH TRIAL (SET i) SONG, SEGMENTS EXTRACTED,
     % AND SPIKES
     
-% for each trial, plot raster, plus data for segments
-lt_figure; hold on;
-i=15;
-
-Yspks_test={};
-
-% ---- PLOT FOR THIS TRIAL
-spktimes=SegmentsExtract(i).spk_Times(SegmentsExtract(i).spk_Clust == clustwanted);
+    % for each trial, plot raster, plus data for segments
+    lt_figure; hold on;
+    i=15;
+    
+    Yspks_test={};
+    
+    % ---- PLOT FOR THIS TRIAL
+    spktimes=SegmentsExtract(i).spk_Times(SegmentsExtract(i).spk_Clust == clustwanted);
     
     % -- plot spikes
     Yspks_test{1}=spktimes;
-[xbin, ymean, ysem, ymean_hz, ysem_hz] = lt_neural_plotRastMean(Yspks_test, 0.15, 0.05, 1, 'k');
+    [xbin, ymean, ysem, ymean_hz, ysem_hz] = lt_neural_plotRastMean(Yspks_test, 0.15, 0.05, 1, 'k');
     plot(xbin, ymean_hz, '-r');
     
     % -- plot song segment
@@ -156,7 +156,7 @@ spktimes=SegmentsExtract(i).spk_Times(SegmentsExtract(i).spk_Clust == clustwante
     dur=trialoff - trialon;
     srate=spnum/dur;
     line([trialoff trialon], [srate srate]);
-     line([trialoff trialoff], ylim, 'Color', 'm');
+    line([trialoff trialoff], ylim, 'Color', 'm');
     line([trialon trialon], ylim, 'Color', 'm');
 end
 
@@ -171,17 +171,17 @@ Xall_meantimes=[]; % each ind is one segment - put them in temporal order
 
 % === for each WINDOWED SEGMENT
 for j=1:length(WindowedDat.relMotifOnset)
-DATSTRUCT=WindowedDat.relMotifOnset(j);
-
-% -- collect
-alldurs=DATSTRUCT.windTimes_thistrial(:,2) ...
-    - DATSTRUCT.windTimes_thistrial(:,1);
-allsprates=DATSTRUCT.numspikes'./alldurs;
-allmeantimes=mean(DATSTRUCT.windTimes_thistrial, 2);
-
-Xall_meantimes = [Xall_meantimes mean(allmeantimes)];
-Yall_rates  = [Yall_rates allsprates];
-Xall_times = [Xall_times allmeantimes];
+    DATSTRUCT=WindowedDat.relMotifOnset(j);
+    
+    % -- collect
+    alldurs=DATSTRUCT.windTimes_thistrial(:,2) ...
+        - DATSTRUCT.windTimes_thistrial(:,1);
+    allsprates=DATSTRUCT.numspikes'./alldurs;
+    allmeantimes=mean(DATSTRUCT.windTimes_thistrial, 2);
+    
+    Xall_meantimes = [Xall_meantimes mean(allmeantimes)];
+    Yall_rates  = [Yall_rates allsprates];
+    Xall_times = [Xall_times allmeantimes];
 end
 
 % ==== DUR MOTIF
@@ -202,16 +202,16 @@ Xall_times = [Xall_times allmeantimes];
 for j=1:length(WindowedDat.relMotifOffset)
     
     DATSTRUCT=WindowedDat.relMotifOffset(j);
-
-% -- collect
-alldurs=DATSTRUCT.windTimes_thistrial(:,2) ...
-    - DATSTRUCT.windTimes_thistrial(:,1);
-allsprates=DATSTRUCT.numspikes'./alldurs;
-allmeantimes=mean(DATSTRUCT.windTimes_thistrial, 2);
-
-Xall_meantimes = [Xall_meantimes mean(allmeantimes)];
-Yall_rates  = [Yall_rates allsprates];
-Xall_times = [Xall_times allmeantimes];
+    
+    % -- collect
+    alldurs=DATSTRUCT.windTimes_thistrial(:,2) ...
+        - DATSTRUCT.windTimes_thistrial(:,1);
+    allsprates=DATSTRUCT.numspikes'./alldurs;
+    allmeantimes=mean(DATSTRUCT.windTimes_thistrial, 2);
+    
+    Xall_meantimes = [Xall_meantimes mean(allmeantimes)];
+    Yall_rates  = [Yall_rates allsprates];
+    Xall_times = [Xall_times allmeantimes];
 end
 
 % +++++++++++++++++ PLOT
@@ -232,7 +232,7 @@ lt_plot(xmean, ymean, {'Errors', ysem, 'LineStyle', '-'})
 % ==== all trials (not real times)
 lt_subplot(3,1,2); hold on;
 title('firing rate, each window');
-% each trial 
+% each trial
 plot(1:x, Yall_rates', '-', 'Color', [0.5 0.5 0.5]);
 % - mean
 xmean=mean(Xall_times);
@@ -271,22 +271,22 @@ Yall_FracSpInbursts=[];
 windowname='relMotifOnset';
 for j=1:length(WindowedDat.(windowname))
     
-DATSTRUCT=WindowedDat.(windowname)(j);
-
-% -- collect
-tmp=cellfun(@diff, DATSTRUCT.spktimes_inWind, 'UniformOutput', 0); % get all isi
-allISI=cell2mat(tmp);
-% -- fraction of neurons in bursts
-fracbursts=sum(allISI<ISIthreshburst)/length(allISI);
-Yall_FracSpInbursts=[Yall_FracSpInbursts fracbursts];
-% -- plot
-[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-title(['segment: ' windowname]);
-allISI=allISI*1000; % convert to ms
-lt_plot_histogram(allISI, xcenters, 1, 1, 1, 1, 'k');
-logx
-xlim([0 1000]);
-set(gca, 'XTick', [1 5 10 100 1000]);
+    DATSTRUCT=WindowedDat.(windowname)(j);
+    
+    % -- collect
+    tmp=cellfun(@diff, DATSTRUCT.spktimes_inWind, 'UniformOutput', 0); % get all isi
+    allISI=cell2mat(tmp);
+    % -- fraction of neurons in bursts
+    fracbursts=sum(allISI<ISIthreshburst)/length(allISI);
+    Yall_FracSpInbursts=[Yall_FracSpInbursts fracbursts];
+    % -- plot
+    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+    title(['segment: ' windowname]);
+    allISI=allISI*1000; % convert to ms
+    lt_plot_histogram(allISI, xcenters, 1, 1, 1, 1, 'k');
+    logx
+    xlim([0 1000]);
+    set(gca, 'XTick', [1 5 10 100 1000]);
 end
 
 % ==== DUR MOTIF
@@ -313,22 +313,22 @@ set(gca, 'XTick', [1 5 10 100 1000]);
 windowname='relMotifOffset';
 for j=1:length(WindowedDat.(windowname))
     
-DATSTRUCT=WindowedDat.(windowname)(j);
-
-% -- collect
-tmp=cellfun(@diff, DATSTRUCT.spktimes_inWind, 'UniformOutput', 0); % get all isi
-allISI=cell2mat(tmp);
-% -- fraction of neurons in bursts
-fracbursts=sum(allISI<ISIthreshburst)/length(allISI);
-Yall_FracSpInbursts=[Yall_FracSpInbursts fracbursts];
-% -- plot
-[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-title(['segment: ' windowname]);
-allISI=allISI*1000; % convert to ms
-lt_plot_histogram(allISI, xcenters, 1, 1, 1, 1, 'k');
-logx
-xlim([0 1000]);
-set(gca, 'XTick', [1 5 10 100 1000]);
+    DATSTRUCT=WindowedDat.(windowname)(j);
+    
+    % -- collect
+    tmp=cellfun(@diff, DATSTRUCT.spktimes_inWind, 'UniformOutput', 0); % get all isi
+    allISI=cell2mat(tmp);
+    % -- fraction of neurons in bursts
+    fracbursts=sum(allISI<ISIthreshburst)/length(allISI);
+    Yall_FracSpInbursts=[Yall_FracSpInbursts fracbursts];
+    % -- plot
+    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+    title(['segment: ' windowname]);
+    allISI=allISI*1000; % convert to ms
+    lt_plot_histogram(allISI, xcenters, 1, 1, 1, 1, 'k');
+    logx
+    xlim([0 1000]);
+    set(gca, 'XTick', [1 5 10 100 1000]);
 end
 
 
@@ -344,19 +344,19 @@ ccount=1;
 windowname='relMotifOnset';
 for j=1:length(WindowedDat.(windowname))
     
-DATSTRUCT=WindowedDat.(windowname)(j);
-
-% -- collect
-tmp=cellfun(@diff, DATSTRUCT.spktimes_inWind, 'UniformOutput', 0); % get all isi
-allISI=cell2mat(tmp);
-% -- plot
-allISI=allISI*1000; % convert to ms
-lt_plot_cdf(allISI, plotcols{ccount}, 0);
-lt_plot_text(50+600*rand, 0.2 , num2str(ccount), plotcols{ccount});
-logx; xlim([0 1000]);
-set(gca, 'XTick', [1 5 10 100 1000]);
-
-ccount=ccount+1;
+    DATSTRUCT=WindowedDat.(windowname)(j);
+    
+    % -- collect
+    tmp=cellfun(@diff, DATSTRUCT.spktimes_inWind, 'UniformOutput', 0); % get all isi
+    allISI=cell2mat(tmp);
+    % -- plot
+    allISI=allISI*1000; % convert to ms
+    lt_plot_cdf(allISI, plotcols{ccount}, 0);
+    lt_plot_text(50+600*rand, 0.2 , num2str(ccount), plotcols{ccount});
+    logx; xlim([0 1000]);
+    set(gca, 'XTick', [1 5 10 100 1000]);
+    
+    ccount=ccount+1;
 end
 
 % ==== DUR MOTIF
@@ -380,19 +380,19 @@ ccount=ccount+1;
 windowname='relMotifOffset';
 for j=1:length(WindowedDat.(windowname))
     
-DATSTRUCT=WindowedDat.(windowname)(j);
-
-% -- collect
-tmp=cellfun(@diff, DATSTRUCT.spktimes_inWind, 'UniformOutput', 0); % get all isi
-allISI=cell2mat(tmp);
-% -- plot
-allISI=allISI*1000; % convert to ms
-lt_plot_cdf(allISI, plotcols{ccount}, 0);
-lt_plot_text(50+600*rand, 0.2 , num2str(ccount), plotcols{ccount});
-logx; xlim([0 1000]);
-set(gca, 'XTick', [1 5 10 100 1000]);
-
-ccount=ccount+1;
+    DATSTRUCT=WindowedDat.(windowname)(j);
+    
+    % -- collect
+    tmp=cellfun(@diff, DATSTRUCT.spktimes_inWind, 'UniformOutput', 0); % get all isi
+    allISI=cell2mat(tmp);
+    % -- plot
+    allISI=allISI*1000; % convert to ms
+    lt_plot_cdf(allISI, plotcols{ccount}, 0);
+    lt_plot_text(50+600*rand, 0.2 , num2str(ccount), plotcols{ccount});
+    logx; xlim([0 1000]);
+    set(gca, 'XTick', [1 5 10 100 1000]);
+    
+    ccount=ccount+1;
 end
 
 
@@ -401,7 +401,7 @@ end
 title('frac spikes in bursts');
 xlabel('window');
 plot(Yall_FracSpInbursts, '-ok');
-
+ylim([0 1]);
 BurstFracOut.Yall_FracSpInbursts=Yall_FracSpInbursts;
 
 

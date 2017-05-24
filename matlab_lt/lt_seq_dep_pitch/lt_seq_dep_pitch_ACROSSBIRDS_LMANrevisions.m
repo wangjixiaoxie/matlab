@@ -618,6 +618,7 @@ rotateXLabels(gca, 45)
 
 %% == regression analysis (plots, but no regression here)
 % --- temp, plotting as in regression analysis
+if (0)
 inds = find(TargStatus_all==0 & SimDiff_all==1); % (nontarg context)
 lt_figure; hold on;
 ylabel('nontarg, ff'); xlabel('targ, ff');
@@ -638,6 +639,59 @@ for i=1:length(inds)
     plot(FFmusc_targ, FFmusc_nontarg, 'or');
     line([FFpbs_targ FFmusc_targ], [FFpbs_nontarg FFmusc_nontarg], 'Color', 'k');
 end 
+
+line(xlim, [0 0], 'Color', 'k');
+line([0 0], ylim, 'Color', 'k');
+line([0 200], [0 200], 'Color', 'k');
+end
+
+
+% --- Revision version
+inds = find(TargStatus_all==0 & SimDiff_all==1); % (nontarg context)
+lt_figure; hold on;
+ylabel('nontarg, ff'); xlabel('targ, ff');
+title('blue = pbs; red = musc');
+
+FFpbs_targ_all = [];
+FFpbs_nontarg_all = [];
+FFmusc_targ_all = [];
+FFmusc_nontarg_all = [];
+
+for i=1:length(inds)
+    ind = inds(i);
+    
+    FFpbs_nontarg = LearningPBS_all(ind);
+    FFmusc_nontarg = MPbias_all(ind);
+    
+    exptcount = Expt_count_all(ind);
+    indtmp = TargStatus_all==1 & Expt_count_all==exptcount;
+    FFpbs_targ = LearningPBS_all(indtmp);
+    FFmusc_targ = MPbias_all(indtmp);
+    
+    lt_subplot(1,2,1); hold on;
+    plot(FFpbs_targ, FFpbs_nontarg, 'ob');
+    
+    lt_subplot(1,2,2); hold on;
+    plot(FFmusc_targ, FFmusc_nontarg, 'or');
+    
+    % -- collect
+    FFpbs_targ_all = [FFpbs_targ_all FFpbs_targ];
+    FFpbs_nontarg_all = [FFpbs_nontarg_all FFpbs_nontarg];
+    
+    FFmusc_targ_all = [FFmusc_targ_all FFmusc_targ];
+    FFmusc_nontarg_all = [FFmusc_nontarg_all FFmusc_nontarg];
+end 
+
+% regression
+    lt_subplot(1,2,1); hold on;
+[b, bint] = lt_regress(FFpbs_nontarg_all, FFpbs_targ_all, 0, 0, 1, 1, 'b', 1); % pbs
+disp(b); disp(bint);
+line(xlim, [0 0], 'Color', 'k');
+line([0 0], ylim, 'Color', 'k');
+line([0 200], [0 200], 'Color', 'k');
+    lt_subplot(1,2,2); hold on;
+[b, bint] = lt_regress(FFmusc_nontarg_all, FFmusc_targ_all, 0, 0, 1, 1, 'r', 1); % pbs
+disp(b); disp(bint);
 
 line(xlim, [0 0], 'Color', 'k');
 line([0 0], ylim, 'Color', 'k');
@@ -753,6 +807,65 @@ plot(ReversionMultiplierList, ReversionHzAll);
 % 3) what is p-value and effect size?
 
 % 4) repeat steps 2 and 3 to get distribution of effect sizes
+
+
+% ====== METHOD 4
+% 1) estimate mean reversion (as percent) in target
+inds=TargStatus_all==1;
+ReversionFraction = 1 - mean(MPbias_all(inds)./LearningPBS_all(inds)); % mean of % reversions
+% ReversionFraction = 1 - mean(MPbias_all(inds))/mean(LearningPBS_all(inds)); % mean of % reversions
+
+% 2) get noise distribiton of reversion (as devieation in hz from percent
+% reversion)
+NoiseResiduals = MPbias_all(inds) - (1-ReversionFraction)*LearningPBS_all(inds); % actual minus predicted based on mean reversion (in hz)
+NoiseResiduals = NoiseResiduals - mean(NoiseResiduals);% center it
+% model as gaussian
+pd = fitdist(NoiseResiduals', 'Normal');
+
+% 3) take nontarget and simulate by applying percent reversion + noise
+inds = find(TargStatus_all==0 & SimDiff_all==1); % (nontarg context)
+NCycles = 1000;
+PvalsAll = [];
+lt_figure; hold on;
+for nn=1:NCycles
+
+    MPbias_Sim = (1-ReversionFraction)*LearningPBS_all(inds); % simulate reversion (will then add noise on top)
+
+    % add noise to each value
+    noisevals = pd.random(1, length(inds)); % random samples from noise distribution
+    MPbias_Sim = MPbias_Sim + noisevals;
+    p = signrank(LearningPBS_all(inds), MPbias_Sim);  % simulate sign rank
+    
+    PvalsAll = [PvalsAll p];
+    % MeanReversionHzAll = [MeanReversionHzAll mean(
+    
+    if (0)
+        lt_figure; hold on; plot([1 2], [LearningPBS_all(inds)' MPbias_Sim'], 'o-');
+        lt_plot_pvalue(p, '', 1);
+        pause
+        close all;
+% plot(1:length(noisevals), noisevals, 'o');
+% pause
+
+    end
+    
+end
+% plot
+lt_figure; hold on;
+lt_subplot(2,1,1); hold on;
+xlabel('p val from individual sim'); ylabel('cum prob');
+title('1) apply % reversion 2) add hz noise');
+lt_plot_cdf(PvalsAll, 'k', 0);
+preal = signrank(LearningPBS_all(inds), MPbias_all(inds));
+line([preal preal], ylim, 'Color', 'r');
+lt_plot_text(preal, 0, 'pval for actual dat', 'r');
+
+lt_subplot(2,1,2); hold on;
+xlabel('p val from individual sim'); ylabel('prob dens');
+title('1) apply % reversion 2) add hz noise');
+lt_plot_histogram(PvalsAll, '', 1, 1, '', 1, 'k');
+line([preal preal], ylim, 'Color', 'r');
+lt_plot_text(preal, 0, 'pval for actual dat', 'r');
 
 
 %% === COMPARE TO WARREN, ANDALMAN AND FEE.
@@ -912,9 +1025,15 @@ for ll = 1:length(LearningMinList)
         % --- ASK IF REVERSION IS DIFF BETWEEN THE TWO CONTEXTS
                 p = ranksum(Ylearn_raw{1}-YMP_raw{1}, Ylearn_raw{2}-YMP_raw{2});
                 if p<0.15;
-                    lt_plot_text(count+1.5, 1.2*max(Ylearn_raw{1}), ['(rever)p=' num2str(p, '%3.2g')], 'r')
+                    lt_plot_text(count+1.5, 1.2*max(Ylearn_raw{1}), ['(reverHz)p=' num2str(p, '%3.2g')], 'r')
                 end
                 
+                % --- is reversion (%) diff?
+                p = ranksum((Ylearn_raw{1}-YMP_raw{1})./Ylearn_raw{1}, (Ylearn_raw{2}-YMP_raw{2})./Ylearn_raw{2});
+                
+                if p<0.3
+                    lt_plot_text(count+1.5, 1.4*max(Ylearn_raw{1}), ['(rever%)p=' num2str(p, '%3.2g')], 'g')                    
+                end
                 
                 % --- ask if the learning is diff between contexts
                  p = ranksum(Ylearn_raw{1}, Ylearn_raw{2});

@@ -161,7 +161,7 @@ for i=1:NumBirds;
         
         % -- fill in musc days
         X=days_with_musc_relWNday1;
-        Y=CountExpt*ones(1, 1:length(X));
+        Y=CountExpt*ones(1, length(X));
         
         plot(X, Y, 'ok', 'MarkerFaceColor','k')
         
@@ -279,7 +279,9 @@ for i=1:NumBirds;
             end
         end
            
-            
+        % --------- FIGURE OUT WHAT ARE SAME-TYPES
+        SameTypeSyls = [SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique_STDS ...
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.SylFields_Unique_STSS];
         
        
     
@@ -299,6 +301,9 @@ for i=1:NumBirds;
         DATSTRUCT_FirstWNDayIndEqualsOne.secondtarg(ExptCount).FFminusBase_Mean_PBS=nan(1, WNlastday-WNday1+1);
         DATSTRUCT_FirstWNDayIndEqualsOne.secondtarg(ExptCount).FFminusBase_Mean_MUSC=nan(1, WNlastday-WNday1+1);
 
+        DATSTRUCT_FirstWNDayIndEqualsOne.meanOfSameType(ExptCount).FFminusBase_Mean_PBS=nan(1, WNlastday-WNday1+1);
+        DATSTRUCT_FirstWNDayIndEqualsOne.meanOfSameType(ExptCount).FFminusBase_Mean_MUSC=nan(1, WNlastday-WNday1+1);
+       
         
         
         % ====== PBS - COLLECT ALL DAYS THAT ARE POSSIBLE
@@ -340,6 +345,22 @@ for i=1:NumBirds;
             DATSTRUCT_FirstWNDayIndEqualsOne.secondtarg(ExptCount).FFminusBase_Mean_PBS(postWNDay)=ffmean;
             end
             
+            
+            % ----- MEAN OF SAME TYPES (take mean of means)
+            if ~isempty(SameTypeSyls)
+                ffmeanall = [];
+                for k=1:length(SameTypeSyls)
+                   syltmp = SameTypeSyls{k};
+                   ffmean = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix.(syltmp).meanFF_DevFromBase_WithinTimeWindow(day);
+                   
+                   ffmeanall = [ffmeanall ffmean];
+                end
+                
+                
+                DATSTRUCT_FirstWNDayIndEqualsOne.meanOfSameType(ExptCount).FFminusBase_Mean_PBS(postWNDay)=...
+                    mean(ffmeanall);
+            end
+            
         end
         
         
@@ -377,6 +398,22 @@ for i=1:NumBirds;
             
             DATSTRUCT_FirstWNDayIndEqualsOne.secondtarg(ExptCount).FFminusBase_Mean_MUSC(postWNDay)=ffmean;
             end
+            
+            
+            % ----- MEAN OF SAME TYPES (take mean of means)
+            if ~isempty(SameTypeSyls)
+                ffmeanall = [];
+                for k=1:length(SameTypeSyls)
+                   syltmp = SameTypeSyls{k};
+                   ffmean = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.AllDays_PlotLearning.DataMatrix_MUSC.(syltmp).meanFF_DevFromBase_WithinTimeWindow(day);
+                   
+                   ffmeanall = [ffmeanall ffmean];
+                end
+                
+                
+                DATSTRUCT_FirstWNDayIndEqualsOne.meanOfSameType(ExptCount).FFminusBase_Mean_MUSC(postWNDay)=...
+                    mean(ffmeanall);
+            end
 
         end
         
@@ -401,6 +438,8 @@ for i=1:NumBirds;
         DATSTRUCT_FirstWNDayIndEqualsOne.INFORMATION(ExptCount).exptname=exptname;
         DATSTRUCT_FirstWNDayIndEqualsOne.INFORMATION(ExptCount).targ_learn_dir=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targ_learn_dir;
         DATSTRUCT_FirstWNDayIndEqualsOne.INFORMATION(ExptCount).ImportantInds_relWNday1=ImportantInds;
+        DATSTRUCT_FirstWNDayIndEqualsOne.INFORMATION(ExptCount).SameTypeSyls=SameTypeSyls;
+        
         ExptCount=ExptCount+1;
         
     end
@@ -759,9 +798,11 @@ if BinRelConsolDay1==0;
         
         OUTPUT.INFORMATION(i).experimentNum=[];
         
-                OUTPUT.secondtarg.FFrelBaseInBin(i).MUSC=[];
+        OUTPUT.secondtarg.FFrelBaseInBin(i).MUSC=[];
         OUTPUT.secondtarg.FFrelBaseInBin(i).PBS=[];
 
+        OUTPUT.meanOfSameType.FFrelBaseInBin(i).MUSC=[];
+        OUTPUT.meanOfSameType.FFrelBaseInBin(i).PBS=[];
         
         DaysInBin=DayBins_StartEdges(i):DayBins_StartEdges(i)+NumDaysInBin-1;
         
@@ -854,6 +895,17 @@ if BinRelConsolDay1==0;
                 OUTPUT.secondtarg.FFrelBaseInBin(i).PBS=[OUTPUT.secondtarg.FFrelBaseInBin(i).PBS ffPBS];
                
                 
+                % ======================== Mean of same type
+                ffMUSC=DATSTRUCT_FirstWNDayIndEqualsOne.meanOfSameType(j).FFminusBase_Mean_MUSC(day); % MUSC
+                ffPBS=DATSTRUCT_FirstWNDayIndEqualsOne.meanOfSameType(j).FFminusBase_Mean_PBS(day); % PBS
+                
+                % --- flip sign if learning was neg
+                ffMUSC=ffMUSC*DATSTRUCT_FirstWNDayIndEqualsOne.INFORMATION(j).targ_learn_dir;
+                ffPBS=ffPBS*DATSTRUCT_FirstWNDayIndEqualsOne.INFORMATION(j).targ_learn_dir;
+                                                  
+                OUTPUT.meanOfSameType.FFrelBaseInBin(i).MUSC=[OUTPUT.meanOfSameType.FFrelBaseInBin(i).MUSC ffMUSC];
+                OUTPUT.meanOfSameType.FFrelBaseInBin(i).PBS=[OUTPUT.meanOfSameType.FFrelBaseInBin(i).PBS ffPBS];
+                
                 
                 % ===== INFORMATION
                 
@@ -894,6 +946,8 @@ elseif BinRelConsolDay1==1;
         OUTPUT.secondtarg.FFrelBaseInBin(i).MUSC=[];
         OUTPUT.secondtarg.FFrelBaseInBin(i).PBS=[];
 
+        OUTPUT.meanOfSameType.FFrelBaseInBin(i).MUSC=[];
+        OUTPUT.meanOfSameType.FFrelBaseInBin(i).PBS=[];
         
         DaysInBin=DayBins_StartEdges(i):DayBins_StartEdges(i)+NumDaysInBin-1;
         
@@ -992,6 +1046,22 @@ elseif BinRelConsolDay1==1;
                 OUTPUT.secondtarg.FFrelBaseInBin(daybin).PBS=[OUTPUT.secondtarg.FFrelBaseInBin(daybin).PBS ffPBS];
                
                 
+                
+                
+                % =============== MEAN OF SAME TYPE
+                ffMUSC=DATSTRUCT_FirstWNDayIndEqualsOne.meanOfSameType(j).FFminusBase_Mean_MUSC(day); % MUSC
+                ffPBS=DATSTRUCT_FirstWNDayIndEqualsOne.meanOfSameType(j).FFminusBase_Mean_PBS(day); % PBS
+                
+                % --- flip sign if learning was neg
+                ffMUSC=ffMUSC*DATSTRUCT_FirstWNDayIndEqualsOne.INFORMATION(j).targ_learn_dir;
+                ffPBS=ffPBS*DATSTRUCT_FirstWNDayIndEqualsOne.INFORMATION(j).targ_learn_dir;
+                                                  
+                OUTPUT.meanOfSameType.FFrelBaseInBin(daybin).MUSC=[OUTPUT.meanOfSameType.FFrelBaseInBin(daybin).MUSC ffMUSC];
+                OUTPUT.meanOfSameType.FFrelBaseInBin(daybin).PBS=[OUTPUT.meanOfSameType.FFrelBaseInBin(daybin).PBS ffPBS];
+                
+                
+                
+                
                 % ===== INFORMATION
                 
                 OUTPUT.INFORMATION(daybin).experimentNum=[OUTPUT.INFORMATION(daybin).experimentNum j];
@@ -1074,6 +1144,9 @@ for i=1:NumBins
     MUSC_st=OUTPUT.secondtarg.FFrelBaseInBin(i).MUSC;
     PBS_st=OUTPUT.secondtarg.FFrelBaseInBin(i).PBS;
     
+    MUSC_meansametype = OUTPUT.meanOfSameType.FFrelBaseInBin(i).MUSC;
+    PBS_meansametype = OUTPUT.meanOfSameType.FFrelBaseInBin(i).PBS;
+    
     
     % === prepare output
     Exptnum_out=[];
@@ -1082,6 +1155,9 @@ for i=1:NumBins
     
     MUSC_st_out=[];
     PBS_st_out=[];
+    
+    MUSC_meansametype_out = [];
+    PBS_meansametype_out = [];
     
     hr_first_PBS_out=[];
     hr_first_MUSC_out=[];
@@ -1099,6 +1175,9 @@ for i=1:NumBins
                 pbs_ft=mean(PBS_ft(inds));
                 musc_st=mean(MUSC_st(inds));
                 pbs_st=mean(PBS_st(inds));
+                musc_meanst=mean(MUSC_meansametype(inds));
+                pbs_meanst=mean(PBS_meansametype(inds));
+                
                 
             hr_ft_pbs=mean(hr_first_PBS(inds));
             hr_ft_musc=mean(hr_first_MUSC(inds));
@@ -1110,6 +1189,8 @@ for i=1:NumBins
             PBS_ft_out=[PBS_ft_out pbs_ft];
             MUSC_st_out=[MUSC_st_out musc_st];
             PBS_st_out=[PBS_st_out pbs_st];
+            MUSC_meansametype_out = [MUSC_meansametype_out musc_meanst];
+            PBS_meansametype_out = [PBS_meansametype_out pbs_meanst];
             
             hr_first_PBS_out=[hr_first_PBS_out hr_ft_pbs];
             hr_first_MUSC_out=[hr_first_MUSC_out hr_ft_musc];
@@ -1133,7 +1214,8 @@ for i=1:NumBins
     OUTPUT_WithinExptAvg.secondtarg.FFrelBaseInBin(i).MUSC=MUSC_st_out;
     OUTPUT_WithinExptAvg.secondtarg.FFrelBaseInBin(i).PBS=PBS_st_out;
 
-    
+    OUTPUT_WithinExptAvg.meanOfSameType.FFrelBaseInBin(i).MUSC=MUSC_meansametype_out;
+    OUTPUT_WithinExptAvg.meanOfSameType.FFrelBaseInBin(i).PBS=PBS_meansametype_out;
 end
 
 

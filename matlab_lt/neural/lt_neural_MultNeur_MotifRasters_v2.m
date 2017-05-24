@@ -201,12 +201,15 @@ for m=1:NumMotifs
             end
         end
     end
-    if isempty(songdat)
+    while isempty(songdat)
         % then pick a random song
         i=randi(NumNeurons,1);
         j=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
+        try % since some neurons will not have data
         songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
         fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+        catch err
+        end
     end
     
     % --- plot
@@ -301,12 +304,15 @@ for m=1:NumMotifs
             end
         end
     end
-    if isempty(songdat)
+    while isempty(songdat)
         % then pick a random song
         i=randi(NumNeurons,1);
         j=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
-        songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+        try
+songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
         fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+        catch err
+        end
     end
     
     % --- plot

@@ -20,7 +20,9 @@ hfigs=[];
         Similar_AllExpts=[];
         HitRate_AllExpts=[];
         LearningRelTarg_AllExpts=[];
-
+        IsTarg_AllExpts = [];
+        LearningHz_AllExpts = [];
+        
 for i=1:NumBirds;
     
     numexperiments=length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
@@ -46,6 +48,10 @@ for i=1:NumBirds;
             SylList_all=[SylList_all syl];
             SylList_AllExpts=[SylList_AllExpts syl];
             
+            % -- is targ?
+            istarg = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).is_target;
+            IsTarg_AllExpts = [IsTarg_AllExpts istarg];
+            
             % --- note if similar/diff
             similar=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).similar_to_targ;
             Similar_all=[Similar_all similar];
@@ -55,12 +61,16 @@ for i=1:NumBirds;
             % of consolid day (i.e. time used for quantifying learning)
             
             day1=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.WNTimeOnInd; % 1st WN day
-            if PARAMS.global.learning_metric=='zscore';
-                day2=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.TargPassLearnThresh.DayInds(end);
-            elseif PARAMS.global.learning_metric=='ff_consolstart';
-            day2=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.ConsolStartInd+SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.Consol_DayBins-1; % last day in quahntified period (e.g. consol start).
+            if (0) % actually just taking first 4 days, since that is what I used for learning
+                if PARAMS.global.learning_metric=='zscore';
+                    day2=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_ZSCORE.Epoch.TargPassLearnThresh.DayInds(end);
+                elseif PARAMS.global.learning_metric=='ff_consolstart';
+                    day2=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.ConsolStartInd+SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.Consol_DayBins-1; % last day in quahntified period (e.g. consol start).
+                end
+            else
+            day2 = day1+3;
             end
-                
+            
             numhits_all=sum(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed.(syl).HIT_RATE_overdays.NumHits(day1:day2));
             numtotal_all=sum(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed.(syl).HIT_RATE_overdays.NumTotal(day1:day2));
             
@@ -73,10 +83,16 @@ for i=1:NumBirds;
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.Inds_WNon_to_ConsolStartBin=day1:day2;
             
             % --- Collect learning
+            if (0)
             learning_rel_targ=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.consolid_start_rel_targ;
+            else
+                learning_rel_targ = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.mean_rel_targ;
+                learning_hz = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.mean;
+                learning_hz = learning_hz * SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targ_learn_dir;
+            end
             LearningRelTarg_all=[LearningRelTarg_all learning_rel_targ];
             LearningRelTarg_AllExpts=[LearningRelTarg_AllExpts learning_rel_targ];
-            
+            LearningHz_AllExpts = [LearningHz_AllExpts learning_hz];
             
         end
         % === PLOT (scatter for each expt)
@@ -112,7 +128,7 @@ for i=1:NumBirds;
     end
 end
 
-% --- PLOT ACROSS ALL EXPERIMENTS
+%% --- PLOT ACROSS ALL EXPERIMENTS
 lt_figure; hold on;
 
 lt_subplot(1,3,1); hold on;
@@ -229,6 +245,218 @@ errorbar(mean(X_sorted(halfind+1:end)), mean(Y_sorted(halfind+1:end)), lt_sem(Y_
 
 
 
+%% ========= NEW FIGS
+
+lt_figure; hold on;
+
+% ======== 1) cdf of hit rate on targ
+lt_subplot(3,2,1); hold on;
+
+% - targ
+inds = IsTarg_AllExpts==1;
+plotcol = 'k';
+
+Y = HitRate_AllExpts(inds);
+if (0)
+    lt_plot_cdf(Y, plotcol, 0);
+end
+
+% - pdf
+lt_plot_histogram(100*Y, '', 1, 1, '', '', plotcol)
+lt_plot_text(50, 0.2, ['N=' num2str(length(Y))]);
 
 
+% ========== 2) pdf only
+lt_subplot(3,2,2); hold on;
+Xcenters = 0.0025:0.005:(0.02+max(HitRate_AllExpts(IsTarg_AllExpts==0)));
+
+% === SAME
+inds = IsTarg_AllExpts==0 & Similar_AllExpts==1;
+plotcol = 'b';
+
+Y = HitRate_AllExpts(inds);
+% - pdf
+lt_plot_histogram(100*Y, 100*Xcenters, 1, 1, '', '', plotcol)
+lt_plot_text(1, 0.5, ['N=' num2str(length(Y))], plotcol);
+
+% ---------- difftype
+inds = Similar_AllExpts==0;
+plotcol = 'r';
+
+Y = HitRate_AllExpts(inds);
+% - pdf
+lt_plot_histogram(100*Y, 100*Xcenters, 1, 1, '', '', plotcol)
+lt_plot_text(1, 0.5, ['N=' num2str(length(Y))], plotcol);
+
+
+
+% ===================== CORRELATION BETWEEN GENERALIZATION AND HIT RATE?
+% -- targ
+lt_subplot(3,2,3); hold on;
+title('targ');
+xlabel('Hit rate');
+ylabel('Learning (hz)');
+inds = IsTarg_AllExpts==1;
+plotcol = 'k';
+
+X = HitRate_AllExpts(inds);
+Y = LearningHz_AllExpts(inds);
+
+lt_regress(Y, X, 1, 0, 1, 1, plotcol, 0);
+
+
+% === nontarg
+lt_subplot(3,2,4); hold on;
+xlabel('Hit rate');
+ylabel('Learning (hz)');
+
+% - same
+inds = IsTarg_AllExpts==0 & Similar_AllExpts==1;
+plotcol = 'b';
+
+X = HitRate_AllExpts(inds);
+Y = LearningHz_AllExpts(inds);
+
+lt_regress(Y, X, 1, 0, 1, 1, plotcol, 0);
+
+% diff
+inds = Similar_AllExpts==0;
+plotcol = 'r';
+
+X = HitRate_AllExpts(inds);
+Y = LearningHz_AllExpts(inds);
+
+lt_regress(Y, X, 1, 0, 1, 1, plotcol, 0);
+
+% === nontarg [SEPARATE INTO NO HITS AND >0 HITS]
+lt_subplot(3,2,5); hold on;
+title('same'); 
+xlabel('no hit - hit');
+ylabel('ff shift, targ dir');
+
+% - same
+inds = IsTarg_AllExpts==0 & Similar_AllExpts==1;
+plotcol = 'b';
+
+X = HitRate_AllExpts(inds)>0;
+Y = LearningHz_AllExpts(inds);
+plot(X,Y, 'o');
+
+Ymean = [];
+Ysem = [];
+Ymean(1) = mean(Y(X==0)); % mean learning for those ina  hit rate class
+Ymean(2) = mean(Y(X==1)); % mean learning for those ina  hit rate class
+Ysem(1) = lt_sem(Y(X==0));
+Ysem(2) = lt_sem(Y(X==1));
+
+lt_plot_bar([0 1], Ymean, {'Errors', Ysem});
+p = ranksum(Y(X==0), Y(X==1));
+lt_plot_pvalue(p);
+
+
+
+
+% ----------- diff
+lt_subplot(3,2,6); hold on;
+title('diff');
+
+inds = Similar_AllExpts==0;
+plotcol = 'r';
+
+X = HitRate_AllExpts(inds)>0;
+Y = LearningHz_AllExpts(inds);
+plot(X,Y, 'o');
+
+Ymean = [];
+Ysem = [];
+Ymean(1) = mean(Y(X==0)); % mean learning for those ina  hit rate class
+Ymean(2) = mean(Y(X==1)); % mean learning for those ina  hit rate class
+Ysem(1) = lt_sem(Y(X==0));
+Ysem(2) = lt_sem(Y(X==1));
+
+lt_plot_bar([0 1], Ymean, {'Errors', Ysem});
+p = ranksum(Y(X==0), Y(X==1));
+lt_plot_pvalue(p);
+
+
+%% ========= FIGURES SAME AS ABOVE, BUT PLOTTED FOR ILLUSTRATOR
+
+lt_figure; hold on;
+
+% ======== 1) cdf of hit rate on targ
+lt_subplot(2,2,1); hold on;
+
+% - targ
+inds = IsTarg_AllExpts==1;
+plotcol = 'k';
+
+Y = HitRate_AllExpts(inds);
+if (0)
+    lt_plot_cdf(Y, plotcol, 0);
+end
+
+% - pdf
+lt_plot_histogram(100*Y, '', 1, 1, '', '', plotcol)
+lt_plot_text(50, 0.2, ['N=' num2str(length(Y))]);
+
+
+% ========== 2) pdf only
+lt_subplot(2,2,2); hold on;
+Xcenters = 0.0025:0.005:(0.02+max(HitRate_AllExpts(IsTarg_AllExpts==0)));
+
+% === SAME
+inds = IsTarg_AllExpts==0 & Similar_AllExpts==1;
+plotcol = 'b';
+
+Y = HitRate_AllExpts(inds);
+% - pdf
+lt_plot_histogram(100*Y, 100*Xcenters, 1, 1, '', '', plotcol)
+lt_plot_text(1, 0.5, ['N=' num2str(length(Y))], plotcol);
+
+% ---------- difftype
+inds = Similar_AllExpts==0;
+plotcol = 'r';
+
+Y = HitRate_AllExpts(inds);
+% - pdf
+lt_plot_histogram(100*Y, 100*Xcenters, 1, 1, '', '', plotcol)
+lt_plot_text(1, 0.5, ['N=' num2str(length(Y))], plotcol);
+
+
+
+% ===================== CORRELATION BETWEEN GENERALIZATION AND HIT RATE?
+% - same
+lt_subplot(2,2,3); hold on;
+xlabel('Hit rate');
+ylabel('Learning (hz)');
+
+inds = IsTarg_AllExpts==0 & Similar_AllExpts==1;
+plotcol = 'b';
+
+X = HitRate_AllExpts(inds);
+Y = LearningHz_AllExpts(inds);
+
+plot(100*X, Y, 'o', 'Color', plotcol);
+
+lt_regress(Y, 100*X, 0, 0, 1, 1, plotcol, 1);
+xlim([-1 7]);
+lt_plot_zeroline;
+
+% diff
+lt_subplot(2,2,4); hold on;
+xlabel('Hit rate');
+ylabel('Learning (hz)');
+
+inds = Similar_AllExpts==0;
+plotcol = 'r';
+
+X = HitRate_AllExpts(inds);
+Y = LearningHz_AllExpts(inds);
+
+plot(100*X, Y, 'o', 'Color', plotcol);
+lt_regress(Y, 100*X, 0, 0, 1, 1, plotcol, 1);
+
+% --
+xlim([-1 7]);
+lt_plot_zeroline;
 
