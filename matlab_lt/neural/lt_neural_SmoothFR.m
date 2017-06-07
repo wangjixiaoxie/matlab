@@ -1,6 +1,10 @@
 function SegmentsExtract = lt_neural_SmoothFR(SegmentsExtract, clustnum, kernelSD, binsize_spks)
 %%
 
+TryDiffMethods = 0; % if 1, then overlays result sof diff FR estimation methods. if 0, then uses gaussian kernel smoothing
+% note: will automaticalyl plot figure as well.
+
+
 %% input SegmentsExtract. output SegmentsExtract, but with smoothed FR as a field
 % uses kde, gaussian.
 
@@ -21,6 +25,10 @@ if isfield(SegmentsExtract, 'spk_Clust'); % only try to smooth if there is any d
         inds = SegmentsExtract(i).spk_Clust == clustnum;
         spktimes = SegmentsExtract(i).spk_Times(inds);
         
+        commonTrialDur = min([SegmentsExtract.global_offtime_motifInclFlank] - ...
+                [SegmentsExtract.global_ontime_motifInclFlank]); % shortest trial 
+        maxInd = floor(commonTrialDur/binsize_spks);
+            
         if (0)
             disp('NOTE: KDE NOT YET WRITTEN, USING BOXCAR SMOOTHING');
             
@@ -31,7 +39,7 @@ if isfield(SegmentsExtract, 'spk_Clust'); % only try to smooth if there is any d
             
         else
             %%
-            disp('KERNEL SMOOTHING')
+%             disp('KERNEL SMOOTHING')
             
             trialdur = SegmentsExtract(i).global_offtime_motifInclFlank - ...
                 SegmentsExtract(i).global_ontime_motifInclFlank;
@@ -45,7 +53,7 @@ if isfield(SegmentsExtract, 'spk_Clust'); % only try to smooth if there is any d
             smoothFR = conv(bincounts(1:end-1), kern, 'same'); % output
             
             % --- visualize and compare TO OTHERS
-            if (1)
+            if TryDiffMethods==1;
                 lt_figure; hold on;
                 title('bk=kern smth');
                 plot(spktimes, 1, 'ok');
@@ -82,8 +90,11 @@ if isfield(SegmentsExtract, 'spk_Clust'); % only try to smooth if there is any d
             end
             
             % --- save
-            SegmentsExtract(i).FRsmooth_rate = smoothFR;
-            SegmentsExtract(i).FRsmooth_xbin = binedges(1:end-1);
+            SegmentsExtract(i).FRsmooth_rate = smoothFR';
+            SegmentsExtract(i).FRsmooth_xbin = binedges(1:end-1)';
+            SegmentsExtract(i).FRsmooth_rate_CommonTrialDur = smoothFR(1:maxInd)';
+            SegmentsExtract(i).FRsmooth_xbin_CommonTrialDur = binedges(1:maxInd)';
+            
             
         end
     end

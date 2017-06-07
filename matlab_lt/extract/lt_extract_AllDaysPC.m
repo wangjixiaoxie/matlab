@@ -14,6 +14,10 @@ function lt_extract_AllDaysPC(Params, date_range, CollectNoteGroup)
 % 
 % date_range=''; % e.g. {'20Apr2015','20May2015'}. leave blank ('') for all days
 
+% ---- 2) Collect note group information? 
+% CollectNoteGroup = 1; % set to 1 if want to use online NoteGroups. Otherwise will do context stuff using the 
+% [context_name] condition in the folder name - i.e. for bulk context, not
+% rapid switching experiments. 
 
 
 %%

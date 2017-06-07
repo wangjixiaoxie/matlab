@@ -52,7 +52,9 @@ X=[ones(length(X_no_ones),1), X_no_ones];
 %% put some useful stuff into a summary structure
 
 SummaryStats.slope=b(2);
+SummaryStats.slopeCI = bint(2,:);
 SummaryStats.intercept=b(1);
+SummaryStats.interceptCI = bint(1,:);
 SummaryStats.R2=stats(1);
 SummaryStats.p=stats(3);
 
@@ -79,9 +81,10 @@ if plotON==1;
         Xlim=xlim;
         Ylim=ylim;
         
-        text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-(Ylim(2)-Ylim(1))/10,['p=' num2str(SummaryStats.p)],'FontSize',13,'FontWeight','bold','Color',plotcol);
-        text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-2*(Ylim(2)-Ylim(1))/10,['R2=' num2str(SummaryStats.R2)],'FontSize',13,'FontWeight','bold','Color',plotcol);
-        text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-3*(Ylim(2)-Ylim(1))/10,['slope=' num2str(SummaryStats.slope)],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-(Ylim(2)-Ylim(1))/10,['p=' num2str(SummaryStats.p)],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-2*(Ylim(2)-Ylim(1))/10,['R2=' num2str(SummaryStats.R2)],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-3*(Ylim(2)-Ylim(1))/10,['slope=' num2str(SummaryStats.slope) '(' num2str(SummaryStats.slopeCI) ')'],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-4*(Ylim(2)-Ylim(1))/10,['int=' num2str(SummaryStats.intercept) '(' num2str(SummaryStats.interceptCI) ')'],'FontSize',13,'FontWeight','bold','Color',plotcol);
         
     end
 end
@@ -92,8 +95,9 @@ end
 Xlim=xlim;
         Ylim=ylim;
         
-        text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-(Ylim(2)-Ylim(1))/10,['p=' num2str(SummaryStats.p)],'FontSize',13,'FontWeight','bold','Color',plotcol);
-        text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-2*(Ylim(2)-Ylim(1))/10,['R2=' num2str(SummaryStats.R2)],'FontSize',13,'FontWeight','bold','Color',plotcol);
-        text(Xlim(2)-(Xlim(2)-Xlim(1))/5,Ylim(2)-3*(Ylim(2)-Ylim(1))/10,['slope=' num2str(SummaryStats.slope)],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-(Ylim(2)-Ylim(1))/10,['p=' num2str(SummaryStats.p)],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-2*(Ylim(2)-Ylim(1))/10,['R2=' num2str(SummaryStats.R2)],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-3*(Ylim(2)-Ylim(1))/10,['slope=' num2str(SummaryStats.slope) '(' num2str(SummaryStats.slopeCI) ')'],'FontSize',13,'FontWeight','bold','Color',plotcol);
+        text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-4*(Ylim(2)-Ylim(1))/10,['int=' num2str(SummaryStats.intercept) '(' num2str(SummaryStats.interceptCI) ')'],'FontSize',13,'FontWeight','bold','Color',plotcol);
 end
     

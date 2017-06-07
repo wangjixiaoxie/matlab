@@ -3,7 +3,7 @@
 % you labeled.  Use evsonganaly to change labels for mislabeld syls in that
 % .wav file. Then run this function to replace those syls in the .cbin song
 % files (will replace syls with whatever you label in the .wav files)
-function lt_autolabel_FixHandCheckedSyls(fnames, sylnum, vlsorfn, vlsorind);
+function lt_autolabel_FixHandCheckedSyls(fnames, sylnum, vlsorfn, vlsorind)
     
 % INPUTS:
 % fnames, sylnum, vlsorfn, vlsorind are all outputs from lt_autolabel_function. I.E:

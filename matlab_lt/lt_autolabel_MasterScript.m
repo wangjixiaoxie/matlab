@@ -68,19 +68,31 @@ lt_autolabel_FixHandCheckedSyls(fnames, sylnum, vlsorfn, vlsorind)
 batch = 'batch.rand.keep';
 config= '/bluejay4/lucas/birds/pk32/config.evconfig2';
 
-syl.targ='c';
-syl.pre='d';
-syl.post='cb'; 
+syl.targ='g';
+syl.pre='jabcddef';
+syl.post=''; 
 NoteNum=0; 
 
-ampThresh=53000;
-min_dur=20;
+ampThresh=15000;
+min_dur=30;
 min_int=4;
 
 overwrite_notmat=1; % will always make backup folder
 
 [fnames, sylnum, vlsorfn, vlsorind]=lt_autolabel_EvTAFv4(batch, config, syl, NoteNum, ampThresh, min_dur, min_int, overwrite_notmat);
 
+% ============ 2) Use evsonganaly manually on the .wav file created above
+% (contains only the syls you chose)
+% INSTRUCTIONS: 
+% 1) open .wav file using evsonganaly
+% 2) change threshold to segment all syls indivudally
+% 3) any syl labeled "-" (default) will remain unchanged (i.e. will stay autolabeled). 
+%     give a new label to any mislabeled syl - that will be its new actual label
+evsonganaly
+
+
+% ============ 3) Replace hand-checekd mislabeld syls 
+lt_autolabel_FixHandCheckedSyls(fnames, sylnum, vlsorfn, vlsorind)
 
 
 

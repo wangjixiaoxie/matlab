@@ -1,4 +1,9 @@
 function varargout = evsonganaly(varargin)
+%% lt 6/6/17 - 
+% modified line 927 to avoid having spaces in dir name 
+
+%%
+
 % EVSONGANALY M-file for evsonganaly.fig
 %      EVSONGANALY, by itself, creates a new EVSONGANALY or raises the existing
 %      singleton*.
@@ -917,6 +922,10 @@ min_int = handles.MININT;
 min_dur = handles.MINDUR;
 threshold = handles.SEGTH;
 sm_win = handles.SM_WIN;
+
+slashes = strfind(fname, '/'); % LT 6/6/17 - to avoid spaces in dir names
+fname = ['./' fname(slashes(end)+1:end)];
+
 if (strcmp(tmpext,'.filt'))
 	cmd = ['save ',fname(1:end-5),'.not.mat fname Fs labels '...
 		' min_dur min_int offsets onsets sm_win threshold'];
@@ -924,6 +933,8 @@ else
 	cmd = ['save ',fname,'.not.mat fname Fs labels min_dur min_int ',...
                       'offsets onsets sm_win threshold'];
 end
+
+
 eval(cmd);
 return;
 

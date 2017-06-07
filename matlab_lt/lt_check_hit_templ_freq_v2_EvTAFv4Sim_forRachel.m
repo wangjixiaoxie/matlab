@@ -84,14 +84,29 @@ parameters.freq_range=[ND(NoteNum+1).FreqRng.MinFreq ND(NoteNum+1).FreqRng.MaxFr
 % [parameters.bird_name, which_computer, data_date, parameters.phrase] = lt_get_birdname_date_from_dir(1);
 % parameters.computer = ['/bluejay' which_computer '/lucas/birds/'];
 
-parameters.bird_name=input('Name of bird? ','s');
-% data_date=input('what is date? (e.g. 26Jun2015) ','s');
-parameters.phrase=input('phrase that identified experiment? (e.g. RAimplant) ','s');
+currdir = pwd;
 
+slashes = findstr(currdir, '/');
+uscores = findstr(currdir, '_');
+
+tmp = find(uscores>slashes(end));
+if length(tmp)>1
+parameters.phrase = currdir(slashes(end)+8:uscores(tmp(2))-1);
+else
+  parameters.phrase =  currdir(slashes(end)+8:end);
+end
+
+% parameters.bird_name=input('Name of bird? ','s');
+parameters.bird_name=currdir(slashes(end-1)+1:slashes(end)-1);
+% data_date=input('what is date? (e.g. 26Jun2015) ','s');
+% parameters.phrase=input('phrase that identified experiment? (e.g. RAimplant) ','s');
 
 % OTHERS:
 % parameters.data_date=data_date{2};
-parameters.data_date=input('what is date? (e.g. 26Jun2015) ','s');
+% parameters.data_date=input('what is date? (e.g. 26Jun2015) ','s');
+
+parameters.data_date=datestr(datenum(currdir(slashes(end)+1:slashes(end)+6), 'mmddyy'), 'ddmmmyyyy');
+
 parameters.today_date = datestr(now, 'ddmmmyyyy_HHMMAM'); % time-stamp for analysis
 parameters.today_date = parameters.today_date(parameters.today_date ~= ' ');
 

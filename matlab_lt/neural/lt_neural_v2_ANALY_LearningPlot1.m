@@ -58,9 +58,13 @@ end
 % -- plot line for start of WN
 lt_subplot(2,1,1);
 WNon = SummaryStruct_onebird.birds(1).neurons(1).LEARN_WNonDatestr;
+try
 tmp = lt_convert_EventTimes_to_RelTimes(FirstDay, {WNon});
 WNon_days = tmp.FinalValue;
 line([WNon_days WNon_days], ylim);
+catch err
+end
+
 
 % --- indicate which chan it is
 

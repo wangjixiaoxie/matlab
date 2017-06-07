@@ -1,4 +1,6 @@
 function [AllSongsDataMatrix, Params_alldays]= lt_context2_ConvertToContext1(ALLDATSTRUCT, Params_global)
+%% LT 6/1/17 - If no notegroup data (i.e. no .ltrec2 file) then gives notegroup -1
+
 %% LT 11/15/15 - convert output of lt_extract_CompilePC to format that is compatible with lt_context_PLOT
 % inputs, e.g.:
 % syl='b';
@@ -80,6 +82,10 @@ for n=1:num_notenums
                 
                 condition_mat(j)=NGnum;
             end
+        end
+        
+        if isempty(condition_mat)
+            condition_mat = -1;
         end
         
         datmatrix_output(:, 2)=tvals';

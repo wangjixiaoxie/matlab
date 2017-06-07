@@ -14,6 +14,10 @@ if ~exist('ExcludeIfHasSameDirBeforeDiffDir', 'var');
     ExcludeIfHasSameDirBeforeDiffDir=0;
 end
 
+adHocPlotSameType = 1; % if 1, then plots same type, nontarg (i.e. context 3) each individual syl
+% as opposed to the current code, which takes mean within each expt. If set
+% to 0, then plots diff type.
+
 %% EXTRACT ONLY EXPERIMENTS WITH MULTIDIR
 NumBirds=length(SeqDepPitch_AcrossBirds.birds);
 
@@ -158,6 +162,8 @@ NumBirds=length(SeqDepPitch_AcrossBirds.birds);
 
 
 %% COLLECT ALL DAY TO DAY TRAJECTORIES - USING DAYS LOCKED TO BIDIR DAY START.
+SameType_Others = []; % ad hoc, for revisions
+ExptcountAll = [];
 
 DATSTRUCT=struct;
 Exptcount=1;
@@ -380,6 +386,11 @@ end
         FFvals_All=FFvals_All.*targLearnDir;
         DATSTRUCT.data.OthersSameType(Exptcount).MeanFFRelBase=nanmean(FFvals_All, 2);
         
+        if adHocPlotSameType==1
+        SameType_Others = [SameType_Others FFvals_All];
+        ExptcountAll = [ExptcountAll Exptcount*ones(1,size(FFvals_All,2))];
+        end
+        
         % VALUE TO NORM ALL TO
         FFvals=nanmean(FFvals_All, 2)./ValueToNormAllTo;
         DATSTRUCT.data.OthersSameType(Exptcount).MeanFFRelBase_NormTargLastBaseDay=FFvals;
@@ -417,6 +428,12 @@ end
         end
         FFvals_All=FFvals_All.*targLearnDir;
         DATSTRUCT.data.OthersDiffType(Exptcount).MeanFFRelBase=nanmean(FFvals_All, 2);
+        
+                if adHocPlotSameType==0
+        SameType_Others = [SameType_Others FFvals_All];
+        ExptcountAll = [ExptcountAll Exptcount*ones(1,size(FFvals_All,2))];
+                end
+
         
         % VALUE TO NORM ALL TO
         FFvals=nanmean(FFvals_All, 2)./ValueToNormAllTo;
@@ -865,7 +882,31 @@ end
     
     
  
+    %% == adhoc for revisions [SAME TYPE, NON TARG] 
+    % breaking out into individual syl (otherwise exactly same as
+    % same-type, nontarg in DATSTRUCT. In latter each expt taken mean.
     
+    tmp=[DATSTRUCT.information.targ2_sametype_rel_targ1];
+ExptInds=find(tmp==1);
+
+inds = ismember(ExptcountAll, ExptInds);
+Y = SameType_Others(:,inds);
+lt_figure; hold on; 
+if adHocPlotSameType==1
+    title('same type, nontarg, each syl')
+else
+        title('diff type, nontarg, each syl')
+end
+
+lt_subplot(2,1,1); hold on;
+plot(1:size(Y,1), Y, '-k');
+Ymean = mean(Y,2);
+lt_plot_bar(1:length(Ymean), Ymean', {'Errors', lt_sem(Y')})
+
+lt_subplot(2,1,2); hold on;
+Ymean = mean(Y,2);
+lt_plot_bar(1:length(Ymean), Ymean', {'Errors', lt_sem(Y')})
+
 
 
 

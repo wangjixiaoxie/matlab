@@ -41,6 +41,8 @@ elseif strcmp(SummaryStruct.birds(1).birdname, 'br92br54')
         TargSyls = {'ag(c)'};
     elseif strcmp(SummaryStruct.birds(1).neurons(1).exptID, 'LMANlearn4')
          TargSyls = {'nk(h)'};       
+    elseif strcmp(SummaryStruct.birds(1).neurons(1).exptID, 'LMANlearn5')
+         TargSyls = {'nk(h)', 'd(h)'};       
     end
 elseif strcmp(SummaryStruct.birds(1).birdname, 'or74bk35')
          TargSyls = {'an(b)'};       

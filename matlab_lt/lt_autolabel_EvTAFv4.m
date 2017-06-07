@@ -131,6 +131,7 @@ while (1)
         else
             % load old notmat -
             load([fn,'.not.mat']);
+            fs = Fs;
         end
     end
     

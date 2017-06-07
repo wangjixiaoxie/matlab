@@ -30,7 +30,7 @@
 % right before lt_db_plot_over_experiment
 % outputs the batch file name and syllable.
 
-function [batch, cellofnames, Dates_first, Dates_last, arrayofdateinds]=lt_write_all_folder_contents_to_batch_v2(TargStr,Dates_first,Dates_last, FileType, make_batch)
+function [batch, cellofnames, Dates_first, Dates_last, arrayofdateinds, arrayofdatenums]=lt_write_all_folder_contents_to_batch_v2(TargStr,Dates_first,Dates_last, FileType, make_batch)
 
 %% Dafaults
 
@@ -136,6 +136,7 @@ folder_contents=folder_contents(inds);
 %% == Extract only the folder contents within dates you want
 cellofnames={};
 arrayofdateinds=[];
+arrayofdatenums = [];
 
 for i = 1:length(folder_contents)
     % === Do you care about dates?
@@ -164,6 +165,7 @@ for i = 1:length(folder_contents)
             % == save to output cell
             cellofnames=[cellofnames folder_contents(i).name];
             arrayofdateinds=[arrayofdateinds datenum(date_of_file{i},'ddmmmyyyy')-datenum(Dates_first,'ddmmmyyyy')+1];
+            arrayofdatenums = [arrayofdatenums datenum(date_of_file{i},'ddmmmyyyy')];
         end
         
 %     else

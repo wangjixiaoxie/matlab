@@ -14,7 +14,7 @@ function lt_seq_dep_pitch_ACROSSBIRDS_ConsolVsBias(OUTPUTMASTER)
 
 ListOfExpts = {'OUTPUT_multidir', 'OUTPUT_samedir', 'OUTPUT_singleTarg'}; % DO NOT CHANGE
 
-%%
+%% PARAMS
 ConsolidationFirstTargAll = [];
 daybin_consol = 3;
 
@@ -30,6 +30,7 @@ LearningFirstTargAll = [];
 LearningSecondTargAll = [];
 daybin_learning = 3;
 
+%%
 ContainsDataBinThree = [];
 
 ExptTypeAll = []; % in order of list of expts
@@ -336,7 +337,7 @@ line([-1/2 -1/2], ylim);
 legend(gca, ListOfExpts);
 
 
-%% its own figure [AFP BIAS SCATTER]
+%% its own figure [CONSOLIDATION SCATTER]
 lt_figure; hold on;
 % ========== 2) AFP BIAS subtrast first targ AFP bias
 xlabel(['AFPbias, second targ minus first (hz), bin ' num2str(daybin_afpbias)]);
@@ -362,6 +363,27 @@ line([0 0], ylim);
 legend(gca, ListOfExpts);
 
 %% === COMPARE CONSOLIDATION BETWEEN THREE EXPERIMENTS
+
+lt_figure; hold on;
+% ========== 2) AFP BIAS subtrast first targ AFP bias
+ylabel(['Consolidation, bin ' num2str(daybin_consol)]);
+
+plotcols = lt_make_plot_colors(length(ListOfExpts), 0, 0);
+for k=1:length(ListOfExpts)
+    inds = ExptTypeAll==k;
+
+    Y = ConsolidationFirstTargAll(inds);
+    lt_plot(k, Y, {'Color', plotcols{k}});   
+    
+    % plot bar
+    lt_plot_bar(k, nanmean(Y), {'Errors', lt_sem(Y), 'Color', plotcols{k}});
+end
+
+legend(gca, ListOfExpts);
+
+
+
+
 
 
 %% AFP BIAS FOR 3 DIFF EXPERIMENTS (BARS, PAIRED LINES)

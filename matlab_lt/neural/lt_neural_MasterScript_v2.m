@@ -3,8 +3,15 @@
 
 %% EXTRACT 
 
+% BirdsToKeep = {'bk7', 'wh6pk36', 'br92br54', 'or74bk35'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+% BrainArea = {'LMAN', 'X'};
+% ExptToKeep = {'LearnLMAN1', 'LMANlearn2', 'LMANneural2'};
+% RecordingDepth = [1860 2770 2840 1800 2490];
+% LearningOnly = 1;
+% BatchesDesired = {};
+% ChannelsDesired = [];
 BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
-BrainArea = {'X'};
+BrainArea = {'X', 'LMAN'};
 ExptToKeep = {};
 RecordingDepth = [];
 LearningOnly = 1;
@@ -14,8 +21,9 @@ ChannelsDesired = [];
     BrainArea, ExptToKeep, RecordingDepth, LearningOnly, BatchesDesired, ChannelsDesired);
 
 % --- load all neurons
-[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database;
-
+if (0)
+    [NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database;
+end
 
 %% ==== refinalize specific neurons, with slight changes
 if (0)
@@ -87,6 +95,28 @@ plotSyl = ''; % to focus on just one syl. NOT DONE YET
 lt_neural_v2_EXTRACT_FF_tmp(SummaryStruct, FFparamsAll, overWrite, ...
     plotSpec, plotOnSong, plotSyl);
 
+
+%% ======== SAVE META INFO FOR LEARNING EXPT HERE
+% edit this by hand
+
+% 1) --- LOAD
+LearningMetaDat = lt_neural_v2_LoadLearnMetadat;
+
+
+% 2) --- EDIT
+LearningMetaDat; % OPEN AND EDIT BY HAND. 
+% Note: each expt/targ syl has one column:
+% row 3 and larger gives time of switch and nature of switch (4 types of
+% switches possible) (escape dir)
+% Al = 100% WN
+% Of = off
+% Up = escape up
+% Dn = escape dn
+
+
+% 3) --- SAVE
+cd('/bluejay5/lucas/analyses/neural/');
+save('LearningMetaDat', 'LearningMetaDat');
 
 %% ==== LIST OF MOTIFS FOR EACH BIRD/EXPERIMENT
 if (0) % RUNS AUTOMATICALLY WHEN EXTRACT
@@ -184,7 +214,7 @@ LearningOnly = 1; % then only if has WN on/switch time date
 close all;
 % motifs for this bird
 % learning expt id
-plottype = 'bysyl'; % 
+plottype = 'byneuron'; % 
 % 'byneuron' - each neuron one fig will all motifs [DEFAULT]
 % 'dotprod' - for each bin of trials get dot prod from IN PROGRESS
 % 'bysyl' - each plot one syl, all neurons.
@@ -194,6 +224,9 @@ lt_neural_v2_ANALY_Learning(SummaryStruct_filt, MOTIFSTATS, plottype, DivisorBas
 % ===== FOR ALL NEURONS, PLOT CHANGE AT TARG VS. OTHERS. ALSO, AVERAGE
 % DEVIATIONS ACROSS ALL EXPERIMENTS.
 
+
+%% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+%% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %% =================== LEARNING, SUMMARY STATISTICS ACROSS ALL EXPERIMENTS
 % CAN DO MULTIPLE BIRDS
 
@@ -224,7 +257,32 @@ for i=1:NumBirds
     end
 end
 
-% ==== FOR EACH LEARNING EXPERIMENT, PLOT TIMELINE OF NEURONS AND LEARNING
+
+%% =========== PICK OUT SAME TYPE/DIFF
+
+numbirds = length(MOTIFSTATS_Compiled.birds);
+for i=1:numbirds
+    
+    numexpts = length(MOTIFSTATS_Compiled.birds(i).exptnum);
+   
+    for ii=1:numexpts
+       
+        TargSyls = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.TargSyls;
+        MotifsActual = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.MotifsActual;
+        
+        [SameTypeSyls, DiffTypeSyls, motif_regexpr_str] = ...
+        lt_neural_v2_extractSameType(MotifsActual, TargSyls);
+
+    % --- OUTPUT
+MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.SameTypeSyls = SameTypeSyls;
+MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.DiffTypeSyls = DiffTypeSyls;
+
+
+    end
+end
+
+
+%% ==== FOR EACH LEARNING EXPERIMENT, PLOT TIMELINE OF NEURONS AND LEARNING
 for i=1:NumBirds
    ListOfExpts = unique({SummaryStruct.birds(i).neurons.exptID});
    
@@ -239,11 +297,18 @@ for i=1:NumBirds
    end
 end
     
-% ==== FOR EACH LEARNING EXPERIMENT, PLOT SUMMARY STATISTICS
+%% ==== FOR EACH LEARNING EXPERIMENT, PLOT SUMMARY STATISTICS
 close all;
-tic
-lt_neural_v2_ANALY_LearningStats(MOTIFSTATS_Compiled)
-toc
+
+PlotTimeCourses = 0; % plots raw timecourse for each expt/neuron
+PlotNeuralFFDeviationCorrs = 0; % zscore of neural similarity and FF, correalted fore aach syl
+convertToZscore = 0;
+
+LearningMetaDat = lt_neural_v2_LoadLearnMetadat;
+lt_neural_v2_ANALY_LearningStats(MOTIFSTATS_Compiled, LearningMetaDat, PlotTimeCourses, ...
+    PlotNeuralFFDeviationCorrs, convertToZscore);
+
+
 
 
 

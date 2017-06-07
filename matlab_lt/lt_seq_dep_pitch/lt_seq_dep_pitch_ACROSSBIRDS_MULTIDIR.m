@@ -2231,8 +2231,9 @@ end
 
 %% DAY TO DAY SHIFTS BY 1) target, 2) targ 2, 3) same-type, diff-type nontargets --> strong correlation?
 
+if (0)
 SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_MultiDirLearning.SylData.jjB.DayWindow{1}
-
+end
 
 
 

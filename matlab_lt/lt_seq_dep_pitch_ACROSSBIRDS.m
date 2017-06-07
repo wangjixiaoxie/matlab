@@ -799,6 +799,78 @@ filter='did_not_sing2';
 % ====== LEARNING ANALYSIS
 % [SeqDepPitch_AcrossBirds_SINGLEDIR, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_SINGLEDIR(SeqDepPitch_AcrossBirds, PARAMS);
 
+%% === extract learning rate (in hz/rend) [USED IN CODE BELOW:
+% lt_seq_dep_pitch_ACROSSBIRDS_LearnVsNumCtxts
+
+
+close all; 
+ExtractRaw = 0; % only need to do this once - will save raw trig counts for each day.
+SeqDepPitch_AcrossBirds = lt_seq_dep_pitch_ACROSSBIRDS_LearningRate(SeqDepPitch_AcrossBirds, ExtractRaw);
+
+%% learning vs. number of contexts
+% i.e. more nontargets, then drags down learning?
+
+close all;
+lt_seq_dep_pitch_ACROSSBIRDS_LearnVsNumCtxts(SeqDepPitch_AcrossBirds);
+
+
+
+%% == RECIPRICOL EXPERIMENTS (e.g. context A, then context B as targ in two separate experiments)
+
+% ================ COMPARING SAME TYPE AND DIFF TYPE
+close all; 
+DoDiffType = 1;
+OUTSTRUCT_diff = lt_seq_dep_pitch_ACROSSBIRDS_RecipricolExpts(SeqDepPitch_AcrossBirds, DoDiffType);
+
+DoDiffType = 0;
+OUTSTRUCT_same = lt_seq_dep_pitch_ACROSSBIRDS_RecipricolExpts(SeqDepPitch_AcrossBirds, DoDiffType);
+
+IsSameType = [ones(1, length(OUTSTRUCT_same)), zeros(1, length(OUTSTRUCT_diff))];
+OUTSTRUCT_both = [OUTSTRUCT_same OUTSTRUCT_diff];
+
+% ================================ PLOTS
+minLearnThresh = 50;
+
+% ================================== 1) generalization
+lt_figure; hold on;
+xlabel('generalization (earlier expt)');
+ylabel('generalization (later expt)');
+title('recipricol expts (e.g. A-B, then B-A)');
+% -- earlier expt is expt 1
+assert(all([OUTSTRUCT_both.EarlierExpt] ==1), 'PROBLEM - was assuming that all earlier expt occur first in SeqDepPitch');
+
+X = [OUTSTRUCT_both.generalizationExpt1];
+Y = [OUTSTRUCT_both.generalizationExpt2];
+
+% ================== Same type
+inds = IsSameType==1 & min([OUTSTRUCT_both.LearningExpt1and2]) > minLearnThresh;
+
+lt_plot_45degScatter(X(inds), Y(inds), 'b', 1);
+% lt_regress(Y(inds), X(inds) , 1, 0, 1, 1, 'b', 0);
+
+% ================== Diff type
+inds = IsSameType==0 & min([OUTSTRUCT_both.LearningExpt1and2]) > minLearnThresh;
+
+lt_plot_45degScatter(X(inds), Y(inds), 'r', 1);
+% lt_regress(Y(inds), X(inds) , 1, 0, 1, 1, 'b', 0);
+
+xlim([-0.6 1.4]); ylim([-0.6 1.4]);
+
+% =============================== 2) ancova
+inds = min([OUTSTRUCT_both.LearningExpt1and2]) > minLearnThresh;
+X = X(inds);
+Y = Y(inds);
+sametypegroup = IsSameType(inds);
+
+aoctool(X, Y, sametypegroup)
+
+
+% ====================== LEARNING MAGNITUDE
+tmp = [OUTSTRUCT_both.LearningExpt1and2];
+X = tmp(1,:);
+Y = tmp(2,:);
+aoctool(X, Y, IsSameType)
+
 
 %% ===== linear model of generalization
 close all
@@ -1010,7 +1082,7 @@ ExcludeSeqLearning=0;
 ExcludeNotFullyLabeled=1; % ad hoc, expt with unresolvable holes. (e.g. reprobing, mistakes, see code)
 ExcludeIfHasSameDirBeforeDiffDir=1;
 ExcludeIfFirstTargDriveMore=1; % ad hoc, remove expt where first targ drove more.
-DaysToPlot=[3 7]; % [num days before bidir day 1, num days during bidir (inclusize)]
+DaysToPlot=[3 5]; % [num days before bidir day 1, num days during bidir (inclusize)]
 RawShowOnlySameType = 1; % if 0, then show all raw expts; if 1 then only if pairs are sametype.
 UseOldVersion = 1; % keep at 1.
 [SeqDepPitch_AcrossBirds_MULTIDIR, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_MULTIDIR_v2(SeqDepPitch_AcrossBirds, ...

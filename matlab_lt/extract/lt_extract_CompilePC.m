@@ -1,16 +1,22 @@
 function [ALLDATSTRUCT, Params_global]= lt_extract_CompilePC(plotON, Params_global, saveON)
 % Go to extract folder made by lt_extract_AllDaysPC
 %% PARAMS examples
-% Params_global.CompilePC.PC_window_list={'b', [45 130], 'a', [365 460]}; % syl, value pairs
+% clear all; close all;
+% Params_global.CompilePC.PC_window_list={'b', [22 74]}; % syl, value pairs [single syls]
+% Params_global.CompilePC.PC_window_list={'b', [60 80]}; % syl, value pairs [single syls]
 % Params_global.CompilePC.FirstDay='';
 % Params_global.CompilePC.LastDay='';
-
-% Regular expressions - first calculates FF etc, then performs regular
-% expressions
-% Params_global.CompilePC.regexp_list={'dcc(b)', 'bcc(b)'}; % e.g. {'dcc(b)', 'ab+(g)'} : dcc(b) means match dccb, and give me ind of b in parantheses.  ab+g means match ab... (anly length repeat), then g. give me ind of g
-% Params_global.CompilePC.regexp_fieldnames={'dccB','bccB'}; % whatever
-% want to call structure field (if this cell array not defined, then will
-% attempt to use the regexp names.
+% plotON=1; % pitch contours, all days, all syls
+% saveON=1;
+% 
+% % Regular expressions - first calculates FF etc, then performs regular
+% % expressions
+% Params_global.CompilePC.regexp_list={'c(b)'}; % e.g. {'dcc(b)', 'ab+(g)'} : dcc(b) means match dccb, and give me ind of b in parantheses.  ab+(g) means match ab... (anly length repeat), then g. give me ind of g
+% Params_global.CompilePC.regexp_fieldnames={'cB'}; % whatever
+% % want to call structure field (if this cell array not defined, then will
+% % attempt to use the regexp names.
+%     
+% [ALLDATSTRUCT, Params_global]= lt_extract_CompilePC(plotON, Params_global, saveON);
 
 
 %% go to folder (e.g.extract_AllDaysPC_CtxtDepPitch) where DatStruct and Params are saved - this compiles (1 - extract seq-dep-syl, and 2, calc FF)

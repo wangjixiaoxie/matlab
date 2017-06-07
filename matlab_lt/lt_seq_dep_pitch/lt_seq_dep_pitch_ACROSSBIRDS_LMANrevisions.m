@@ -698,6 +698,148 @@ line([0 0], ylim, 'Color', 'k');
 line([0 200], [0 200], 'Color', 'k');
 
 
+%% == regression analysis (plots, but no regression here) [SIMULATE MOVEMENT OF POINTS ALONG REGRESSION LINE]
+FractionReversion = []; % will simulate for targ and nontarg (i,.e. this is actually consolidation - musc/pbs)
+% leave empty if want to use each experiment's target's reversion.
+
+% --- Revision version
+inds = find(TargStatus_all==0 & SimDiff_all==1); % (nontarg context)
+lt_figure; hold on;
+ylabel('nontarg, ff'); xlabel('targ, ff');
+title('blue = pbs; red = musc');
+
+FFpbs_targ_all = [];
+FFpbs_nontarg_all = [];
+FFmusc_targ_all = [];
+FFmusc_nontarg_all = [];
+
+
+
+for i=1:length(inds)
+    ind = inds(i);
+    
+    FFpbs_nontarg = LearningPBS_all(ind);
+%     FFmusc_nontarg = MPbias_all(ind);
+    
+    exptcount = Expt_count_all(ind);
+    indtmp = TargStatus_all==1 & Expt_count_all==exptcount;
+    FFpbs_targ = LearningPBS_all(indtmp);
+%     FFmusc_targ = MPbias_all(indtmp);
+    
+    lt_subplot(1,2,1); hold on;
+    plot(FFpbs_targ, FFpbs_nontarg, 'ob');
+    
+    
+    % ===== IF SIMULATE REVERSION BY MOVING POINTS
+    if ~isempty(FractionReversion)
+    FFmusc_targ = FFpbs_targ * FractionReversion;
+    FFmusc_nontarg = FFpbs_nontarg * FractionReversion;
+    else
+        FractionReversion = MPbias_all(indtmp)/FFpbs_targ;
+    FFmusc_targ = FFpbs_targ * FractionReversion;
+    FFmusc_nontarg = FFpbs_nontarg * FractionReversion;
+        FractionReversion = [];
+    end
+    
+    lt_subplot(1,2,2); hold on;
+    plot(FFmusc_targ, FFmusc_nontarg, 'or');
+    
+    % -- collect
+    FFpbs_targ_all = [FFpbs_targ_all FFpbs_targ];
+    FFpbs_nontarg_all = [FFpbs_nontarg_all FFpbs_nontarg];
+    
+    FFmusc_targ_all = [FFmusc_targ_all FFmusc_targ];
+    FFmusc_nontarg_all = [FFmusc_nontarg_all FFmusc_nontarg];
+end 
+
+% regression
+    lt_subplot(1,2,1); hold on;
+[b, bint] = lt_regress(FFpbs_nontarg_all, FFpbs_targ_all, 0, 0, 1, 1, 'b', 1); % pbs
+disp(b); disp(bint);
+line(xlim, [0 0], 'Color', 'k');
+line([0 0], ylim, 'Color', 'k');
+line([0 200], [0 200], 'Color', 'k');
+    lt_subplot(1,2,2); hold on;
+[b, bint] = lt_regress(FFmusc_nontarg_all, FFmusc_targ_all, 0, 0, 1, 1, 'r', 1); % pbs
+disp(b); disp(bint);
+lt_plot_annotation(1, 'SIMULATED', 'b');
+
+line(xlim, [0 0], 'Color', 'k');
+line([0 0], ylim, 'Color', 'k');
+line([0 200], [0 200], 'Color', 'k');
+
+
+
+
+
+%% === percent generalization, for PBS and MUSC
+% --- Revision version
+inds = find(TargStatus_all==0 & SimDiff_all==1); % (nontarg context)
+lt_figure; hold on;
+ylabel('nontarg, ff'); xlabel('targ, ff');
+title('blue = pbs; red = musc');
+
+FFpbs_targ_all = [];
+FFpbs_nontarg_all = [];
+FFmusc_targ_all = [];
+FFmusc_nontarg_all = [];
+
+for i=1:length(inds)
+    ind = inds(i);
+    
+    FFpbs_nontarg = LearningPBS_all(ind);
+    FFmusc_nontarg = MPbias_all(ind);
+    
+    % find the target that corresponds to this nontarg
+    exptcount = Expt_count_all(ind);
+    indtmp = TargStatus_all==1 & Expt_count_all==exptcount;
+    FFpbs_targ = LearningPBS_all(indtmp);
+    FFmusc_targ = MPbias_all(indtmp);
+    
+%     lt_subplot(1,2,1); hold on;
+    plot(1, FFpbs_nontarg/FFpbs_targ, 'ob');
+    
+%     lt_subplot(1,2,2); hold on;
+    plot(2, FFmusc_nontarg/FFmusc_targ, 'or');
+    
+    line([1 2], [FFpbs_nontarg/FFpbs_targ FFmusc_nontarg/FFmusc_targ], 'Color', 'k');
+    
+    % -- collect
+    FFpbs_targ_all = [FFpbs_targ_all FFpbs_targ];
+    FFpbs_nontarg_all = [FFpbs_nontarg_all FFpbs_nontarg];
+    
+    FFmusc_targ_all = [FFmusc_targ_all FFmusc_targ];
+    FFmusc_nontarg_all = [FFmusc_nontarg_all FFmusc_nontarg];
+end 
+
+Generalization_PBS = FFpbs_nontarg_all./FFpbs_targ_all;
+Generalization_MUSC = FFmusc_nontarg_all./FFmusc_targ_all;
+
+Y = [mean(Generalization_PBS) mean(Generalization_MUSC)];
+Yerr = [lt_sem(Generalization_PBS) lt_sem(Generalization_MUSC)];
+X = [1 2];
+lt_plot_bar(X, Y, {'Errors', Yerr})
+
+p = ranksum(Generalization_PBS, Generalization_MUSC);
+disp(p);
+
+% regression
+%     lt_subplot(1,2,1); hold on;
+% [b, bint] = lt_regress(FFpbs_nontarg_all, FFpbs_targ_all, 0, 0, 1, 1, 'b', 1); % pbs
+% disp(b); disp(bint);
+% line(xlim, [0 0], 'Color', 'k');
+% line([0 0], ylim, 'Color', 'k');
+% line([0 200], [0 200], 'Color', 'k');
+%     lt_subplot(1,2,2); hold on;
+% [b, bint] = lt_regress(FFmusc_nontarg_all, FFmusc_targ_all, 0, 0, 1, 1, 'r', 1); % pbs
+% disp(b); disp(bint);
+% 
+% line(xlim, [0 0], 'Color', 'k');
+% line([0 0], ylim, 'Color', 'k');
+% line([0 200], [0 200], 'Color', 'k');
+
+
+
 %% ====== POWER ANALYSIS
 % Given the effect size for reversion in the target context, how much power
 % do we have (given our sample size) to detect reversion in the nontarget
@@ -899,6 +1041,8 @@ lt_plot_text(preal, 0, 'pval for actual dat', 'r');
 NumBirds = length(SeqDepPitch_AcrossBirds.birds);
 FFpbsAll = [];
 FFmuscAll = [];
+exptcount = 1;
+ExptCounter = [];
 for i=1:NumBirds
     
     numexpts = length(SeqDepPitch_AcrossBirds.birds{i}.experiment);
@@ -925,6 +1069,10 @@ for i=1:NumBirds
         
         FFpbsAll = [FFpbsAll FFpbs];
         FFmuscAll = [FFmuscAll FFmusc];
+        
+        ExptCounter = [ExptCounter exptcount*ones(1, length(FFpbs))];
+        
+        exptcount = exptcount+1;
     end
 end
 
@@ -933,6 +1081,52 @@ title('All inactivation days during single dir (all expts)');
 lt_plot_45degScatter(FFpbsAll, FFmuscAll, 'k',1);
 xlabel('PBS'); ylabel('MUSC');
 
+
+% =============== RESTRICT TO DAYS WITHIN CERTAIN LEARNING BOUNDS
+learnMin = 68;
+learnMax = 103;
+ReversionVals = {};
+
+lt_figure; hold on;
+lt_subplot(1,2,1); hold on;
+title('single days for target context');
+inds = abs(FFpbsAll) > learnMin & abs(FFpbsAll)<learnMax;
+
+Y = [FFpbsAll(inds)' FFmuscAll(inds)'];
+disp('Data are from expts: ');
+disp(ExptCounter(inds));
+indstmp = Y(:,1)<0;
+Y(indstmp, :) = -Y(indstmp, :);
+
+plot([1 2], Y, 'o-k');
+lt_plot_bar([1 2], mean(Y), {'Errors', lt_sem(Y)});
+p = signrank(Y(:,1), Y(:,2));
+lt_plot_pvalue(p, 'signrank', 1);
+ylim([0 learnMax+50]);
+reversionvals = diff(Y,1,2);
+ReversionVals{1} = reversionvals;
+set(gca, 'XTickLabel', {'PBS', 'MUSC'});
+
+lt_subplot(1,2,2); hold on;
+title('nontarget context, multiday period');
+
+        % ------- SIMILAR
+        inds=TargStatus_all==0 & SimDiff_all==1 & LearningPBS_all>learnMin & LearningPBS_all < learnMax;
+
+        Y = [LearningPBS_all(inds)' MPbias_all(inds)'];
+plot([1 2], Y, 'o-k');
+lt_plot_bar([1 2], mean(Y), {'Errors', lt_sem(Y)});
+p = signrank(Y(:,1), Y(:,2));
+lt_plot_pvalue(p, 'signrank', 1);
+ylim([0 learnMax+50]);
+reversionvals = diff(Y,1,2);
+ReversionVals{2} = reversionvals;
+set(gca, 'XTickLabel', {'PBS', 'MUSC'});
+
+
+% -- compare reversion
+p = ranksum(ReversionVals{1}, ReversionVals{2});
+lt_plot_pvalue(p, 'ranksum(reversion)', 2);
 
 
 %% === MATCH TARG/NONTARG, SHOW REVERSION STILL DIFFERENT.
@@ -1053,5 +1247,133 @@ end
 
 
 
+
+%% === MATCH TARG/NONTARG, SHOW REVERSION STILL DIFFERENT.
+
+% parametrically vary minimum and maximum learning value - will plot 2d,
+% with each "cell" showing one comparison between targ and nontarg
+
+lt_figure; hold on;
+LearningMinList = -5:15:115;
+LearningMaxList = -5:15:130;
+for ll = 1:length(LearningMinList)
+    learningMin = LearningMinList(ll);
+    
+    count = 0;
+
+    for lll = (ll+1):length(LearningMaxList)
+        learningMax = LearningMaxList(lll);
+        
+        count = count+2;
+%         lt_subplot(length(LearningMaxList), length(LearningMinList), count); hold on;
+        
+        Ylearn_raw={};
+        YMP_raw={};
+        
+        
+        
+        % ------- SIMILAR
+        inds=TargStatus_all==0 & SimDiff_all==1 & LearningPBS_all>learningMin & LearningPBS_all < learningMax;
+        
+        learn_raw=LearningPBS_all(inds);
+        mp_raw=MPbias_all(inds);
+        
+        Ylearn_raw=[Ylearn_raw learn_raw];
+        YMP_raw=[YMP_raw mp_raw];
+        
+        
+        % ------- WHICH EXPTS DID THIS COME FROM?
+        exptstokeep = Expt_count_all(inds);
+        exptstokeep = unique(exptstokeep);
+        
+        
+        % ------ TARGETS
+        inds=TargStatus_all==1 & ismember(Expt_count_all, exptstokeep);
+        assert(sum(inds) == length(exptstokeep), 'asfasdf');
+        learn_raw=LearningPBS_all(inds);
+        mp_raw=MPbias_all(inds);
+        
+        Ylearn_raw=[Ylearn_raw learn_raw];
+        YMP_raw=[YMP_raw mp_raw];
+        
+         X=1:length(Ylearn_raw);
+       
+        if length(Ylearn_raw)<2
+            continue
+        end
+        
+        % --- flip order so targ is on the left
+        Ylearn_raw = fliplr(Ylearn_raw);
+        YMP_raw = fliplr(YMP_raw);
+        
+        % ---- PLOT        
+    lt_subplot(length(LearningMinList), 1, ll); hold on;
+        ylim([-10 150]);
+                line([count+0.5 count+0.5], ylim, 'Color','b');
+
+                % === PL;OT
+        for i=1:length(X);
+            xtmp=[i-0.2, i+0.2];
+            ytmp=[Ylearn_raw{i}' YMP_raw{i}'];
+            plot(count+xtmp, ytmp', '-k')
+        end
+        
+        
+        % ================== PLOT MEAN
+        Ylearn_mean=cellfun(@mean, Ylearn_raw);
+        Ymp_mean=cellfun(@mean, YMP_raw);
+        
+        Ylearn_sem=cellfun(@lt_sem, Ylearn_raw);
+        Ymp_sem=cellfun(@lt_sem, YMP_raw);
+        
+        
+        lt_plot_bar(count+X-0.2, Ylearn_mean, {'Errors', Ylearn_sem, 'BarWidth', 0.35});
+        hold on;
+        lt_plot_bar(count+X+0.2, Ymp_mean, {'Errors', Ymp_sem, 'Color', 'r',  'BarWidth', 0.35});
+        
+        % === REVERSION SIGNIFICNAT>?
+        for i=1:length(Ylearn_raw);
+            
+            p = signrank(Ylearn_raw{i}, YMP_raw{i});
+            
+            if p<0.0005
+                lt_plot_text(count+i, max([Ylearn_raw{i} YMP_raw{i}]), ['p=' num2str(p)], 'b', 15);
+            elseif p<0.005
+                lt_plot_text(count+i, max([Ylearn_raw{i} YMP_raw{i}]), '**', 'b', 15);
+            elseif p<0.05
+                lt_plot_text(count+i, max([Ylearn_raw{i} YMP_raw{i}]), '*', 'b', 15);
+            elseif p<0.2
+                lt_plot_text(count+i, max([Ylearn_raw{i} YMP_raw{i}]), ['p=' num2str(p)], 'b', 12);
+            end            
+        end
+        
+        % --- ASK IF REVERSION IS DIFF BETWEEN THE TWO CONTEXTS
+                p = ranksum(Ylearn_raw{1}-YMP_raw{1}, Ylearn_raw{2}-YMP_raw{2});
+                if p<0.15;
+                    lt_plot_text(count+1.5, 1.2*max(Ylearn_raw{1}), ['(reverHz)p=' num2str(p, '%3.2g')], 'r')
+                end
+                
+                % --- is reversion (%) diff?
+                p = ranksum((Ylearn_raw{1}-YMP_raw{1})./Ylearn_raw{1}, (Ylearn_raw{2}-YMP_raw{2})./Ylearn_raw{2});
+                
+                if p<0.3
+                    lt_plot_text(count+1.5, 1.4*max(Ylearn_raw{1}), ['(rever%)p=' num2str(p, '%3.2g')], 'g')                    
+                end
+                
+                % --- ask if the learning is diff between contexts
+                 p = ranksum(Ylearn_raw{1}, Ylearn_raw{2});
+                if p<0.15;
+                    lt_plot_text(count+1.5, 1.3*max(Ylearn_raw{1}), ['(learn)p=' num2str(p, '%3.2g')], 'm')
+                end
+               
+                
+                % --- LINE FOR MIN AND MAX
+                line([count+0.5 count+2.5], [learningMin learningMin], 'Color', 'm');
+                line([count+0.5 count+2.5], [learningMax learningMax], 'Color', 'm');
+                
+                
+    end
+    axis tight
+end
 
 

@@ -101,8 +101,8 @@ clear all; close all;
 % channel_board = [8 11 14 18 20]; % wh6
 % channel_board = [9 11 12 14 15 18]; % bu77
 % channel_board = [14];
-channel_board = 18;
-batchf = 'Batch29Apr1043to2049';
+channel_board = 14;
+batchf = 'Batch24May1124to26May2247SUB';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
