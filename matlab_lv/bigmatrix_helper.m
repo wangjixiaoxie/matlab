@@ -1,14 +1,14 @@
 function [bigmatrix, presize] = bigmatrix_helper(switches,thisix,propbj,smo)
-%makes a big matrix of all renditions aligned by pitch
+%makes a big matrix of all renditions aligned by pitch (block x rend)
 
 presize = max(cellfun(@length, switches.preix(thisix)));
 postsize = max(cellfun(@length, switches.postix(thisix)));
-bigmatrix = nan(length(thisix),presize+postsize);
+bigmatrix = nan(length(thisix),presize+postsize); % blocks x songrends
 
 switchtimes = switches.thistranstime(thisix)';
 
 deletelines = zeros(size(bigmatrix,1),1);
-for i = 1:length(thisix)
+for i = 1:length(thisix) % each block
     if ~isnan(switchtimes(i))
         
         thisfill = propbj(switches.preix{thisix(i)});

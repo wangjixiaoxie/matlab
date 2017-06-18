@@ -201,7 +201,8 @@ for m=1:NumMotifs
             end
         end
     end
-    while isempty(songdat)
+    counter = 1;
+    while isempty(songdat) & counter<100;
         % then pick a random song
         i=randi(NumNeurons,1);
         j=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
@@ -210,13 +211,16 @@ for m=1:NumMotifs
         fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
         catch err
         end
+        counter = counter +1;
     end
     
     % --- plot
+    if ~isempty(songdat)
     lt_plot_spectrogram(songdat, fs, 1, 0);
     line([motif_predur motif_predur], ylim, 'Color','w');
     if LinScaleGlobal==1
         line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','w'); % end
+    end
     end
     
     % 2) ===== plot rasters
@@ -304,7 +308,8 @@ for m=1:NumMotifs
             end
         end
     end
-    while isempty(songdat)
+    
+    if isempty(songdat)
         % then pick a random song
         i=randi(NumNeurons,1);
         j=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
@@ -316,12 +321,13 @@ songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
     end
     
     % --- plot
+    if ~isempty(songdat)
     lt_plot_spectrogram(songdat, fs, 1, 0);
     line([motif_predur motif_predur], ylim, 'Color','w');
     if LinScaleGlobal==1
         line([motif_predur+MotifTime_med motif_predur+MotifTime_med], ylim, 'Color','w'); % end
     end
-    
+    end
     % 2) ===== plot rasters
     for i=1:NumNeurons
         if ~isfield(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract, 'spk_Times')
@@ -432,12 +438,15 @@ for m=1:NumMotifs
         % make it empty so will pick random song
         songdat=[];
     end
-    if isempty(songdat)
-        % then pick a random song
-        i=randi(NumNeurons,1);
-        j=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
-        songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
-        fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+    while isempty(songdat)
+        try
+            % then pick a random song
+            i=randi(NumNeurons,1);
+            j=randi(length(MOTIFSTATS.neurons(i).motif(m).SegmentsExtract),1);
+            songdat=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).songdat;
+            fs=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract(j).fs;
+        catch err
+        end
     end
     
     % --- plot

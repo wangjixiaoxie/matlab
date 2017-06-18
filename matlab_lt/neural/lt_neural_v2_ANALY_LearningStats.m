@@ -626,10 +626,11 @@ learndir = TargLearnDirsAll(inds);
 
 X = MeanFFRelBaseAll(inds) .* learndir;
 Y = MeanNeuralSimRelBaseAll(inds);
+if ~isempty(Y)
 lt_regress(Y, X, 1, 0, 1, 1, 'b', 0);
 lt_plot_zeroline
 lt_plot_zeroline_vert
-
+end
 % --- diff type
 hsplot = lt_subplot(2,2,3); hold on;
 hsplots = [hsplots hsplot];

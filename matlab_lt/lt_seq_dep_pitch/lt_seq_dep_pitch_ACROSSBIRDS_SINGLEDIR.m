@@ -449,7 +449,7 @@ lt_seq_dep_pitch_ACROSSBIRDS_DRIFT3(SeqDepPitch_AcrossBirds, PARAMS, WNdaynum_st
 
 
 %% Plot distributions of learning
-
+% DOES 2-BACK, 1-BACK, 0-BACK!!!
 close all;
 lt_seq_dep_pitch_ACROSSBIRDS_LearningDistribution(SeqDepPitch_AcrossBirds, PARAMS)
 

@@ -18,7 +18,7 @@ cd(datdir)
 load('MetaDat.mat'); % contains file names
 % --- load concat neural and spikes
 neural_cat=load('data.mat');
-spikes_cat=load('times_data.mat');
+spikes_cat=load('./times_data.mat');
 
 
 AllSongs_old=[];

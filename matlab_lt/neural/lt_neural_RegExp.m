@@ -27,7 +27,7 @@ if ~exist('keepRawSongDat', 'var')
 end
 
 if ~exist('suppressout', 'var')
-    suppressout = 0;
+    suppressout = 1;
 end
 
 if ~exist('collectWNhit', 'var')
@@ -89,7 +89,7 @@ UseLastSylAsToken=0;
 AllLabels=SongDat.AllLabels;
 AllOnsets=SongDat.AllOnsets;
 AllOffsets=SongDat.AllOffsets;
-spikes_cat=NeurDat.spikes_cat;
+% spikes_cat=NeurDat.spikes_cat;
 % metaDat=NeurDat.metaDat;
 
 fs=NeurDat.metaDat(1).fs;
@@ -99,18 +99,18 @@ Params.REGEXP.postdur=postdur;
 
 % PARAMS ONLY USED FOR WHOLEBOUTS EXTRACTION
 %      onset_pre_threshold=2; % OLD (changed on 3/21/17, based on wh6pk36)
-    onset_pre_threshold=1; % in seconds, minimum time preceding and following bout [DO NOT CHANGE! THIS IS FOR "DEFINING" SONG BOUT]
-    % If you only want to keep those with a long enough quiet time, then do
-    % following
-    
-    %     offset_post_threshold=3; % in seconds
-    min_syls_in_bout=10;
+onset_pre_threshold=1; % in seconds, minimum time preceding and following bout [DO NOT CHANGE! THIS IS FOR "DEFINING" SONG BOUT]
+% If you only want to keep those with a long enough quiet time, then do
+% following
 
-    
+%     offset_post_threshold=3; % in seconds
+min_syls_in_bout=10;
+
+
 TotalSamps = sum([NeurDat.metaDat.numSamps]);
 TotalDurSec = TotalSamps/fs;
 
-    
+
 
 %% ------ find motifs
 
@@ -230,7 +230,7 @@ if collectWholeBoutPosition==1 & strcmp(regexpr_str, 'WHOLEBOUTS') ==0
     
     wholebout_firstsyls=potentialOnsets(inds_tmp);
     wholebout_lastsyls=potentialOnsets(inds_tmp+1)-1; % minus 1 because want to end of the current bout, not the start of the next bout.
-        
+    
     % ---- get match labels
     wholebout_matchlabs={};
     for j=1:length(wholebout_firstsyls)
@@ -243,22 +243,22 @@ if collectWholeBoutPosition==1 & strcmp(regexpr_str, 'WHOLEBOUTS') ==0
         hsplots = [];
         lt_figure; hold on;
         
-%         hsplot= lt_subplot(2,1,1); hold on;
-%         plot([1:length(SongDat.AllSongs)]./NeurDat.metaDat(1).fs, ...
-%             SongDat.AllSongs, 'k');
-%         title('song');
-%         hsplots = [hsplots hsplot];
+        %         hsplot= lt_subplot(2,1,1); hold on;
+        %         plot([1:length(SongDat.AllSongs)]./NeurDat.metaDat(1).fs, ...
+        %             SongDat.AllSongs, 'k');
+        %         title('song');
+        %         hsplots = [hsplots hsplot];
         
         % 2) syls
         hsplot = lt_subplot(2,1,2); hold on;
         for i=1:length(AllOnsets)
             line([AllOnsets(i) AllOffsets(i)], [0 0], 'LineWidth', 2);
-%             lt_plot_text(AllOnsets(i), 0.01, AllLabels(i));
+            %             lt_plot_text(AllOnsets(i), 0.01, AllLabels(i));
         end
         
-%         for i=tokenExtents
-%             lt_plot_text(AllOnsets(i), 0.01, AllLabels(i));
-%         end
+        %         for i=tokenExtents
+        %             lt_plot_text(AllOnsets(i), 0.01, AllLabels(i));
+        %         end
         for i=1:length(wholebout_firstsyls)
             line([AllOnsets(wholebout_firstsyls(i)) AllOnsets(wholebout_firstsyls(i))],...
                 ylim, 'Color', 'g');
@@ -267,10 +267,10 @@ if collectWholeBoutPosition==1 & strcmp(regexpr_str, 'WHOLEBOUTS') ==0
         end
         
         xlabel('time of syl (s)');
-
+        
         plot(AllOnsets(638), 0, 'ok')
     end
-
+    
 end
 
 %%
@@ -304,17 +304,17 @@ for i=1:length(tokenExtents)
     offsamp=round(offtime*fs);
     
     
-    spkinds=(spikes_cat.cluster_class(:,2) > ontime*1000) & ...
-        (spikes_cat.cluster_class(:,2) < offtime*1000);
-    spk_ClustTimes = spikes_cat.cluster_class(spkinds, :); % in sec, relative to onset of the segment
+    spkinds=(NeurDat.spikes_cat.cluster_class(:,2) > ontime*1000) & ...
+        (NeurDat.spikes_cat.cluster_class(:,2) < offtime*1000);
+    spk_ClustTimes = NeurDat.spikes_cat.cluster_class(spkinds, :); % in sec, relative to onset of the segment
     
     
     if keepRawSongDat ==1
         assert(isfield(SongDat, 'AllSongs'), 'PROBLEM - need to extract songdat before running this');
         
         % this effectively does nothing if also collecting FF.
-        AllSongs=SongDat.AllSongs;
-        songseg=AllSongs(onsamp:offsamp);
+%         AllSongs=SongDat.AllSongs;
+        songseg=SongDat.AllSongs(onsamp:offsamp);
         SegmentsExtract(i).songdat=songseg;
     end
     
@@ -335,8 +335,8 @@ for i=1:length(tokenExtents)
             %% === OLD METHOD (CALCULATE FROM RAW AUDIO HERE)
             disp('HAVE TO DO FFVALS MANUALLY :( ');
             % - collect
-            AllSongs=SongDat.AllSongs;
-            songseg=AllSongs(onsamp:offsamp);
+%             AllSongs=SongDat.AllSongs;
+            songseg=SongDat.AllSongs(onsamp:offsamp);
             
             FF_PosRelToken=FFparams.FF_PosRelToken;
             FF_sylName=FFparams.FF_sylName;
@@ -356,7 +356,7 @@ for i=1:length(tokenExtents)
             offtime_forFF=offtime_forFF+postpad_forFF;
             offsamp_forFF=round(offtime_forFF*fs);
             
-            songseg_forFF=AllSongs(onsamp_forFF:offsamp_forFF);
+            songseg_forFF=SongDat.AllSongs(onsamp_forFF:offsamp_forFF);
             
             % -- debug
             if (0)
@@ -408,8 +408,8 @@ for i=1:length(tokenExtents)
         % FIGURE OUT IF WN HIT ON THIS TRIAL (based on clipping of sound)
         % - collect
         if collectWNhit==1
-            AllSongs=SongDat.AllSongs;
-            songseg=AllSongs(onsamp:offsamp);
+%             AllSongs=SongDat.AllSongs;
+            songseg=SongDat.AllSongs(onsamp:offsamp);
             
             FF_PosRelToken=FFparams.FF_PosRelToken;
             prepad_forFF=0.015; postpad_forFF=0.015; % don't change, as this affects temporal window for FF
@@ -424,7 +424,7 @@ for i=1:length(tokenExtents)
             offtime_forFF=offtime_forFF+postpad_forFF;
             offsamp_forFF=round(offtime_forFF*fs);
             
-            songseg_forFF=AllSongs(onsamp_forFF:offsamp_forFF);
+            songseg_forFF=SongDat.AllSongs(onsamp_forFF:offsamp_forFF);
             
             
             wasTrialHit=[];
@@ -484,6 +484,29 @@ for i=1:length(tokenExtents)
     end
     
     
+    % =================== GET ONSETS/OFFSETS OF ALL SYLS IN MOTIF, RELATIVE
+    % TO TIMING OF EACH MOTIF.
+    if alignByOnset==1
+        %     OnsetsRelTokenOnset = AllOnsets - AllOnsets(tokenExtents(i))
+        
+        % get only those that are within bounds of this segment's data
+        inds = AllOnsets>ontime & AllOnsets<offtime;
+        ontimesWithinData = AllOnsets(inds);
+        ontimesRelStartDat = ontimesWithinData - ontime; % relative to start of segment
+        
+        inds = AllOffsets>ontime & AllOffsets<offtime;
+        offtimesWithinData = AllOffsets(inds);
+        offtimesWithinData = offtimesWithinData - ontime; % relative to start of segment
+        
+        % --- compare onsets to acoustic data
+        if (0)
+            lt_figure; hold on;
+            lt_plot(ontimesRelStartDat, 0, {'Color', 'g'});
+            lt_plot(offtimesWithinData, 0, {'Color', 'r'});
+            plot([1:length(songseg)]./fs, (songseg-mean(songseg)).^2, 'k');
+            line([predur predur], ylim, 'Color', 'b');
+        end
+    end
     % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     % ========= TIME OF SONG FILE FOR THIS SEGMENT
@@ -514,7 +537,8 @@ for i=1:length(tokenExtents)
     actualmotifdur=(offtime - postdur) - (ontime + predur);
     SegmentsExtract(i).actualmotifdur=actualmotifdur;
     
-    
+    SegmentsExtract(i).sylOnTimes_RelDataOnset=ontimesRelStartDat;
+    SegmentsExtract(i).sylOffTimes_RelDataOnset=offtimesWithinData;
     
 end
 
@@ -525,18 +549,19 @@ end
 
 
 %% ==== DEBUG - CHECK HIT DETECTION
-if ~isempty(HitSyls_TEMP) | ~isempty(MisSyls_TEMP)
-    lt_figure; hold on;
-    lt_subplot(1,2,1); hold on; title('hits');
-    for j=1:length(HitSyls_TEMP)
-        plot(HitSyls_TEMP{j}, ':', 'Color', [rand rand rand]);
+if suppressout==0
+    if ~isempty(HitSyls_TEMP) | ~isempty(MisSyls_TEMP)
+        lt_figure; hold on;
+        lt_subplot(1,2,1); hold on; title('hits');
+        for j=1:length(HitSyls_TEMP)
+            plot(HitSyls_TEMP{j}, ':', 'Color', [rand rand rand]);
+        end
+        lt_subplot(1,2,2); hold on; title('misses');
+        for j=1:length(MisSyls_TEMP)
+            plot(MisSyls_TEMP{j}, ':', 'Color', [rand rand rand]);
+        end
+        
+        lt_subtitle(regexpr_str);
     end
-    lt_subplot(1,2,2); hold on; title('misses');
-    for j=1:length(MisSyls_TEMP)
-        plot(MisSyls_TEMP{j}, ':', 'Color', [rand rand rand]);
-    end
-    
-    lt_subtitle(regexpr_str);
 end
-
 

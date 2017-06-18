@@ -4,5 +4,5 @@
 set(gcf,'Color',[0.9 0.9 0.9])
 set(gca,'FontSize',12,'FontWeight','bold');
 set(gca, 'Color', [0.9 0.9 0.9])
-box on;
+box off;
 

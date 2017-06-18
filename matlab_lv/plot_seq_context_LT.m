@@ -18,10 +18,8 @@ trn2 = transitions{2};
 %plot context changes and sequence transition probabilies
 
 
-if (0)
 load lenacols2
 lenacols = cols;
-end
 cols = [1 .7 .2; .8 .5 .1; .5 .8 .3; .1 .6 .3];
 colos = [1 .9 .4; 1 .9 .3; .5 1 .5; .5 1 .5];
 
@@ -214,6 +212,8 @@ axis tight
 
 
 
+
+
 %% block stats (COLLECT OVER ALL BLOCKS)
 [allmean allsem] = grpstats(transprob,transngs,{'mean' 'sem'})
 figure
@@ -271,39 +271,40 @@ up/down
 
 
 %% song by song
-clear thissongtime propbj
-for i = 1:length(all_trans.syl_order)
-    thissong = all_trans.syl_order{i};
-    thissongtime(i) = mean(all_trans.syl_times{i});
-    
-    bjn = sum(thissong(1:end-1)==trn1(1) & thissong(2:end)==trn1(2));
-    bhn = sum(thissong(1:end-1)==trn2(1) & thissong(2:end)==trn2(2));
-    propbj(i) = bjn/(bjn+bhn);
-    
-end
+% LT: commented out. use with dashes (below) instead
 
-figure
-plot(thissongtime,smooth_lv(propbj,10),'k')
-hold on
-yl = get(gca,'ylim');
-for i = 1:length(transtime_dn)-1
-    line([transtime_dn(i) transtime_dn(i)],yl,'color','k')
-    fill([transtime_dn(i) transtime_dn(i+1) transtime_dn(i+1) transtime_dn(i)],[yl(1) yl(1) yl(2) yl(2)],colos(switchtonotegroup(i)+1,:),'edgecolor','none','facealpha',.5)
-    text(transtime_dn(i),yl(1)+0.5*(yl(2)-yl(1)),num2str(switchtonotegroup(i)))
-
-end
-xl = get(gca,'xlim');
-fill([transtime_dn(i) xl(2) xl(2) transtime_dn(i)],[yl(1) yl(1) yl(2) yl(2)],colos(switchtonotegroup(i)+1,:),'edgecolor','none','facealpha',.5)
-ylabel('p(B-J) / p(B-H|B-J)')
-xlabel('time')
-plot(thissongtime,smooth_lv(propbj,10),'kx')
-set(gca,'xtick',transtime_dn(1:10:end),'xticklabel',datestr(transtime_dn(1:10:end)));
-box off
-axis tight
-
-disp('no dashes')
-grpstats(propbj,notegroups_songs)
-
+% clear thissongtime propbj
+% for i = 1:length(all_trans.syl_order)
+%     thissong = all_trans.syl_order{i};
+%     thissongtime(i) = mean(all_trans.syl_times{i});
+%     
+%     bjn = sum(thissong(1:end-1)==trn1(1) & thissong(2:end)==trn1(2));
+%     bhn = sum(thissong(1:end-1)==trn2(1) & thissong(2:end)==trn2(2));
+%     propbj(i) = bjn/(bjn+bhn);
+%     
+% end
+% 
+% figure
+% plot(thissongtime,smooth_lv(propbj,10),'k')
+% hold on
+% yl = get(gca,'ylim');
+% for i = 1:length(transtime_dn)-1
+%     line([transtime_dn(i) transtime_dn(i)],yl,'color','k')
+%     fill([transtime_dn(i) transtime_dn(i+1) transtime_dn(i+1) transtime_dn(i)],[yl(1) yl(1) yl(2) yl(2)],colos(switchtonotegroup(i)+1,:),'edgecolor','none','facealpha',.5)
+%     text(transtime_dn(i),yl(1)+0.5*(yl(2)-yl(1)),num2str(switchtonotegroup(i)))
+% 
+% end
+% xl = get(gca,'xlim');
+% fill([transtime_dn(i) xl(2) xl(2) transtime_dn(i)],[yl(1) yl(1) yl(2) yl(2)],colos(switchtonotegroup(i)+1,:),'edgecolor','none','facealpha',.5)
+% ylabel('p(B-J) / p(B-H|B-J)')
+% xlabel('time')
+% plot(thissongtime,smooth_lv(propbj,10),'kx')
+% set(gca,'xtick',transtime_dn(1:10:end),'xticklabel',datestr(transtime_dn(1:10:end)));
+% box off
+% axis tight
+% 
+% disp('no dashes')
+% grpstats(propbj,notegroups_songs)
 
 %% song by song with dashes
 clear thissongtime propbj_dash
@@ -314,20 +315,17 @@ for i = 1:length(all_trans.syl_order_WithDashes)
     bjn = sum(thissong(1:end-1)== trn1(1) & thissong(2:end)==trn1(2));
     bhn = sum(thissong(1:end-1)==trn2(1) & thissong(2:end)==trn2(2));
     propbj_dash(i) = bjn/(bjn+bhn);
-    
-    
 end
 
-figure
+figure; hold on
 plot(thissongtime,smooth_lv(propbj_dash,10),'k')
-hold on
 yl = get(gca,'ylim');
 for i = 1:length(transtime_dn)-1
-    line([transtime_dn(i) transtime_dn(i)],yl,'color','k')
+    line([transtime_dn(i) transtime_dn(i)], yl, 'color','k')
     fill([transtime_dn(i) transtime_dn(i+1) transtime_dn(i+1) transtime_dn(i)],[yl(1) yl(1) yl(2) yl(2)],colos(switchtonotegroup(i)+1,:),'edgecolor','none','facealpha',.5)
-    text(transtime_dn(i),yl(1)+0.5*(yl(2)-yl(1)),num2str(switchtonotegroup(i)))
-
+    text(transtime_dn(i), yl(1)+0.5*(yl(2)-yl(1)), num2str(switchtonotegroup(i)))
 end
+
 xl = get(gca,'xlim');
 fill([transtime_dn(i) xl(2) xl(2) transtime_dn(i)],[yl(1) yl(1) yl(2) yl(2)],colos(switchtonotegroup(i)+1,:),'edgecolor','none','facealpha',.5)
 ylabel('p(B-J) / p(B-H|B-J)')
@@ -340,6 +338,72 @@ title('with dash')
 
 disp('dashes')
 grpstats(propbj_dash,notegroups_songs)
+
+
+
+%% song by song with dashes [LT - TO USE WITH TRANSITIONS ARRAY]
+clear thissongtime propbj_dash
+ProbBySong = nan(length(all_trans.syl_order_WithDashes), length(transitions)); % songnum x trans
+RendsBySong = nan(length(all_trans.syl_order_WithDashes), length(transitions));
+smthbin = 6; % number of songs.
+for i = 1:length(all_trans.syl_order_WithDashes)
+    thissong = all_trans.syl_order_WithDashes{i};
+    thissongtime(i) = mean(all_trans.syl_times{i});
+    
+    for ii=1:length(transitions)
+       trn = transitions{ii};
+       
+       numrends = length(strfind(thissong, trn));
+       
+       RendsBySong(i, ii) = numrends;
+    end
+    
+    ProbBySong(i, :) = RendsBySong(i,:)./sum(RendsBySong(i,:));
+end
+
+% ==== PLOT
+lt_figure; hold on;
+plotcols = lt_make_plot_colors(length(transitions), 0, 0);
+ylabel('pr per song')
+xlabel('time')
+
+for i=1:length(transitions)
+   plot(thissongtime,ProbBySong(:,i),'x', 'Color', plotcols{i});
+end
+legend(gca, transitions)
+
+for i=1:length(transitions)
+    % all songs, smoothed 
+    tmpY = lt_running_stats(ProbBySong(:,i), smthbin);
+    tmpX = lt_running_stats(thissongtime, smthbin);
+    shadedErrorBar(tmpX.Median, tmpY.Mean, tmpY.SEM, {'Color', plotcols{i}}, 1);
+%    plot(thissongtime,(ProbBySong(:,i),smthbin),'x', 'Color', plotcols{i});
+   plot(thissongtime,ProbBySong(:,i),'x', 'Color', plotcols{i});
+
+end
+
+% smoothed overlay
+yl = get(gca,'ylim');
+for i = 1:length(transtime_dn)-1
+    line([transtime_dn(i) transtime_dn(i)], yl, 'color','k')
+    fill([transtime_dn(i) transtime_dn(i+1) transtime_dn(i+1) transtime_dn(i)],[yl(1) yl(1) yl(2) yl(2)],colos(switchtonotegroup(i)+1,:),'edgecolor','none','facealpha',.5)
+    text(transtime_dn(i), yl(1)+0.5*(yl(2)-yl(1)), num2str(switchtonotegroup(i)))
+end
+
+
+set(gca,'xtick', transtime_dn(1:5:end), 'xticklabel', datestr(transtime_dn(1:5:end), 'ddmmm-HHMM'));
+
+
+% box off
+% axis tight
+
+% xl = get(gca,'xlim');
+% fill([transtime_dn(i) xl(2) xl(2) transtime_dn(i)],[yl(1) yl(1) yl(2) yl(2)],colos(switchtonotegroup(i)+1,:),'edgecolor','none','facealpha',.5)
+% plot(thissongtime,smooth_lv(propbj_dash,10),'kx')
+% title('with dash')
+% 
+% disp('dashes')
+% grpstats(propbj_dash,notegroups_songs)
 
 
 %% song by song with dashes proper probs
@@ -401,6 +465,45 @@ grpstats(allprop_bx,notegroups_songs)
 switches = makeswitchstructure(notegroups_songs,transtime_t0,switchtonotegroup,day_song,time_song);
 
 
+%% - align all songs at switches [LT], >2 transitions
+smoothie = 1; % song rends
+minblocks = 1; % min num blocks
+plotRend = 1; % if 0, then plots prob, if 1, numrends per song,.
+
+% ==== ORANGE --> GREEN
+ngfirst = 0; 
+ngsecond = 2;
+
+lt_figure; hold on
+thisix = find(switches.preng==ngfirst & switches.postng==ngsecond);
+if ~isempty(thisix);
+    for i=1:length(transitions)
+        lt_subplot(ceil(length(transitions)/2), 2,i); hold on;
+        title([transitions{i} ', ng ' num2str(ngfirst) ' to ' num2str(ngsecond)]);
+        xlabel(['song num (1st at 1) (smbin=' num2str(smoothie) ')']);
+        
+        if plotRend==1
+            probvec = RendsBySong(:,i);
+        else
+            probvec = ProbBySong(:, i);
+        end
+        
+        [bigmatrix, presize] = bigmatrix_helper(switches,thisix,probvec,smoothie);
+        takeix = sum(~isnan(bigmatrix))>=minblocks; % min number of blocsk.
+        presize = presize-find(takeix,1,'first')+1;
+        shadeplot(1-presize:size(bigmatrix(:,takeix),2)-presize,bigmatrix(:,takeix),2)
+        line([0 0],get(gca,'ylim'),'color',lenacols(2,:));
+        box off
+        axis tight
+        hold on
+    end
+end
+
+
+%% ========= LT, OVER TIME, BLOCK BY BLOCK (MEAN WITHIN EACH BLOCK)
+% uses switches structure
+
+
 %% nOTE !!!! -  NEED TO GENERALIZE (LINK NG/COLOR WITH TARG TRANSITION)
 
 
@@ -418,6 +521,7 @@ line([0 0],get(gca,'ylim'),'color',lenacols(2,:));
 box off
 axis tight
 hold on
+
 %transition to orange probe from green training
 thisix = find(switches.preng==3 & switches.postng==0);
 [bigmatrix, presize] = bigmatrix_helper(switches,thisix,propbj,smoothie);

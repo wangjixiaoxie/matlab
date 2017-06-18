@@ -26,7 +26,7 @@ load('MetaDat.mat'); % contains file names
 toc
 % --- load concat neural and spikes
 % neural_cat=load('data.mat');
-spikes_cat=load('times_data.mat');
+spikes_cat=load('./times_data.mat');
 % fs=metaDat(1).fs; % assumes all have same fs, as they should.
 
 % --- load audio and old neural (from actual files)

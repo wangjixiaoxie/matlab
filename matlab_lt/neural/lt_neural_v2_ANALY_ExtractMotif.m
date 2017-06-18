@@ -1,6 +1,6 @@
-function [MOTIFSTATS, SummaryStruct] = lt_neural_v2_ANALY_LearningExtractMotif(SummaryStruct)
+function [MOTIFSTATS, SummaryStruct] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct)
 %% ONLY WORKS FOR SINGLE BIRD!!! - extracts motif information into one structure
-
+% NOT LEARNING SPECIFIC, GENERAL USE
 
 %% PARAMS
 
@@ -24,6 +24,8 @@ assert(NumBirds ==1, 'too many birds');
 
 MotifsActual = SummaryStruct.birds(1).neurons(1).POSTINFO.MotifsActual;
 motif_regexpr_str = SummaryStruct.birds(1).neurons(1).POSTINFO.MotifsActual_regexpStr;
+singlesyls = SummaryStruct.birds(1).neurons(1).POSTINFO.SingleSyls;
+
 
 % === GIVEN ACTUAL MOTIFS FOR THIS BIRD, DETERMINE WHICH SYLS TO LOOK AT
 if strcmp(SummaryStruct.birds(1).birdname, 'wh6pk36')
@@ -149,6 +151,7 @@ end
 MOTIFSTATS.params.motif_predur = motif_predur;
 MOTIFSTATS.params.motif_postdur = motif_postdur;
 MOTIFSTATS.params.motif_regexpr_str = motif_regexpr_str;
+MOTIFSTATS.params.singlesyls = singlesyls;
 % MOTIFSTATS.params.BirdsToKeep = BirdsToKeep;
 % MOTIFSTATS.params.BrainArea = BrainArea;
 % MOTIFSTATS.params.ExptToKeep = ExptToKeep;

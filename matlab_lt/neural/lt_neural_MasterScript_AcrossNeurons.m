@@ -225,24 +225,25 @@ motif_postdur=0.1;
 % motif_postdur=0.3;
 
 % ------------------ WH6
-motif_regexpr_str={'nl(c)chbg', 'ajkl(c)chbg', 'amksd(v)b'};
-motif_regexpr_str={'nl(c)chbg', 'ajkl(c)chbg', 'amksdv(b)', 'cch(b)', 'd(m)', 'a(m)'};
-motif_regexpr_str={'nl(c)c', 'jkl(c)c', 'nlc(c)', 'jklc(c)'};
-motif_regexpr_str={'v(b)', 'klcch(b)', 'nlcch(b)'};
-% motif_regexpr_str={'d(m)', 'a(m)'};
-motif_predur=0.2;
-motif_postdur=0.1;
+% motif_regexpr_str={'nl(c)chbg', 'ajkl(c)chbg', 'amksd(v)b'};
+% motif_regexpr_str={'nl(c)chbg', 'ajkl(c)chbg', 'amksdv(b)', 'cch(b)', 'd(m)', 'a(m)'};
+% motif_regexpr_str={'nl(c)c', 'jkl(c)c', 'nlc(c)', 'jklc(c)'};
+% motif_regexpr_str={'v(b)', 'klcch(b)', 'nlcch(b)'};
+% % motif_regexpr_str={'d(m)', 'a(m)'};
+% motif_predur=0.2;
+% motif_postdur=0.1;
 
 % ------ BR92
 motif_regexpr_str={'nk(h)', 'dd(d)', 'ddd(h)', 'ag(c)c'};
 motif_regexpr_str={'nk(h)', 'd(d)d'};
 motif_regexpr_str={'nk(h)', 'ag(c)'};
+motif_regexpr_str={'h(d)', '-(d)'};
+
 motif_predur=0.2;
 motif_postdur=0.1;
 
 % ----- OR74
-% motif_regexpr_str={'a(b)g', 'an(b)g'};
-% motif_regexpr_str={'an(b)g'};
+% motif_regexpr_str={'ab(g)', 'anb(g)'};
 % motif_predur=0.35;
 % motif_postdur=0.1;
 
@@ -261,10 +262,15 @@ WHOLEBOUTS_edgedur = '';
 
 lt_neural_MultNeur_MotifRasters_v2(NeuronDatabase, motif_regexpr_str, motif_predur, motif_postdur, LinScaleGlobal, WHOLEBOUTS_edgedur);
 
+
+%% ======= PLOT ALL SYLS IN MOTIFS (SAME AS ABOVE, BUT AUTOMATICALLY PICKS OUT SYLS)
+
+
 %% ======== ARRANGE RESPONSES BASED ON CHANNEL AND DEPTH
 % PLOT RESPONSE arranged by channel, depth, and date.
+close all;
 
-motif_regexpr_str={'nk(h)'};
+motif_regexpr_str={'j(b)'};
 motif_predur=0.2;
 motif_postdur=0.1;
 
@@ -586,12 +592,14 @@ motif_regexpr_str={'nlcch(b)', 'klcch(b)', 'dv(b)', 'l(c)', 'lc(c)', 'lcc(h)', .
 
 % br92br54
 motif_regexpr_str={'ddd(h)', 'nk(h)'};
+motif_regexpr_str={'c(d)dd', 'h(d)dd', 'ag(c)c', 'n(k)h', 's(d)'};
+
 
 % or74
 motif_regexpr_str={'a(b)g', 'an(b)'};
 
 
-motif_predur=0.4;
+motif_predur=0.2;
 motif_postdur=0.1; 
 LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
 
@@ -613,12 +621,13 @@ FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incomp
 
 OnlyPlotNoHit=0; % then only plots trials that were not hit (WN)
 TrialBinSize=20; % default 10
-
+DivisorBaseSongs = 1;
 
 
 % === ONLY DOES ONE NEURON AT A TIME!! - FIRST INDEX IN NeuronDatabase;
 lt_neural_MultNeur_MotifRasters_Learning2(NeuronDatabase, motif_regexpr_str, ...
-    motif_predur, motif_postdur, LinScaleGlobal, FFparams, OnlyPlotNoHit, TrialBinSize)
+    motif_predur, motif_postdur, LinScaleGlobal, FFparams, OnlyPlotNoHit, ...\
+    TrialBinSize, DivisorBaseSongs)
 
 % IN PROGRESS!!:: LinScaleGlobal.
 
@@ -673,9 +682,10 @@ motif_regexpr_str={'g(h)h'}; % bk7
 motif_regexpr_str={'a(b)bh'}; % bu77
 motif_regexpr_str={'lcch(b)g'}; % bu77
 motif_regexpr_str={'nk(h)'}; % br92
+motif_regexpr_str={'h(d)dd', 'c(d)dd'}; % br92
 
-motif_predur=0.4;
-motif_postdur=0.2;
+motif_predur=0.2;
+motif_postdur=0.1;
 NumTrialsBin=20;
 LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (specific to neuron x motif)
 

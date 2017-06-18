@@ -3,18 +3,18 @@
 
 %% EXTRACT 
 
-% BirdsToKeep = {'bk7', 'wh6pk36', 'br92br54', 'or74bk35'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+% BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 % BrainArea = {'LMAN', 'X'};
-% ExptToKeep = {'LearnLMAN1', 'LMANlearn2', 'LMANneural2'};
-% RecordingDepth = [1860 2770 2840 1800 2490];
-% LearningOnly = 1;
+% ExptToKeep = {};
+% RecordingDepth = [];
+% LearningOnly = 0;
 % BatchesDesired = {};
 % ChannelsDesired = [];
 BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
-BrainArea = {'X', 'LMAN'};
+BrainArea = {};
 ExptToKeep = {};
 RecordingDepth = [];
-LearningOnly = 1;
+LearningOnly = 0;
 BatchesDesired = {};
 ChannelsDesired = [];
 [NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, ...
@@ -25,6 +25,83 @@ if (0)
     [NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database;
 end
 
+
+%% remove song dat from metadat
+if (0)
+% THIS IS UP TO DATE. WILL SAVE SONG IN UPPER DIR AND REMOVE SONG DAT FROM
+% META DAT. RUNNING WILL NOT CORRUPT ANYTHING. 
+% RUN THIS FOR NEW FINALIZED NEURONS.
+
+numbirds = length(SummaryStruct.birds);
+for i=1:numbirds
+    
+    numneurons = length(SummaryStruct.birds(i).neurons);
+    
+    for ii=1:numneurons
+        disp(['========= bird ' num2str(i) ' neuron ' num2str(ii) ', ' ...
+            SummaryStruct.birds(i).neurons(ii).batchfilename ' (if blank did nothing)']);
+        
+        Datstruct = SummaryStruct.birds(i).neurons(ii);
+        cd(Datstruct.dirname)
+        
+        % 1) === IS THIS BATCH'S SONG ALREADY SAVED UP ONE LEVEL?
+        cd ..
+        songfname = ['SongDat_' Datstruct.batchfilename '.mat'];
+        songAlreadyExists = 0;
+        if exist(songfname, 'file')==2
+            % then already exists, skip
+            songAlreadyExists = 1;
+        end
+        cd(Datstruct.dirname)
+        
+        % 2) ====  Extract and save song if necessary.
+        if songAlreadyExists == 0
+            disp('EXTRACTING SONG ...');
+            % -- if not saved, then save
+            metadat = load('MetaDat');
+            
+            % save song data in cell array
+            numsongs = length(metadat.metaDat);
+            SongCellArray = {};
+            for j=1:numsongs
+                SongCellArray = [SongCellArray single(metadat.metaDat(j).songDat)];
+            end
+            
+            % save
+            cd ..
+            save(songfname, 'SongCellArray', '-v7.3');
+            disp(['-- extracted and saved ! (' songfname ')']);
+            cd(Datstruct.dirname)            
+        end
+        
+        % 3) ===== if Song not removed from MetaDat, then do that.
+        if exist('DONE_RemovedSongDatFromMetaDat', 'file') ==2
+            % then already removed, DO NOTHING.
+            
+        else
+            disp('REMOVING SONG FROM METADAT');
+            metadat = load('MetaDat');
+            % ------ 2) don't yet remove from metaDat (for backwards compatibility testing)
+            % INSTEAD CHANGE THE NAME. IF WORKS FINE, THEN REMOVE.
+            metaDat = rmfield(metadat.metaDat, 'songDat'); % also name change
+            
+            % move old metadat to new file name
+            % DELETE OLD METADAT
+            eval('!rm MetaDat.mat');
+            disp('DELETED OLD METADAT!');
+            
+            % save new
+            save('MetaDat.mat', 'metaDat');
+            
+            fid = fopen('DONE_RemovedSongDatFromMetaDat', 'w');
+            fclose(fid);
+        end
+    end
+end
+
+
+
+end
 %% ==== refinalize specific neurons, with slight changes
 if (0)
 birdnum=1;
@@ -79,7 +156,7 @@ FFparamsAll.bird(4).FFparams.cell_of_freqwinds={'a', [750 1400], 'c', [1200 1800
 FFparamsAll.bird(4).FFparams.cell_of_FFtimebins={'a', [0.057 0.08], 'c', [0.044 0.055], ...
     'h', [0.040 0.049], 'd', [0.032 0.052], 'k', [0.05 0.055]};
 FFparamsAll.bird(4).FFparams.cell_of_FFtimebins_DurLearn={'a', [0.057 0.08], 'c', [0.044 0.055], ...
-    'h', [0.040 0.049], 'd', [0.032 0.052], 'k', [0.05 0.055]};
+    'h', [0.040 0.049], 'd', [0.026 0.033], 'k', [0.05 0.055]};
 
 
 FFparamsAll.bird(5).birdname = 'or74bk35';
@@ -90,7 +167,7 @@ FFparamsAll.bird(5).FFparams.cell_of_FFtimebins_DurLearn={'b', [0.033 0.041]};
 
 overWrite = 0; % note, will overwrite rgardless if detects chagnes (NOTE: always overwrites if detects changes)
 plotSpec = 0; % to plot raw spec overlayed with PC and windows.
-plotOnSong = 25; % will only start plotting spec once hit this song num.
+plotOnSong = 50; % will only start plotting spec once hit this song num.
 plotSyl = ''; % to focus on just one syl. NOT DONE YET
 lt_neural_v2_EXTRACT_FF_tmp(SummaryStruct, FFparamsAll, overWrite, ...
     plotSpec, plotOnSong, plotSyl);
@@ -118,10 +195,12 @@ LearningMetaDat; % OPEN AND EDIT BY HAND.
 cd('/bluejay5/lucas/analyses/neural/');
 save('LearningMetaDat', 'LearningMetaDat');
 
+
 %% ==== LIST OF MOTIFS FOR EACH BIRD/EXPERIMENT
 if (0) % RUNS AUTOMATICALLY WHEN EXTRACT
 SummaryStruct = lt_neural_v2_PostInfo(SummaryStruct);
 end
+
 %% ===== EXTRACT WN HITS
 
 % IN PROGRESS ! see inside
@@ -191,6 +270,16 @@ PlotRaw = 0;
 lt_neural_v2_ANALY_BoutPositionJC(SummaryStruct,PlotRaw);
 
 
+%% ======= COMPARE SAME TYPE SYLS IN DIFFERENT CONTEXTS.
+
+close all;
+
+% ==== 1)
+MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct);
+
+% ==== 2)
+lt_neural_v2_ContextFR(MOTIFSTATS_Compiled);
+
 
 %% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %% ++++++++++++++++++++++++++++++++++++++++++++++++++++ LEARNING
@@ -208,8 +297,17 @@ LearningOnly = 1; % then only if has WN on/switch time date
 [NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, ...
     BrainArea, ExptToKeep, RecordingDepth, LearningOnly);
 
+
 % ==== 1) EXTRACT DATA FOR EACH NEURON, EACH MOTIF
 [MOTIFSTATS, SummaryStruct_filt] = lt_neural_v2_ANALY_LearningExtractMotif(SummaryStruct);
+       exptname = SummaryStruct_filt.birds(1).neurons(1).exptID;
+       birdname = SummaryStruct_filt.birds(1).birdname;
+        % ---- EXTRACT TARG SYL
+        tmp = lt_neural_v2_LoadLearnMetadat;
+        indbird = strcmp({tmp.bird.birdname}, birdname);
+        indexpt = strcmp(tmp.bird(indbird).info(1,:), exptname);
+        TargSyls = tmp.bird(indbird).info(2,indexpt);
+        MOTIFSTATS.params.TargSyls = TargSyls;
 
 close all;
 % motifs for this bird
@@ -218,7 +316,7 @@ plottype = 'byneuron'; %
 % 'byneuron' - each neuron one fig will all motifs [DEFAULT]
 % 'dotprod' - for each bin of trials get dot prod from IN PROGRESS
 % 'bysyl' - each plot one syl, all neurons.
-DivisorBaseSongs = 1;
+DivisorBaseSongs = 2;
 lt_neural_v2_ANALY_Learning(SummaryStruct_filt, MOTIFSTATS, plottype, DivisorBaseSongs);
 
 % ===== FOR ALL NEURONS, PLOT CHANGE AT TARG VS. OTHERS. ALSO, AVERAGE
@@ -230,44 +328,28 @@ lt_neural_v2_ANALY_Learning(SummaryStruct_filt, MOTIFSTATS, plottype, DivisorBas
 %% =================== LEARNING, SUMMARY STATISTICS ACROSS ALL EXPERIMENTS
 % CAN DO MULTIPLE BIRDS
 
-NumBirds = length(SummaryStruct.birds);
-MOTIFSTATS_Compiled = struct; % heirarchy: birds --> expt --> neurons
-
-for i=1:NumBirds
-
-    ListOfExpts = unique({SummaryStruct.birds(i).neurons.exptID});
-    
-    for ll=1:length(ListOfExpts)
-        exptname = ListOfExpts{ll};
-        
-        inds = strcmp({SummaryStruct.birds(i).neurons.exptID}, exptname);
-        
-        SummaryStruct_tmp = struct;
-        SummaryStruct_tmp.birds(1).neurons = SummaryStruct.birds(i).neurons(inds);
-        SummaryStruct_tmp.birds(1).birdname = SummaryStruct.birds(i).birdname;
-        
-        % === extract for just this expt
-        [MOTIFSTATS] = lt_neural_v2_ANALY_LearningExtractMotif(SummaryStruct_tmp);
-        
-        % === OUTPUT
-        MOTIFSTATS_Compiled.birds(i).exptnum(ll).MOTIFSTATS = MOTIFSTATS;
-        MOTIFSTATS_Compiled.birds(i).exptnum(ll).SummaryStruct = SummaryStruct_tmp;
-        MOTIFSTATS_Compiled.birds(i).exptnum(ll).exptname = exptname;
-
-    end
-end
+MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct);
 
 
-%% =========== PICK OUT SAME TYPE/DIFF
+%% =========== PICK OUT SAME TYPE/DIFF [LEANRING SPECIFIC]
 
 numbirds = length(MOTIFSTATS_Compiled.birds);
 for i=1:numbirds
-    
+    birdname = MOTIFSTATS_Compiled.birds(i).birdname;
     numexpts = length(MOTIFSTATS_Compiled.birds(i).exptnum);
    
     for ii=1:numexpts
-       
-        TargSyls = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.TargSyls;
+       exptname = MOTIFSTATS_Compiled.birds(i).exptnum(ii).exptname;
+        % ---- EXTRACT TARG SYL
+        tmp = lt_neural_v2_LoadLearnMetadat;
+        indbird = strcmp({tmp.bird.birdname}, birdname);
+        indexpt = strcmp(tmp.bird(indbird).info(1,:), exptname);
+        TargSyls = tmp.bird(indbird).info(2,indexpt);
+
+        MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.TargSyls = TargSyls;
+        
+        % ----
+%         TargSyls = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.TargSyls;
         MotifsActual = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.MotifsActual;
         
         [SameTypeSyls, DiffTypeSyls, motif_regexpr_str] = ...
@@ -276,7 +358,6 @@ for i=1:numbirds
     % --- OUTPUT
 MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.SameTypeSyls = SameTypeSyls;
 MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.DiffTypeSyls = DiffTypeSyls;
-
 
     end
 end

@@ -64,6 +64,9 @@ for cc=1:length(ChannelList)
     for zzz = 1:length(NeuronsToPlot)
     % --- Prepare subplot
     ypos = 1-(1/numcols) - ((numcols-1)/numcols)*(DepthsToPlot(zzz) - depthmin)/depthrange;
+    if depthrange==0
+    ypos = 0.5; 
+    end
     xpos = (zzz-1)*1/numcols;
     xwidth = 0.9*1/numcols;
     yheight = 0.9*1/numcols;
@@ -76,6 +79,9 @@ for cc=1:length(ChannelList)
     set(hsplot, 'Position', [xpos ypos xwidth yheight]); hold on;
     hsplots = [hsplots hsplot];
     
+    if NeuronsToPlot(zzz)==3
+        keyboard
+    end
     title({[num2str(FirstSongTimeList_days(zzz)*24, '%3.2g') ' to ' num2str(LastSongTimeList_days(zzz)*24, '%3.2g')...
         ' hrs - Depth ' num2str(DepthsToPlot(zzz))],...
         [datestr(FirstSongDatenumList(zzz), 'ddmmm-HHMM') ' to ' ...
@@ -93,7 +99,7 @@ for cc=1:length(ChannelList)
             continue
         end
  
-                segextract=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
+        segextract=MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
         clustnum=NeuronDatabase.neurons(i).clustnum;
         
         numtrials=length(segextract);
@@ -126,6 +132,9 @@ for cc=1:length(ChannelList)
     
     for m=1:NumMotifs
     % ============= PLOT EXAMPLE SPECTROGRAM
+    if depthrange==0
+        depthrange=500;
+    end
     ypos = 1-(1/numcols) - ((numcols-1)/numcols)*(DepthsToPlot(1) - depthmin)/depthrange;
     ypos = ypos - 1.7*m*0.9*1/numcols;
     if ypos<0

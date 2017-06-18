@@ -47,6 +47,10 @@ if isfield(SegmentsExtract, 'spk_Clust'); % only try to smooth if there is any d
             binedges = 0:binsize_spks:trialdur;
             [bincounts] = histc(spktimes, binedges); % binned spikes
             
+            if isempty(spktimes)
+                bincounts = zeros(size(binedges));
+            end
+            
             x = -3*kernelSD:binsize_spks:3*kernelSD;
             kern = (1/(sqrt(2*pi)*kernelSD)) * exp(-x.^2/(2*kernelSD^2)); % kernel
             

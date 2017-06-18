@@ -1,5 +1,5 @@
 function lt_neural_MultNeur_MotifRasters_Learning2(NeuronDatabase, motif_regexpr_str, motif_predur, ...
-    motif_postdur, LinScaleGlobal, FFparams, OnlyPlotNoHit, TrialBinSize)
+    motif_postdur, LinScaleGlobal, FFparams, OnlyPlotNoHit, TrialBinSize, DivisorBaseSongs)
 %% constrain to 1 neuron, as WNchangeDateStrings is for only one expt - and lots of figures
 
 
@@ -55,7 +55,7 @@ determineTrialBinBasedOnBaselineN=1; % if 1, then chooses binsize based on
 % baseline num songs (i.e. baseNumSongs/DivisorBaseSongs); if 0, then = TrialBinSize
 % note: assumes WNchangeDateStrings{1} is transition from baseline to WN
 % on.
-DivisorBaseSongs=3; % divide base N with this
+% DivisorBaseSongs=1; % divide base N with this
 % TrialBinSize=10;
 
 

@@ -1,4 +1,4 @@
-function [] = db_change_syllable_in_batchfile( batchfile, original_syllable, new_syllable )
+function [] = db_change_syllable_in_batchfile(batchfile, original_syllable, new_syllable)
 %db_change_syllable_in_batchfile Input a batchfile, original_syllable, and
 %new_syllable, and it will change all the 'labels' variables in the
 %.not.mat files to replace the old syllables with the new.

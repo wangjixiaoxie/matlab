@@ -24,9 +24,9 @@ for j=1:NumBirds
             MotifsActual = {'kspj', 'ab', 'bh', 'jb', 'nkrs'}; % COULD IMPROVE
             %       MotifsActual = {'kspj', 'ab', 'bh', 'ijbh', 'nkrs'}; % COULD IMPROVE
         elseif strcmp(birdname, 'br92br54')
-            MotifsActual = {'nkh', 'ddd', 'dh', 'agc', 'cc'}; % COULD IMPROVEe
+            MotifsActual = {'nkh', 'ddd', 'dh', 'agc', 'cc', 'cd', 'hd'}; % COULD IMPROVEe
         elseif strcmp(birdname, 'or74bk35');
-            MotifsActual = {'abg', 'anb'}; % IN PROGRESS
+            MotifsActual = {'abg', 'anb', 'nbg'}; % IN PROGRESS
         else
             disp('NO MOTIFS INPUTED!!');
             failures = failures+1;
@@ -63,15 +63,26 @@ for j=1:NumBirds
         
         % display output
         if (0)
-disp(['--------------------------------' birdname '-' exptname])
-        disp(MotifsActual);
-        disp(motif_regexpr_str);
-end
+            disp(['--------------------------------' birdname '-' exptname])
+            disp(MotifsActual);
+            disp(motif_regexpr_str);
+        end
+        
+        % ========== FIGURE OUT LIST OF SINGLE SYLS
+        SingleSylAll = {};
+        for i=1:length(motif_regexpr_str)
+           motifsyl = motif_regexpr_str{i};
+           ind = strfind(motifsyl, '(');
+            singlesyl = motifsyl(ind+1);
+            SingleSylAll = [SingleSylAll singlesyl];
+        end
+        SingleSylAll = unique(SingleSylAll);
         
         % ==== SAVE OUTPUT INTO STRUCT
         SummaryStruct.birds(j).neurons(jj).POSTINFO.MotifsActual = MotifsActual;
         SummaryStruct.birds(j).neurons(jj).POSTINFO.MotifsActual_regexpStr = motif_regexpr_str;
-        
+         SummaryStruct.birds(j).neurons(jj).POSTINFO.SingleSyls = SingleSylAll;
+       
     end
 end
 

@@ -770,7 +770,158 @@ line([0 200], [0 200], 'Color', 'k');
 
 
 
+%% ==================== OTHER REGRESSION PLOTS [GENERALIZATION OF AFP OR MP BIAS]
 
+
+% --- Revision version
+inds = find(TargStatus_all==0 & SimDiff_all==1); % (nontarg context)
+lt_figure; hold on;
+ylabel('nontarg, ff'); xlabel('targ, ff');
+title('blue = pbs; red = musc');
+
+FFpbs_targ_all = [];
+FFpbs_nontarg_all = [];
+FFmusc_targ_all = [];
+FFmusc_nontarg_all = [];
+
+for i=1:length(inds)
+    ind = inds(i);
+    
+    FFafp_nontarg = LearningPBS_all(ind) - MPbias_all(ind);
+    FFmusc_nontarg = MPbias_all(ind);
+    
+    exptcount = Expt_count_all(ind);
+    indtmp = TargStatus_all==1 & Expt_count_all==exptcount;
+    FFafp_targ = LearningPBS_all(indtmp) - MPbias_all(indtmp);
+    FFmusc_targ = MPbias_all(indtmp);
+    
+    lt_subplot(1,2,1); hold on;
+    plot(FFafp_targ, FFafp_nontarg, 'ob');
+    
+    lt_subplot(1,2,2); hold on;
+    plot(FFmusc_targ, FFmusc_nontarg, 'or');
+    
+    % -- collect
+    FFpbs_targ_all = [FFpbs_targ_all FFafp_targ];
+    FFpbs_nontarg_all = [FFpbs_nontarg_all FFafp_nontarg];
+    
+    FFmusc_targ_all = [FFmusc_targ_all FFmusc_targ];
+    FFmusc_nontarg_all = [FFmusc_nontarg_all FFmusc_nontarg];
+end 
+
+% regression
+    lt_subplot(1,2,1); hold on;
+    title('AFP bias');
+    xlabel('targ'); ylabel('nontarg');
+[b, bint] = lt_regress(FFpbs_nontarg_all, FFpbs_targ_all, 0, 0, 1, 1, 'b', 1); % pbs
+disp(b); disp(bint);
+line(xlim, [0 0], 'Color', 'k');
+line([0 0], ylim, 'Color', 'k');
+line([0 200], [0 200], 'Color', 'k');
+    lt_subplot(1,2,2); hold on;
+    title('MP bias');
+[b, bint] = lt_regress(FFmusc_nontarg_all, FFmusc_targ_all, 0, 0, 1, 1, 'r', 1); % pbs
+disp(b); disp(bint);
+
+line(xlim, [0 0], 'Color', 'k');
+line([0 0], ylim, 'Color', 'k');
+line([0 200], [0 200], 'Color', 'k');
+
+
+
+%% ==================== OTHER REGRESSION PLOTS [AFP vs. MP]
+
+lt_figure; hold on;
+hsplots = [];
+
+% --- targ
+inds = find(TargStatus_all==1);
+hsplot =lt_subplot(1,2,1); hold on;
+title('targ');
+hsplots = [hsplots hsplot];
+
+xlabel('AFP bias'); ylabel('MP bias');
+X_AFP = LearningPBS_all(inds) - MPbias_all(inds);
+Y_MP = MPbias_all(inds);
+lt_regress(Y_MP, X_AFP, 1, 0, 1, 1, 'k', 0);
+disp(length(X_AFP));
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
+% --- nontarget
+inds = find(TargStatus_all==0 & SimDiff_all==1);
+hsplot =lt_subplot(1,2,2); hold on;
+title('nontarg');
+hsplots = [hsplots hsplot];
+
+xlabel('AFP bias'); ylabel('MP bias');
+X_AFP = LearningPBS_all(inds) - MPbias_all(inds);
+Y_MP = MPbias_all(inds);
+lt_regress(Y_MP, X_AFP, 1, 0, 1, 1, 'b', 0);
+disp(length(X_AFP));
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
+
+linkaxes(hsplots,'xy');
+xlim([-60 200]);
+ylim([-40 150]);
+
+%% ==================== OTHER REGRESSION PLOTS [AFP vs. LEARNING]
+
+lt_figure; hold on;
+hsplots = [];
+Xall = [];
+Yall = [];
+Group = [];
+
+% --- targ
+inds = find(TargStatus_all==1);
+hsplot =lt_subplot(1,2,1); hold on;
+title('targ');
+groupnum = 0;
+
+hsplots = [hsplots hsplot];
+xlabel('Learning'); ylabel('AFP bias');
+X_AFP = LearningPBS_all(inds);
+Y_MP = LearningPBS_all(inds) - MPbias_all(inds);
+lt_regress(Y_MP, X_AFP, 1, 0, 1, 1, 'k', 0);
+disp(length(X_AFP));
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
+Xall = [Xall; X_AFP'];
+Yall = [Yall; Y_MP'];
+Group = [Group; ones(length(Y_MP), 1)*groupnum];
+
+
+% --- nontarget
+inds = find(TargStatus_all==0 & SimDiff_all==1);
+hsplot =lt_subplot(1,2,2); hold on;
+title('nontarg');
+groupnum = 1;
+
+hsplots = [hsplots hsplot];
+xlabel('Learning'); ylabel('AFP bias');
+X_AFP = LearningPBS_all(inds);
+Y_MP = LearningPBS_all(inds) - MPbias_all(inds);
+lt_regress(Y_MP, X_AFP, 1, 0, 1, 1, 'k', 0);
+disp(length(X_AFP));
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
+Xall = [Xall; X_AFP'];
+Yall = [Yall; Y_MP'];
+Group = [Group; ones(length(Y_MP), 1)*groupnum];
+
+% --- global
+linkaxes(hsplots,'xy');
+xlim([-60 200]);
+ylim([-40 150]);
+
+
+% --- ancova
+aoctool(Xall, Yall, Group)
 
 %% === percent generalization, for PBS and MUSC
 % --- Revision version

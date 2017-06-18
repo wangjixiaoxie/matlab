@@ -71,7 +71,7 @@ else
     end
        
     hfig=errorbar(X, Y, Yerr);
-    errorbar_tick(hfig, 1000)
+    errorbar_tick(hfig, 10000000)
 end
 
 % apply modifiers

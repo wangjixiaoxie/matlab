@@ -11,11 +11,11 @@
 
 clear all; close all
 
-FileDir='/newhome/lucast4/.gvfs/data on egret/lucas/birds/or60/021317_AcuteOpto';
+FileDir='./';
 AmplChansOfInterest_0to31=0:31; % array of nums 0 to 31.
 DigChan=0; % (usually 1 is individual stims, 2 is stim epochs), triggers
 ThrXNoise=3; % how many multiples of median noise to use as spike threshold.
-PSTH_bin=[0.04]; % bin in sec, if dont specificy ([]) then will use 1/10 of peri-stim dur.
+PSTH_bin=[0.025]; % bin in sec, if dont specificy ([]) then will use 1/10 of peri-stim dur.
 
 
 % FILENAME
@@ -23,12 +23,12 @@ PSTH_bin=[0.04]; % bin in sec, if dont specificy ([]) then will use 1/10 of peri
 % multiple. 
 % make sure they are in chronolgical order
 fn{1}='or60_L_3200um_200ms_800ms_15mWNominal_170213_181956.rhd';
-% fn{2}='Xleft_Site2_2975Vfromsurf_HVCStim_Surface_250ms_1500ms_100s_k75_150508_222918.rhd';
-% fn{3}='Xleft_4750V_HVCstim_200umLeft_Surface_250ms_1500ms_100s_k775_150508_210749.rhd';
-% fn{4}='Xleft_4750V_HVCstim_200umLeft_Surface_250ms_1500ms_100s_k775_150508_210847.rhd';
-% fn{5}='Xleft_4750V_HVCstim_200umPost_Surface_250ms_1500ms_100s_k775_150508_211419.rhd';
-% fn{6}='Xleft_4750V_HVCstim_200umPost_Surface_250ms_1500ms_100s_k775_150508_211517.rhd';
-% fn{7}='Xleft_4750V_HVCstim_250umAnt_Surface_250ms_1500ms_100s_k775_150508_211121.rhd';
+% fn{2}='or60_400ms_1600ms_20mWNominal_170213_153807.rhd';
+% fn{3}='L3200_20ms_100ms_knob75_170317_133448.rhd';
+% fn{4}='L3200_20ms_100ms_knob75_170317_133453.rhd';
+% fn{5}='L3200_20ms_100ms_knob75_170317_133458.rhd';
+% fn{6}='L3200_20ms_100ms_knob75_170317_133503.rhd';
+% fn{7}='L3200_20ms_100ms_knob75_170317_133508.rhd';
 % fn{8}='Xleft_4750V_HVCstim_250umAnt_Surface_250ms_1500ms_100s_k775_150508_211219.rhd';
 % fn{9}='Xleft_4750V_HVCstim_250umRight_Surface_250ms_1500ms_100s_k775_150508_211701.rhd';
 % fn{10}='Xleft_4750V_HVCstim_250umRight_Surface_250ms_1500ms_100s_k775_150508_211759.rhd';
@@ -302,7 +302,7 @@ for i=1:32; % indices, with correcponsdence to electrode defined by the subplot 
     
     y0=max(0, min(BinnedSpikeRate{chan}(1:end-1))-10); % lower y limit
     yf=max(BinnedSpikeRate{chan})+10;
-    ylim([y0 yf]);
+%     ylim([y0 yf]);
     
     title(['Channel: ' num2str(ChanNum_0to31) ]);
 end
@@ -351,7 +351,7 @@ for i=1:length(ChansOfInterest_1to32);
     % zoom in y axis.
     y0=max(0, min(BinnedSpikeRate{chan}(1:end-1))-10); % lower y limit
     yf=max(BinnedSpikeRate{chan})+10;
-    ylim([y0 yf]);
+%     ylim([y0 yf]);
     
     % plot stim on and off.
     line([PeriStimTime./fs PeriStimTime./fs],ylim);  % put lines denoting stim on and off

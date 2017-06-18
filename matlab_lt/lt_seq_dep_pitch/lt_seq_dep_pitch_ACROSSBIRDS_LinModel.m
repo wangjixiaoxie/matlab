@@ -277,7 +277,111 @@ AllSylsStruct.LMAN.Corr_song_all_MUSC=Corr_song_all_MUSC;
 AllSylsStruct.LMAN.AcousticDist_all=acoustdist_MUSC_all;
 
 
-%% ++++++++++++++++
+%% ++++++++++++ 2-back, 1-back, 0-back
+
+lt_figure; hold on
+
+AllSylsStruct.NumBackSimilar = nan(size(AllSylsStruct.Learning_all));
+
+% -- 2 back
+inds = AllSylsStruct.PreSimilar_all==1 & AllSylsStruct.TwoBackSimilar_all==1;
+AllSylsStruct.NumBackSimilar(inds) = 2;
+
+% -- 1 back
+inds = AllSylsStruct.PreSimilar_all==1 & AllSylsStruct.TwoBackSimilar_all==0;
+AllSylsStruct.NumBackSimilar(inds) = 1;
+
+% -- 0 back
+inds = AllSylsStruct.PreSimilar_all==0;
+AllSylsStruct.NumBackSimilar(inds) = 0;
+
+assert(~any(isnan(AllSylsStruct.NumBackSimilar)));
+
+% =============== PLOT
+lt_figure; hold on
+inds = AllSylsStruct.Target_all==0 & AllSylsStruct.Similar_all==1;
+
+X = -AllSylsStruct.NumBackSimilar(inds);
+Y = AllSylsStruct.LearningRelTarg_all(inds);
+
+plot(X, Y, 'o');
+
+lt_regress(Y, X, 1, 0, 1, 1, 'k', 1)
+xlim([-3 1])
+
+
+%% ========================== 2-back, 1-back ,.., multiple regression also with acoustic and trial by trial
+
+inds = AllSylsStruct.Target_all==0 & AllSylsStruct.Similar_all==1;
+
+X = [-AllSylsStruct.NumBackSimilar(inds)' AllSylsStruct.AcousticDist_all(inds)' ...
+    AllSylsStruct.Corr_song_all(inds)'];
+
+y = AllSylsStruct.Learning_TargDir_All(inds);
+
+% [b, bint, ~, ~, stats] = regress(y', X);
+mdl = fitlm(X, y);
+
+% --- bar plots of model fits
+BetaVals = mdl.Coefficients{2:end, 1}; % estimates
+BetaSE = mdl.Coefficients{2:end, 2}; % SE
+lt_figure; hold on;
+title('multiple linear regression');
+ylabel('coefficient (SE)')
+Xnames = {'context sim', 'acoustic dist', 'corr (by bout)'};
+lt_plot_bar(1:length(Xnames), BetaVals, {'Errors', BetaSE})
+
+set(gca, 'XTickLabel', Xnames);
+
+
+%% ========================== 2-back, 1-back ,.., multiple regression also with acoustic and trial by trial
+% SCALED - so that numerical predictors can be compared to levels of discrete
+% variable
+% ========== PARAMS
+numerical_predictors = 2:3; % columns to alter
+discrete_predictor = 1; % column to keep the same (i.e. will scale other columsn to match this)
+
+
+% ====== RUN
+inds = AllSylsStruct.Target_all==0 & AllSylsStruct.Similar_all==1;
+
+X = [-AllSylsStruct.NumBackSimilar(inds)' AllSylsStruct.AcousticDist_all(inds)' ...
+    AllSylsStruct.Corr_song_all(inds)'];
+y = AllSylsStruct.Learning_TargDir_All(inds);
+
+% ========= RESCALE NUMERICAL PREDICTORS (follow advice of Gelman and scale
+% such that coefficeints are comparable across all predictors)
+
+scalestd = std(X(:,discrete_predictor)); % i.e. change of 1 represents this much change in units of SD.
+scalefactor = 1/scalestd;
+
+Zmean = mean(X(:, numerical_predictors), 1);
+Zstd = std(X(:, numerical_predictors));
+
+X(:, numerical_predictors) = (X(:, numerical_predictors) - repmat(Zmean, size(X,1),1))./(scalefactor*repmat(Zstd, size(X,1),1));
+
+% confirm that have been rescaled to have sd
+disp(std(X));
+
+% [b, bint, ~, ~, stats] = regress(y', X);
+mdl = fitlm(X, y);
+
+% --- bar plots of model fits
+BetaVals = mdl.Coefficients{2:end, 1}; % estimates
+BetaSE = mdl.Coefficients{2:end, 2}; % SE
+lt_figure; hold on;
+title('multiple linear regression');
+ylabel('coefficient (SE)')
+Xnames = {'context sim', 'acoustic dist', 'corr (by bout)'};
+lt_plot_bar(1:length(Xnames), BetaVals, {'Errors', BetaSE})
+
+set(gca, 'XTickLabel', Xnames);
+
+lt_plot_annotation(1, ['beta=deltaY if deltaX = ' num2str(scalefactor) '*SD'], 'r')
+
+
+% =================== PLOT EACH INDIVIDUALLY
+
 %% ====== PRESIM (effect independent of corr and acoustic and motif?)
 
 % === plot bars
