@@ -5,4 +5,5 @@ h=subplot(arg1, arg2, arg3);
 
 lt_plot_format;
 
+% subplotsqueeze(gca, 1.2);
 end

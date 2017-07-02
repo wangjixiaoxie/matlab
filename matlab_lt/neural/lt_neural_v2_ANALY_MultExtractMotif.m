@@ -1,6 +1,9 @@
-function MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct)
+function MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
+    collectWNhit)
 
-
+if ~exist('collectWNhit', 'var')
+   collectWNhit = 1; 
+end
 %% lt 6/8/17 - multiple birds, extracts motifs/segments, etc
 
 NumBirds = length(SummaryStruct.birds);
@@ -21,7 +24,8 @@ for i=1:NumBirds
         SummaryStruct_tmp.birds(1).birdname = SummaryStruct.birds(i).birdname;
         
         % === extract for just this expt
-        [MOTIFSTATS] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct_tmp);
+        [MOTIFSTATS] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct_tmp, ...
+            collectWNhit);
         
         % === OUTPUT
         MOTIFSTATS_Compiled.birds(i).exptnum(ll).MOTIFSTATS = MOTIFSTATS;

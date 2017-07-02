@@ -1,8 +1,11 @@
 %% lt 5/22/17 - across all birds, expts, neurons, plot learning related statistics (see other code
 % for visualization of raw data)
-function lt_neural_v2_ANALY_LearningStats(MOTIFSTATS_Compiled, LearningMetadat, ...
-    PlotTimeCourses, PlotNeuralFFDeviationCorrs, convertToZscore)
-% NOTES
+function [MOTIFSTATS_Compiled] = lt_neural_v2_ANALY_LearningStats(MOTIFSTATS_Compiled)
+%% LT 6/29/17 - only keeps neurons that have WNdatenum entered
+% NOTE: WILL REMOVE NEURON FROM ALL STRUCTS (inlcuding SummaryStruct)
+RemoveIfNoWNdatenum=1;
+
+%%
 
 % DEFAULT: plots each neuron z-score relative to itself (i.e. its own
 % baseline) (i.e. if multiple epochs, then does not use earliest baseline
@@ -17,16 +20,21 @@ windshift_neural = 0.002;
 
 
 premotorWind = [-0.075 0.025]; % [-a b] means "a" sec before onset and "b" sec after offset
+premotorWind = [-0.1 0.025]; % [-a b] means "a" sec before onset and "b" sec after offset
+binsize_frvec = 0.02; % for calculating FR vector on each trial (num spikes in bin) (for limits uses premotorWind)
+
+
 
 % === plotting similairty scores
 plotRawScores=0; % if 0, just plots running avg
 % convertToZscore = 1; % converts all scores (e.g neural, FF) to zscore relative to baseline
-runbin = 15; % num trials to smooth over.
+runbin = 10; % num trials to smooth over.
 
 %%
 NumBirds = length(MOTIFSTATS_Compiled.birds);
 
 
+LearningMetadat = lt_neural_v2_LoadLearnMetadat;
 
 %% GET MEAN FR - go thru all experiments
 
@@ -75,7 +83,10 @@ end
 
 
 %% EXTRACT LEARNING METRIC AND OTHER THINGS
-
+NeuralFRCorr_Allbase = [];
+NeuralFRCorr_Allpost = [];
+IsTargAll = [];
+NeuralFRCorr_Allpost_lasttertrile = []; % last 33-tile of data during training.
 for i=1:NumBirds
     numexpts = length(MOTIFSTATS_Compiled.birds(i).exptnum);
     for ii=1:numexpts
@@ -92,11 +103,13 @@ for i=1:NumBirds
         nummotifs = length(motiflist);
         
         FirstDay = []; % will fill in with first neuron/motif - other enurons use same first day.
+        neuronstoremove = [];
+        
         for j=1:nummotifs
             motifname = motiflist{j};
             targetmotifs = MotifStats.params.TargSyls;
             
-            
+            istarg = any(strcmp(targetmotifs, motifname));
             
             % 1) === PLOT LEARNING, OVERLAY OVER TARGET LEARNING. INCLUDE TIME
             % INTERVALS FOR NEURONS
@@ -111,6 +124,14 @@ for i=1:NumBirds
                     continue % i.e. no trials
                 end
                 
+                if RemoveIfNoWNdatenum==1
+                    if isempty(SummaryStruct.birds(1).neurons(nn).LEARN_WNonDatestr)
+                        % REMOVE THIS NEURON
+                        neuronstoremove = [neuronstoremove nn];
+                        continue
+                    end
+                end
+                
                 % what time bins contain premotor window?
                 tmp = segmentsextract(1).FRsmooth_xbin;
                 premotorInds = find(tmp>(MotifStats.params.motif_predur + premotorWind(1)) ...
@@ -120,8 +141,57 @@ for i=1:NumBirds
                 % what trials are baseline?
                 WNonDnum = datenum(SummaryStruct.birds(1).neurons(nn).LEARN_WNonDatestr, ...
                     'ddmmmyyyy-HHMM');
-                baseInds = [segmentsextract.song_datenum] < WNonDnum;
+                if isempty(WNonDnum)
+                    baseInds = nan;
+                else
+                    baseInds = [segmentsextract.song_datenum] < WNonDnum;
+                end
                 
+                
+                
+                % ================= get training end inds (i.e. dur
+                % training, before ifirst switch that comes after training
+                % onset
+                if isempty(WNonDnum)
+                    trainInds = [segmentsextract.song_datenum] >0;
+                else
+                    trainInds = [segmentsextract.song_datenum] >= WNonDnum;
+                end
+                
+                trainOn = find(trainInds==1, 1, 'first');
+                
+                % ------ some expts have multiple switches - for now just
+                % keep the first switch!!!
+                indbird = strcmp({LearningMetadat.bird.birdname}, birdname);
+                indcol = strcmp(LearningMetadat.bird(indbird).info(1,:), exptname);
+                alltranstimes = LearningMetadat.bird(indbird).info(3:end, indcol);
+                alltranstimes = alltranstimes(~cellfun('isempty', alltranstimes));
+                alltransdnums = [];
+                for ddd=1:length(alltranstimes)
+                    alltransdnums = [alltransdnums ...
+                        datenum(alltranstimes{ddd}(1:14), 'ddmmmyyyy-HHMM')]; % switch time
+                end
+                alltransdnums = unique(alltransdnums);
+                
+                assert(sum(alltransdnums==WNonDnum)==1, 'asasdfasd');
+                
+                
+                trainenddnum = alltransdnums(find(alltransdnums>WNonDnum, 1, 'first')); % first trans after WN on
+                if isempty(trainenddnum)
+                    trainOff = find(trainInds==1, 1, 'last');
+                else
+                    trainOff = find(trainInds==1 & ...
+                        [segmentsextract.song_datenum] <= trainenddnum, 1, 'last');
+                end
+                
+                if ~isempty(trainenddnum)
+                    if ~all([segmentsextract.song_datenum] <= trainenddnum)
+                        disp(['num train days reduced: ' num2str(find(trainInds==1, 1, 'last')) ' to ' ...
+                            num2str(find(trainInds==1 & ...
+                            [segmentsextract.song_datenum] <= trainenddnum, 1, 'last'))])
+                    end
+                end
+                trainInds(trainOff+1:end) = 0;
                 
                 
                 % =================================== Dir of learning (for
@@ -164,17 +234,76 @@ for i=1:NumBirds
                 alltrialTimes = tmp.FinalValue;
                 
                 
-                % ============== 1) FIRING RATE (NEURAL SIMILARITY TO BASELINE MEAN
-                % FR)
-                alltrialFR = [segmentsextract.FRsmooth_rate_CommonTrialDur]; % all trial FR (bin x trial)
-                alltrialFR = alltrialFR(premotorInds, :); % extract just premotor window
+                %% ==== metrics relative to own baseline
+                if ~isnan(baseInds)
+                    % ============== 1) FIRING RATE (NEURAL SIMILARITY TO BASELINE MEAN
+                    % FR)
+                    alltrialFR = [segmentsextract.FRsmooth_rate_CommonTrialDur]; % all trial FR (bin x trial)
+                    alltrialFR = alltrialFR(premotorInds, :); % extract just premotor window
+                    
+                    baseFR = alltrialFR(:, baseInds);
+                    baseFR_mean = mean(baseFR, 2);
+                    
+                    % ---- for each trial, calculate deviation from mean base
+                    % FR
+                    neuralsimilarity = corr(alltrialFR, baseFR_mean); % trials x 1
+                    
+                    
+                    
+                    % ============= 2) EUCLIDIAN DISTANCE BETWEEN FR VECTOR
+                    binstart = MotifStats.params.motif_predur+premotorWind(1);
+                    binend = MotifStats.params.motif_predur+premotorWind(2);
+                    binedges = binstart:binsize_frvec:binend;
+                    
+                    alltrialFRvec = []; % bin x trial
+                    for k=1:length(segmentsextract)
+                        inds = segmentsextract(k).spk_Clust == MotifStats.neurons(nn).clustnum;
+                        spktimes = segmentsextract(k).spk_Times(inds);
+                        
+                        bincounts = histc(spktimes, binedges);
+                        bincounts = bincounts(1:end-1);
+                        alltrialFRvec = [alltrialFRvec bincounts'];
+                    end
+                    baseFRvec = mean(alltrialFRvec(:, baseInds),2);
+                    baseFRvec_rep = repmat(baseFRvec, 1, size(alltrialFRvec,2));
+                    EuclDistances = sqrt(sum((alltrialFRvec - baseFRvec_rep).^2,1));
+                    
+                    
+                    % ==== 2.5 euclidian after subtracting mean FR (i.e. does
+                    % not penalize mean FR diff, but still does penalize
+                    % greater depth of modulation, etc
+                    alltrialFRvec_minusmean = ...
+                        alltrialFRvec - repmat(mean(alltrialFRvec, 1), size(alltrialFRvec,1), 1);
+                    baseFRvec_minusmean = baseFRvec - mean(baseFRvec);
+                    baseFRvec_minusmeanrep = repmat(baseFRvec_minusmean, 1, size(alltrialFRvec,2));
+                    EuclDistancesFRcentered = sqrt(sum((alltrialFRvec_minusmean ...
+                        - baseFRvec_minusmeanrep).^2,1));
+                    
+                    if (0) % troubleshooting, sanity check, plot FR vectors
+                        lt_figure; hold on;
+                        plot(baseFRvec_minusmean, 'ok-');
+                        indstmp = randi(size(alltrialFRvec_minusmean,2), 1, 15);
+                        plot(alltrialFRvec_minusmean(:,indstmp), '-');
+                        
+                        lt_figure; hold on;
+                        plot(baseFRvec, 'ok-');
+                        indstmp = randi(size(alltrialFRvec,2), 1, 15);
+                        plot(alltrialFRvec(:,indstmp), '-');
+                    end
+                    
+                    % ============ 3) MEAN FR DIFFERENCES
+                    Norm1Distance =  sum(abs(alltrialFRvec - baseFRvec_rep), 1);
+                    
+                    % ============ 4) MEAN FR DIFF
+                    MeanFRDiff = sum(alltrialFRvec,1) -  sum(baseFRvec,1);
+                else
+                    neuralsimilarity = nan;
+                    EuclDistances = nan;
+                    EuclDistancesFRcentered = nan;
+                    Norm1Distance = nan;
+                    MeanFRDiff = nan;
+                end
                 
-                baseFR = alltrialFR(:, baseInds);
-                baseFR_mean = mean(baseFR, 2);
-                
-                % ===== for each trial, calculate deviation from mean base
-                % FR
-                neuralsimilarity = corr(alltrialFR, baseFR_mean); % trials x 1
                 
                 % ==================== 2) FF
                 alltrialFF = [segmentsextract.FF_val];
@@ -182,513 +311,127 @@ for i=1:NumBirds
                 
                 % ========================== output
                 tmp = num2cell(neuralsimilarity);
-                [MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).SegmentsExtract.neuralsimilarity] = deal(tmp{:});
+                [MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).SegmentsExtract.NEURrelbase_smthFrCorr] = deal(tmp{:});
+                
+                tmp = num2cell(EuclDistances);
+                [MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).SegmentsExtract.NEURrelbase_EuclDistance] = deal(tmp{:});
+                
+                tmp = num2cell(Norm1Distance);
+                [MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).SegmentsExtract.NEURrelbase_Norm1Distance] = deal(tmp{:});
+                
+                tmp = num2cell(MeanFRDiff);
+                [MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).SegmentsExtract.NEURrelbase_MeanFRDiff] = deal(tmp{:});
+                
+                tmp = num2cell(EuclDistancesFRcentered);
+                [MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).SegmentsExtract.NEURrelbase_EuclDistFRcentered] = deal(tmp{:});
+                
                 
                 MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).Params.baseInds = baseInds;
+                MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).Params.trainInds = trainInds;
                 MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).LearningInfo.preTranContingency = preTranContingency;
                 MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).LearningInfo.postTranContingency = postTranContingency;
                 
                 
+                NeuralFRCorr_Allbase = [NeuralFRCorr_Allbase median(neuralsimilarity(baseInds))];
+                NeuralFRCorr_Allpost = [NeuralFRCorr_Allpost median(neuralsimilarity(trainInds))];
+                
+                indtmp = find(trainInds);
+                NeuralFRCorr_Allpost_lasttertrile = [NeuralFRCorr_Allpost_lasttertrile ...
+                    median(neuralsimilarity(indtmp(2*ceil(length(indtmp)/3)+1:end)))];
+                
+                IsTargAll = [IsTargAll istarg];
+                
+                %% ======= metrics agnostic to baseline (e.g. modulation ..., burstiness)
+                
+                % === for modulation, calculate SD of smoothed FR.
+                neural_SD = std(alltrialFR, 0, 1); % bin x trial
+                neural_mean = mean(alltrialFR, 1);
+                neural_CV = neural_SD./neural_mean;
+                
+                % ========================== output
+                tmp = num2cell(neural_CV);
+                [MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).SegmentsExtract.NEUR_CVsmthFR] = deal(tmp{:});
+                
+                tmp = num2cell(neural_SD);
+                [MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).SegmentsExtract.NEUR_SDsmthFR] = deal(tmp{:});
+                
+                tmp = num2cell(neural_mean);
+                [MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).SegmentsExtract.NEUR_MeansmthFR] = deal(tmp{:});
+                
+                % ===
             end
         end
+        % === remove neurons that were mission WN on time
+        if ~isempty(neuronstoremove)
+            neuronstoremove = unique(neuronstoremove);
+            MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(neuronstoremove) = [];
+            MOTIFSTATS_Compiled.birds(i).exptnum(ii).SummaryStruct.birds(1).neurons(neuronstoremove) = [];
+            disp(['=========== NOTE, removed neuron (becaseu no wn on time): ' ...
+                birdname '-' exptname '-' neuronstoremove]);
+        end
+        
     end
 end
 
-
-%% PLOT ALL EXPERIMENTS, TIMECOURSES
-
-if PlotTimeCourses ==1
-    
-    for i=1:NumBirds
-        numexpts = length(MOTIFSTATS_Compiled.birds(i).exptnum);
-        for ii=1:numexpts
-            
-            MotifStats =  MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS;
-            SummaryStruct = MOTIFSTATS_Compiled.birds(i).exptnum(ii).SummaryStruct;
-            
-            motiflist = MotifStats.params.motif_regexpr_str;
-            assert(length(SummaryStruct.birds)==1, 'asdfasd');
-            birdname = SummaryStruct.birds(1).birdname;
-            exptname = MOTIFSTATS_Compiled.birds(i).exptnum(ii).exptname;
-            
-            % ================ EACH bird, expt, syl
-            nummotifs = length(motiflist);
-            
-            figcount=1;
-            subplotcols=2;
-            subplotrows=4;
-            fignums_alreadyused=[];
-            hfigs=[];
-            hsplots = [];
-            
-            FirstDay = []; % will fill in with first neuron/motif - other enurons use same first day.
-            for j=1:nummotifs
-                motifname = motiflist{j};
-                targetmotifs = MotifStats.params.TargSyls;
-                [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-                hsplots = [hsplots hsplot];
-                if any(strcmp(motifname, targetmotifs))
-                    title([motifname '(targ)'], 'Color', 'r');
-                else
-                    title(motifname);
-                end
-                
-                % 1) === PLOT LEARNING, OVERLAY OVER TARGET LEARNING. INCLUDE TIME
-                % INTERVALS FOR NEURONS
-                
-                % 2) === FOR EACH NEURON, PLOT CHANGE OVER TIME
-                numneurons = length(MotifStats.neurons);
-                plotcols = lt_make_plot_colors(numneurons, 0, 0);
-                for nn=1:numneurons
-                    
-                    segmentsextract = MotifStats.neurons(nn).motif(j).SegmentsExtract;
-                    
-                    if ~isfield(segmentsextract, 'FRsmooth_xbin')
-                        continue % i.e. no trials
-                    end
-                    
-                    % what trials are baseline?
-                    baseInds = MotifStats.neurons(nn).motif(j).Params.baseInds;
-                    
-                    % --------------------------------- Dir of learning (for
-                    % the one transition)
-                    preTranContingency = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).LearningInfo.preTranContingency;
-                    postTranContingency = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).LearningInfo.postTranContingency;
-                    
-                    % -------------------------------------- trial times
-                    alltrialTimes = [segmentsextract.song_datenum];
-                    if isempty(FirstDay)
-                        FirstDay = datestr(min(alltrialTimes), 'ddmmmyyyy');
-                    end
-                    tmp = lt_convert_EventTimes_to_RelTimes(FirstDay, alltrialTimes);
-                    alltrialTimes = tmp.FinalValue;
-                    
-                    
-                    % ============== 1) FIRING RATE (NEURAL SIMILARITY TO BASELINE MEAN
-                    % FR)
-                    neuralsimilarity = [segmentsextract.neuralsimilarity];
-                    
-                    % ==================== 2) FF
-                    alltrialFF = [segmentsextract.FF_val];
-                    
-                    
-                    %% ============ CONVERT TO ZSCORE (all metrics)
-                    if convertToZscore==1
-                        
-                        % -- neural
-                        basemean = mean(neuralsimilarity(baseInds));
-                        basestd = std(neuralsimilarity(baseInds));
-                        neuralsimilarity = (neuralsimilarity - basemean)./basestd;
-                        
-                        % -- learning
-                        if ~all(isnan(alltrialFF))
-                            basemean = mean(alltrialFF(baseInds));
-                            basestd = std(alltrialFF(baseInds));
-                            
-                            alltrialFF = (alltrialFF - basemean)./basestd;
-                        end
-                    end
-                    
-                    
-                    %% PLOT THIS NEUORN
-                    if length(alltrialFF)>runbin
-                        % ====== NEURAL SIMILARITY
-                        if plotRawScores ==1
-                            plot(alltrialTimes, neuralsimilarity, 'o');
-                        end
-                        Yrunning =lt_running_stats(neuralsimilarity, runbin);
-                        xrunning = lt_running_stats(alltrialTimes, runbin);
-                        shadedErrorBar(xrunning.Mean, Yrunning.Mean, Yrunning.SEM, {'Color', plotcols{nn}}, 1);
-                        
-                        % ===== FF
-                        Yrunning =lt_running_stats(alltrialFF, runbin);
-                        xrunning = lt_running_stats(alltrialTimes, runbin);
-                        shadedErrorBar(xrunning.Mean, Yrunning.Mean, Yrunning.SEM, {'Color', 'k'}, 1);
-                        
-                        
-                        % ---
-                        lastBaseTrial = alltrialTimes(max(find(baseInds)));
-                        line([lastBaseTrial lastBaseTrial], ylim, 'Color', 'k');
-                        if convertToZscore==1
-                            ylim([-3 3]);
-                        else
-                            ylim([-1 1]);
-                        end
-                        lt_plot_zeroline
-                    end
-                    
-                    % ==== if is target, then indicate contingency
-                    if (0) % REASON: plotting all transitions, not just the one WN on for analysis,.
-                        if ~isempty(preTranContingency)
-                            lt_plot_text(lastBaseTrial, 3, [preTranContingency '-' postTranContingency], ...
-                                'm');
-                        end
-                    end
-                    
-                    % ------ sanity check, learning metastruct correspnd to
-                    % what I think
-                    assert(any(strcmp(motifname, targetmotifs)) == ~isempty(postTranContingency), 'asdafsd');
-                    
-                    % ================ PUT LINES FOR ALL CHANGES FOR THIS MOTIF
-                    indbird = strcmp({LearningMetadat.bird.birdname}, birdname);
-                    indcol = strcmp(LearningMetadat.bird(indbird).info(1,:), exptname) ...
-                        & strcmp(LearningMetadat.bird(indbird).info(2,:), motifname); % column (expt and syl)
-                    transitionDates = {};
-                    
-                    assert(sum(indcol)<2, 'PROBBLEM !! - why more than one col');
-                    if sum(indcol)==1
-                        transitionDates = LearningMetadat.bird(indbird).info(3:end, indcol);
-                        
-                        % --- for each date, plot line
-                        for ddd = 1:length(transitionDates)
-                            dateString = transitionDates{ddd}(1:14);
-                            tmp = lt_convert_EventTimes_to_RelTimes(FirstDay, {dateString});
-                            line([tmp.FinalValue tmp.FinalValue], ylim, 'LineStyle' , '--' , 'Color', 'r');
-                            
-                            lt_plot_text(tmp.FinalValue, 3, [transitionDates{ddd}(16:17) '-' transitionDates{ddd}(19:20)], ...
-                                'r');
-                        end
-                    end
-                    
-                end
-            end
-            linkaxes(hsplots, 'xy');
-            lt_subtitle([birdname '-' exptname])
-        end
-    end
-end
-
-
-
-
-%% COLLECT VARIOUS STATS - PLOT CORRELATIONS ACROSS TIME BETWEEN NEURAL SIMILARITY AND FF
-
-    
-    % -- to collect across experiments (one neuron/motif one datapt)
-    NeuralvsFFSlopeAll = [];
-    NeuralvsFFInterceptAll = [];
-    MeanFFRelBaseAll = [];
-    MeanNeuralSimRelBaseAll = [];
-    IsTargetAll = [];
-    SameTypeAll = [];
-    LearnDirAll = [];
-    
-    BirdnumAll = [];
-    ExptnumAll = [];
-    NeuronNumAll = [];
-    MotifNumAll = [];
-    TargLearnDirsAll=[];
-    
-    for i=1:NumBirds
-        numexpts = length(MOTIFSTATS_Compiled.birds(i).exptnum);
-        for ii=1:numexpts
-            
-            MotifStats =  MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS;
-            SummaryStruct = MOTIFSTATS_Compiled.birds(i).exptnum(ii).SummaryStruct;
-            
-            motiflist = MotifStats.params.motif_regexpr_str;
-            sametypeSyls = MotifStats.params.SameTypeSyls;
-            birdname = SummaryStruct.birds(1).birdname;
-            exptname = MOTIFSTATS_Compiled.birds(i).exptnum(ii).exptname;
-            
-            % ================ EACH bird, expt, syl
-            nummotifs = length(motiflist);
-            
-            figcount=1;
-            subplotcols=3;
-            subplotrows=6;
-            fignums_alreadyused=[];
-            hfigs=[];
-            hsplots = [];
-            
-            FirstDay = []; % will fill in with first neuron/motif - other enurons use same first day.
-            for j=1:nummotifs
-                motifname = motiflist{j};
-                targetmotifs = MotifStats.params.TargSyls;
-                
-                
-                
-                % 2) === FOR EACH NEURON, PLOT CHANGE OVER TIME
-                numneurons = length(MotifStats.neurons);
-                plotcols = lt_make_plot_colors(numneurons, 0, 0);
-                for nn=1:numneurons
-                    
-                    segmentsextract = MotifStats.neurons(nn).motif(j).SegmentsExtract;
-                    
-                    if ~isfield(segmentsextract, 'FRsmooth_xbin')
-                        continue % i.e. no trials
-                    end
-                    
-                    % --------------------------------- Dir of learning (for
-                    % the one transition)
-                    preTranContingency = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).LearningInfo.preTranContingency;
-                    postTranContingency = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).LearningInfo.postTranContingency;
-                    
-                    % -------------------------------------- trial times
-                    alltrialTimes = [segmentsextract.song_datenum];
-                    if isempty(FirstDay)
-                        FirstDay = datestr(min(alltrialTimes), 'ddmmmyyyy');
-                    end
-                    tmp = lt_convert_EventTimes_to_RelTimes(FirstDay, alltrialTimes);
-                    alltrialTimes = tmp.FinalValue;
-                    
-                    
-                    % ============== 1) FIRING RATE (NEURAL SIMILARITY TO BASELINE MEAN
-                    % FR)
-                    neuralsimilarity = [segmentsextract.neuralsimilarity];
-                    
-                    % ==================== 2) FF
-                    alltrialFF = [segmentsextract.FF_val];
-                    
-                    
-                    %% ============ CONVERT TO ZSCORE (all metrics)
-                    if convertToZscore==1
-                        baseInds = MotifStats.neurons(nn).motif(j).Params.baseInds;
-                        
-                        % -- neural
-                        basemean = mean(neuralsimilarity(baseInds));
-                        basestd = std(neuralsimilarity(baseInds));
-                        neuralsimilarity = (neuralsimilarity - basemean)./basestd;
-                        
-                        % -- learning
-                        if ~all(isnan(alltrialFF))
-                            basemean = mean(alltrialFF(baseInds));
-                            basestd = std(alltrialFF(baseInds));
-                            
-                            alltrialFF = (alltrialFF - basemean)./basestd;
-                        end
-                    end
-                    
-                    
-                    % ============= CALCULATE MEAN NEURAL SIM AND FF DURING WN (COMARED TO BASE)
-                    baseInds = MotifStats.neurons(nn).motif(j).Params.baseInds;
-                    neuralsim_meanchange = mean(neuralsimilarity(~baseInds)) - mean(neuralsimilarity(baseInds));
-                    FF_meanchange = mean(alltrialFF(~baseInds)) - mean(alltrialFF(baseInds));
-                    
-                    
-                    
-                    
-                                    % ======== targ learn dir
-                targmotifinds = find(ismember(motiflist, targetmotifs));
-                TargLearnDirs = [];
-                for zzz=1:length(targmotifinds)
-                    indtmp = targmotifinds(zzz);
-                    
-                    
-                    disp(['----- ' MotifStats.neurons(nn).motif(indtmp).LearningInfo.postTranContingency]);
-                    
-                    if strcmp(MotifStats.neurons(nn).motif(indtmp).LearningInfo.postTranContingency, ...
-                            'Up')
-                        TargLearnDirs = [TargLearnDirs 1];
-                    elseif strcmp(MotifStats.neurons(nn).motif(indtmp).LearningInfo.postTranContingency, ...
-                            'Dn')
-                        TargLearnDirs = [TargLearnDirs -1];
-                    elseif strcmp(MotifStats.neurons(nn).motif(indtmp).LearningInfo.postTranContingency, ...
-                            'Of')
-                        TargLearnDirs = [TargLearnDirs 0];
-                    end
-                end
-                
-                TargLearnDirs = unique(TargLearnDirs);
-                if length(TargLearnDirs)>1
-                    % diff targ do diff things, so can;t give this expt
-                    % a targ dir
-                    TargLearnDirs = nan;
-                end
-
-                    
-                    
-                    %% PLOT THIS NEUORN
-                    neuralFFslope = nan;
-                    neuralFFint = nan;
-                    if ~all(isnan(alltrialFF))
-                        plotON=0;
-                        if PlotNeuralFFDeviationCorrs ==1
-                            
-                            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-                            hsplots = [hsplots hsplot];
-                            if any(strcmp(motifname, targetmotifs))
-                                title([motifname '(targ, ' postTranContingency ')'], 'Color', 'r');
-                            else
-                                title(motifname);
-                            end
-                            plotON = 1;
-                        xlim([-3 3]);
-                        ylim([-3 3]);
-                        end
-                        
-                        
-                        [~,~,~,~,~, SummaryStats] = lt_regress(neuralsimilarity, ...
-                            alltrialFF, 0, 0, 0, 0, plotcols{nn}, 0);
-                        
-                        neuralFFint = SummaryStats.intercept;
-                        neuralFFslope = SummaryStats.slope;
-                    end
-                    
-                    %% ================ Collect stuff
-                    
-                    BirdnumAll = [BirdnumAll i];
-                    ExptnumAll = [ExptnumAll ii];
-                    NeuronNumAll = [NeuronNumAll nn];
-                    MotifNumAll = [MotifNumAll j];
-                    
-                    if ~isempty(postTranContingency)
-                        disp([postTranContingency '-' num2str(TargLearnDirs)])
-                    end
-                    
-                    if isempty(postTranContingency)
-                        LearnDirAll = [LearnDirAll nan];
-                    else
-                        if strcmp(postTranContingency, 'Up')
-                            LearnDirAll = [LearnDirAll 1];
-                        elseif strcmp(postTranContingency, 'Dn')
-                            LearnDirAll = [LearnDirAll -1];
-                        elseif strcmp(postTranContingency, 'Of')         
-                            LearnDirAll = [LearnDirAll 0];
-                            
-                        end
-                            
-                    end
-                    
-                    
-                    
-                    if any(strcmp(motifname, sametypeSyls))
-                        SameTypeAll = [SameTypeAll 1];
-                    else
-                        SameTypeAll = [SameTypeAll 0];
-                    end
-                    
-                    if any(strcmp(motifname, targetmotifs))
-                        IsTargetAll = [IsTargetAll 1];
-                    else
-                        IsTargetAll = [IsTargetAll 0];
-                    end
-                    
-                    MeanNeuralSimRelBaseAll = [MeanNeuralSimRelBaseAll neuralsim_meanchange];
-                    MeanFFRelBaseAll = [MeanFFRelBaseAll FF_meanchange];
-                    
-                    NeuralvsFFSlopeAll = [NeuralvsFFSlopeAll neuralFFslope];
-                    NeuralvsFFInterceptAll = [NeuralvsFFInterceptAll neuralFFint];
-                    
-                    TargLearnDirsAll = [TargLearnDirsAll TargLearnDirs];
-                    
-                end
-            end
-            if PlotNeuralFFDeviationCorrs==1
-            linkaxes(hsplots, 'xy');
-            lt_subtitle([birdname '-' exptname])
-            end
-        end
-    end
-
-
-%% == troubleshooting
-if (0)
-i=2;
-ii=1;
-nn=1;
-j=6
-
-MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.TargSyls
-MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.motif_regexpr_str
-
-MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.neurons(nn).motif(j).LearningInfo.postTranContingency
-end
-
-
-%% =========== PLOT SUMMARY ACROSS EXPERIMENTS
-
-% === NEURAL VS. LEARN
+%% ======== PLOT DISTRIBUTIONS [entire base vs. train]
 lt_figure; hold on;
-hsplots = [];
-% -- targ
-hsplot = lt_subplot(2,2,1); hold on;
-hsplots = [hsplots hsplot];
-title('targ');
-xlabel('FF change (targdir)');
-ylabel('neural change')
-inds = IsTargetAll==1;
-learndir = TargLearnDirsAll(inds);
+% ===== PAIRED
+lt_subplot(1,3,1); hold on;
+title('corr of smth FR to base mean');
+xlabel('baseline'); ylabel('dur train');
+lt_plot_45degScatter(NeuralFRCorr_Allbase, NeuralFRCorr_Allpost, 'k', 1);
 
-X = MeanFFRelBaseAll(inds) .* learndir;
-Y = MeanNeuralSimRelBaseAll(inds);
-lt_regress(Y, X, 1, 0, 1, 1, 'k', 0);
-lt_plot_zeroline
-lt_plot_zeroline_vert
+% targ only
+lt_plot_45degScatter(NeuralFRCorr_Allbase(IsTargAll==1), ...
+    NeuralFRCorr_Allpost(IsTargAll==1), 'r', 1,0);
 
+% ==== DISTRIBUTIONS
+lt_subplot(1,3,2); hold on;
+title('baseline');
+xlabel('corr')
+xbins = min([NeuralFRCorr_Allbase NeuralFRCorr_Allpost])-0.05:0.05:max([NeuralFRCorr_Allbase NeuralFRCorr_Allpost])+0.05;
+lt_plot_histogram(NeuralFRCorr_Allbase(IsTargAll==0 & ~isnan(NeuralFRCorr_Allbase)), xbins, 1, 1, '', 1, 'k'); % nontarg
+lt_plot_histogram(NeuralFRCorr_Allbase(IsTargAll==1 & ~isnan(NeuralFRCorr_Allbase)), xbins, 1, 1, '', 1, 'r'); % targ
+xlim([-0.6 1]);
 
-% -- sametype
-hsplot = lt_subplot(2,2,2); hold on;
-hsplots = [hsplots hsplot];
-title('same type');
-inds = IsTargetAll==0 & SameTypeAll==1;
-learndir = TargLearnDirsAll(inds);
+lt_subplot(1,3,3); hold on;
+title('durWN');
+xlabel('corr')
+lt_plot_histogram(NeuralFRCorr_Allpost(IsTargAll==0 & ~isnan(NeuralFRCorr_Allpost)), xbins, 1, 1, '', 1, 'k'); % nontarg
+lt_plot_histogram(NeuralFRCorr_Allpost(IsTargAll==1 & ~isnan(NeuralFRCorr_Allpost)), xbins, 1, 1, '', 1, 'r'); % targ
+xlim([-0.6 1]);
 
-X = MeanFFRelBaseAll(inds) .* learndir;
-Y = MeanNeuralSimRelBaseAll(inds);
-if ~isempty(Y)
-lt_regress(Y, X, 1, 0, 1, 1, 'b', 0);
-lt_plot_zeroline
-lt_plot_zeroline_vert
-end
-% --- diff type
-hsplot = lt_subplot(2,2,3); hold on;
-hsplots = [hsplots hsplot];
-title('diff type');
-inds = IsTargetAll==0 &   SameTypeAll==0;
-learndir = TargLearnDirsAll(inds);
+lt_plot_annotation(1, 'red = targ; bk = rest', 'r')
 
-X = MeanFFRelBaseAll(inds) .* learndir;
-Y = MeanNeuralSimRelBaseAll(inds);
-lt_regress(Y, X, 1, 0, 1, 1, 'r', 0);
-lt_plot_zeroline
-lt_plot_zeroline_vert
+%% ======== PLOT DISTRIBUTIONS [same as above, but just end of train]
 
-linkaxes(hsplots, 'xy');
-
-% ======== ABS (NEURAL VS. LEARN)
 lt_figure; hold on;
-hsplots = [];
-% -- targ
-hsplot = lt_subplot(2,2,1); hold on;
-hsplots = [hsplots hsplot];
-title('targ');
-xlabel('abs(FF change)');
-ylabel('neural change')
-inds = IsTargetAll==1;
-learndir = TargLearnDirsAll(inds);
+% ===== PAIRED
+lt_subplot(1,3,1); hold on;
+title('corr of smth FR to base mean');
+xlabel('baseline'); ylabel('dur train (last tertile of training');
+lt_plot_45degScatter(NeuralFRCorr_Allbase, NeuralFRCorr_Allpost_lasttertrile, 'k', 1);
 
-X = MeanFFRelBaseAll(inds) .* learndir;
-Y = MeanNeuralSimRelBaseAll(inds);
-lt_regress(Y, abs(X), 1, 0, 1, 1, 'k', 0);
-lt_plot_zeroline
-lt_plot_zeroline_vert
+% targ only
+lt_plot_45degScatter(NeuralFRCorr_Allbase(IsTargAll==1), ...
+    NeuralFRCorr_Allpost_lasttertrile(IsTargAll==1), 'r', 1,0);
+
+% ==== DISTRIBUTIONS
+lt_subplot(1,3,2); hold on;
+title('baseline');
+xlabel('corr')
+xbins = min([NeuralFRCorr_Allbase NeuralFRCorr_Allpost_lasttertrile])-0.05:0.05:max([NeuralFRCorr_Allbase NeuralFRCorr_Allpost_lasttertrile])+0.05;
+lt_plot_histogram(NeuralFRCorr_Allbase(IsTargAll==0 & ~isnan(NeuralFRCorr_Allbase)), xbins, 1, 1, '', 1, 'k'); % nontarg
+lt_plot_histogram(NeuralFRCorr_Allbase(IsTargAll==1 & ~isnan(NeuralFRCorr_Allbase)), xbins, 1, 1, '', 1, 'r'); % targ
+xlim([-0.6 1]);
+
+lt_subplot(1,3,3); hold on;
+title('durWN');
+xlabel('corr')
+lt_plot_histogram(NeuralFRCorr_Allpost_lasttertrile(IsTargAll==0 & ~isnan(NeuralFRCorr_Allpost_lasttertrile)), xbins, 1, 1, '', 1, 'k'); % nontarg
+lt_plot_histogram(NeuralFRCorr_Allpost_lasttertrile(IsTargAll==1 & ~isnan(NeuralFRCorr_Allpost_lasttertrile)), xbins, 1, 1, '', 1, 'r'); % targ
+xlim([-0.6 1]);
+
+lt_plot_annotation(1, 'red = targ; bk = rest', 'r')
 
 
-% -- sametype
-hsplot = lt_subplot(2,2,2); hold on;
-hsplots = [hsplots hsplot];
-title('same type');
-inds = IsTargetAll==0 & SameTypeAll==1;
-learndir = TargLearnDirsAll(inds);
-
-X = MeanFFRelBaseAll(inds) .* learndir;
-Y = MeanNeuralSimRelBaseAll(inds);
-lt_regress(Y, abs(X), 1, 0, 1, 1, 'b', 0);
-lt_plot_zeroline
-lt_plot_zeroline_vert
-
-% --- diff type
-hsplot = lt_subplot(2,2,3); hold on;
-hsplots = [hsplots hsplot];
-title('diff type');
-inds = IsTargetAll==0 &   SameTypeAll==0;
-learndir = TargLearnDirsAll(inds);
-
-X = MeanFFRelBaseAll(inds) .* learndir;
-Y = MeanNeuralSimRelBaseAll(inds);
-lt_regress(Y, abs(X), 1, 0, 1, 1, 'r', 0);
-lt_plot_zeroline
-lt_plot_zeroline_vert
-
-linkaxes(hsplots, 'xy');

@@ -24,7 +24,7 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='br92br54_170617_133843.rhd';
+filename='br92br54_170501_214406.rhd';
 ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
@@ -100,15 +100,17 @@ clear all; close all;
 % channel_board = [8 11 14 18 20]; % wh6
 % channel_board = [9 11 12 14 15 18]; % bu77
 % channel_board = [14];
-channel_board = 20;
-batchf = 'batchtmp';
+channel_board = 23;
+batchf = 'Batch01May1243to2134';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
 
 % -----  v1, plots just raw neural, filtered
 % batchtoplot=batchf;
-lt_neural_concatExplore(batchf, channel_board);
+if (0)
+    lt_neural_concatExplore(batchf, channel_board);
+end
 
 % ----- v2, plots filtered neural, smoothed, and spike waveforms
 PlotRectDat=0; % 1, plots, 0 skips.
@@ -119,37 +121,38 @@ PosAndNeg =0; % then gets both. if 0, then just downwards
 lt_neural_concatExplore_v2(batchf, channel_board, PlotRectDat, PlotFiltDat,PosAndNeg); % WAVEFORMS ONLY PLOTTED FOR ONE CHANNEL!!
 
 % ------- v3 -plots song by song
-close all;
-fid = fopen(batchf);
-filename = fgetl(fid);
-while ischar(filename)
-
-    
-    ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
-ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
-% ChansToPlot.AmpChans_zero=[9 14 19];
-ChansToPlot.AmpChans_zero=channel_board;
-% ChansToPlot.AmpChans_zero=[8 9 11 16 17 20 21];
-% ChansToPlot.AmpChans_zero=[8 9 16 17 20 21];
-
-% neuralFiltLow=500;
-neuralFiltLow=300;
-
-PlotWhat.raw=0;
-PlotWhat.filt=1;
-PlotWhat.rect_sm=0;
-PlotWhat.raster=0;
-PlotWhat.digital=0;
-
-Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
-Raster.ThrXNoise=3; % threshold for units, used for all channels, uses absolute data for peak detection
-Raster.PosOrNeg=-1; % -1 or +1, for crossings.
-lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster)
-
-disp([' ======== ' filename]);
-
-pause;
-filename = fgetl(fid);
+if (0)
+    fid = fopen(batchf);
+    filename = fgetl(fid);
+    while ischar(filename)
+        
+        
+        ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
+        ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
+        % ChansToPlot.AmpChans_zero=[9 14 19];
+        ChansToPlot.AmpChans_zero=channel_board;
+        % ChansToPlot.AmpChans_zero=[8 9 11 16 17 20 21];
+        % ChansToPlot.AmpChans_zero=[8 9 16 17 20 21];
+        
+        % neuralFiltLow=500;
+        neuralFiltLow=300;
+        
+        PlotWhat.raw=0;
+        PlotWhat.filt=1;
+        PlotWhat.rect_sm=0;
+        PlotWhat.raster=0;
+        PlotWhat.digital=0;
+        
+        Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
+        Raster.ThrXNoise=3; % threshold for units, used for all channels, uses absolute data for peak detection
+        Raster.PosOrNeg=-1; % -1 or +1, for crossings.
+        lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster)
+        
+        disp([' ======== ' filename]);
+        
+        pause;
+        filename = fgetl(fid);
+    end
 end
 
 %% ==== concatenate multiple files for given channel, [and saves]
@@ -173,7 +176,7 @@ lt_neural_AutoMakeNotmat(batchf);
 % -- makes multiple plots if too much dat.
 close all;
 PlotSecondChan = 1;
-SecondChan = 14;
+SecondChan = 11;
 plotcols={'m', 'r','c', 'b', 'g'};
 
 % want to plot 2nd channel to compare noise?

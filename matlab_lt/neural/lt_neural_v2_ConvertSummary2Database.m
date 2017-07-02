@@ -14,11 +14,15 @@ function [NeuronDatabase, SummaryStruct_filtered] = ...
 % BrainArea = {'LMAN', 'X'}; % empty for all.
 % ExptToKeep = {'LMANlearn2'}; % emopty for all;'
 % RecordingDepth = [1800 1950] % in microns
-% LearningOnly = 1; % then only if has WN on/switch time date; 2: then
-% excludes elarning expts
+% LearningOnly = 1; % then only if expt is in LearningMetastruct; 2: then
+% excludes elarning expts [previous - only if summarysturct has WN on
+% date][
+
 
 %%
 SummaryStruct =  lt_neural_v2_LoadSummary;
+LearnStruct = lt_neural_v2_LoadLearnMetadat;
+
 
 if ~exist('BirdsToKeep', 'var')
     BirdsToKeep = {};
@@ -116,20 +120,49 @@ for i=1:numbirds
         end
         
         
-        if LearningOnly==1
-            if isempty(SummaryStruct.birds(i).neurons(ii).LEARN_WNonDatestr)
-                             disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' (not learning)']);
-               continue
-           end
+        if (0) % OLD METHOD
+            if LearningOnly==1
+                if isempty(SummaryStruct.birds(i).neurons(ii).LEARN_WNonDatestr)
+                    disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' (not learning)']);
+                    continue
+                end
+            end
+            
+            if LearningOnly==2
+                if ~isempty(SummaryStruct.birds(i).neurons(ii).LEARN_WNonDatestr)
+                    disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' (is learning)']);
+                    continue
+                end
+            end
+            
+        else
+            % ==== is this learning expt/
+            exptname = SummaryStruct.birds(i).neurons(ii).exptID;            
+            birdindtmp = strcmp({LearnStruct.bird.birdname}, birdname);
+            if any(strcmp([LearnStruct.bird(birdindtmp).info(1,:)], exptname))
+                % then is learning
+                islearning =1;
+            else
+                islearning = 0;
+            end
+            SummaryStruct.birds(i).neurons(ii).INFO_islearning = islearning;
+            
+            if LearningOnly==1
+                % then only keeps if learniong
+                if islearning==0
+                    disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' (not learning)']);
+                    continue
+                end
+            elseif LearningOnly==2
+                % onl keeps if not learning
+                if islearning==1
+                    disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' (is learning)']);
+                    continue
+                end
+            end
         end
- 
-        if LearningOnly==2
-           if ~isempty(SummaryStruct.birds(i).neurons(ii).LEARN_WNonDatestr)
-                             disp(['skipped ' SummaryStruct.birds(i).birdname '; nueron ' num2str(ii) ' (is learning)']);
-               continue
-           end
-        end
- 
+        
+        
         
         tmpstruct = SummaryStruct.birds(i).neurons(ii);
         disp(['---- EXTRACTING TO NEURON DATABASE ... ' SummaryStruct.birds(i).birdname ...
@@ -175,18 +208,20 @@ for i=1:numbirds
 end
 
 % ========== IF ANY BIRDS EMPTY, REMOVE
+if isfield(SummaryStruct_filtered, 'birds');
 birdstoremove = [];
 for i=1:length(SummaryStruct_filtered.birds)
     if isempty(SummaryStruct_filtered.birds(i).neurons)
         birdstoremove = [birdstoremove i];
     end
 end
-
 SummaryStruct_filtered.birds(birdstoremove) = [];
+
 
 %% =========== POST INFO
 
 
 
 SummaryStruct_filtered = lt_neural_v2_PostInfo(SummaryStruct_filtered);
+end
 

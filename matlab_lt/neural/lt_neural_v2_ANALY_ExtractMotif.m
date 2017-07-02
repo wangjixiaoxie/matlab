@@ -1,4 +1,5 @@
-function [MOTIFSTATS, SummaryStruct] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct)
+function [MOTIFSTATS, SummaryStruct] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct, ...
+    collectWNhit, onlyCollectTargSyl)
 %% ONLY WORKS FOR SINGLE BIRD!!! - extracts motif information into one structure
 % NOT LEARNING SPECIFIC, GENERAL USE
 
@@ -7,6 +8,24 @@ function [MOTIFSTATS, SummaryStruct] = lt_neural_v2_ANALY_ExtractMotif(SummarySt
 motif_predur = 0.15;
 motif_postdur = 0.05;
 
+% for segments extract:
+        alignByOnset=1;
+        WHOLEBOUTS_edgedur=''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
+        % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
+        FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will
+        FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
+        % +1 is 1 after token
+        FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
+
+
+
+if ~exist('collectWNhit', 'var')
+    collectWNhit=1;
+end
+
+if ~exist('onlyCollectTargSyl', 'var')
+    onlyCollectTargSyl=0; % if 1, then has to be learning experiment and so has targ syl defined.
+end
 
 %% first extract neurons [actually do this before run this code]
 
@@ -24,7 +43,7 @@ assert(NumBirds ==1, 'too many birds');
 
 MotifsActual = SummaryStruct.birds(1).neurons(1).POSTINFO.MotifsActual;
 motif_regexpr_str = SummaryStruct.birds(1).neurons(1).POSTINFO.MotifsActual_regexpStr;
-singlesyls = SummaryStruct.birds(1).neurons(1).POSTINFO.SingleSyls;
+singlesyls = SummaryStruct.birds(1).neurons(1).POSTINFO.SingleSyls_unique;
 
 
 % === GIVEN ACTUAL MOTIFS FOR THIS BIRD, DETERMINE WHICH SYLS TO LOOK AT
@@ -95,25 +114,53 @@ for i=1:NumNeurons
     % -- load data for this neuron
     batchf=SummaryStruct.birds(1).neurons(i).batchfilename;
     channel_board=SummaryStruct.birds(1).neurons(i).channel;
+    if collectWNhit==0
+        extractSound = 0;
+    else
     extractSound = 1;
+    end
     cd ..
     [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, extractSound);
     
+    % === if only extract targ syl, find what targ syl is
+    
+    if onlyCollectTargSyl==1   
+
+        tmp = lt_neural_v2_LoadLearnMetadat;
+        indbird = strcmp({tmp.bird.birdname}, SummaryStruct.birds(1).birdname);
+        indexpt = strcmp(tmp.bird(indbird).info(1,:), SummaryStruct.birds(1).neurons(i).exptID);
+        TargSyls = tmp.bird(indbird).info(2,indexpt); 
+        assert(~isempty(TargSyls), 'PROBELM< DEFINE TARG SYLS FIRST'); % must not be empty
+        
+        
+    end
+        
     % --- extract data, once for each motif
     for j=1:NumSyls
         regexpr_str=motif_regexpr_str{j};
-        predur=motif_predur; % sec
-        postdur=motif_postdur; % sec
-        alignByOnset=1;
-        WHOLEBOUTS_edgedur=''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
-        % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
-        FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will
-        FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
-        % +1 is 1 after token
-        FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
-        [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
-            regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams);
-        close all;
+        
+        if onlyCollectTargSyl==1
+            % make sure this is a targ syl
+            if any(strcmp(regexpr_str, TargSyls))
+                [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
+                    regexpr_str, motif_predur, motif_postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
+                    0, 1, collectWNhit);
+
+            else
+                SegmentsExtract=struct;
+                Params=struct;
+            end
+        else
+            [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
+                regexpr_str, motif_predur, motif_postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
+                0, 1, collectWNhit);
+
+        end
+        
+        %         [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
+        %             regexpr_str, motif_predur, motif_postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
+        %             0, 1, collectWNhit);
+        %         close all;
         
         % -------- SAVE TIMING OF SPIKES FOR THIS NEURON
         MOTIFSTATS.neurons(i).motif(j).SegmentsExtract=SegmentsExtract;
@@ -121,6 +168,7 @@ for i=1:NumNeurons
         
     end
     MOTIFSTATS.neurons(i).clustnum = SummaryStruct.birds(1).neurons(i).clustnum;
+    
 end
 
 
@@ -151,7 +199,7 @@ end
 MOTIFSTATS.params.motif_predur = motif_predur;
 MOTIFSTATS.params.motif_postdur = motif_postdur;
 MOTIFSTATS.params.motif_regexpr_str = motif_regexpr_str;
-MOTIFSTATS.params.singlesyls = singlesyls;
+MOTIFSTATS.params.singlesyls_unique = singlesyls;
 % MOTIFSTATS.params.BirdsToKeep = BirdsToKeep;
 % MOTIFSTATS.params.BrainArea = BrainArea;
 % MOTIFSTATS.params.ExptToKeep = ExptToKeep;

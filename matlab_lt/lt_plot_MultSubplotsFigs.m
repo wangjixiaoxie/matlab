@@ -53,7 +53,9 @@ end
 % Which subplot is this?
 subplot_num=count-(fignum-1)*SubplotsPerFig;
 hsplot=lt_subplot(subplotrows, subplotcols, subplot_num); hold on;
-
+set(gca, 'YColor', [0.5 0.5 0.5])
+set(gca, 'XColor', [0.5 0.5 0.5])
+subplotsqueeze(gca, 1.2);
 % Update count
 count=count+1;
 

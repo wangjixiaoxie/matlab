@@ -21,9 +21,9 @@ datdir=['Chan' num2str(channel_board) 'amp-' batchf];
 cd(datdir)
 
 %% EXTRACT AND CONCAT ALL SONG FILES and neural files
-tic
+% tic
 load('MetaDat.mat'); % contains file names
-toc
+% toc
 % --- load concat neural and spikes
 % neural_cat=load('data.mat');
 spikes_cat=load('./times_data.mat');
@@ -51,7 +51,7 @@ if extractSound==1
     end
 end
 
-tic
+% tic
 counter = 1;
 for i=1:length(metaDat)
     
@@ -103,7 +103,7 @@ for i=1:length(metaDat)
     cumulative_filedur=cumulative_filedur + filedur;
     
 end
-toc
+% toc
 
 % =============== INLCUDE PREVIOUSLY EXTRACTED STATS (E.G. FF)
 cd(datdir)

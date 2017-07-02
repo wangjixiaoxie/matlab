@@ -114,7 +114,7 @@ for i = 1:length(folder_contents)
         
         
     elseif strcmp(FileType,'mat');
-        ind=length(TargStr)+1;
+        ind=length(TargStr);
         
         date_of_file{i}=folder_contents(i).name(ind:ind+8);
     end

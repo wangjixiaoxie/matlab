@@ -480,14 +480,15 @@ lt_neural_v2_ANALY_LearningStatsPLOT(MOTIFSTATS_Compiled, convertToZscore, ...
 SwitchStruct = lt_neural_v2_ANALY_Swtch_Extract(MOTIFSTATS_Compiled, SwitchStruct);
 
 
+% =========== PLOT SUMMARY OF LEARNING [ITERATING SWITCHES]
+close all;
+lt_neural_v2_ANALY_LrnSwtchPLOT(MOTIFSTATS_Compiled, SwitchStruct);
+
+
 % ============ TIMECOURSES FOR NEURAL FOR SWITCHES
 close all;
 lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct)
 
-
-% =========== PLOT SUMMARY OF STATS [ITERATING SWITCHES]
-close all;
-lt_neural_v2_ANALY_LrnSwtchPLOT(MOTIFSTATS_Compiled, SwitchStruct);
 
 
 

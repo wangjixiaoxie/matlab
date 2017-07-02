@@ -143,39 +143,31 @@ for j=1:NumBirds
             motif_actual = MotifsActual{i};
             
             if ~isempty(strfind(motif_actual, '('));
-                % then just want this syl
+            figure;
+            end
                 
-                motif_regexpr_str = [motif_regexpr_str motif_actual];
-                
-                
-            else
-                % for each vocalization in the motif, extract one segment
-                numvocals = length(motif_actual);
-                
-                for ii=1:numvocals
-                    if ii==1
-                        segmentmotif = ['(' motif_actual(ii) ')' motif_actual(ii+1:end)];
-                        
-                    elseif ii == numvocals
-                        segmentmotif = [motif_actual(1:ii-1) '(' motif_actual(ii) ')'];
-                        
-                    else
-                        
-                        segmentmotif = [motif_actual(1:ii-1) '(' motif_actual(ii) ')' motif_actual(ii+1:end)];
-                        
-                    end
+            % for each vocalization in the motif, extract one segment
+            numvocals = length(motif_actual);
+            
+            for ii=1:numvocals
+                if ii==1
+                    segmentmotif = ['(' motif_actual(ii) ')' motif_actual(ii+1:end)];
                     
-                    %        disp(segmentmotif);
+                elseif ii == numvocals
+                    segmentmotif = [motif_actual(1:ii-1) '(' motif_actual(ii) ')'];
                     
-                    motif_regexpr_str = [motif_regexpr_str segmentmotif];
+                else
+                    
+                    segmentmotif = [motif_actual(1:ii-1) '(' motif_actual(ii) ')' motif_actual(ii+1:end)];
+                    
                 end
+                
+                %        disp(segmentmotif);
+                
+                motif_regexpr_str = [motif_regexpr_str segmentmotif];
+                
             end
         end
-        
-%         disp(motif_regexpr_str);
-%         if any(strcmp(motif_regexpr_str, 'h(()d)'))
-%             keyboard
-%         end
         
         % display output
         if (0)
@@ -197,7 +189,7 @@ for j=1:NumBirds
         % ==== SAVE OUTPUT INTO STRUCT
         SummaryStruct.birds(j).neurons(jj).POSTINFO.MotifsActual = MotifsActual;
         SummaryStruct.birds(j).neurons(jj).POSTINFO.MotifsActual_regexpStr = motif_regexpr_str;
-        SummaryStruct.birds(j).neurons(jj).POSTINFO.SingleSyls_unique = SingleSylAll;
+        SummaryStruct.birds(j).neurons(jj).POSTINFO.SingleSyls = SingleSylAll;
         
     end
 end

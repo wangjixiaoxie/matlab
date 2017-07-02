@@ -7,4 +7,4 @@ function lt_subtitle(string)
 h=mtit(string);
 
 pos=get(h.th, 'position');
-set(h.th,'FontSize',16,'FontWeight','bold','position',[pos(1) pos(2)+0.05 pos(3)])
+set(h.th,'FontSize',16,'FontWeight','bold','position',[pos(1) pos(2)+0.03 pos(3)])

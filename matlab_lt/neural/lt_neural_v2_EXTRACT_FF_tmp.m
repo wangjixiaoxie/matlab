@@ -1,5 +1,5 @@
 function lt_neural_v2_EXTRACT_FF(SummaryStruct, FFparamsAll, overWrite, ...
-    plotSpec, plotOnSong, plotSyl)
+    plotSpec, plotOnSong, plotSyl, equalizeParams)
 
 %%
 
@@ -66,9 +66,11 @@ for z = 1:Numbirds
                 cell_of_FFtimebins=FFparamsAll.bird(ind).FFparams.cell_of_FFtimebins_DurLearn; % then is not learning
             end
             
-            if ~isequal(tmp.Params.cell_of_freqwinds, cell_of_freqwinds) | ...
-                    ~isequal(tmp.Params.cell_of_FFtimebins, cell_of_FFtimebins)
-                paramsSame=0;
+            if equalizeParams ==1
+                if ~isequal(tmp.Params.cell_of_freqwinds, cell_of_freqwinds) | ...
+                        ~isequal(tmp.Params.cell_of_FFtimebins, cell_of_FFtimebins)
+                    paramsSame=0;
+                end
             end
             % ==================================================================
             
@@ -99,7 +101,7 @@ for z = 1:Numbirds
         batchf = datstruct.batchfilename;
         chan = datstruct.channel;
         [SongDat, NeurDat, ~] = lt_neural_ExtractDat(batchf, chan, 1);
-
+        
         % -- extract infor for this bird.
         ind = find(strcmp({FFparamsAll.bird.birdname}, birdname)); % find info for this syl
         cell_of_freqwinds=FFparamsAll.bird(ind).FFparams.cell_of_freqwinds; % then is not learning

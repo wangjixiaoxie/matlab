@@ -187,6 +187,8 @@ Ymean=mean(Yall);
 Ysem=lt_sem(Yall);
 lt_plot(Xmean, Ymean, {'Errors', Ysem, 'LineStyle', '-', 'Color', 'r', 'Marker', 's'});
 
+lt_plot_text(Xmean(1), 1.2*Ymean(1), ['n=' num2str(size(Yall, 1))], 'b')
+
 % - line for song onset
 predur=Params.REGEXP.predur;
 line([predur predur], ylim, 'Color', 'b');

@@ -12,9 +12,15 @@ NeuronDatabase_table=struct2table(NeuronDatabase.neurons);
 summary(NeuronDatabase_table);
 disp(NeuronDatabase_table)
 
-f = figure('Position',[200 200 1000 500]);
-dat=table2cell(NeuronDatabase_table);
-cnames=fieldnames(NeuronDatabase_table);
-t = uitable('Parent', f, 'Data',dat,'ColumnName',cnames, 'Position',[0 0 900 450]);
+positions = get(0, 'MonitorPositions');
+f = figure('Position',positions(1,:));
+% dat = NeuronDatabase_table;
+dat=table2cell(NeuronDatabase_table(:,[1:9 11:end]));
+cnames=fieldnames(NeuronDatabase_table(:,[1:9 11:end]));
+positions2=get(f, 'Position');
+positions2(3:4) = 0.9*positions2(3:4);
+rownames = table2cell(NeuronDatabase_table(:,1));
+t = uitable('Parent', f, 'Data',dat,'ColumnName',cnames, 'Position', positions2, ...
+    'ColumnWidth', {'auto'}, 'RowName', rownames);
 
 % === if there are any empty neurons, then move another neuron

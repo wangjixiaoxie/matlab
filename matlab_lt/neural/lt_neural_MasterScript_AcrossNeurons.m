@@ -237,15 +237,15 @@ motif_postdur=0.1;
 motif_regexpr_str={'nk(h)', 'dd(d)', 'ddd(h)', 'ag(c)c'};
 motif_regexpr_str={'nk(h)', 'd(d)d'};
 motif_regexpr_str={'nk(h)', 'ag(c)'};
-motif_regexpr_str={'h(d)', '-(d)'};
+% motif_regexpr_str={'h(d)', '-(d)'};
 
 motif_predur=0.2;
 motif_postdur=0.1;
 
 % ----- OR74
-% motif_regexpr_str={'ab(g)', 'anb(g)'};
-% motif_predur=0.35;
-% motif_postdur=0.1;
+motif_regexpr_str={'ab(g)', 'anb(g)'};
+motif_predur=0.35;
+motif_postdur=0.1;
 
 
 
@@ -597,6 +597,12 @@ motif_regexpr_str={'c(d)dd', 'h(d)dd', 'ag(c)c', 'n(k)h', 's(d)'};
 
 % or74
 motif_regexpr_str={'a(b)g', 'an(b)'};
+motif_regexpr_str={'ab(g)', 'anb(g)'};
+
+% bu77
+motif_regexpr_str={'a(b)g', 'an(b)'};
+motif_regexpr_str={'a(b)', '(a)b', 'j(b)'};
+motif_regexpr_str={'a(b)'};
 
 
 motif_predur=0.2;
@@ -683,6 +689,7 @@ motif_regexpr_str={'a(b)bh'}; % bu77
 motif_regexpr_str={'lcch(b)g'}; % bu77
 motif_regexpr_str={'nk(h)'}; % br92
 motif_regexpr_str={'h(d)dd', 'c(d)dd'}; % br92
+motif_regexpr_str={'ab(g)'}; % or74
 
 motif_predur=0.2;
 motif_postdur=0.1;
