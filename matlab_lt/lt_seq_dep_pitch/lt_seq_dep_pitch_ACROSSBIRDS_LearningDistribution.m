@@ -1278,6 +1278,23 @@ end
 end
     
 
+% ----- difference from 1
+for i=1:length(Yvals);
+    if isempty(Yvals{i});
+        continue;
+    end
+    p=signrank(Yvals{i}, 1);
+    
+if p<0.0005;
+    lt_plot_text(i, 1.2*max(Yvals{i}), '***', 'g', 15);
+elseif p<0.005;
+    lt_plot_text(i, 1.2*max(Yvals{i}), '**', 'g', 15);
+ elseif p<0.05;
+    lt_plot_text(i, 1.2*max(Yvals{i}), '*', 'g', 15);
+end
+end
+
+
 % ---- comparing pairs
 for i=1:length(Yvals)
     
@@ -1333,7 +1350,10 @@ xlim([0 4]);
 % --- anova (learning)
 keyboard
 [~, ~, stats]=anovan(Y, {group});
-multcompare(stats)
+c = multcompare(stats)
+% -- kruskal wallis instead
+[~, ~, stats]=kruskalwallis(Y, group);
+c = multcompare(stats)
         
 % --- anova (acoustic)
 [~, ~, stats]=anovan(Acoustic, {group});

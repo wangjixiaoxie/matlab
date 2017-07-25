@@ -1907,9 +1907,7 @@ for i=1:length(X);
     % stats
 %     [~, p]=ttest(yPBS, yMUSC);
     p=signrank(yPBS, yMUSC);
-    if p<0.1;
         lt_plot_text(x(1), max([yPBS yMUSC]), num2str(p, '%3.2g'));
-    end
     
     
     

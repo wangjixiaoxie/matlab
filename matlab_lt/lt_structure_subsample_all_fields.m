@@ -1,4 +1,11 @@
-function Struct_out=lt_structure_subsample_all_fields(Struct_in, inds)
+function Struct_out=lt_structure_subsample_all_fields(Struct_in, inds, takevert)
+%% lt 7/5/17 - 
+% takevert =1 allows for 2d arrays, and will sampel along 1st dim .
+
+if ~exist('takevert', 'var')
+    takevert = 0;
+end
+
 %% LT 9/23/15 - given a structure with multiple fields, subsample indices of all the fields (each field can be vector or cell array
 % NOTE: max of inds must be <= field with minimum numel
 
@@ -24,7 +31,12 @@ function Struct_out=lt_structure_subsample_all_fields(Struct_in, inds)
 %% RUN
 
 % === make function handle to take subset of inds
+if takevert==1
+    
+func=@(x)x(inds,:);
+else
 func=@(x)x(inds);
+end
 
 % === get subset of all fields
 Struct_out=structfun(func, Struct_in,'UniformOutput',0);

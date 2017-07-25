@@ -22,6 +22,7 @@ hfigs=[];
         LearningRelTarg_AllExpts=[];
         IsTarg_AllExpts = [];
         LearningHz_AllExpts = [];
+        SampleSize_AllExpts = [];
         
 for i=1:NumBirds;
     
@@ -68,7 +69,8 @@ for i=1:NumBirds;
                     day2=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.ConsolStartInd+SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.DATES.Consol_DayBins-1; % last day in quahntified period (e.g. consol start).
                 end
             else
-            day2 = day1+3;
+                numemptydays = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.NumEmptyDays_StartWN_FromZscoreCode;
+            day2 = day1+3+numemptydays;
             end
             
             numhits_all=sum(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PostProcessed.(syl).HIT_RATE_overdays.NumHits(day1:day2));
@@ -77,6 +79,7 @@ for i=1:NumBirds;
             hitrate=numhits_all/numtotal_all;
             HitRate_all=[HitRate_all hitrate];
             HitRate_AllExpts=[HitRate_AllExpts hitrate];
+            SampleSize_AllExpts = [SampleSize_AllExpts numtotal_all];
             
             % +++ ASIDE - PUT INTO STRUCTURE
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).HITRATE.HitRate_MeanOverDaysToConsolStart=hitrate;
@@ -384,7 +387,7 @@ lt_plot_pvalue(p);
 lt_figure; hold on;
 
 % ======== 1) cdf of hit rate on targ
-lt_subplot(2,2,1); hold on;
+lt_subplot(3,2,1); hold on;
 
 % - targ
 inds = IsTarg_AllExpts==1;
@@ -396,12 +399,35 @@ if (0)
 end
 
 % - pdf
-lt_plot_histogram(100*Y, '', 1, 1, '', '', plotcol)
+[~, xcenters] = lt_plot_histogram(100*Y, '', 1, 1, '', '', plotcol)
 lt_plot_text(50, 0.2, ['N=' num2str(length(Y))]);
 
 
+% ========== SAME (BUT SAME SCALE AS TARG)
+lt_subplot(3,2,5); hold on;
+
+% === SAME
+inds = IsTarg_AllExpts==0 & Similar_AllExpts==1;
+plotcol = 'b';
+
+Y = HitRate_AllExpts(inds);
+% - pdf
+lt_plot_histogram(100*Y, xcenters, 1, 1, '', '', plotcol)
+lt_plot_text(1, 0.5, ['N=' num2str(length(Y))], plotcol);
+
+% ---------- difftype
+inds = Similar_AllExpts==0;
+plotcol = 'r';
+
+Y = HitRate_AllExpts(inds);
+% - pdf
+lt_plot_histogram(100*Y, xcenters, 1, 1, '', '', plotcol)
+lt_plot_text(1, 0.5, ['N=' num2str(length(Y))], plotcol);
+
+
+
 % ========== 2) pdf only
-lt_subplot(2,2,2); hold on;
+lt_subplot(3,2,2); hold on;
 Xcenters = 0.0025:0.005:(0.02+max(HitRate_AllExpts(IsTarg_AllExpts==0)));
 
 % === SAME
@@ -426,7 +452,7 @@ lt_plot_text(1, 0.5, ['N=' num2str(length(Y))], plotcol);
 
 % ===================== CORRELATION BETWEEN GENERALIZATION AND HIT RATE?
 % - same
-lt_subplot(2,2,3); hold on;
+lt_subplot(3,2,3); hold on;
 xlabel('Hit rate');
 ylabel('Learning (hz)');
 
@@ -441,9 +467,13 @@ plot(100*X, Y, 'o', 'Color', plotcol);
 lt_regress(Y, 100*X, 0, 0, 1, 1, plotcol, 1);
 xlim([-1 7]);
 lt_plot_zeroline;
+% -- figure out range and median for those with >0
+lt_plot_annotation(1, ['median ' num2str(median(X(X>0))) ', range ' ...
+    num2str(min(X(X>0))) '-' num2str(max(X))], 'r');
+
 
 % diff
-lt_subplot(2,2,4); hold on;
+lt_subplot(3,2,4); hold on;
 xlabel('Hit rate');
 ylabel('Learning (hz)');
 
@@ -459,4 +489,8 @@ lt_regress(Y, 100*X, 0, 0, 1, 1, plotcol, 1);
 % --
 xlim([-1 7]);
 lt_plot_zeroline;
+% -- figure out range and median for those with >0
+lt_plot_annotation(1, ['median ' num2str(median(X(X>0))) ', range ' ...
+    num2str(min(X(X>0))) '-' num2str(max(X))], 'r');
+
 

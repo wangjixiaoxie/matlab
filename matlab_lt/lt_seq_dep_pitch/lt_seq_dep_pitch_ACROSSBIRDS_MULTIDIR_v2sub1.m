@@ -83,6 +83,9 @@ for day=1:length(DATSTRUCT.data.FirstTarg(1).MeanFFRelBase_NormTargLastBaseDay);
     
     p= signrank(y_thisday, y_LastBaselineDay);
     
+    ymeantmp = mean(y_thisday - y_LastBaselineDay);
+    ysemtmp = lt_sem(y_thisday - y_LastBaselineDay);
+    
     % == plot n and mean(sem)
     nn=numel(y_thisday);
     ymean=mean(y_thisday);
@@ -92,7 +95,8 @@ for day=1:length(DATSTRUCT.data.FirstTarg(1).MeanFFRelBase_NormTargLastBaseDay);
     
     disp([day '-' num2str(p)]);
     if p<0.05;
-        lt_plot_text(day, 1.1*max(y_thisday), num2str(p, '%3.2g'), 'r');
+        lt_plot_text(day, 1.1*max(y_thisday), ['mean(sem) ' ...
+            num2str(ymeantmp) '(' num2str(ysemtmp) '),' num2str(p, '%3.2g')], 'r');
     end
     
 end
@@ -145,6 +149,8 @@ end
 xx=DATSTRUCT.information(1).numPreBidirDays;
 
 line([xx+0.5 xx+0.5], ylim);
+
+
 % --- significance test for each day (relative to last baseline day)
 tmp=Y_all;
 day_lastBaseline=DATSTRUCT.information(1).numPreBidirDays;
@@ -156,6 +162,10 @@ for day=1:length(DATSTRUCT.data.FirstTarg(1).MeanFFRelBase_NormTargLastBaseDay);
     
     p= signrank(y_thisday, y_LastBaselineDay);
     
+    
+    ymeantmp = mean(y_thisday - y_LastBaselineDay);
+    ysemtmp = lt_sem(y_thisday - y_LastBaselineDay);
+
         % == plot n and mean(sem)
     nn=numel(y_thisday);
     ymean=mean(y_thisday);
@@ -165,7 +175,8 @@ for day=1:length(DATSTRUCT.data.FirstTarg(1).MeanFFRelBase_NormTargLastBaseDay);
     
     disp([day '-' num2str(p)]);
     if p<0.05;
-        lt_plot_text(day, 1.1*max(y_thisday), num2str(p, '%3.2g'), 'r');
+        lt_plot_text(day, 1.1*max(y_thisday), ['mean(sem) ' ...
+            num2str(ymeantmp) '(' num2str(ysemtmp) '),' num2str(p, '%3.2g')], 'r');
     end
     
 end

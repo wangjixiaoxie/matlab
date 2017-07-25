@@ -311,7 +311,10 @@ xlim([-3 1])
 
 
 %% ========================== 2-back, 1-back ,.., multiple regression also with acoustic and trial by trial
+lt_figure; hold on;
 
+% --------------- USING HZ
+lt_subplot(1,2,1); hold on;
 inds = AllSylsStruct.Target_all==0 & AllSylsStruct.Similar_all==1;
 
 X = [-AllSylsStruct.NumBackSimilar(inds)' AllSylsStruct.AcousticDist_all(inds)' ...
@@ -325,9 +328,31 @@ mdl = fitlm(X, y);
 % --- bar plots of model fits
 BetaVals = mdl.Coefficients{2:end, 1}; % estimates
 BetaSE = mdl.Coefficients{2:end, 2}; % SE
-lt_figure; hold on;
 title('multiple linear regression');
-ylabel('coefficient (SE)')
+ylabel('coefficient (SE) (hz)')
+Xnames = {'context sim', 'acoustic dist', 'corr (by bout)'};
+lt_plot_bar(1:length(Xnames), BetaVals, {'Errors', BetaSE})
+
+set(gca, 'XTickLabel', Xnames);
+
+
+% --------------- USING generalziation
+lt_subplot(1,2,2); hold on;
+inds = AllSylsStruct.Target_all==0 & AllSylsStruct.Similar_all==1;
+
+X = [-AllSylsStruct.NumBackSimilar(inds)' AllSylsStruct.AcousticDist_all(inds)' ...
+    AllSylsStruct.Corr_song_all(inds)'];
+
+y = AllSylsStruct.LearningRelTarg_all(inds);
+
+% [b, bint, ~, ~, stats] = regress(y', X);
+mdl = fitlm(X, y);
+
+% --- bar plots of model fits
+BetaVals = mdl.Coefficients{2:end, 1}; % estimates
+BetaSE = mdl.Coefficients{2:end, 2}; % SE
+title('multiple linear regression');
+ylabel('coefficient (SE) (hz)')
 Xnames = {'context sim', 'acoustic dist', 'corr (by bout)'};
 lt_plot_bar(1:length(Xnames), BetaVals, {'Errors', BetaSE})
 
@@ -347,7 +372,7 @@ inds = AllSylsStruct.Target_all==0 & AllSylsStruct.Similar_all==1;
 
 X = [-AllSylsStruct.NumBackSimilar(inds)' AllSylsStruct.AcousticDist_all(inds)' ...
     AllSylsStruct.Corr_song_all(inds)'];
-y = AllSylsStruct.Learning_TargDir_All(inds);
+y = AllSylsStruct.LearningRelTarg_all(inds);
 
 % ========= RESCALE NUMERICAL PREDICTORS (follow advice of Gelman and scale
 % such that coefficeints are comparable across all predictors)
@@ -362,6 +387,10 @@ X(:, numerical_predictors) = (X(:, numerical_predictors) - repmat(Zmean, size(X,
 
 % confirm that have been rescaled to have sd
 disp(std(X));
+
+% -- center
+Xmean = mean(X,1);
+X = (X - repmat(Xmean, size(X,1), 1));
 
 % [b, bint, ~, ~, stats] = regress(y', X);
 mdl = fitlm(X, y);
@@ -381,6 +410,48 @@ lt_plot_annotation(1, ['beta=deltaY if deltaX = ' num2str(scalefactor) '*SD'], '
 
 
 % =================== PLOT EACH INDIVIDUALLY
+
+%% ========================== 2-back, 1-back ,.., multiple regression also with acoustic and trial by trial
+% SCALED - so that beta reflects change in 1SD for each variable
+
+
+% ====== RUN
+inds = AllSylsStruct.Target_all==0 & AllSylsStruct.Similar_all==1;
+
+X = [-AllSylsStruct.NumBackSimilar(inds)' AllSylsStruct.AcousticDist_all(inds)' ...
+    AllSylsStruct.Corr_song_all(inds)'];
+y = AllSylsStruct.LearningRelTarg_all(inds);
+
+% ========= RESCALE NUMERICAL PREDICTORS (take z-score for all, inclduing discrete
+Xmean = mean(X,1);
+Xstd = std(X, 0, 1);
+
+X = (X - repmat(Xmean, size(X,1), 1))./repmat(Xstd, size(X,1), 1);
+
+
+% confirm that have been rescaled to have sd
+disp(std(X));
+
+% [b, bint, ~, ~, stats] = regress(y', X);
+mdl = fitlm(X, y);
+
+% --- bar plots of model fits
+BetaVals = mdl.Coefficients{2:end, 1}; % estimates
+BetaSE = mdl.Coefficients{2:end, 2}; % SE
+lt_figure; hold on;
+title('multiple linear regression');
+ylabel('coefficient (SE)')
+Xnames = {'context sim', 'acoustic dist', 'corr (by bout)'};
+lt_plot_bar(1:length(Xnames), BetaVals, {'Errors', BetaSE})
+
+set(gca, 'XTickLabel', Xnames);
+
+lt_plot_annotation(1, ['beta=deltaY if deltaX = 1SD'], 'r')
+
+
+% =================== PLOT EACH INDIVIDUALLY
+
+
 
 %% ====== PRESIM (effect independent of corr and acoustic and motif?)
 
@@ -1047,6 +1118,7 @@ for i=1:length(distanceslist);
     lt_plot_bar(dist, ymean, {'Errors', ysem, 'Color',color});
 end
 % 2) linear regression (hoff style) (preceding)
+lt_figure; hold on;
 lt_subplot(3,2,3); hold on;
 xlabel('position'); ylabel('generalization');
 title('preceeding targ');
@@ -1054,6 +1126,7 @@ X2=X(X<0);
 Y2=Y(X<0);
 lt_regress(Y2, X2, 1, 0, 1, 1, 'b');
 xlim([Xlim(1)-1 0]); lt_plot_zeroline;
+ylim([-1 1])
 % 3) linear regression (hoff style) (following)
 lt_subplot(3,2,4); hold on;
 title('following targ');
@@ -1061,6 +1134,8 @@ X2=X(X>0);
 Y2=Y(X>0);
 lt_regress(Y2, X2, 1, 0, 1, 1, 'b');
 xlim([0 Xlim(2)+1]); lt_plot_zeroline;
+ylim([-1 1])
+
 % 4) learning vs. absolute pos from targ
 lt_subplot(3,2,5); hold on;
 title('learning vs. abs pos from targ');
@@ -1068,6 +1143,7 @@ X2=abs(X);
 Y2=Y;
 lt_regress(Y2, X2, 1, 0, 1, 1, 'b');
 xlim([0 Xlim(2)+1]); lt_plot_zeroline;
+ylim([-1 1])
 
 
 
@@ -1101,6 +1177,7 @@ for i=1:length(distanceslist);
     lt_plot_bar(dist, ymean, {'Errors', ysem,'Color',color});
 end
 % 2) linear regression (hoff style) (preceding)
+lt_figure; hold on;
 lt_subplot(3,2,3); hold on;
 xlabel('position'); ylabel('generalization');
 title('preceeding targ');
@@ -1108,6 +1185,7 @@ X2=X(X<0);
 Y2=Y(X<0);
 lt_regress(Y2, X2, 1, 0, 1, 1, color);
 xlim([Xlim(1)-1 0]); lt_plot_zeroline;
+ylim([-1 1])
 % 3) linear regression (hoff style) (following)
 lt_subplot(3,2,4); hold on;
 title('following targ');
@@ -1115,6 +1193,7 @@ X2=X(X>0);
 Y2=Y(X>0);
 lt_regress(Y2, X2, 1, 0, 1, 1, color);
 xlim([0 Xlim(2)+1]); lt_plot_zeroline;
+ylim([-1 1])
 % 4) learning vs. absolute pos from targ
 lt_subplot(3,2,5); hold on;
 title('learning vs. abs pos from targ');
@@ -1122,6 +1201,72 @@ X2=abs(X);
 Y2=Y;
 lt_regress(Y2, X2, 1, 0, 1, 1, color);
 xlim([0 Xlim(2)+1]); lt_plot_zeroline;
+ylim([-1 1])
+
+
+% ==== both combined
+lt_figure; hold on;
+% 1) summary
+lt_subplot(3,1,1); hold on;
+title('all nontarg'); xlabel('pos rel targ'); ylabel('gener');
+inds=AllSylsStruct.Target_all==0 & ~isnan(AllSylsStruct.PosRelTarg_All);
+color='k';
+
+X=AllSylsStruct.PosRelTarg_All(inds); % pos rel targ
+Y=AllSylsStruct.LearningRelTarg_all(inds);
+plot(X, Y, 'o', 'Color',color);
+Xlim=xlim;
+lt_plot_zeroline;
+set(gca, 'XTick', [min(X):max(X)])
+% -anova
+p=anovan(Y, {X});
+lt_plot_pvalue(p, 'anova', 1);
+% - plot mean
+distanceslist=unique(X);
+distanceslist=distanceslist(~isnan(distanceslist));
+for i=1:length(distanceslist);
+    dist=distanceslist(i);
+    
+    ymean=mean(Y(X==dist));
+    ysem=lt_sem(Y(X==dist));
+    lt_plot_bar(dist, ymean, {'Errors', ysem,'Color',color});
+end
+% 2) linear regression (hoff style) (preceding)
+lt_figure; hold on;
+lt_subplot(3,2,3); hold on;
+xlabel('position'); ylabel('generalization');
+title('preceeding targ');
+X2=X(X<0);
+Y2=Y(X<0);
+lt_regress(Y2, X2, 1, 0, 1, 1, color);
+xlim([Xlim(1)-1 0]); lt_plot_zeroline;
+ylim([-1 1])
+% 3) linear regression (hoff style) (following)
+lt_subplot(3,2,4); hold on;
+title('following targ');
+X2=X(X>0);
+Y2=Y(X>0);
+lt_regress(Y2, X2, 1, 0, 1, 1, color);
+xlim([0 Xlim(2)+1]); lt_plot_zeroline;
+ylim([-1 1])
+% 4) learning vs. absolute pos from targ
+lt_subplot(3,2,5); hold on;
+title('learning vs. abs pos from targ');
+X2=abs(X);
+Y2=Y;
+lt_regress(Y2, X2, 1, 0, 1, 1, color);
+xlim([0 Xlim(2)+1]); lt_plot_zeroline;
+ylim([-1 1])
+% 5) learning vs. absolute pos from targ (not including x = 1)
+lt_subplot(3,2,6); hold on;
+title('learning vs. abs pos from targ');
+X2=abs(X);
+Y2=Y;
+Y2 = Y2(X2~=1);
+X2 = X2(X2~=1);
+lt_regress(Y2, X2, 1, 0, 1, 1, color);
+xlim([0 Xlim(2)+1]); lt_plot_zeroline;
+ylim([-1 1])
 
 
 

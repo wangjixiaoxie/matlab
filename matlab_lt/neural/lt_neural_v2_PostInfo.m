@@ -61,7 +61,7 @@ for j=1:NumBirds
                 elseif strcmp(exptname, 'LMANlearn5')
                     MotifsActual = {'(d)dd', 'd(d)d', 'agcc', 'nkh', 'dh'}; % IMPROVE - NEED TO ADD THINGS (E.G. []d)
                 elseif strcmp(exptname, 'LMANlearn6')
-                    MotifsActual = {'h(d)', 'c(d)', 'd(d)d', 'dd(d)', 'agcc', ...
+                    MotifsActual = {'h(d)', 'c(d)', 'dd(d)', 'agcc', ...
                         'nkh'}; % IMPROVE - NEED TO ADD THINGS (E.G. []d)
                 end
                 

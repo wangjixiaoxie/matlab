@@ -77,6 +77,9 @@ for i=1:NumBirds
             end
             
             neuronlist = find(strcmp({SummaryStruct.birds(1).neurons.exptID}, exptname));
+            assert(all(strcmp({SummaryStruct.birds(1).neurons.exptID}, exptname)));
+            assert(length(motifstats.neurons)==length(SummaryStruct.birds(1).neurons));
+            
             for nn =neuronlist
                 
                 songdatenums = SummaryStruct.birds(1).neurons(nn).Filedatenum_unsorted;

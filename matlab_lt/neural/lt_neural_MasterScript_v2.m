@@ -3,20 +3,20 @@
 
 %% EXTRACT 
 
+BirdsToKeep = {'br92br54'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BrainArea = {'LMAN', 'X'};
+ExptToKeep = {'LMANlearn6'};
+RecordingDepth = [];
+LearningOnly = 1;
+BatchesDesired = {};
+ChannelsDesired = [];
 % BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
-% BrainArea = {};
+% BrainArea = {'X'};
 % ExptToKeep = {};
 % RecordingDepth = [];
 % LearningOnly = 1;
 % BatchesDesired = {};
 % ChannelsDesired = [];
-BirdsToKeep = {'wh6pk36', 'bu77wh13', 'or74bk35'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
-BrainArea = {'LMAN', 'X'};
-ExptToKeep = {'LMANlearn2', 'LMANlearn1', 'LMANneural2'};
-RecordingDepth = [];
-LearningOnly = 1;
-BatchesDesired = {};
-ChannelsDesired = [];
 [NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, ...
     BrainArea, ExptToKeep, RecordingDepth, LearningOnly, BatchesDesired, ChannelsDesired);
 
@@ -457,8 +457,8 @@ neuralmetric_toplot = 'NEURrelbase_smthFrCorr';
 convertToZscore = 0;
 PlotNeuralFFDeviationCorrs = 1; % zscore of neural similarity and FF, correalted fore aach syl
 plotOnlyTargSyl = 1; % only matters if PlotNeuralFFDeviationCorrs=1
-birdtoplot = 'wh6pk36'; % leave as '' to get all
-expttoplot = 'LMANlearn2';
+birdtoplot = 'bk7'; % leave as '' to get all
+expttoplot = 'LearnLMAN1';
 lt_neural_v2_ANALY_LearningStatsPLOT(MOTIFSTATS_Compiled, convertToZscore, ...
     neuralmetric_toplot, PlotNeuralFFDeviationCorrs, plotOnlyTargSyl, ...
     birdtoplot, expttoplot)
@@ -467,8 +467,13 @@ lt_neural_v2_ANALY_LearningStatsPLOT(MOTIFSTATS_Compiled, convertToZscore, ...
 
 
 % ******************************************************* VERSION 2 - SWITCH AS DATAPOINT
+% NOTE: neuron inds in switchstruct match those in motifs_compiled
+
 % === PULL OUT RAW FR FOR ALL NEURONS/TRIALS
-[MOTIFSTATS_Compiled] = lt_neural_v2_ANALY_GetAllFR(MOTIFSTATS_Compiled);
+RemoveTrialsZeroFR = 1;
+premotorWind = [-0.075 0.025]; % [-a b] means "a" sec before onset and "b" sec after offset
+[MOTIFSTATS_Compiled] = lt_neural_v2_ANALY_GetAllFR(MOTIFSTATS_Compiled, ...
+    RemoveTrialsZeroFR, premotorWind);
 
 
 % PULL OUT "SWITCHES" IN CONTINGENCY ACROSS ALLEXPERIMENTS [alsop extracts
@@ -477,18 +482,39 @@ lt_neural_v2_ANALY_LearningStatsPLOT(MOTIFSTATS_Compiled, convertToZscore, ...
 
 
 % ============ EXTRACT NEURAL FOR SWITCHES
-SwitchStruct = lt_neural_v2_ANALY_Swtch_Extract(MOTIFSTATS_Compiled, SwitchStruct);
+interpolateCorrNan = 0;
+RemoveTrialsZeroFR = 0; % this takes precedence over interpolateCorrNan
+[MOTIFSTATS_Compiled, SwitchStruct] = ...
+    lt_neural_v2_ANALY_Swtch_Extract(MOTIFSTATS_Compiled, SwitchStruct, ...
+    interpolateCorrNan, RemoveTrialsZeroFR, premotorWind);
+
+
+% =========== PLOT SUMMARY OF LEARNING [ITERATING SWITCHES]
+close all;
+lt_neural_v2_ANALY_LrnSwtchPLOT(MOTIFSTATS_Compiled, SwitchStruct);
 
 
 % ============ TIMECOURSES FOR NEURAL FOR SWITCHES
 close all;
-lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct)
+birdname_get = 'br92br54'; % keep empty if want all.
+exptname_get = 'LMANlearn6';
+switchnum_get = [9];
+lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct, ...
+    birdname_get, exptname_get, switchnum_get)
 
 
-% =========== PLOT SUMMARY OF STATS [ITERATING SWITCHES]
+% ============== SUMMARIZE FOR EACH EXPT (I.E. NEURAL AND FF CHANGE FOR
+% TARG AND OTHER SYLS)
 close all;
-lt_neural_v2_ANALY_LrnSwtchPLOT(MOTIFSTATS_Compiled, SwitchStruct);
+RemoveLowNumtrials = 0; % min number for both base and train(double)
+MinTrials = 10; % for removing
 
+UseZscoreNeural = 1;
+neuralmetricname = 'NEURvsbase_FRcorr';
+% neuralmetricname = 'NEUR_meanFR';
+% neuralmetricname = 'NEUR_cvFR';
+lt_neural_v2_ANALY_Swtch_Summary(MOTIFSTATS_Compiled, SwitchStruct, RemoveLowNumtrials, ...
+    MinTrials, UseZscoreNeural, neuralmetricname)
 
 
 

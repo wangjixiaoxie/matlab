@@ -1,16 +1,45 @@
+%% == plot and save all timecourse of learning
+Numbirds = length(SwitchStruct.bird);
+
+for i=1:Numbirds
+    
+    numexpts = length(SwitchStruct.bird(i).exptnum);
+    birdname = SwitchStruct.bird(i).birdname;
+    
+    for ii=1:numexpts
+        exptname = SwitchStruct.bird(i).exptnum(ii).exptname;
+        numswitches = length(SwitchStruct.bird(i).exptnum(ii).switchlist);
+        
+        for iii=1:numswitches
+            
+            close all;
+            birdname_get = birdname; % keep empty if want all.
+            exptname_get = exptname;
+            switchnum_get = iii;
+            lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct, ...
+                birdname_get, exptname_get, switchnum_get)
+            
+            % --- save figs
+            lt_save_figs_to_folder([birdname '-' exptname '-' num2str(iii)], 1)
+        end
+        
+    end
+end
+
+%%
 close all;
 
 %% EXTRACT FF AND SAVE
 
 FFparamsAll.bird(1).birdname = 'bk7';
 FFparamsAll.bird(1).FFparams.cell_of_freqwinds={'h', [1100 2600], 'b', [2400 3500], ...
-            'v', [2450 4300]};
+    'v', [2450 4300]};
 FFparamsAll.bird(1).FFparams.cell_of_FFtimebins={'h', [0.042 0.058], 'b', [0.053 0.07], ...
-            'v', [0.052 0.07]}; % in sec, relative to onset (i.e. see vector T)
+    'v', [0.052 0.07]}; % in sec, relative to onset (i.e. see vector T)
 FFparamsAll.bird(1).FFparams.cell_of_FFtimebins_DurLearn={'h', [0.034 0.038], 'b', [0.053 0.07], ...
-            'v', [0.052 0.07]}; % WN on g H
+    'v', [0.052 0.07]}; % WN on g H
 
-       
+
 FFparamsAll.bird(2).birdname = 'bu77wh13';
 FFparamsAll.bird(2).FFparams.cell_of_freqwinds={'b', [2700 3900], 'h', [2600 3900], 'a', [1300 2600]};
 FFparamsAll.bird(2).FFparams.cell_of_FFtimebins={'b', [0.03 0.038], 'h', [0.038 0.052], 'a', [0.056 0.081]}; % in sec, relative to onset (i.e. see vector T)
@@ -53,7 +82,7 @@ lt_neural_v2_EXTRACT_FF_tmp(SummaryStruct, FFparamsAll, overWrite, ...
     plotSpec, plotOnSong, plotSyl, equalizeParams);
 
 
-%% =================== LEARNING 
+%% =================== LEARNING
 % CAN DO MULTIPLE BIRDS
 collectWNhit=0; % NOTE!!! temporary - need to change so don't need to extract audio each time (i.e. do and save)
 MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
@@ -65,28 +94,28 @@ numbirds = length(MOTIFSTATS_Compiled.birds);
 for i=1:numbirds
     birdname = MOTIFSTATS_Compiled.birds(i).birdname;
     numexpts = length(MOTIFSTATS_Compiled.birds(i).exptnum);
-   
+    
     for ii=1:numexpts
-       exptname = MOTIFSTATS_Compiled.birds(i).exptnum(ii).exptname;
+        exptname = MOTIFSTATS_Compiled.birds(i).exptnum(ii).exptname;
         % ---- EXTRACT TARG SYL
         tmp = lt_neural_v2_LoadLearnMetadat;
         indbird = strcmp({tmp.bird.birdname}, birdname);
         indexpt = strcmp(tmp.bird(indbird).info(1,:), exptname);
         TargSyls = tmp.bird(indbird).info(2,indexpt);
-
+        
         MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.TargSyls = TargSyls;
         
         % ----
-%         TargSyls = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.TargSyls;
+        %         TargSyls = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.TargSyls;
         MotifsActual = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.MotifsActual;
         
         [SameTypeSyls, DiffTypeSyls, motif_regexpr_str] = ...
-        lt_neural_v2_extractSameType(MotifsActual, TargSyls);
-
-    % --- OUTPUT
-MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.SameTypeSyls = SameTypeSyls;
-MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.DiffTypeSyls = DiffTypeSyls;
-
+            lt_neural_v2_extractSameType(MotifsActual, TargSyls);
+        
+        % --- OUTPUT
+        MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.SameTypeSyls = SameTypeSyls;
+        MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.DiffTypeSyls = DiffTypeSyls;
+        
     end
 end
 
@@ -94,29 +123,29 @@ end
 %% ==== FOR EACH LEARNING EXPERIMENT, PLOT TIMELINE OF NEURONS AND LEARNING
 NumBirds = length(SummaryStruct.birds);
 for i=1:NumBirds
-   ListOfExpts = unique({SummaryStruct.birds(i).neurons.exptID});
-   
-   for ll = 1:length(ListOfExpts)
+    ListOfExpts = unique({SummaryStruct.birds(i).neurons.exptID});
+    
+    for ll = 1:length(ListOfExpts)
         
-       MOTIFSTATS = MOTIFSTATS_Compiled.birds(i).exptnum(ll).MOTIFSTATS;
-       SummaryStruct_tmp = MOTIFSTATS_Compiled.birds(i).exptnum(ll).SummaryStruct;
-       
-       birdname = SummaryStruct.birds(i).birdname;
-       exptname = ListOfExpts{ll};
-       
-       if ~isfield(MOTIFSTATS.params, 'TargSyls')
-           disp('asdasdf');
-       end
-       if isempty(MOTIFSTATS.params.TargSyls);
-           sdafasdf
-       end
-       
-      % === PLOT
-      lt_neural_v2_ANALY_LearningPlot1(SummaryStruct_tmp, MOTIFSTATS);
-       title([birdname '-' exptname]);
-   end
+        MOTIFSTATS = MOTIFSTATS_Compiled.birds(i).exptnum(ll).MOTIFSTATS;
+        SummaryStruct_tmp = MOTIFSTATS_Compiled.birds(i).exptnum(ll).SummaryStruct;
+        
+        birdname = SummaryStruct.birds(i).birdname;
+        exptname = ListOfExpts{ll};
+        
+        if ~isfield(MOTIFSTATS.params, 'TargSyls')
+            disp('asdasdf');
+        end
+        if isempty(MOTIFSTATS.params.TargSyls);
+            sdafasdf
+        end
+        
+        % === PLOT
+        lt_neural_v2_ANALY_LearningPlot1(SummaryStruct_tmp, MOTIFSTATS);
+        title([birdname '-' exptname]);
+    end
 end
-   
+
 % ========= SAVE AND CLOSE
 lt_save_figs_to_folder('062117_AllLearn_Summary', 1);
 

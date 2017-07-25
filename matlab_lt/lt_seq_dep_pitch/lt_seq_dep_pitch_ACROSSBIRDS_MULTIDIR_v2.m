@@ -1,6 +1,7 @@
 function [SeqDepPitch_AcrossBirds, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_MULTIDIR(SeqDepPitch_AcrossBirds, ...
     PARAMS, RepeatsOnly, OnlyUseSylsInSylsUnique, DaysToPlot, ExcludeSeqLearning, ExcludeNotFullyLabeled,...
-    ExcludeIfHasSameDirBeforeDiffDir, ExcludeIfFirstTargDriveMore, RawShowOnlySameType, UseOldVersion)
+    ExcludeIfHasSameDirBeforeDiffDir, ExcludeIfFirstTargDriveMore, RawShowOnlySameType, UseOldVersion, ...
+    ThrowOutIfNotEnoughData)
 %% LT 12/27/15 - plots day to day shift at two targets. Are they constrained to shift together?
 % ExcludeSeqLearning=1; % then skips pu53, since sequence learning
 % ExcludeNotFullyLabeled = 1; ad hoc, remove experiemtns I notice don't
@@ -12,6 +13,10 @@ end
 
 if ~exist('ExcludeIfHasSameDirBeforeDiffDir', 'var');
     ExcludeIfHasSameDirBeforeDiffDir=0;
+end
+
+if isempty('ThrowOutIfNotEnoughData')
+    ThrowOutIfNotEnoughData = 0;
 end
 
 adHocPlotSameType = 1; % if 1, then plots same type, nontarg (i.e. context 3) each individual syl
@@ -228,6 +233,12 @@ for i=1:NumBirds;
             end
         end
         
+        if ThrowOutIfNotEnoughData==1
+        if length(daystokeep)<sum(DaysToPlot)
+            continue
+        end
+        end
+        
         % === save the number of WN single dir days that occurred before
         % bidir on
         WNDay1=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_PlotLearning.Params.PlotLearning.WNTimeOnInd;
@@ -318,11 +329,11 @@ for i=1:NumBirds;
         for k=1:length(ffvalsRaw)
             ffvalstmp = cell2mat(ffvalsRaw{k});
             ffvalstmp = ffvalstmp - ffbase;
-if isempty(ffvalstmp)
-    p = nan;
-    FFsemAll = [FFsemAll nan];
-    continue
-end
+        if isempty(ffvalstmp)
+            p = nan;
+            FFsemAll = [FFsemAll nan];
+            continue
+        end
     
             p = signrank(ffvalstmp);
             pvalsAll = [pvalsAll p];
@@ -387,7 +398,8 @@ end
         DATSTRUCT.data.OthersSameType(Exptcount).MeanFFRelBase=nanmean(FFvals_All, 2);
         
         if adHocPlotSameType==1
-        SameType_Others = [SameType_Others FFvals_All];
+
+            SameType_Others = [SameType_Others FFvals_All];
         ExptcountAll = [ExptcountAll Exptcount*ones(1,size(FFvals_All,2))];
         end
         
@@ -430,6 +442,7 @@ end
         DATSTRUCT.data.OthersDiffType(Exptcount).MeanFFRelBase=nanmean(FFvals_All, 2);
         
                 if adHocPlotSameType==0
+                       
         SameType_Others = [SameType_Others FFvals_All];
         ExptcountAll = [ExptcountAll Exptcount*ones(1,size(FFvals_All,2))];
                 end
@@ -645,7 +658,60 @@ line(xlim, [0 0], 'Color','m');
 line([0.5 0.5], ylim, 'Color', 'm');
 
 
+% ======================= PLOT AS BARS ACROSS DAYS
+lt_figure; hold on;
 
+% - targ
+lt_subplot(2,1,1); hold on;
+lt_plot_bar(1:size(Yall_targ,2), mean(Yall_targ), {'Errors', lt_sem(Yall_targ)})
+ylim([-200 250]);
+
+% - nontarg
+lt_subplot(2,1,2); hold on;
+lt_plot_bar(1:size(Yall_sametype,2), mean(Yall_sametype), {'Errors', lt_sem(Yall_sametype)})
+ylim([-200 250]);
+% -- which diff from 0?
+[~, p] = ttest(Yall_sametype)
+% -- compare 
+
+
+% ======================= COMPARE 2 DAYS
+if DaysToPlot(2)>=7
+daytmp1 = -1;
+daytmp2 = 10;
+
+% -- add num base days
+daytmp1 = daytmp1 + DaysToPlot(1);
+daytmp2 = daytmp2 + DaysToPlot(1);
+
+lt_figure; hold on;
+YdiffAllTmp = {}; % to collect differences
+
+% --- targ
+X = [1 2];
+
+ytmp = Yall_targ(:, [daytmp1 daytmp2]);
+[h, p] = ttest(ytmp(:,1), ytmp(:,2))
+plot(X, ytmp, '-ok');
+lt_plot_bar(X, mean(ytmp), {'Errors', lt_sem(ytmp)});
+lt_plot_pvalue(p, 'ttest(targ)', 1);
+
+YdiffAllTmp{1} = diff(ytmp, 1, 2);
+
+
+% --- same type
+X = [4 5];
+ytmp = Yall_sametype(:, [daytmp1 daytmp2]);
+[h, p] = ttest(ytmp(:,1), ytmp(:,2))
+plot(X, ytmp, '-ok');
+lt_plot_bar(X, mean(ytmp), {'Errors', lt_sem(ytmp)});
+lt_plot_pvalue(p, 'ttest(same)', 1);
+% -- which same types diff from 0?
+
+
+else
+    disp('NOT PLOTTING FURTHER LEARNING!! (supplemental fig)');
+end
 %% ==== PLOT DATAPOINTS FOR EACH DAY (BARS, REL TO BIDIR START) [USING NORM TO TARG]
 
 numexpts=length(DATSTRUCT.data.FirstTarg);
@@ -830,6 +896,93 @@ PlotSameTypeOnly=2; % 0 = all; 1= same type; 2= diff type
 
 lt_seq_dep_pitch_ACROSSBIRDS_MULTIDIR_v2sub1
 lt_subtitle('Diff types - norm FF');
+
+
+
+%% === PLOT SEPARATION 
+% -- separation on last single targ day vs. separation on last bidir day
+% === PARAMS
+PlotSameTypeOnly = 1;
+lt_figure; hold on;
+title('separation, last day of single and dual');
+
+% === RUNS
+if PlotSameTypeOnly==1;
+    ExptInds=find([DATSTRUCT.information.targ2_sametype_rel_targ1]);
+else
+    disp('PROBLEM, DO WHAT?');
+end
+
+
+lastSingleDay = DATSTRUCT.information(1).numPreBidirDays;
+lastBidirDay = DATSTRUCT.information(1).numBidirDays + DATSTRUCT.information(1).numPreBidirDays;
+
+Y = nan(length(ExptInds), 2);
+
+% ==== end of single targ phase
+dayind = lastSingleDay;
+X = 1;
+
+dattmp1 = [DATSTRUCT.data.FirstTarg(ExptInds).MeanFFRelBase];
+dattmp1 = dattmp1(dayind, :)';
+
+dattmp2 = [DATSTRUCT.data.SecondTarg(ExptInds).MeanFFRelBase];
+dattmp2 = dattmp2(dayind, :)';
+
+Y(:, X) = dattmp1 - dattmp2;
+
+% ==== end of dual targ phase
+dayind = lastBidirDay;
+X = 2;
+
+dattmp1 = [DATSTRUCT.data.FirstTarg(ExptInds).MeanFFRelBase];
+dattmp1 = dattmp1(dayind, :)';
+
+dattmp2 = [DATSTRUCT.data.SecondTarg(ExptInds).MeanFFRelBase];
+dattmp2 = dattmp2(dayind, :)';
+
+Y(:, X) = dattmp1 - dattmp2;
+
+% === plot
+plot([1 2], Y, '-k')
+
+lt_plot_bar([1 2], mean(Y,1), {'Errors', lt_sem(Y)})
+
+% === stats
+p = signrank(Y(:,1), Y(:,2));
+lt_plot_pvalue(p, 'signrank', 1);
+lt_plot_text(1, 1.1*max(max(Y)), [num2str(mean(Y(:,1))) '(' num2str(lt_sem(Y(:,1))) ')'], 'b')
+lt_plot_text(2, 1.1*max(max(Y)), [num2str(mean(Y(:,2))) '(' num2str(lt_sem(Y(:,2))) ')'], 'b')
+
+
+% BELOW: actuall comparing last day of isngle and dual separately for each
+% syl type ...
+% % ==== targ
+% X = [1 2];
+% plotcol = 'k';
+% targfield = 'FirstTarg';
+% 
+% % --- 
+% datarray = [DATSTRUCT.data.(targfield)(ExptInds).MeanFFRelBase]; % days x expt
+% datarray = datarray([lastSingleDay lastBidirDay], :)';
+% 
+% plot(X, datarray, '-o', 'Color', plotcol);
+% 
+% % ==== same
+% X = [4 5];
+% plotcol = 'b';
+% targfield = 'SecondTarg';
+% 
+% % --- 
+% datarray = [DATSTRUCT.data.(targfield)(ExptInds).MeanFFRelBase]; % days x expt
+% datarray = datarray([lastSingleDay lastBidirDay], :)';
+% 
+% plot(X, datarray, '-o', 'Color', plotcol);
+% 
+
+
+
+
 
 
 
