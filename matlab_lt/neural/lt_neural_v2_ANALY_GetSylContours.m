@@ -1,5 +1,5 @@
 %% lt 6/16/17 - given SegmentsExtract, output vector (0s and 1s) for syl/gaps
-function SylContours = lt_neural_v2_ANALY_GetSylContours(segextract, numsyltrialstoplot, maxdur)
+function [SylContours, x] = lt_neural_v2_ANALY_GetSylContours(segextract, numsyltrialstoplot, maxdur)
 
 % numsyltrialstoplot = random subset of trials
 % maxdur = [] , in sec, clips data.
@@ -48,6 +48,7 @@ for kk=1:length(TrialInds)
     
     % =========== OUTPUT
     SylContours = [SylContours; tmpons];
+     x = (1:length(tmpons))/1000;
  %%   
     if (0) % troubleshooting (overlaying onset offset plotted as balls with outputted contours
         lt_figure; hold on;

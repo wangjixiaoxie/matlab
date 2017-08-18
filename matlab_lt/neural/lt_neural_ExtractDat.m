@@ -96,7 +96,7 @@ for i=1:length(metaDat)
         AllOffsets=[AllOffsets offsets_cum'];
         AllSongNum = [AllSongNum ones(1, length(tmp.labels))*i];
     else
-        disp(['NOTE: miossing .not.mat for ' metaDat(i).filename ' (SKIPPING)']);
+%         disp(['NOTE: miossing .not.mat for ' metaDat(i).filename ' (SKIPPING)']);
     end
     % duration of this song file (sec)
     filedur=metaDat(i).numSamps/metaDat(i).fs;

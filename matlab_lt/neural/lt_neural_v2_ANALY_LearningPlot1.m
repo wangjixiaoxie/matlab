@@ -50,7 +50,7 @@ for i=1:NumNeurons
             lt_plot_text(tvals(end)+0.04, ffvals(end), TargSyls{ii}, plotcols_targs{ii});
         end
     end
-%     axis tight
+    %     axis tight
     
     % plot line for dur that have data for this neuron
     hsplot = lt_subplot(3,1,3); hold on;
@@ -75,23 +75,70 @@ indbird = strcmp({tmp.bird.birdname}, SummaryStruct_onebird.birds(1).birdname);
 indexpt = strcmp(tmp.bird(indbird).info(1,:), SummaryStruct_onebird.birds(1).neurons(1).exptID);
 
 for j=1:length(TargSyls)
-indtmp = indexpt & strcmp(tmp.bird(indbird).info(2,:), TargSyls{j});
-Transitions = tmp.bird(indbird).info(3:end,indtmp);
-Transitions = Transitions(~cellfun('isempty', Transitions));
+    indtmp = indexpt & strcmp(tmp.bird(indbird).info(2,:), TargSyls{j});
+    Transitions = tmp.bird(indbird).info(3:end,indtmp);
+    Transitions = Transitions(~cellfun('isempty', Transitions));
+    
+    for i=1:length(Transitions)
+        transtime = Transitions{i}(1:14);
+        transtime = lt_convert_EventTimes_to_RelTimes(FirstDay, datenum(transtime, 'ddmmmyyyy-HHMM'));
+        transtime  = transtime.FinalValue;
+        line([transtime transtime], ylim, 'Color', 'k');
+        precond = Transitions{i}(16:17);
+        postcond = Transitions{i}(19:20);
+        Ylim = ylim;
+        lt_plot_text(transtime-0.01, (1-0.02*j)*Ylim(2), [precond '-' postcond],...
+            plotcols_targs{j});
+        %     lt_plot_text(transtime+0.02, (1-0.02*j)*Ylim(2), postcond, plotcols_targs{j});
+    end
+end
 
-for i=1:length(Transitions)
-    transtime = Transitions{i}(1:14);
-    transtime = lt_convert_EventTimes_to_RelTimes(FirstDay, datenum(transtime, 'ddmmmyyyy-HHMM'));
-    transtime  = transtime.FinalValue;
-    line([transtime transtime], ylim, 'Color', 'k');
-    precond = Transitions{i}(16:17);
-    postcond = Transitions{i}(19:20);
-    Ylim = ylim;
-    lt_plot_text(transtime-0.01, (1-0.02*j)*Ylim(2), [precond '-' postcond],...
-        plotcols_targs{j});
-%     lt_plot_text(transtime+0.02, (1-0.02*j)*Ylim(2), postcond, plotcols_targs{j});
+% ============ SANITY CHECK - put line for time with baseline data
+birdname = SummaryStruct_onebird.birds(1).birdname;
+
+for ii=1:NumNeurons
+exptname = SummaryStruct_onebird.birds(1).neurons(ii).exptID;
+    [islearning, LearnSummary] = lt_neural_v2_QUICK_islearning(birdname, exptname, 1);
+    switchtime = [];
+    
+    if islearning==1
+        % then keep only baseline that occurs before onset of WN
+        
+        numtargs = length(LearnSummary.targnum);
+        for jj=1:numtargs
+            
+            if find(strcmp({LearnSummary.targnum(jj).switches.statuspre}, 'Of'), 1, 'first') ~=1
+                % then this xperiments started with something other than WN
+                % ,,, throw out all data
+                indtmp = [];
+            else
+                indtmp = find(strcmp({LearnSummary.targnum(jj).switches.statuspre}, 'Of'), 1, 'last');
+            end
+           
+            
+            if isempty(indtmp)
+                % then WN was always on
+                swtimethis = 0; % make this 0 so this will always be earliest, and therefore must throw out all data
+            else
+                swtimethis = LearnSummary.targnum(jj).switches(indtmp).datenum;
+            end
+            
+            
+            % time when WN began
+            switchtime = min([switchtime swtimethis]); % get earliest time across all targets
+        end
+    end
+            transtime = lt_convert_EventTimes_to_RelTimes(FirstDay, switchtime);
+        transtime  = transtime.FinalValue;
+        
+        subplot(3,1,3);
+        plot(transtime, ii, 'o', 'Color', plotcols{ii});
+        
 end
-end
+
+
+
+
 % % --- now plot
 % lt_figure; hold on;
 % plotcols = lt_make_plot_colors(NumNeurons, 0, 0);

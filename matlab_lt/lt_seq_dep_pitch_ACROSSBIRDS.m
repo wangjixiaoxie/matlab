@@ -1075,29 +1075,32 @@ OnlyUseSylsInSylsUnique=1; %
 
 
 % ==== PLOT ACROSS DAYS - CONSTRAINED TO SHIFT TOGETHER?
-% ---- params used for paper:
-% RepeatsOnly=0;
-% OnlyUseSylsInSylsUnique=1; %
-% ExcludeSeqLearning=0;
-% ExcludeNotFullyLabeled=1; % ad hoc, expt with unresolvable holes. (e.g. reprobing, mistakes, see code)
-% ExcludeIfHasSameDirBeforeDiffDir=1;
-% ExcludeIfFirstTargDriveMore=1; % ad hoc, remove expt where first targ drove more.
-% DaysToPlot=[3 5]; % [num days before bidir day 1, num days during bidir (inclusize)]
-% RawShowOnlySameType = 1; % if 0, then show all raw expts; if 1 then only if pairs are sametype.
-% UseOldVersion = 1; % keep at 1.
-% ThrowOutIfNotEnoughData = ''; % don't use this param for paper figs.
-
 close all;
+
+% ---- params used for paper:
 RepeatsOnly=0;
 OnlyUseSylsInSylsUnique=1; %
 ExcludeSeqLearning=0;
 ExcludeNotFullyLabeled=1; % ad hoc, expt with unresolvable holes. (e.g. reprobing, mistakes, see code)
 ExcludeIfHasSameDirBeforeDiffDir=1;
 ExcludeIfFirstTargDriveMore=1; % ad hoc, remove expt where first targ drove more.
-DaysToPlot=[3 10]; % [num days before bidir day 1, num days during bidir (inclusize)]
+DaysToPlot=[3 5]; % [num days before bidir day 1, num days during bidir (inclusize)]
 RawShowOnlySameType = 1; % if 0, then show all raw expts; if 1 then only if pairs are sametype.
-UseOldVersion = 0; % keep at 1. [ paper figs]
-ThrowOutIfNotEnoughData = 1; % don't use this param for paper figs. Turn on if plotting extra days (supplelnetal) and only want to keep expt with full data.
+UseOldVersion = 1; % keep at 1.
+ThrowOutIfNotEnoughData = ''; % don't use this param for paper figs.
+
+% -- params used for supplemental (longer duration learning)
+% close all;
+% RepeatsOnly=0;
+% OnlyUseSylsInSylsUnique=1; %
+% ExcludeSeqLearning=0;
+% ExcludeNotFullyLabeled=1; % ad hoc, expt with unresolvable holes. (e.g. reprobing, mistakes, see code)
+% ExcludeIfHasSameDirBeforeDiffDir=1;
+% ExcludeIfFirstTargDriveMore=1; % ad hoc, remove expt where first targ drove more.
+% DaysToPlot=[3 10]; % [num days before bidir day 1, num days during bidir (inclusize)]
+% RawShowOnlySameType = 1; % if 0, then show all raw expts; if 1 then only if pairs are sametype.
+% UseOldVersion = 0; % keep at 1. [ paper figs]
+% ThrowOutIfNotEnoughData = 1; % don't use this param for paper figs. Turn on if plotting extra days (supplelnetal) and only want to keep expt with full data.
 
 [SeqDepPitch_AcrossBirds_MULTIDIR, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_MULTIDIR_v2(SeqDepPitch_AcrossBirds, ...
     PARAMS, RepeatsOnly,OnlyUseSylsInSylsUnique, DaysToPlot, ExcludeSeqLearning, ExcludeNotFullyLabeled, ...

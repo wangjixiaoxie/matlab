@@ -24,13 +24,13 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='br92br54_170624_122101.rhd';
+filename='br92br54_170628_095644.rhd';
 ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
 ChansToPlot.AmpChans_zero=[9 11 12 14 1 18];
 % ChansToPlot.AmpChans_zero=[8 9 11 16 17 20 21];
-ChansToPlot.AmpChans_zero=11;
+ChansToPlot.AmpChans_zero=0:31;
 
 % neuralFiltLow=500;
 neuralFiltLow=300;
@@ -38,7 +38,7 @@ neuralFiltLow=300;
 PlotWhat.raw=0;
 PlotWhat.filt=1;
 PlotWhat.rect_sm=0;
-PlotWhat.raster=1;
+PlotWhat.raster=0;
 PlotWhat.digital=0;
 
 Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
@@ -100,8 +100,8 @@ clear all; close all;
 % channel_board = [8 11 14 18 20]; % wh6
 % channel_board = [9 11 12 14 15 18]; % bu77
 % channel_board = [14];
-channel_board = 0:31;
-batchf = 'Batch26Jun0927to1720';
+channel_board = 23;
+batchf = 'Batch26Jun0927to1425';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
@@ -176,7 +176,7 @@ lt_neural_AutoMakeNotmat(batchf);
 % -- makes multiple plots if too much dat.
 close all;
 PlotSecondChan = 1;
-SecondChan = 11;
+SecondChan = 23;
 plotcols={'m', 'r','c', 'b', 'g'};
 
 % want to plot 2nd channel to compare noise?

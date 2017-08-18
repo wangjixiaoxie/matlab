@@ -2,7 +2,15 @@
 
 function [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
     regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
-    keepRawSongDat, suppressout, collectWNhit, collectWholeBoutPosition)
+    keepRawSongDat, suppressout, collectWNhit, collectWholeBoutPosition, LearnKeepOnlyBase, ...
+    preAndPostDurRelSameTimept, RemoveIfTooLongGapDur)
+%%  lt 8/15/17 - added default gap duration (between all syls in a given motif)
+
+if ~exist('RemoveIfTooLongGapDur', 'var')
+    RemoveIfTooLongGapDur=0;
+end
+maxgapdur = 0.15;
+
 %% note on FF stuff
 % WNhit collection is only performed if FF collection is performed - can
 % modify easily to make them independent. Needs raw audio to extract WNhit
@@ -36,6 +44,17 @@ end
 
 if ~exist('collectWholeBoutPosition', 'var')
     collectWholeBoutPosition=0; % to get position of a given datapoint within its bout
+end
+
+if ~exist('LearnKeepOnlyBase', 'var');
+    LearnKeepOnlyBase=0;
+end
+
+if ~exist('preAndPostDurRelSameTimept', 'var')
+    preAndPostDurRelSameTimept=0; % if 1, then will get pre and postdur aligned to either onset or
+    % offset of token (depending on "alignByOnset"). if 0, then predur is
+    % rel to token, and postdur is relative to end of matched motif
+    % (default)
 end
 
 %% --
@@ -96,6 +115,7 @@ fs=NeurDat.metaDat(1).fs;
 
 Params.REGEXP.predur=predur;
 Params.REGEXP.postdur=postdur;
+Params.REGEXP.alignByOnset = alignByOnset;
 
 % PARAMS ONLY USED FOR WHOLEBOUTS EXTRACTION
 %      onset_pre_threshold=2; % OLD (changed on 3/21/17, based on wh6pk36)
@@ -210,11 +230,59 @@ if strcmp(regexpr_str, 'WHOLEBOUTS')
 else
     % then is a regexp string
     % MODIFIED TO ALIGN TO ONSET OF TOKEN
-    [startinds, endinds, matchlabs, tokenExtents]=regexp(AllLabels, regexpr_str, 'start', 'end', ...
-        'match', 'tokenExtents');
     
+    % --------- method 1
+    
+    
+    [startinds1, endinds1, matchlabs1, tokenExtents1]=regexp(AllLabels, regexpr_str, 'start', 'end', ...
+        'match', 'tokenExtents');
     functmp = @(X) X(1);
-    tokenExtents=cellfun(functmp, tokenExtents); % convert from cell to vector.
+    tokenExtents1=cellfun(functmp, tokenExtents1); % convert from cell to vector.
+    
+    % ------- method 2
+    
+    
+    indstmp = regexp(regexpr_str, '[\(\)]'); % find left and right parantheses
+    
+    % confirm that there is exactly one token syl.
+    assert(length(indstmp)==2,'sdafasd');
+    assert(indstmp(2)-indstmp(1) ==2, 'sdfsdaf');
+    
+    % -
+    tmptmp = [regexpr_str(1:indstmp(1)-1) ...
+        regexpr_str(indstmp(1)+1) regexpr_str(indstmp(2)+1:end)];
+    
+%     regexpr_str2 = [regexpr_str(1:indstmp(1)-1) '(?=' ...
+%         regexpr_str(indstmp(1)+1) regexpr_str(indstmp(2)+1:end) ')']; % for lookahead assertion
+    
+    regexpr_str2 = [tmptmp(1) '(?=' tmptmp(2:end) ')']; % for lookahead assertion
+    
+    [startinds, ~, ~]=regexp(AllLabels, regexpr_str2, 'start', 'end', ...
+        'match');
+    
+    strlength = length(regexpr_str)-2;
+    
+    tokenExtents = startinds + indstmp(1)-1; % i.e. where token was
+    endinds = startinds + strlength -1;
+    
+    % - get match syls
+    indmat = [];
+    for j=1:strlength
+        indmat = [indmat startinds'+j-1];
+    end
+    matchlabs = mat2cell(AllLabels(indmat), ones(size(indmat,1),1))';
+    
+    
+    % ---- compare methods
+    if length(startinds) == length(startinds1)
+        assert(isempty(setxor(endinds, endinds1)), 'asfasd');
+        assert(isempty(setxor(startinds1, startinds)), 'asfasd');
+        assert(isempty(setxor(matchlabs1, matchlabs)), 'asdfsd');
+        assert(all(tokenExtents1 == tokenExtents), 'asdfsd');
+        
+    else
+        assert(isempty(setdiff(startinds1, startinds)), 'asfasdf'); % i.e. old version is proper subset of new version
+    end
 end
 
 
@@ -281,39 +349,55 @@ BoutNumsAll = [];
 PosInBoutAll = [];
 RendInBoutAll = [];
 
+segstoremove = []; % those that have too long gap dur
+
 % -- for each match ind, extract audio + spikes
 for i=1:length(tokenExtents)
+    
+    % --- make sure all gap durations are shorted than threshold
+    allgapdurs = AllOnsets(startinds(i)+1:endinds(i)) - AllOffsets(startinds(i):endinds(i)-1);
+    if any(allgapdurs > maxgapdur)
+        segstoremove = [segstoremove i];
+    end
+    
     
     % on time
     ind=tokenExtents(i);
     if alignByOnset==1
-        ontime=AllOnsets(ind); % sec
+        aligntime=AllOnsets(ind); % sec
     else
         % align by offset of token syl
-        ontime=AllOffsets(ind); % sec
+        aligntime=AllOffsets(ind); % sec
     end
     
     
-    ontime=ontime-predur; % - adjust on time
+    ontime=aligntime-predur; % - adjust on time
     onsamp=round(ontime*fs);
     
     % off time
-    ind=endinds(i);
-    offtime=AllOffsets(ind);
-    offtime=offtime+postdur;
+    if preAndPostDurRelSameTimept==0
+        % default, align to end of motif
+        ind=endinds(i);
+        offtime=AllOffsets(ind);
+        offtime=offtime+postdur;
+    elseif preAndPostDurRelSameTimept==1
+        offtime = aligntime+postdur;
+    end
     offsamp=round(offtime*fs);
     
     
-    spkinds=(NeurDat.spikes_cat.cluster_class(:,2) > ontime*1000) & ...
-        (NeurDat.spikes_cat.cluster_class(:,2) < offtime*1000);
-    spk_ClustTimes = NeurDat.spikes_cat.cluster_class(spkinds, :); % in sec, relative to onset of the segment
+    
+    %     spkinds=(NeurDat.spikes_cat.cluster_class(:,2) > ontime*1000) & ...
+    %         (NeurDat.spikes_cat.cluster_class(:,2) < offtime*1000);
+    spk_ClustTimes = NeurDat.spikes_cat.cluster_class((NeurDat.spikes_cat.cluster_class(:,2) > ontime*1000) & ...
+        (NeurDat.spikes_cat.cluster_class(:,2) < offtime*1000), :); % in sec, relative to onset of the segment
     
     
     if keepRawSongDat ==1
         assert(isfield(SongDat, 'AllSongs'), 'PROBLEM - need to extract songdat before running this');
         
         % this effectively does nothing if also collecting FF.
-%         AllSongs=SongDat.AllSongs;
+        %         AllSongs=SongDat.AllSongs;
         songseg=SongDat.AllSongs(onsamp:offsamp);
         SegmentsExtract(i).songdat=songseg;
     end
@@ -335,7 +419,7 @@ for i=1:length(tokenExtents)
             %% === OLD METHOD (CALCULATE FROM RAW AUDIO HERE)
             disp('HAVE TO DO FFVALS MANUALLY :( ');
             % - collect
-%             AllSongs=SongDat.AllSongs;
+            %             AllSongs=SongDat.AllSongs;
             songseg=SongDat.AllSongs(onsamp:offsamp);
             
             FF_PosRelToken=FFparams.FF_PosRelToken;
@@ -408,7 +492,7 @@ for i=1:length(tokenExtents)
         % FIGURE OUT IF WN HIT ON THIS TRIAL (based on clipping of sound)
         % - collect
         if collectWNhit==1
-%             AllSongs=SongDat.AllSongs;
+            %             AllSongs=SongDat.AllSongs;
             songseg=SongDat.AllSongs(onsamp:offsamp);
             
             FF_PosRelToken=FFparams.FF_PosRelToken;
@@ -518,7 +602,8 @@ for i=1:length(tokenExtents)
     songfname=NeurDat.metaDat(songind).filename;
     
     SegmentsExtract(i).song_filename=songfname;
-    SegmentsExtract(i).song_datenum=lt_neural_fn2datenum(songfname);
+    %     SegmentsExtract(i).song_datenum=lt_neural_fn2datenum(songfname);
+    SegmentsExtract(i).song_datenum=NeurDat.metaDat(songind).song_datenum;
     SegmentsExtract(i).song_ind_in_batch=songind;
     
     
@@ -547,6 +632,42 @@ if suppressout==0
 end
 
 
+%% ============== remove any with too long gap dur
+
+if RemoveIfTooLongGapDur ==1
+    disp(['Removed ' num2str(length(segstoremove)) ' (gap dur too long)']);
+    SegmentsExtract(segstoremove) = [];
+end
+
+%% ====== REMOVE WN TRIALS IF IS LEARNING AND IF WANT TO REMOVE
+if LearnKeepOnlyBase ==1
+    
+    % is this learning?
+    birdname = Params.birdname;
+    exptname = Params.exptname;
+    [islearning, LearnSummary, switchtime] = lt_neural_v2_QUICK_islearning(birdname, exptname, 1);
+    if isfield(SegmentsExtract, 'song_datenum')
+        
+        
+        if islearning ==1
+            assert(~isempty(switchtime), 'asdfasdf')
+            
+            tvals = [SegmentsExtract.song_datenum];
+            indstoremove = tvals > switchtime;
+            
+            SegmentsExtract(indstoremove) = [];
+            
+            disp([' === removed WN files from (learning) : ' birdname '-' exptname '-' regexpr_str ' - ' num2str(sum(indstoremove)) '/' num2str(length(indstoremove))]);
+            
+            
+            % --- if all data removed, make it an empty structure
+            if all(indstoremove)
+                SegmentsExtract = struct;
+            end
+            
+        end
+    end
+end
 
 %% ==== DEBUG - CHECK HIT DETECTION
 if suppressout==0

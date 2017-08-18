@@ -63,6 +63,9 @@ for j=1:NumBirds
                 elseif strcmp(exptname, 'LMANlearn6')
                     MotifsActual = {'h(d)', 'c(d)', 'dd(d)', 'agcc', ...
                         'nkh'}; % IMPROVE - NEED TO ADD THINGS (E.G. []d)
+                elseif strcmp(exptname, 'LMANlearn7')
+                    MotifsActual = {'h(d)', 'c(d)', 'dd(d)', 'agc', ...
+                        'nkh'}; % IMPROVE - NEED TO ADD THINGS (E.G. []d)
                 end
                 
                 
@@ -172,10 +175,10 @@ for j=1:NumBirds
             end
         end
         
-%         disp(motif_regexpr_str);
-%         if any(strcmp(motif_regexpr_str, 'h(()d)'))
-%             keyboard
-%         end
+        %         disp(motif_regexpr_str);
+        %         if any(strcmp(motif_regexpr_str, 'h(()d)'))
+        %             keyboard
+        %         end
         
         % display output
         if (0)

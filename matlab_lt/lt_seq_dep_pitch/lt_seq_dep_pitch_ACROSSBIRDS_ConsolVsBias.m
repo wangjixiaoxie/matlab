@@ -394,6 +394,8 @@ plotcols = lt_make_plot_colors(length(ListOfExpts), 0, 0);
 separation = 0.15;
 title(['AFPbias(first, second), bin' num2str(daybin_afpbias)]);
 
+Yall = {};
+
 for k=1:length(ListOfExpts)
     inds = ExptTypeAll==k & ContainsDataBinThree==1;
     Y = [AFPbiasFirstTargAll(inds)' AFPbiasSecondTargAll(inds)'];
@@ -406,8 +408,19 @@ for k=1:length(ListOfExpts)
     % -- sign rank
     p = signrank(Y(:,1), Y(:,2));
     lt_plot_text(k, max(Y(:,1)), ['p=' num2str(p)]);
+    
+    Yall{k} = Y(:,2) - Y(:,1);
 end
 
+% --- compare differences in AFP bias between classes
+for i=1:length(Yall)
+    for ii=i+1:length(Yall);
+   
+        p = ranksum (Yall{i}, Yall{ii});
+        lt_plot_text(i, 1.1*max(Yall{i}), [num2str(i) 'vs' num2str(ii) ',p=' num2str(p)], 'b');
+        
+    end
+end
 
 
 %% ============== AFP/MP VS. GEN/SEP(learning)

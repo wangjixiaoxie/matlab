@@ -1,5 +1,6 @@
 %% uses matlab code regress() but automatically adds 1 to X and formats X and Y. Also plots automatically
-function [b,bint,r,rint,stats,SummaryStats, hplot]=lt_regress(Y,X_no_ones,plotON,plotB_error, plotline, plot_summary, plotcol, plotOnlyLineSummary)
+function [b,bint,r,rint,stats,SummaryStats, hplot]=lt_regress(Y,X_no_ones,plotON, ...
+    plotB_error, plotline, plot_summary, plotcol, plotOnlyLineSummary, alpha)
 
 % Y and X are vectors (can be columns or rows, currently only 1D) (do not
 % add 1s to X)
@@ -31,6 +32,11 @@ if ~exist('plotOnlyLineSummary', 'var')
 plotOnlyLineSummary=0;
 end
 
+if ~exist('alpha', 'var');
+    alpha = 0.05;
+end
+
+
 %% put inputs into columns
 % assume they are 1d vectors
 
@@ -47,7 +53,7 @@ X=[ones(length(X_no_ones),1), X_no_ones];
 
 %% perform regression
 
-[b,bint,r,rint,stats]=regress(Y,X);
+[b,bint,r,rint,stats]=regress(Y,X, alpha);
 
 %% put some useful stuff into a summary structure
 

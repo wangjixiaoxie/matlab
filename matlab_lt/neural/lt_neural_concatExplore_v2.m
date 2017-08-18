@@ -216,8 +216,9 @@ fignums_alreadyused=[];
 hfigs=[];
 
 
-numrandspikes=300;
+numrandspikes=157;
 hsplots=[];
+
 
 for i=1:length(SpkWaveforms)
     

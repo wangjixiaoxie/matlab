@@ -39,7 +39,7 @@ end
 if ~exist('BatchesDesired', 'var')
     BatchesDesired = {};
 end
-   
+
 
 if ~exist('ExptToKeep', 'var');
     ExptToKeep = {};
@@ -137,15 +137,18 @@ for i=1:numbirds
             
         else
             % ==== is this learning expt/
-            exptname = SummaryStruct.birds(i).neurons(ii).exptID;            
-            birdindtmp = strcmp({LearnStruct.bird.birdname}, birdname);
-            if any(strcmp([LearnStruct.bird(birdindtmp).info(1,:)], exptname))
-                % then is learning
-                islearning =1;
-            else
-                islearning = 0;
-            end
-            SummaryStruct.birds(i).neurons(ii).INFO_islearning = islearning;
+                exptname = SummaryStruct.birds(i).neurons(ii).exptID;
+                islearning = lt_neural_v2_QUICK_islearning(birdname, exptname);
+
+%                 birdindtmp = strcmp({LearnStruct.bird.birdname}, birdname);
+%                 if any(strcmp([LearnStruct.bird(birdindtmp).info(1,:)], exptname))
+%                     % then is learning
+%                     islearning =1;
+%                 else
+%                     islearning = 0;
+%                 end
+
+SummaryStruct.birds(i).neurons(ii).INFO_islearning = islearning;
             
             if LearningOnly==1
                 % then only keeps if learniong
@@ -209,19 +212,22 @@ end
 
 % ========== IF ANY BIRDS EMPTY, REMOVE
 if isfield(SummaryStruct_filtered, 'birds');
-birdstoremove = [];
-for i=1:length(SummaryStruct_filtered.birds)
-    if isempty(SummaryStruct_filtered.birds(i).neurons)
-        birdstoremove = [birdstoremove i];
+    birdstoremove = [];
+    for i=1:length(SummaryStruct_filtered.birds)
+        if isempty(SummaryStruct_filtered.birds(i).neurons)
+            birdstoremove = [birdstoremove i];
+        end
     end
-end
-SummaryStruct_filtered.birds(birdstoremove) = [];
-
-
-%% =========== POST INFO
-
-
-
-SummaryStruct_filtered = lt_neural_v2_PostInfo(SummaryStruct_filtered);
+    SummaryStruct_filtered.birds(birdstoremove) = [];
+    
+    
+    %% =========== POST INFO
+    
+    SummaryStruct_filtered = lt_neural_v2_PostInfo(SummaryStruct_filtered);
+    
+    %% ==== confirm all metadat have permanent datenum. if not, extract
+    
+    lt_neural_v2_PRE_datenums(SummaryStruct);
+    
 end
 

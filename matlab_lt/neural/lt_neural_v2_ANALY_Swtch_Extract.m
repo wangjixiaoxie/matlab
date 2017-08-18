@@ -105,6 +105,8 @@ for i=1:Numbirds
                   premotorInds = find(tmp>(MotifStats.params.motif_predur + premotorWind(1)) ...
                     & tmp<(MotifStats.params.motif_predur + premotorWind(2)));
                   
+                  MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.premotorInds_FR = premotorInds;
+%                 
                   baseInds = [segextract.song_datenum] < swthis & ...
                       [segextract.song_datenum] > swpre;
                   trainInds = [segextract.song_datenum] > swthis & ...
@@ -166,6 +168,13 @@ for i=1:Numbirds
                          BaseCorr_FFvsNeurSim = nan
                          BaseCorr_FFvsNeurSim_pval = nan;
                      end
+                     
+                     
+                  % ===========================================================
+                  % SNR OF FIRING RATE (baseline, middle, end)
+                  
+                  
+                     
                      
                   % =============================== OUTPUT
                   % time, neural, ff, 

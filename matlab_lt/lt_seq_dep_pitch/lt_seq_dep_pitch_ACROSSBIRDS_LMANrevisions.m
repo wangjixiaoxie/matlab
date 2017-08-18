@@ -725,8 +725,8 @@ for exptnum = exptlist;
     ffmusc = MPbias_all(inds);
     
     if takemean==1
-        ffpbs = median(ffpbs);
-        ffmusc = median(ffmusc);
+        ffpbs = mean(ffpbs);
+        ffmusc = mean(ffmusc);
     else
         numrends = length(ffpbs);
     end
@@ -778,9 +778,10 @@ lt_plot_bar(X, mean([FFpbs_nontarg_all' FFmusc_nontarg_all']), {'Errors', ...
 
 
 % ------ 1) LEARN and MP bias
+Ytmp = {};
 lt_subplot(2, 2,2); hold on;
 title('each expt one datapoint for targ and nontarg')
-xlabel('TARG (learn-MP) --- sametype');
+xlabel('TARG (learn-MP-AFP) --- sametype(L-M-A)');
 % -- targ
 X = [1 2 3];
 Y = [FFpbs_targ_all' FFmusc_targ_all' (FFpbs_targ_all-FFmusc_targ_all)'];
@@ -792,6 +793,7 @@ lt_plot_bar(X, mean(Y), {'Errors', ...
 % -- compare AFP and MP bias
 p = signrank(Y(:,2), Y(:,3));
 lt_plot_text(mean(X(2:3)), 1.1*(max(mean(Y))), ['(vs)p=' num2str(p)], 'r');
+Ytmp{1} = Y(:,3) - Y(:,2);
 
 
 % -- same type
@@ -803,6 +805,12 @@ lt_plot_bar(X, mean(Y), {'Errors', ...
 % -- compare AFP and MP bias
 p = signrank(Y(:,2), Y(:,3));
 lt_plot_text(mean(X(2:3)), 1.1*(max(mean(Y))), ['(vs)p=' num2str(p)], 'r');
+Ytmp{2} = Y(:,3) - Y(:,2);
+
+
+% ---- compare differences between AFP and MP biases
+p = signrank(Ytmp{1}, Ytmp{2});
+lt_plot_text(5, 1.4*(max(mean(Y))), ['(comparing (afp-mp))p=' num2str(p)], 'b');
 
 
 

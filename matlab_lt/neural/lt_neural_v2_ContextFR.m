@@ -34,7 +34,8 @@ for i=1:numbirds
         hfigs=[];
         
         % ---- go by order of single syls
-        SingleSyls = MotifStats.params.singlesyls;
+%         SingleSyls = MotifStats.params.singlesyls;
+        SingleSyls = MotifStats.params.singlesyls_unique;
         plotcols_single = lt_make_plot_colors(length(SingleSyls), 0, 0);
         hsplots = [];
         ymax = [];
@@ -145,7 +146,8 @@ for i=1:numbirds
         hfigs=[];
         
         % ---- go by order of single syls
-        SingleSyls = MotifStats.params.singlesyls;
+%         SingleSyls = MotifStats.params.singlesyls;
+        SingleSyls = MotifStats.params.singlesyls_unique;
         plotcols_single = lt_make_plot_colors(length(SingleSyls), 0, 0);
         plotcols_motif = lt_make_plot_colors(numsyls, 0, 0);
         hsplots = [];

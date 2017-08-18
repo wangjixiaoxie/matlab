@@ -672,6 +672,13 @@ lt_plot_bar(1:size(Yall_sametype,2), mean(Yall_sametype), {'Errors', lt_sem(Yall
 ylim([-200 250]);
 % -- which diff from 0?
 [~, p] = ttest(Yall_sametype)
+disp(['p values for each day for same -type (ttest) : ' num2str(p)])
+pause(0.5)
+
+for j = 1:size(Yall_sametype, 2);
+    [p] = signrank(Yall_sametype(:,j));
+disp(['day' num2str(j) ', p=' num2str(p)]);
+end
 % -- compare 
 
 
@@ -954,7 +961,7 @@ lt_plot_pvalue(p, 'signrank', 1);
 lt_plot_text(1, 1.1*max(max(Y)), [num2str(mean(Y(:,1))) '(' num2str(lt_sem(Y(:,1))) ')'], 'b')
 lt_plot_text(2, 1.1*max(max(Y)), [num2str(mean(Y(:,2))) '(' num2str(lt_sem(Y(:,2))) ')'], 'b')
 
-
+%%
 % BELOW: actuall comparing last day of isngle and dual separately for each
 % syl type ...
 % % ==== targ
@@ -982,9 +989,75 @@ lt_plot_text(2, 1.1*max(max(Y)), [num2str(mean(Y(:,2))) '(' num2str(lt_sem(Y(:,2
 
 
 
+%% ===== PLOT CHANGE DURING BIDIR SEPARATELY FOR EACH CONTEXT
+lastSingleDay = DATSTRUCT.information(1).numPreBidirDays;
+lastBidirDay = DATSTRUCT.information(1).numBidirDays + DATSTRUCT.information(1).numPreBidirDays;
+
+numdaystoget = 1; % i.e. if 2 then takes last 2 days of single and last 2 days of bidir
+Yall = {};
+
+lt_figure; hold on;
+% BELOW: actuall comparing last day of isngle and dual separately for each
+% syl type ...
+% ==== targ
+X = [1];
+plotcol = 'k';
+targfield = 'FirstTarg';
+
+% --- 
+datarray = [DATSTRUCT.data.(targfield)(ExptInds).MeanFFRelBase]; % days x expt
+datarray = datarray([lastSingleDay-numdaystoget+1:lastSingleDay ...
+    lastBidirDay-numdaystoget+1:lastBidirDay], :)';
+
+Y = mean(datarray(:, end-numdaystoget+1:end),2) - ...
+    mean(datarray(:, 1:numdaystoget),2);
+plot(X, Y, 'o', 'Color', plotcol);
+
+lt_plot_bar(X, mean(Y), {'Errors', lt_sem(Y)});
+
+p = signrank(Y);
+lt_plot_text(X, mean(Y), [num2str(mean(Y)) '+-' num2str(lt_sem(Y)) 'p=' num2str(p)])
 
 
 
+Yall{X} = Y;
+
+
+% ==== same
+X = [2];
+plotcol = 'b';
+targfield = 'SecondTarg';
+
+% --- 
+datarray = [DATSTRUCT.data.(targfield)(ExptInds).MeanFFRelBase]; % days x expt
+datarray = datarray([lastSingleDay-numdaystoget+1:lastSingleDay ...
+    lastBidirDay-numdaystoget+1:lastBidirDay], :)';
+
+Y = mean(datarray(:, end-numdaystoget+1:end),2) - ...
+    mean(datarray(:, 1:numdaystoget),2);
+plot(X, Y, 'o', 'Color', plotcol);
+
+lt_plot_bar(X, mean(Y), {'Errors', lt_sem(Y)});
+
+p = signrank(Y);
+lt_plot_text(X, mean(Y), [num2str(mean(Y)) '+-' num2str(lt_sem(Y)) ',p=' num2str(p)])
+Yall{X} = Y;
+
+% ---
+xlim([0 3])
+lt_plot_zeroline;
+
+% -- plot lines for pairs
+plot([1 2], [Yall{1} Yall{2}], '-k')
+p = signrank(Yall{1}, Yall{2});
+lt_plot_pvalue(p, 'signrank', 1);
+
+% -
+lt_figure; hold on;
+lt_regress(Yall{2}, Yall{1}, 1, 0, 1, 1);
+xlim([-300 300])
+ylim([-300 300])
+lt_plot_zeroline; lt_plot_zeroline_vert
 
 %% ===== CORRELATION BETWEEN TARG 2 SHIFT AND TARG 1 SHIFT
 % === for each day, plot shift from yesterday, correalted between syls?
@@ -1038,7 +1111,7 @@ end
     %% == adhoc for revisions [SAME TYPE, NON TARG] 
     % breaking out into individual syl (otherwise exactly same as
     % same-type, nontarg in DATSTRUCT. In latter each expt taken mean.
-    
+    % README!!! IF WANT TO PLOT DIFF TYPE THEN CHANGE adHocPlotSameType to 0 (at start of code)
     tmp=[DATSTRUCT.information.targ2_sametype_rel_targ1];
 ExptInds=find(tmp==1);
 
@@ -1060,7 +1133,7 @@ lt_subplot(2,1,2); hold on;
 Ymean = mean(Y,2);
 lt_plot_bar(1:length(Ymean), Ymean', {'Errors', lt_sem(Y')})
 
-
+lt_plot_annotation(1, ['n=' num2str(sum(inds))], 'k')
 
 
 

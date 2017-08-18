@@ -21,9 +21,9 @@ h=annotation('textbox', [pos(1)+0.05 pos(2)+pos(4)-0.15 0.15 0.02], 'String', te
     case 2
 h=annotation('textbox', [pos(1)+0.05 pos(2)+0.15 0.15 0.02], 'String', text);
     case 3
-h=annotation('textbox', [pos(1)+0.7 pos(2)+0.15 0.15 0.02], 'String', text);
+h=annotation('textbox', [pos(1)+0.5 pos(2)+0.15 0.15 0.02], 'String', text);
     case 4
-h=annotation('textbox', [pos(1)+0.7 pos(2)+pos(4)-0.15 0.15 0.02], 'String', text);
+h=annotation('textbox', [pos(1)+0.5 pos(2)+pos(4)-0.15 0.15 0.02], 'String', text);
 end
 
 

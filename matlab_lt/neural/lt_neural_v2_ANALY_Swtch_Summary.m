@@ -1,10 +1,30 @@
-function lt_neural_v2_ANALY_Swtch_Summary(MOTIFSTATS_Compiled, SwitchStruct, RemoveLowNumtrials, ...
-    MinTrials, UseZscoreNeural, neuralmetricname)
+function [DATSTRUCT, BYNEURONDAT] = lt_neural_v2_ANALY_Swtch_Summary(MOTIFSTATS_Compiled, SwitchStruct, RemoveLowNumtrials, ...
+    MinTrials, UseZscoreNeural, neuralmetricname, fieldname_baseneur, fieldname_trainneur, ...
+    skipMultiDir, usePeakLearn, plotLearnStatsOn, learnsigalpha, OnlyKeepSigLearn, ...
+    OnlyKeepWNonset)
+
+% usePeakLearn = 1;
+% plotLearnStatsOn =1;
+
 %% TO DO:
 % LEARN FOR FOR NONNTARGET ARE STILL NOT IN CORRECT DIR - HAVE TO TAKE
 % INTOA ACCOUNT MULTIPLE TARGETS
 
 %%
+% 1) corr between basemean vs. train mean ("change" is dat vs. shuffle)
+% fieldname_baseneur = 'AllNeurCorrShuffMean';
+% fieldname_trainneur = 'AllNeurCorrDat';
+
+% 2) each trial corr with a base "template". change is mean of train corr vals vs.
+% mean of base corr vals
+% fieldname_baseneur = 'AllNeurSimBase';
+% fieldname_trainneur = 'AllNeurSimTrain';
+
+% 3) split base into two, to then get a base corr (mean of base 1 vs. mean
+% of base 2) and a trining corr (mean of train vs. mean of base, averaged
+% over diff pairs).
+% fieldname_baseneur = 'AllNeurSplitCorrBase';
+% fieldname_trainneur = 'AllNeurSplitCorrTrain';
 
 
 %% PLOT FOR ALL SWITCHES
@@ -196,8 +216,29 @@ AllBaseFFvsNeurFRCorr_p = [];
 AllBaseFFvsNeursimCorr = [];
 AllBaseFFvsNeursimCorr_p = [];
 
+AllSNRbaseEnd = [];
+AllSNRtrainEnd = [];
+
+AllNeurCorrDat = []; % corr(mean1 vs. mean2)
+AllNeurCorrShuffMean = []; % shuffled ...
+AllNeurCorrShuffSD = [];
+
+AllNeurSplitCorrBase = []; % (base1 vs. base2) split into two halves
+AllNeurSplitCorrTrain = []; % (train vs. base) - multiple, then take mean.
+
+% --- laerning stuff
+AllNeurTargLearnRate_targdir = [];
+AllNeurTargLearnEnd_targdir = [];
+
+
 % counter =1;
 switchnum_global=1;
+
+if plotLearnStatsOn==1
+    figure(1); hold on % plots all trajectories
+    figure(2); hold on; % plots population stats
+end
+
 for i=1:Numbirds
     
     numexpts = length(SwitchStruct.bird(i).exptnum);
@@ -231,6 +272,23 @@ for i=1:Numbirds
             %             goodneurons = find([SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron.haspostsongs] ...
             %                 & [SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron.haspresongs]);
             
+            
+            if OnlyKeepWNonset==1
+                tmptmp = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).learningContingencies(2:2:end);
+               tmptmp = cell2mat(tmptmp');
+               if ~all(tmptmp(:,1)==0)
+                   disp('SKIPPED - not starting from WN off')
+                   continue
+               end
+            elseif OnlyKeepWNonset==2
+                tmptmp = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).learningContingencies(2:2:end);
+               tmptmp = cell2mat(tmptmp');
+               if any(tmptmp(:,1)==0)
+                   disp('SKIPPED - starting from WN off')
+                   continue
+               end
+            end
+            
             goodneurons = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).goodneurons;
             
             if isempty(goodneurons)
@@ -261,6 +319,145 @@ for i=1:Numbirds
             end
             
             
+            % --- skip if multiple targs and in different directions
+            if skipMultiDir ==1
+                if numtargs>1 & TargsSameDir==0
+                    disp(['SKIPPING ' birdname '-' exptname '-sw' num2str(iii) ' [multidir]']);
+                    continue
+                end
+            end
+            
+            % ----------- TIME OF PEAK LEARNING
+            % --- will take first target
+            tsyltmp = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).learningDirs{1};
+            targdirtmp = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).learningDirs{2};
+            
+            targind = strcmp(tsyltmp, ...
+                {SwitchStruct.bird(i).exptnum(ii).switchlist(iii).STATS_motifsyl.sylname});
+            
+            
+            tvals = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).STATS_motifsyl(targind).tvals;
+            ffvals = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).STATS_motifsyl(targind).ffvals;
+            
+            indstmp = tvals > SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum;
+            
+            
+            % - learn
+            tvals = tvals(indstmp);
+            ffvals = ffvals(indstmp);
+            
+            tvals = lt_running_stats(tvals, numtrain);
+            ffvals = lt_running_stats(ffvals, numtrain);
+            
+            [~, indtmp] = max(targdirtmp.*ffvals.Mean);
+            TimeMaxLearn = tvals.Median(indtmp);
+            
+            
+            %% learning stats at target
+            tvals = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).STATS_motifsyl(targind).tvals;
+            ffvals = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).STATS_motifsyl(targind).ffvals;
+            
+            trainindstmp = tvals > SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum;
+            
+            % --- how good was learning for this experiment?
+            % 1) learn rate (hz/time) - can't use rends because not all
+            % labeled
+            x = (tvals - floor(tvals(1))) * 24; % convert from datenum to hours (relative to first day)
+            [b,~,~,~,~,SummaryStats] = lt_regress(ffvals(trainindstmp), ...
+                x(trainindstmp), 0, 0, 0, 0, 0, 0, learnsigalpha);
+            learnrate = SummaryStats.slope;
+            learnrateCI = SummaryStats.slopeCI;
+            
+            
+            % 2) area under curve of learning (relative to base mean)
+            % i.e. mean deviation from baseline (across all datapoints)
+            learnMeanDevFromBase = mean(ffvals(trainindstmp) - mean(ffvals(~trainindstmp)));
+            
+            
+            % 3) ff at end of training minus base
+            ntrialstmp = min([sum(trainindstmp) numtrain]);
+            learnTrainEnd = mean(ffvals(end-ntrialstmp+1:end)) - mean(ffvals(~trainindstmp));
+            
+            
+            % --- make targ dir
+            learnrate_targdir = targdirtmp * learnrate;
+            learnMeanDevFromBase_targdir = targdirtmp * learnMeanDevFromBase;
+            learnTrainEnd_targdir = targdirtmp * learnTrainEnd;
+            
+            
+            % ------ IS LEARNING SIGNIFICANT?
+            learnsig_regression = all(learnrateCI*targdirtmp >0); % if CI is not in 0;
+            
+            if targdirtmp ==1
+                [~, learnsig_endmean] = ranksum(ffvals(end-ntrialstmp+1:end), ...
+                    ffvals(~trainindstmp), 'tail', 'right', 'alpha', learnsigalpha);
+            else
+                [~, learnsig_endmean] = ranksum(ffvals(end-ntrialstmp+1:end), ...
+                    ffvals(~trainindstmp), 'tail', 'left', 'alpha', learnsigalpha);
+            end
+            
+            % ------ plot learning + stats for learning
+            if plotLearnStatsOn ==1
+                
+                figure(1); cla;
+                title([birdname '-' exptname '-sw' num2str(iii)])
+                hold on
+                plot(tvals, ffvals, 'ok');
+                plot(tvals(trainindstmp), ffvals(trainindstmp), 'or');
+                line([TimeMaxLearn TimeMaxLearn], ylim, 'Color', 'r');
+                line(xlim, [mean(ffvals(~trainindstmp)) mean(ffvals(~trainindstmp))], 'Color', 'k');
+                lt_plot_text(TimeMaxLearn, mean(ffvals(~trainindstmp)), ...
+                    ['maxlearn, dir: ' num2str(targdirtmp)], 'r');
+                
+                lt_regress(ffvals(trainindstmp), tvals(trainindstmp), 1, 0, 1, 0, 'r', 0);
+                
+                lt_plot_text(tvals(1), max(ffvals), ['learnrate' num2str(learnrateCI, '%3.2g')], 'k')
+                
+                line(xlim, mean(ffvals(~trainindstmp))+ [learnMeanDevFromBase learnMeanDevFromBase], 'Color', 'b');
+                lt_plot_text(tvals(end), mean(ffvals(~trainindstmp))+learnMeanDevFromBase, 'learn(mean dev)', 'b');
+                
+                line(xlim, mean(ffvals(~trainindstmp))+ [learnTrainEnd learnTrainEnd], 'Color', 'm');
+                lt_plot_text(tvals(end),mean(ffvals(~trainindstmp))+ learnTrainEnd, 'learn(train end)', 'm');
+                
+                lt_plot_text(tvals(end-5), max(ffvals), ['regress sig? ' num2str(learnsig_regression)], 'b');
+                lt_plot_text(tvals(end-5), max(ffvals)-20, ['trainend sig? ' num2str(learnsig_endmean)], 'b');
+                
+                
+                
+                pause
+                
+                
+                
+                figure(2)
+                subplot(221); hold on;
+                xlabel('learnrate');
+                ylabel('learn mean dev');
+                plot(learnrate_targdir, learnMeanDevFromBase_targdir, 'ok');
+                
+                
+                subplot(222); hold on;
+                xlabel('learnrate');
+                ylabel('learnTrainend');
+                plot(learnrate_targdir, learnTrainEnd_targdir, 'or');
+                
+                
+                subplot(223); hold on;
+                xlabel('learnTrainend');
+                ylabel('learnMeandev');
+                plot(learnTrainEnd_targdir, learnMeanDevFromBase_targdir, 'ob');
+                
+                
+            end
+            
+            
+            % -----------------------------
+            if OnlyKeepSigLearn ==1
+                if learnsig_regression == 0 & learnsig_endmean ==0;
+                    continue
+                end
+            end
+            
+            %%
             % ==== 1) for each motif, PLOT RASTER, SMTHED, AND NEURAL/FF
             for j=1:nummotifs
                 
@@ -329,17 +526,73 @@ for i=1:Numbirds
                     
                     % --------------------- FOR DIFFERENCES, FIGURE OUT
                     % BASE END AND TRAIN END
+                    
+                    % --------------------- A) N TRIALS
                     NumTrials = min([numtrain, ceil(length(trainInds)/2), length(baseInds)]);
-                    disp(['numtrials common to base and train (max 25): ' num2str(NumTrials)]);
+                    %                     disp(['numtrials common to base and train (max ' numtrain '): ' num2str(NumTrials)]);
                     
-                    trainEndInds = trainInds(end-NumTrials+1:end);
+                    % 1) base inds
                     baseEndInds = baseInds(end-NumTrials+1:end);
-                    %                     trainEndInds = trainInds;
-                    %                     baseEndInds = baseInds;
+                    % 2) training inds
+                    if usePeakLearn==0
+                        % then take end
+                        trainEndInds = trainInds(end-NumTrials+1:end);
+                    else
+                        % take peak learning for target
+                        % find trial that is closest to peak learning time
+                        indtmp = find(tvals<TimeMaxLearn, 1, 'last');
+                        
+                        indfirsttmp = indtmp - ceil(NumTrials/2) +1; % beginning of window
+                        indfirsttmp = max([indfirsttmp max(baseInds)+1]); % make sure don't get any base trials
+                        
+                        trainEndInds = indfirsttmp:indfirsttmp+NumTrials-1;
+                        
+                        % shift back if is at the end
+                        if trainEndInds(end) - trainInds(end) >0
+                            % shift training Inds back
+                            trainEndInds = trainInds(end-NumTrials+1:end);
+                        end
+                    end
                     
+                    % ---------------------------- B) 2*N TRIALS - for
+                    % spliiting analyses
+                    NumTrials2 = min([numtrain*2, ceil(length(trainInds)/2), length(baseInds)]);
+                    
+                    % 1) base inds
+                    baseEndInds_longer = baseInds(end-NumTrials2+1:end);
+                    % 2) training inds
+                    if usePeakLearn==0
+                        % then take end
+                        trainEndInds_longer = trainInds(end-NumTrials2+1:end);
+                    else
+                        % then take peak learning for target
+                        % find trial that is closest to peak learning time
+                        indtmp = find(tvals<TimeMaxLearn, 1, 'last');
+                        
+                        indfirsttmp = indtmp - ceil(NumTrials2/2) +1; % beginning of window
+                        indfirsttmp = max([indfirsttmp max(baseInds)+1]); % make sure don't get any base trials
+                        
+                        trainEndInds_longer = indfirsttmp:indfirsttmp+NumTrials2-1;
+                        
+                        % shift back if is at the end
+                        if trainEndInds_longer(end) - trainInds(end) >0
+                            % shift training Inds back
+                            trainEndInds_longer = trainInds(end-NumTrials2+1:end);
+                        end
+                    end
+                    
+                    
+                    
+                    
+                    
+                    
+                    %%
                     % =================== METRICS
+                    % -- ff
                     ffchange = mean(ffvals(trainEndInds)) - mean(ffvals(baseEndInds));
                     
+                    
+                    % -- neur sim
                     neursimbase = mean(neuralsim(baseEndInds));
                     neursimtrain = mean(neuralsim(trainEndInds));
                     
@@ -349,7 +602,6 @@ for i=1:Numbirds
                         disp('NOTE!! there is something with nan for neural similairty - will lead to entire neuron/motif being thrown out. solve by reruning lt_neural_v2_ANALY_Swtch_Extract with interpolate');
                         
                     end
-                    
                     
                     % -- corr betwee neural and ff
                     if ~all(isnan(ffvals))
@@ -372,6 +624,168 @@ for i=1:Numbirds
                     AllBaseFFvsNeursimCorr_p = [AllBaseFFvsNeursimCorr_p ...
                         SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).BASECORR_FFvsNeurSim_pval];
                     
+                    
+                    
+                    %% ========= MORE METRICS
+                    
+                    premotorInds = MotifStats.params.premotorInds_FR;
+                    alltrialFR = [segextract.FRsmooth_rate_CommonTrialDur];
+                    alltrialFR = alltrialFR(premotorInds, :);
+                    
+                    
+                    % ==== 1) mean of (train) corr vs. (base) - this would
+                    % be my best estimate of the correlation between signal
+                    % from pre vs. post (better than taking corr on trial
+                    % basis and then averaging)
+                    basemeanFR = mean(alltrialFR(:, baseEndInds), 2);
+                    trainmeanFR = mean(alltrialFR(:, trainEndInds), 2);
+                    
+                    NeurCorr_dat = corr(basemeanFR, trainmeanFR);
+                    
+                    % --- permutation to get mean + error
+                    allFRtmp = alltrialFR(:, [baseEndInds trainEndInds]);
+                    Ncycles = 15;
+                    vecsize = length(baseEndInds); assert(length(baseEndInds) == length(trainEndInds), 'dasdf');
+                    Z = [];
+                    for mm = 1:Ncycles
+                        inds = randperm(2*vecsize);
+                        inds1 = inds(1:end/2);
+                        inds2 = inds(end/2+1:end);
+                        
+                        x1 = mean(allFRtmp(:, inds1), 2);
+                        x2 = mean(allFRtmp(:, inds2), 2);
+                        
+                        Z(mm) = corr(x1,x2);
+                    end
+                    NeurCorr_shuff = mean(Z);
+                    NeurCorr_shuff_std = std(Z);
+                    
+                    AllNeurCorrDat = [AllNeurCorrDat NeurCorr_dat];
+                    AllNeurCorrShuffMean = [AllNeurCorrShuffMean NeurCorr_shuff];
+                    AllNeurCorrShuffSD = [AllNeurCorrShuffSD NeurCorr_shuff_std];
+                    
+                    %                     disp(NeurCorr_shuff); disp(NeurCorr_dat);
+                    %                     disp('-');
+                    
+                    % ==== 2) base1 vs. base 2, then do base1 vs. train;
+                    whichmethod = 1;
+                    
+                    % -------------- method 1 - new, shuffles
+                    if whichmethod ==1
+                        ntrials = floor(length(baseEndInds_longer)/2);
+                        ncycles = 20;
+                        
+                        basecorrall = [];
+                        trainvsbasecorrall = [];
+                        traincorrall = [];
+                        tic
+                        for mm = 1:ncycles
+                            
+                            indtmp = randperm(length(baseEndInds_longer));
+                            inds1 = indtmp(1:ntrials);
+                            inds2 = indtmp(ntrials+1:ntrials*2);
+                            
+                            
+                            % - base similarkty
+                            base1 = mean(alltrialFR(:, baseEndInds_longer(inds1)),2);
+                            base2 = mean(alltrialFR(:, baseEndInds_longer(inds2)), 2);
+                            
+                            basecorrall = [basecorrall corr(base1, base2)];
+                            
+                            
+                            % - train vs. base
+                            train2 = mean(alltrialFR(:, trainEndInds_longer(inds2)), 2);
+                            
+                            trainvsbasecorrall = [trainvsbasecorrall corr(base1, train2)];
+                            
+                            
+                            % - train vs. train
+                            train1 = mean(alltrialFR(:, trainEndInds_longer(inds1)), 2);
+                            traincorrall = [traincorrall corr(train1, train2)];
+                            
+                        end
+                        disp(['splitcorr: ' num2str(mean(basecorrall), '%3.2g') ' - ' num2str(mean(trainvsbasecorrall), '%3.2g') ...
+                            ' - ' num2str(mean(traincorrall), '%3.2g')]);
+                        
+                        % -- for use use mean over within base and within
+                        % train. 
+%                         AllNeurSplitCorrBase = [AllNeurSplitCorrBase  mean([basecorrall traincorrall])]; 
+                        AllNeurSplitCorrBase = [AllNeurSplitCorrBase  mean([basecorrall])]; 
+                        AllNeurSplitCorrTrain = [AllNeurSplitCorrTrain mean(trainvsbasecorrall)];
+
+                        
+                        % ----------------- method 2 - old
+                    elseif whichmethod ==2
+                        ntrials = floor(length(baseEndInds_longer)/2);
+                        
+                        base1Inds = baseEndInds_longer(1:ntrials);
+                        base2Inds = baseEndInds_longer(end-ntrials+1:end);
+                        train1Inds = trainEndInds_longer(1:ntrials);
+                        train2Inds = trainEndInds_longer(end-ntrials+1:end);
+                        
+                        base1mean = mean(alltrialFR(:, base1Inds),2);
+                        base2mean = mean(alltrialFR(:, base2Inds), 2);
+                        train1mean = mean(alltrialFR(:, train1Inds), 2);
+                        train2mean = mean(alltrialFR(:, train2Inds), 2);
+                        
+                        % - base corr
+                        x1 = corr(base1mean, base2mean);
+                        
+                        % - train corr
+                        x2 = corr(base1mean, train1mean);
+                        x3 = corr(base2mean, train1mean);
+                        x4 = corr(base1mean, train2mean);
+                        x5 = corr(base2mean, train2mean);
+                        
+                        
+                        AllNeurSplitCorrBase = [AllNeurSplitCorrBase x1]; % (base1 vs. base2) split into two halves
+                        AllNeurSplitCorrTrain = [AllNeurSplitCorrTrain mean([x2 x3 x4 x5])]; % (train vs. base) - multiple, then take mean.
+                        
+                    end
+                    
+                    %                     disp(x1); disp(x2); disp(x3); disp(x4); disp(x5);
+                    %                     disp(mean([x2 x3 x4 x5]));
+                    % figure
+                    % hold on; plot(base1mean)
+                    % hold on; plot(base2mean, 'r')
+                    % hold on; plot(trainSplitmean, 'k')
+                    %
+                    
+                    
+                    
+                    
+                    %% diagnostics
+                    
+                    %                     % === 1) SNR for different trial bins
+                    %                     segextract.
+                    plotsubset = 0; % just when debugging. ..
+                    
+                    premotorInds = MotifStats.params.premotorInds_FR;
+                    FRmat = [segextract.FRsmooth_rate_CommonTrialDur];
+                    FRmat = FRmat(premotorInds, :);
+                    
+                    % -- baseline
+                    if plotsubset==1
+                        plotOn = rand>0.90;
+                    else
+                        plotOn=0;
+                    end
+                    [SNR] = lt_neural_v2_SNR(FRmat(:, baseEndInds), plotOn);
+                    AllSNRbaseEnd = [AllSNRbaseEnd SNR];
+                    
+                    
+                    % -- trainEnd
+                    [SNR] = lt_neural_v2_SNR(FRmat(:, trainEndInds), plotOn);
+                    AllSNRtrainEnd = [AllSNRtrainEnd SNR];
+                    
+                    if plotOn==1
+                        lt_plot_annotation(4, ['baseSim=' num2str(neursimbase), ...
+                            ', baseFFcorr=' num2str(FFneurCorr)], 'b');
+                        pause
+                        close all;
+                    end
+                    
+                    %%
                     
                     % ========================== OUTPUTS
                     AllFFchange = [AllFFchange ffchange];
@@ -402,6 +816,12 @@ for i=1:Numbirds
                     %                     AllSwitchCounter = [AllSwitchCounter counter];
                     
                     AllSwitchnumGlobal = [AllSwitchnumGlobal switchnum_global];
+                    
+                    % ------ related to learning at target
+                    AllNeurTargLearnRate_targdir = [AllNeurTargLearnRate_targdir learnrate_targdir];
+                    AllNeurTargLearnEnd_targdir = [AllNeurTargLearnEnd_targdir learnTrainEnd_targdir];
+                    
+                    
                 end
             end
             
@@ -445,8 +865,35 @@ DATSTRUCT.AllBaseFFvsNeurFRCorr_p = [AllBaseFFvsNeurFRCorr_p];
 DATSTRUCT.AllBaseFFvsNeursimCorr = [AllBaseFFvsNeursimCorr];
 DATSTRUCT.AllBaseFFvsNeursimCorr_p = [AllBaseFFvsNeursimCorr_p];
 
+DATSTRUCT.AllNeurCorrDat = AllNeurCorrDat;
+DATSTRUCT.AllNeurCorrShuffMean = [AllNeurCorrShuffMean ];
+DATSTRUCT.AllNeurCorrShuffSD = [AllNeurCorrShuffSD ];
+
+DATSTRUCT.AllNeurSplitCorrBase = [AllNeurSplitCorrBase ]; % (base1 vs. base2) split into two halves
+DATSTRUCT.AllNeurSplitCorrTrain = [AllNeurSplitCorrTrain ]; % (train vs. base) - multiple, then take mean.
+
+DATSTRUCT.AllSNRbaseEnd = [AllSNRbaseEnd ];
+DATSTRUCT.AllSNRtrainEnd = [AllSNRtrainEnd ];
+
+DATSTRUCT.AllNeurTargLearnRate_targdir = [AllNeurTargLearnRate_targdir ];
+DATSTRUCT.AllNeurTargLearnEnd_targdir = [AllNeurTargLearnEnd_targdir];
+
+
+
+if plotLearnStatsOn==1
+    subplot(221);
+    lt_plot_zeroline; lt_plot_zeroline_vert;
+    
+    subplot(222);
+    lt_plot_zeroline; lt_plot_zeroline_vert;
+    subplot(223);
+    lt_plot_zeroline; lt_plot_zeroline_vert;
+end
 %% sanity check
 all(sum([AllIsSame==0; AllIsDiff==0; AllIsTarg==0],1)==2); % everything is either (xor) targ, same, or diff
+
+
+
 
 %% ======== remove low num trials?
 
@@ -459,6 +906,71 @@ if RemoveLowNumtrials==1
     DATSTRUCT = lt_structure_subsample_all_fields(DATSTRUCT, indstokeep);
     
 end
+
+
+
+%% == get zscore version of difference of corr of mean
+
+DATSTRUCT.AllNeurCorrDiff_z = (DATSTRUCT.AllNeurCorrDat - DATSTRUCT.AllNeurCorrShuffMean)./DATSTRUCT.AllNeurCorrShuffSD;
+
+
+
+%% ========== COMPARE DIFF METRICS ACROSS ALL DATA
+
+% --- do things correlate with neursim (base)?
+lt_figure; hold on;
+
+% 1)
+lt_subplot(5,2,1); hold on;
+xlabel('base neur sim');
+ylabel('base SNR');
+
+plot(DATSTRUCT.AllNeurSimBase.^2, DATSTRUCT.AllSNRbaseEnd, 'x');
+xlim([-0.5 1]); ylim([-0.5 1]);
+
+% 2)
+lt_subplot(5,2,2); hold on;
+xlabel('train neur sim');
+ylabel('SNR during training trials');
+plot(DATSTRUCT.AllNeurSimTrain, DATSTRUCT.AllSNRtrainEnd, 'x');
+xlim([-0.5 1]); ylim([-0.5 1]);
+
+% 2)
+lt_subplot(5,2,3); hold on;
+xlabel('change in neural sim');
+ylabel('change in SNR');
+plot(DATSTRUCT.AllNeurSimChange, [DATSTRUCT.AllSNRtrainEnd - ...
+    DATSTRUCT.AllSNRbaseEnd], 'x');
+% NOTE: is interesting that see many cases without reduction in SNR, but
+% clear reduction in neural sim
+
+lt_subplot(5,2,4); hold on;
+xlabel('change in neural sim');
+ylabel('diff in corr of mean (dat minus shuff mean)');
+plot(DATSTRUCT.AllNeurSimChange, [DATSTRUCT.AllNeurCorrDat- ...
+    DATSTRUCT.AllNeurCorrShuffMean], 'xr');
+
+
+lt_subplot(5,2,5); hold on;
+xlabel('change in neural sim');
+ylabel('diff in corr of mean (dat minus shuff mean) (zscored)');
+plot(DATSTRUCT.AllNeurSimChange, DATSTRUCT.AllNeurCorrDiff_z, 'xr');
+
+
+lt_subplot(5,2,6); hold on;
+xlabel('neural sim');
+ylabel('corr (mean vs. mean)');
+title('bk: base (shuff for corr); red: train')
+plot(DATSTRUCT.AllNeurSimBase, DATSTRUCT.AllNeurCorrShuffMean, 'xk');
+
+plot(DATSTRUCT.AllNeurSimTrain, DATSTRUCT.AllNeurCorrDat, 'xr');
+
+% -
+lt_subplot(5,2,7); hold on;
+xlabel('change in neural sim');
+ylabel('diff in corr, using split data (train vs. base)');
+plot(DATSTRUCT.AllNeurSimChange, [DATSTRUCT.AllNeurSplitCorrTrain...
+    - DATSTRUCT.AllNeurSplitCorrBase] , 'xr');
 
 
 %% ========= PLOT (ONE LINE FOR EACH EXPT) - NEURAL SIMILAIRTY CHANGES
@@ -539,8 +1051,10 @@ for i=1:numbirds
                 for j=1:length(inds)
                     indtmp = inds(j);
                     
-                    x = DATSTRUCT.AllNeurSimBase(indtmp);
-                    y = DATSTRUCT.AllNeurSimTrain(indtmp);
+                    %                     x = DATSTRUCT.AllNeurSimBase(indtmp);
+                    %                     y = DATSTRUCT.AllNeurSimTrain(indtmp);
+                    x = DATSTRUCT.(fieldname_baseneur)(indtmp);
+                    y = DATSTRUCT.(fieldname_trainneur)(indtmp);
                     
                     istarg = DATSTRUCT.AllIsTarg(indtmp);
                     issame = DATSTRUCT.AllIsSame(indtmp);
@@ -593,7 +1107,7 @@ for i=1:numbirds
                     ByNeuron_TargLearnDir = [ByNeuron_TargLearnDir ...
                         unique([SwitchStruct.bird(i).exptnum(ii).switchlist(iii).learningDirs{2:2:end}])];
                 else
-%                     pause
+                    %                     pause
                     ByNeuron_TargSameSylSameDir = [ByNeuron_TargSameSylSameDir 0]; % neuron x 1
                     ByNeuron_TargLearnDir = [ByNeuron_TargLearnDir nan];
                 end
@@ -602,15 +1116,15 @@ for i=1:numbirds
                 ByNeuron_SwitchCounter = [ByNeuron_SwitchCounter swcounter];
                 ByNeuron_Birdname = [ByNeuron_Birdname birdname];
                 ByNeuron_Exptname = [ByNeuron_Exptname exptname];
-                 ByNeuron_SWnum_real = [ByNeuron_SWnum_real iii];
-
+                ByNeuron_SWnum_real = [ByNeuron_SWnum_real iii];
+                
                 
             end
             set(gca, 'XTick', [1 2 3]);
             lt_plot_zeroline;
             
-                        swcounter =swcounter+1;
-
+            swcounter =swcounter+1;
+            
         end
     end
 end
@@ -641,39 +1155,38 @@ BYNEURONDAT.ByNeuron_SWnum_real = ByNeuron_SWnum_real';
 % ===== ALL DAT
 lt_neural_v2_ANALY_Swtch_Summary_c(BYNEURONDAT);
 
+
+
 % ==== ONLY THOSE EXPT WITH GOOD LEARNING
-
-[~, inds] = unique(BYNEURONDAT.ByNeuron_SwitchCounter);
-
-func = @(X)nanmean(X);
-learningall = cellfun(func, BYNEURONDAT.ByNeuron_FFchange(inds,1)).*BYNEURONDAT.ByNeuron_TargLearnDir(inds); % one value for learning  at targ for each switch
-
-threshlearn = nanmedian(learningall);
-
-
-% ===== HIGH (EXPT WITH GOOD LEARNING)
-indstokeep = cellfun(func, BYNEURONDAT.ByNeuron_FFchange(:,1)) >= threshlearn;
-if sum(indstokeep)>0
-BYNEURONDAT_tmp = lt_structure_subsample_all_fields(BYNEURONDAT, indstokeep, 1);
-lt_neural_v2_ANALY_Swtch_Summary_c(BYNEURONDAT_tmp);
+if (0)
+    [~, inds] = unique(BYNEURONDAT.ByNeuron_SwitchCounter);
+    
+    func = @(X)nanmean(X);
+    learningall = cellfun(func, BYNEURONDAT.ByNeuron_FFchange(inds,1)).*BYNEURONDAT.ByNeuron_TargLearnDir(inds); % one value for learning  at targ for each switch
+    
+    threshlearn = nanmedian(learningall);
+    
+    % -- plot
+    indstokeep = cellfun(func, BYNEURONDAT.ByNeuron_FFchange(:,1)) >= threshlearn;
+    if sum(indstokeep)>0
+        BYNEURONDAT_tmp = lt_structure_subsample_all_fields(BYNEURONDAT, indstokeep, 1);
+        lt_neural_v2_ANALY_Swtch_Summary_c(BYNEURONDAT_tmp);
+    end
 end
 
 
 
+%% ************************* NEURON/MOTIF AS DATAPOINT *******************
 %% ===== PLOT DISTRIBUTIONS OF NEURAL SIMILARITY (PRE AND POST)
 
 % --- TARG, SAME, DIFF
-DATSTRUCT_tmp = DATSTRUCT;
-lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp);
+lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT, fieldname_baseneur, fieldname_trainneur);
 
 % ---- JUST TARG AND NONTARG
-DATSTRUCT_tmp = DATSTRUCT;
-lt_neural_v2_ANALY_Swtch_Summary_b(DATSTRUCT_tmp);
+lt_neural_v2_ANALY_Swtch_Summary_b(DATSTRUCT, fieldname_baseneur, fieldname_trainneur);
 
 
-%% DISTRIBUTIONS OF NEURAL SIMILARITY [SEPARATE HIGH AND LOW BASELINE PITCH CORR]
-
-% === 1) plot distributions of baseline corrs
+%% === 1) plot distributions of baseline corrs
 lt_figure; hold on
 
 % -- targ
@@ -716,24 +1229,25 @@ Y = DATSTRUCT.AllBaseFFvsNeursimCorr(inds);
 
 lt_plot_45degScatter(X, Y, plotcol);
 
-
+%% DISTRIBUTIONS OF NEURAL SIMILARITY [SEPARATE HIGH AND LOW BASELINE PITCH CORR]
 % ---- USING CORR WITH MEAN FF
 % ===== SIGNIFICANT BASELINE FF VS. NEURAL CORR (I.E. SITES THAT "CARE");
 inds = find(DATSTRUCT.AllBaseFFvsNeurFRCorr_p<0.05);
 DATSTRUCT_tmp = lt_structure_subsample_all_fields(DATSTRUCT, inds);
-lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp);
+lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp, fieldname_baseneur, fieldname_trainneur);
+lt_subtitle('significant base FF vs. neur corr (p<0.05)');
 
 % ===== HIGH BASELINE FF VS. NEURAL CORR (I.E. SITES THAT "CARE");
 medianCorr = nanmedian(abs(DATSTRUCT.AllBaseFFvsNeurFRCorr));
 inds = find(abs(DATSTRUCT.AllBaseFFvsNeurFRCorr)>=medianCorr);
 DATSTRUCT_tmp = lt_structure_subsample_all_fields(DATSTRUCT, inds);
-lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp);
+lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp, fieldname_baseneur, fieldname_trainneur);
 lt_subtitle('high base ff vs. neurFR corr');
 
 % ===== LOW BASELINE FF VS. NEURAL CORR (I.E. SITES THAT "CARE");
 inds = find(abs(DATSTRUCT.AllBaseFFvsNeurFRCorr)<medianCorr);
 DATSTRUCT_tmp = lt_structure_subsample_all_fields(DATSTRUCT, inds);
-lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp);
+lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp, fieldname_baseneur, fieldname_trainneur);
 lt_subtitle('low base ff vs. neurFR corr');
 
 
@@ -743,13 +1257,13 @@ if (0)
     medianCorr = nanmedian(abs(DATSTRUCT.AllBaseFFvsNeursimCorr));
     inds = find(abs(DATSTRUCT.AllBaseFFvsNeursimCorr)>=medianCorr);
     DATSTRUCT_tmp = lt_structure_subsample_all_fields(DATSTRUCT, inds);
-    lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp);
+    lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp, fieldname_baseneur, fieldname_trainneur);
     
     % ===== LOW BASELINE FF VS. NEURAL CORR (I.E. SITES THAT "CARE");
     medianCorr = nanmedian(abs(DATSTRUCT.AllBaseFFvsNeursimCorr));
     inds = find(abs(DATSTRUCT.AllBaseFFvsNeursimCorr)<medianCorr);
     DATSTRUCT_tmp = lt_structure_subsample_all_fields(DATSTRUCT, inds);
-    lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp);
+    lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp, fieldname_baseneur, fieldname_trainneur);
 end
 
 
@@ -759,7 +1273,26 @@ medianval = nanmedian(DATSTRUCT.AllNeurSimBase);
 % -------- HIGH CORR
 inds = find(DATSTRUCT.AllNeurSimBase > medianval);
 DATSTRUCT_tmp = lt_structure_subsample_all_fields(DATSTRUCT, inds);
-lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp);
+lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp, fieldname_baseneur, fieldname_trainneur);
+lt_subtitle('base neural metric as threshold');
+
+
+% ======================= USING BASELINE SNR AS CRITERION
+medianval = nanmedian(DATSTRUCT.AllSNRbaseEnd);
+% -------- HIGH CORR
+inds = find(DATSTRUCT.AllSNRbaseEnd > medianval);
+DATSTRUCT_tmp = lt_structure_subsample_all_fields(DATSTRUCT, inds);
+lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp, fieldname_baseneur, fieldname_trainneur);
+lt_subtitle('base SNR as threshold');
+
+
+% ========================= HAVE TO HAVE HIGH SNR FOR BOTH BASE AND END
+medianval = nanmedian([DATSTRUCT.AllSNRbaseEnd DATSTRUCT.AllSNRtrainEnd]);
+% -------- HIGH CORR
+inds = find(DATSTRUCT.AllSNRbaseEnd > medianval & DATSTRUCT.AllSNRtrainEnd > medianval);
+DATSTRUCT_tmp = lt_structure_subsample_all_fields(DATSTRUCT, inds);
+lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT_tmp, fieldname_baseneur, fieldname_trainneur);
+lt_subtitle('base and train SNR as threshold');
 
 
 %% ============== correlation between FF and neural

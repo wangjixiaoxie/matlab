@@ -1,4 +1,4 @@
-function lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT)
+function lt_neural_v2_ANALY_Swtch_Summary_a(DATSTRUCT, fieldname_baseneur, fieldname_trainneur)
 
 lt_figure; hold on;
 Yall = {};
@@ -25,14 +25,14 @@ hsplots = [hsplots hsplot];
 inds = DATSTRUCT.AllIsTarg==1;
 plotcol = 'k';
 
-X = DATSTRUCT.AllNeurSimBase(inds);
-Y = DATSTRUCT.AllNeurSimTrain(inds);
+X = DATSTRUCT.(fieldname_baseneur)(inds);
+Y = DATSTRUCT.(fieldname_trainneur)(inds);
 lt_plot_45degScatter(X, Y, plotcol, 1);
 
 Yall{1} = Y-X;
 Yall2{1} = X;
 Yall2{4} = Y;
-assert(all(~isnan(Y-X) == ~isnan(DATSTRUCT.AllNeurSimChange(inds))));
+% assert(all(~isnan(Y-X) == ~isnan(DATSTRUCT.AllNeurSimChange(inds))));
 minall = min([minall X Y]);
 maxall = max([maxall X Y]);
 % -- use diff color for each bird
@@ -55,8 +55,8 @@ inds = DATSTRUCT.AllIsTarg==0 & DATSTRUCT.AllIsSame==1;
 plotcol = 'b';
 
 if sum(inds)>0
-X = DATSTRUCT.AllNeurSimBase(inds);
-Y = DATSTRUCT.AllNeurSimTrain(inds);
+X = DATSTRUCT.(fieldname_baseneur)(inds);
+Y = DATSTRUCT.(fieldname_trainneur)(inds);
 lt_plot_45degScatter(X, Y, plotcol, 1);
 
 Yall{2} = Y-X;
@@ -84,8 +84,8 @@ hsplots = [hsplots hsplot];
 inds = DATSTRUCT.AllIsTarg==0 & DATSTRUCT.AllIsDiff==1;
 plotcol = 'r';
 
-X = DATSTRUCT.AllNeurSimBase(inds);
-Y = DATSTRUCT.AllNeurSimTrain(inds);
+X = DATSTRUCT.(fieldname_baseneur)(inds);
+Y = DATSTRUCT.(fieldname_trainneur)(inds);
 lt_plot_45degScatter(X, Y, plotcol, 1);
 
 Yall{3} = Y-X;
@@ -139,8 +139,9 @@ hsplots = [hsplots hsplot];
 inds = DATSTRUCT.AllIsTarg==1;
 plotcol = 'k';
 
-X = DATSTRUCT.AllNeurSimBase(inds);
-Y = DATSTRUCT.AllNeurSimTrain(inds) - DATSTRUCT.AllNeurSimBase(inds);
+
+X = DATSTRUCT.(fieldname_baseneur)(inds);
+Y = DATSTRUCT.(fieldname_trainneur)(inds) - DATSTRUCT.(fieldname_baseneur)(inds);
 plot(X, Y, 'o', 'Color', plotcol);
 
 lt_plot_zeroline
@@ -163,8 +164,8 @@ hsplots = [hsplots hsplot];
 inds = DATSTRUCT.AllIsTarg==0 & DATSTRUCT.AllIsSame==1;
 plotcol = 'b';
 
-X = DATSTRUCT.AllNeurSimBase(inds);
-Y = DATSTRUCT.AllNeurSimTrain(inds) - DATSTRUCT.AllNeurSimBase(inds);
+X = DATSTRUCT.(fieldname_baseneur)(inds);
+Y = DATSTRUCT.(fieldname_trainneur)(inds) - DATSTRUCT.(fieldname_baseneur)(inds);
 plot(X, Y, 'o', 'Color', plotcol);
 
 lt_plot_zeroline
@@ -187,8 +188,8 @@ hsplots = [hsplots hsplot];
 inds = DATSTRUCT.AllIsTarg==0 & DATSTRUCT.AllIsDiff==1;
 plotcol = 'r';
 
-X = DATSTRUCT.AllNeurSimBase(inds);
-Y = DATSTRUCT.AllNeurSimTrain(inds) - DATSTRUCT.AllNeurSimBase(inds);
+X = DATSTRUCT.(fieldname_baseneur)(inds);
+Y = DATSTRUCT.(fieldname_trainneur)(inds) - DATSTRUCT.(fieldname_baseneur)(inds);
 plot(X, Y, 'o', 'Color', plotcol);
 
 lt_plot_zeroline
@@ -202,8 +203,8 @@ end
 
 %--
 linkaxes(hsplots, 'xy');
-xlim(1.02*[min(DATSTRUCT.AllNeurSimBase) max(DATSTRUCT.AllNeurSimBase)]);
-ylim(1.02*[min(DATSTRUCT.AllNeurSimTrain-DATSTRUCT.AllNeurSimBase) ...
-    max(DATSTRUCT.AllNeurSimTrain-DATSTRUCT.AllNeurSimBase)])
+xlim(1.02*[min(DATSTRUCT.(fieldname_baseneur)) max(DATSTRUCT.(fieldname_baseneur))]);
+ylim(1.02*[min(DATSTRUCT.(fieldname_trainneur)-DATSTRUCT.(fieldname_baseneur)) ...
+    max(DATSTRUCT.(fieldname_trainneur)-DATSTRUCT.(fieldname_baseneur))])
 
 

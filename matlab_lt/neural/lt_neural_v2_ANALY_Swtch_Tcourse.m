@@ -1,5 +1,8 @@
 function lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct, ...
-    birdname_get, exptname_get, switchnum_get)
+    birdname_get, exptname_get, switchnum_get, plotneurzscore)
+%%
+% plotneurzscore = 1; then zscore; otherwise plots difference from base
+
 %% TO DO:
 % LEARN FOR FOR NONNTARGET ARE STILL NOT IN CORRECT DIR - HAVE TO TAKE
 % INTOA ACCOUNT MULTIPLE TARGETS
@@ -239,14 +242,22 @@ for i=1:Numbirds
                     %                    if ~strcmp(neuralmetricname, 'NEURvsbase_FRcorr')
                     % then get zscore
                     neurbasemean = mean(neuralsim(baseInds));
+                    if plotneurzscore==1
                     neurbaseSD = std(neuralsim(baseInds));
                     neuralsim = (neuralsim - neurbasemean)./neurbaseSD;
+                    elseif plotneurzscore==0
+                        neuralsim = (neuralsim - neurbasemean);
+                    end
                     %                    end
                     neursmth = lt_running_stats(neuralsim, FFsmthbinsize);
                     %                     lt_plot(tsmth.Mean, neursmth.Mean, {'Errors', neursmth.SEM, ...
                     %                         'Color', plotcols{j}});
-                    plot(tsmth.Median, neursmth.Mean, 'o', 'Color', plotcols{nn});
                     %                    plot(tvals(trialstoplot), neuralsim(trialstoplot), 'ob');
+                    plot(tsmth.Median, neursmth.Mean, 'o', 'Color', plotcols{nn});
+                    
+                    % --- annotate baseline neural sim in text
+                    lt_plot_text(tsmth.Median(max(baseInds)), neursmth.Mean(max(baseInds)), ...
+                        num2str(neurbasemean, '%3.2g'), 'k');
                     
                     
                     % --- stuff
