@@ -703,6 +703,7 @@ line([0 200], [0 200], 'Color', 'k');
 lt_figure; hold on;
 
 takemean = 1; % if 1, then will take average over multiple nontargs in one experiment
+% if 0, then will haveMATCHED (replicated) sample sizes for targ and nontarg
 
 exptlist = unique(Expt_count_all);
 
@@ -752,9 +753,6 @@ for exptnum = exptlist;
     
     FFpbs_targ_all = [FFpbs_targ_all ffpbs];
     FFmusc_targ_all = [FFmusc_targ_all ffmusc];
-    
-    
-    
 end
 
 % --- 1) LEARN and MP bias
@@ -851,6 +849,89 @@ for i=1:2;
   
 end
 
+%% ===== PBS VS. MUSC (FOR FIGURES)lt_figure; hold on;
+lt_figure; hold on;
+
+takemean = 1; % if 1, then will take average over multiple nontargs in one experiment
+% if 0, then will have unmatched sample sizes for targ and nontarg
+exptlist = unique(Expt_count_all);
+
+FFpbs_nontarg_all = [];
+FFmusc_nontarg_all = [];
+FFpbs_targ_all = [];
+FFmusc_targ_all = [];
+
+for exptnum = exptlist;
+    
+    % --- same type (take average if multiple)
+    inds = Expt_count_all==exptnum & TargStatus_all==0 & SimDiff_all==1;
+    disp(sum(inds));
+    if sum(inds)==0
+        % then this expt no same type
+        continue
+    end
+    
+    ffpbs = LearningPBS_all(inds);
+    ffmusc = MPbias_all(inds);
+    
+    if takemean==1
+        ffpbs = mean(ffpbs);
+        ffmusc = mean(ffmusc);
+    end
+    
+    FFpbs_nontarg_all = [FFpbs_nontarg_all ffpbs];
+    FFmusc_nontarg_all = [FFmusc_nontarg_all ffmusc];
+    
+    
+    
+    % -- target
+    inds = Expt_count_all == exptnum & TargStatus_all==1;
+    assert(sum(inds) ==1, 'asdfsda');
+    
+    ffpbs = LearningPBS_all(inds);
+    ffmusc = MPbias_all(inds);
+        
+    FFpbs_targ_all = [FFpbs_targ_all ffpbs];
+    FFmusc_targ_all = [FFmusc_targ_all ffmusc];
+end
+
+% --- 1) LEARN and MP bias
+lt_subplot(2, 2,1); hold on;
+title('each expt one datapoint for targ and nontarg')
+xlabel('TARG (learn-MP) --- sametype');
+% -- targ
+X = [1 2];
+
+plot(X, [FFpbs_targ_all' FFmusc_targ_all'], '-ok');
+lt_plot_bar(X, mean([FFpbs_targ_all' FFmusc_targ_all']), {'Errors', ...
+    lt_sem([FFpbs_targ_all' FFmusc_targ_all'])});
+
+lt_plot_text(mean(X), max(FFpbs_targ_all), ['mean:' num2str(mean([FFpbs_targ_all' FFmusc_targ_all'])) ...
+    'sem: ' num2str(lt_sem([FFpbs_targ_all' FFmusc_targ_all']))] ,'r')
+lt_plot_text(mean(X), 1.1*(max(FFpbs_targ_all)), ['p=' num2str(signrank(FFpbs_targ_all', FFmusc_targ_all'))], ...
+    'b');
+
+% -- same type
+X = [4 5];
+plot(X, [FFpbs_nontarg_all' FFmusc_nontarg_all'], '-ok');
+lt_plot_bar(X, mean([FFpbs_nontarg_all' FFmusc_nontarg_all']), {'Errors', ...
+    lt_sem([FFpbs_nontarg_all' FFmusc_nontarg_all'])});
+
+lt_plot_text(mean(X), max(FFpbs_nontarg_all), ['mean:' num2str(mean([FFpbs_nontarg_all' FFmusc_nontarg_all'])) ...
+    'sem: ' num2str(lt_sem([FFpbs_nontarg_all' FFmusc_nontarg_all']))] ,'r')
+lt_plot_text(mean(X), 1.1*(max(FFpbs_nontarg_all)), ['p=' num2str(signrank(FFpbs_nontarg_all', FFmusc_nontarg_all'))], ...
+    'b');
+
+% --- compare differences
+tmp1 = FFpbs_targ_all' -FFmusc_targ_all';
+tmp2 = FFpbs_nontarg_all' - FFmusc_nontarg_all';
+
+if takemean==1
+    p = signrank(tmp1, tmp2);
+else
+    p = ranksum(tmp1, tmp2);
+end
+lt_plot_pvalue(p, 'compar diff', 1);
 
 
 %% == regression analysis (plots, but no regression here) [SIMULATE MOVEMENT OF POINTS ALONG REGRESSION LINE]

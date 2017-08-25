@@ -87,7 +87,9 @@ for i=1:numbirds
                 = lt_neural_v2_QUICK_classify(Xall, Y, 'glmnet', ...
                 rebalance, imbalance_thr, beta);
 
-            
+%             disp(ConfMat);
+%             lt_neural_ConfMatStats(ConfMat)
+%             
             if isempty(Ypredicted)
                 % then means failed.. (not full rank?)
                 continue

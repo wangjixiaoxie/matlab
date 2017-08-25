@@ -1,4 +1,10 @@
 function [out_featuresSyn, out_labelsSyn] = ADASYN(in_features, in_labels, in_beta, in_kDensity, in_kSMOTE, in_featuresAreNormalized)
+%% LT 8/18/17 - modified to make sure output sample size is determinstic and equal to G
+% see lines 248 - 260 [TURNED OFF, SINCE SEEMS TO BE MAKING THINGS
+% WORSE...)
+
+
+%%
 %this function implements the ADASYN method as proposed in the following
 %paper:
 %
@@ -51,7 +57,7 @@ function [out_featuresSyn, out_labelsSyn] = ADASYN(in_features, in_labels, in_be
 %\Gamma_i values in eq. (4) of reference [2]. this is the kNN call that
 %regards examples from both classes.
 %
-%in_kSMOTE [default: 5]: 
+%in_kSMOTE [default: 5]:
 %k for kNN used in subsequent SMOTE-style synthesis of new examples.
 %this is the kNN call that regards only examples from the minority class.
 %cf. eq. (1) in reference [2].
@@ -218,7 +224,7 @@ for cmi=1:size(Smin,1)  %cmi: current minority example index
     
     %write Gamma, not yet normalized:
     Gamma(cmi) = cDelta / in_kDensity;
-
+    
 end
 
 %normalize Gamma to give a distribution function:
@@ -234,10 +240,29 @@ end
 %compute g_i (eq. (5) in reference [2]):
 %these g_i are the numbers of synthetic examples to be generated from each
 %example in Smin
-g = round(Gamma * G);
+if (0)
+    g = round(Gamma * G);
+else
+    % --- LT modified to always get G sample size output
+    g1 = floor(Gamma*G);
+    g2 = Gamma*G - g1;
+    
+    % -- assign remaining values to the ones with largest remainders
+    remaining_g = G - sum(g1);
+    [~, indstmp] = sort(g2, 'descend');
+    g1(indstmp(1:remaining_g)) = g1(indstmp(1:remaining_g))+1; % increment
+    
+    g = g1;
+    
+    % -- old version, where did randomly, but try to avoid randomness
+    % lt modified to take fraction values as probabilities (otherwize low beta
+    % can lead to all values being <0.5 and therefore no new data synthesized
+    % g2 = g2 > rand(size(g2));
+    % g = g1+g2;
+end
 
 if sum(g)==0
-    warning('ADASYN: Classes are already well-balanced (i.e. sum(g)==0). Returning empty matrices.');
+    %     warning('ADASYN: Classes are already well-balanced (i.e. sum(g)==0). Returning empty matrices.');
     out_featuresSyn = [];
     out_labelsSyn   = [];
     return;
@@ -334,7 +359,7 @@ end
 
 
 
-function [IDX,D] = knnsearch_nonflat(X,Y, varargin)
+function [IDX,D, allflat] = knnsearch_nonflat(X,Y, varargin)
 %wraps knnsearch from MATLAB's statistics toolbox.
 %knnsearch_nonflat executes knnsearch only on the dimensions with nonzero
 %standard deviation, i.e. the flat dimensions are not passed on to
@@ -346,7 +371,6 @@ function [IDX,D] = knnsearch_nonflat(X,Y, varargin)
 %bad dummy results because the standardized Euclidean distance can not be
 %computed properly in the presence of flat dimensions.
 %using knnsearch_nonflat prevents this by filtering out flat dimensions.
-
 nonflatX = std(X) ~= 0;
 nonflatY = std(Y) ~= 0;
 

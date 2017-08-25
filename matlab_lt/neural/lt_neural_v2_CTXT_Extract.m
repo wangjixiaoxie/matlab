@@ -49,6 +49,83 @@ for i=1:numbirds
         
         bb = 0;
         
+        % ===================== 1 syl needed
+        if numsylsneeded==1
+            for j=1:length(singlesyls)
+                syl1 = singlesyls(j);
+                    
+                    % === which string type?
+                    if strtype == 'xax';
+                        wildcardpositions = [1 3];
+                        regexprstr = ['[a-z]' syl1 '[a-z]'];
+                    end
+                    
+                    %%
+                    
+                    [start, match] = regexp(SongDat.AllLabels, regexprstr, 'start', 'match');
+                    
+                    [match, inds] = sort(match);
+                    start = start(inds); % sort, for grp stats to be in order
+                    
+                    
+                    
+                    % ===== old version
+                    N =  grpstats(start', match', 'numel');
+                    matchclasses = unique(match);
+                    
+                    % --- remove classes with low N
+                    toremove = N<minN;
+                    N(toremove) = [];
+                    matchclasses(toremove) = [];
+                    
+                    
+                    
+                    
+                    if (0)
+                    % =========== at positions with '[a-z]' make sure
+                    % different across all classes
+                    matchtab = tabulate(match);
+                    [~, indstmp] = sort(cell2mat(matchtab(:,2)), 'descend');
+                    matchtab = matchtab(indstmp,:);
+
+                    % only keep those with >N samps;
+                     matchtab = matchtab(cell2mat(matchtab(:,2)) >= minN, :);
+                     
+                   % --- are there >1 class?
+                    if size(matchtab,1) <2
+                        continue
+                    end
+                    
+                    % ----- specific to cases with more than one wildcard
+                    % STUCK HERE!!!!!!
+                    wildcardsyls = nan(size(matchtab,1),length(wildcardpositions));
+                    for nn=1:size(matchtab,1)
+                        wildcardsyls(nn,1:length(wildcardpositions)) ...
+                            = matchtab{nn,1}(wildcardpositions)
+                    end
+                    
+                    sylstokeep = [1]; % start by keeping first one
+                    if numvariablesyls >1
+                        
+                        % go through 
+                        for nn = 2:size(matchtab,1)
+                            % start from most frequent
+                            wildcardsyls(sylstokeep,1)
+                        end
+                    end
+                    end
+                    
+                    % =========== SAVE OUTPUT
+                    disp([birdname '-neur' num2str(ii) ' found: '])
+                    disp(matchclasses)
+                    disp(N')
+                    
+                    bb = bb+1;
+                    CLASSES.birds(i).neurons(ii).branchnum(bb).regexprstr = regexprstr;
+                    CLASSES.birds(i).neurons(ii).branchnum(bb).matchclasses = matchclasses;
+                    CLASSES.birds(i).neurons(ii).branchnum(bb).matchclasses_N = N;
+            end
+        end
         
         % ==================== 2 syls needed
         if numsylsneeded==2
@@ -96,8 +173,6 @@ for i=1:numbirds
                     CLASSES.birds(i).neurons(ii).branchnum(bb).regexprstr = regexprstr;
                     CLASSES.birds(i).neurons(ii).branchnum(bb).matchclasses = matchclasses;
                     CLASSES.birds(i).neurons(ii).branchnum(bb).matchclasses_N = N;
-                    
-                    
                 end
             end
         end

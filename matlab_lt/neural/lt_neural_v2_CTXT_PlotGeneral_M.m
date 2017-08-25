@@ -31,6 +31,7 @@ for i=1:length(dirnames)
     
     cd(dirnames(i).name);
     disp('-------------------');
+    
     % =========== LOAD ALL SAVED STRUCTURES, AND COLLECT DATA ACROSS ALL
     datfiles = dir('classes*');
     
@@ -130,17 +131,33 @@ for i=1:length(dirnames)
                     numtrials = 5;
                     SylContours = [];
                     Ctxtnum = [];
-                    for l = 1:numctxts
+                    numctxtstmp = length(dattmp.SEGEXTRACT.classnum);
+                    for l = 1:numctxtstmp
+                        
+                        if ~isfield(dattmp.SEGEXTRACT.classnum(l).SegmentsExtract, 'fs');
+                            continue
+                        end
+                        
                         [sylcon, xtimes] = lt_neural_v2_ANALY_GetSylContours(dattmp.SEGEXTRACT.classnum(l).SegmentsExtract, ...
                             numtrials, maxdur);
                         
                         SylContours = [SylContours; sylcon];
                         Ctxtnum = [Ctxtnum; l*ones(size(sylcon,1),1)];
-                        
                     end
                     
                     %                   AllBranchSylContours = [AllBranchSylContours SylContours];
                     %                   AllBranchSylContours_ctxtnums = [AllBranchSylContours_ctxtnums Ctxtnum];
+                    
+                    % -- CONFMAT
+                    ConfMat = dattmp.CLASSIFIER.Rslts_ConfMat;
+                    
+                    
+                    % ========== CONTROLS
+                    if isfield(dattmp.CLASSIFIER, 'ShuffNeg_ConfMatAll')
+                    NEGCONTR_ConfMatAll = dattmp.CLASSIFIER.ShuffNeg_ConfMatAll;
+                    POSTCONTR_ConfMat = dattmp.CLASSIFIER.ContrPos_ConfMat;
+                    end
+                    
                     
                     % ===================== COLLECT
                     bb=bb+1;
@@ -159,6 +176,24 @@ for i=1:length(dirnames)
                     CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllBranchSylContours = SylContours;
                     CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllBranchSylContours_ctxtnums = Ctxtnum;
                     
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllConfMat = ConfMat;
+                    
+                    
+                    % --- CONTROLS
+                    if isfield(dattmp.CLASSIFIER, 'ShuffNeg_ConfMatAll')
+                    % if has multiple, then take random one (and save
+                    % multiple as backup)
+                    if length(size(NEGCONTR_ConfMatAll)) >2
+                        % then take random one
+                        negconfmat = NEGCONTR_ConfMatAll(:,:, randi(size(NEGCONTR_ConfMatAll,3)));
+                    else
+                        negconfmat = NEGCONTR_ConfMatAll;
+                    end
+                    
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).NEGCONTR_AllConfMatAllShuff = NEGCONTR_ConfMatAll;
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).NEGCONTR_AllConfMat = negconfmat;
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).POSCONTR_AllConfMat = POSTCONTR_ConfMat;
+                    end                   
                     
                 end
                 

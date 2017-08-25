@@ -187,18 +187,23 @@ lt_neural_v2_CTXT_PlotGeneral(CLASSES, SummaryStruct, prms);
 
 % ========== VERSION 2- PLOT ALL
 strtype = 'axa';
-algnsyl = 2;
+algnsyl = 1;
 algnonset = 1;
 CLASSEScompiled = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, algnonset);
 
-plotstat = 'pihatmean';
+plotstat = 'F1';
 lt_neural_v2_CTXT_PlotGeneral_M2(CLASSEScompiled, plotstat);
 
 
 % ========== VERSION 3- COMBINE ALL PLOTS FOR A GIVEN MOTIF
 % combine across 1) syl aligned to 2) aligned to onset or offset, 3) fr
 % window size 4) fr bin size
+% NOTE!!: NEED TO FIRST RUN lt_neural_v2_CTXT_PlotGeneral_M to get compiled
+% stats
+close all; 
 strtype = 'axa';
+plotstat = 'F1';
+lt_neural_v2_CTXT_PlotAll(strtype, plotstat);
 
 
 

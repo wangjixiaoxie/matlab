@@ -679,6 +679,17 @@ extract_repeats=1;
 lt_seq_dep_pitch_ACROSSBIRDS_MotifInputDays_v2(SeqDepPitch_AcrossBirds, PARAMS, DaysToPlot, plot_hit_rate, equal_y_scale, AnnotateSylPositions, plotSizeForIllustrator)
 
 
+%% [GOOD] - TRIAL BY TRIAL LAERNING/GENERALIZATION
+close all;
+
+% ============= 1) extract trial by trial data
+[TrialStruct, ParamsTrial] = lt_seq_dep_pitch_ACROSSBIRDS_ExtractTrialbyTrial(SeqDepPitch_AcrossBirds);
+
+% ============= 2) CROSS CORRELATION analyses
+lt_seq_dep_pitch_ACROSSBIRDS_TrialbyTrialGen(TrialStruct, ParamsTrial, SeqDepPitch_AcrossBirds)
+
+
+
 %% ==== TRIAL TO TRIAL LEARNING/ DAY VS. OVERNIGHT?
 % NOTE: FLIP SIGN OF SLOPE TO COMPARE ACROSS EXPERIMENTS
 

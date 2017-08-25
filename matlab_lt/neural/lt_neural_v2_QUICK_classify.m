@@ -90,9 +90,18 @@ for xx =1:size(Xinput,1)
                
                betatmp = adasyn_beta * numsampsneeded/(sum(indsMajor)-sum(indsMinor)); % downscale beta, since majority class is all other classes
                
-               [x, y] = ...
+               % if all 
+               if all(std(X_train(indsMinor,:),1) ==0)
+                   % then no variability ... do dumb think just replicate
+                   % all points
+                    x = repmat(X_train(find(indsMinor,1,'first'),:), floor(adasyn_beta * numsampsneeded),1);
+                    disp('SYNTHESIZING NEW POINTS BY COPYING (SINCE NO VARIABILITY)');
+               else
+                  % syntheisze new datapoints                
+               [x, ~] = ...
                    ADASYN(X_train, Ytmp, betatmp);
-
+               end
+               
                Xsyn = [Xsyn; x];
                Ysyn = [Ysyn; nn*ones(size(x,1),1)];
            end

@@ -7,7 +7,7 @@ BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets 
 BrainArea = {'LMAN', 'X'};
 ExptToKeep = {};
 RecordingDepth = [];
-LearningOnly = 1;
+LearningOnly = 0;
 BatchesDesired = {};
 ChannelsDesired = [];
 % BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
@@ -174,7 +174,9 @@ ListOfFrBinSizes = [0.005 0.01 0.02];
 savenotes = 'allXLman';
 
 prms.ClassGeneral.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
-prms.ClassGeneral.GetNegControl_N = 50; % number iterations for each case
+prms.ClassGeneral.GetNegControl_N = 20; % number iterations for each case
+
+prms.ClassGeneral.GetPosControl =1;
 [savedir] = lt_neural_v2_CTXT_ClassGeneral_M(CLASSES, SummaryStruct, prms, ListOfTimeWindows, ...
     ListOfFrBinSizes, savenotes);
 
@@ -185,18 +187,23 @@ lt_neural_v2_CTXT_PlotGeneral(CLASSES, SummaryStruct, prms);
 
 % ========== VERSION 2- PLOT ALL
 strtype = 'axa';
-algnsyl = 2;
+algnsyl = 1;
 algnonset = 1;
 CLASSEScompiled = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, algnonset);
 
-plotstat = 'pihatmean';
+plotstat = 'F1';
 lt_neural_v2_CTXT_PlotGeneral_M2(CLASSEScompiled, plotstat);
 
 
 % ========== VERSION 3- COMBINE ALL PLOTS FOR A GIVEN MOTIF
 % combine across 1) syl aligned to 2) aligned to onset or offset, 3) fr
 % window size 4) fr bin size
-strtype = 'axa';
+% NOTE!!: NEED TO FIRST RUN lt_neural_v2_CTXT_PlotGeneral_M to get compiled
+% stats
+close all; 
+strtype = 'xaa';
+plotstat = 'F1';
+lt_neural_v2_CTXT_PlotAll(strtype, plotstat);
 
 
 

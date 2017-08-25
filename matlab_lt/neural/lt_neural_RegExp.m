@@ -570,8 +570,6 @@ for i=1:length(tokenExtents)
     
     % =================== GET ONSETS/OFFSETS OF ALL SYLS IN MOTIF, RELATIVE
     % TO TIMING OF EACH MOTIF.
-    if alignByOnset==1
-        %     OnsetsRelTokenOnset = AllOnsets - AllOnsets(tokenExtents(i))
         
         % get only those that are within bounds of this segment's data
         inds = AllOnsets>ontime & AllOnsets<offtime;
@@ -590,7 +588,6 @@ for i=1:length(tokenExtents)
             plot([1:length(songseg)]./fs, (songseg-mean(songseg)).^2, 'k');
             line([predur predur], ylim, 'Color', 'b');
         end
-    end
     % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     % ========= TIME OF SONG FILE FOR THIS SEGMENT
@@ -667,6 +664,13 @@ if LearnKeepOnlyBase ==1
             
         end
     end
+end
+
+%% ===== make structure empty if there is no data. LT added 8/18/17 (problem is length is 1 if no data but has fields)
+% so force to have length 0;
+
+if ~isfield(SegmentsExtract, 'fs');
+    SegmentsExtract = [];
 end
 
 %% ==== DEBUG - CHECK HIT DETECTION

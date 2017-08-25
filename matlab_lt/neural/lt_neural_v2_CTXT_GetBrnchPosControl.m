@@ -16,6 +16,8 @@ regexpcontrol = [];
 switch length(strtype)
     case 3
         regexpcontrol = '[a-z](?=[a-z][a-z])';
+    case 4
+        regexpcontrol = '[a-z](?=[a-z][a-z][a-z])';
 end
 
 %% extract params
@@ -81,6 +83,10 @@ for i=1:numbirds
                 %                 if ~isfield(CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum(j).SegmentsExtract, 'FF_val')
                 %                     continue
                 %                 end
+                
+                if ~isfield(CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum(j).SegmentsExtract, 'fs')
+                    continue
+                end
                 
                 mtif = CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum(j).regexpstr;
                 n = length(CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum(j).SegmentsExtract);

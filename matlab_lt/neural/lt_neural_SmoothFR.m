@@ -4,6 +4,7 @@ function SegmentsExtract = lt_neural_SmoothFR(SegmentsExtract, clustnum, kernelS
 TryDiffMethods = 0; % if 1, then overlays result sof diff FR estimation methods. if 0, then uses gaussian kernel smoothing
 % note: will automaticalyl plot figure as well.
 
+% if want all clusters, then set clustnum = [];
 
 %% input SegmentsExtract. output SegmentsExtract, but with smoothed FR as a field
 % uses kde, gaussian.
@@ -22,7 +23,11 @@ if isfield(SegmentsExtract, 'spk_Clust'); % only try to smooth if there is any d
     NumTrials = length(SegmentsExtract);
     
     for i=1:NumTrials
+        if isempty(clustnum)
+           inds = SegmentsExtract(i).spk_Clust>0; 
+        else
         inds = SegmentsExtract(i).spk_Clust == clustnum;
+        end
         spktimes = SegmentsExtract(i).spk_Times(inds);
         
         commonTrialDur = min([SegmentsExtract.global_offtime_motifInclFlank] - ...

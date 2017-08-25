@@ -14,10 +14,21 @@ function [SylContours, x] = lt_neural_v2_ANALY_GetSylContours(segextract, numsyl
 %%
 TrialInds = randi(length(segextract), 1, numsyltrialstoplot); % which random trials to get
 
-SylContours = [];
+SylContours = nan(numsyltrialstoplot, ceil(1000*(maxdur))); % fill with nans, if actual contyours too short, then edges will have nans
+
+
+if ~isfield(segextract, 'FRsmooth_xbin');
+    segextract = lt_neural_SmoothFR(segextract, []);
+end
+maxdur = min([maxdur segextract(1).FRsmooth_xbin_CommonTrialDur(end)]);
+
 for kk=1:length(TrialInds)
     trialindtmp = TrialInds(kk);
+    
+    % --- figure out trial dur (use all clust, since just want trial dur)
     trialdur = max(segextract(trialindtmp).FRsmooth_xbin);
+    
+    
     tmpons = ones(1, ceil((trialdur)*1000)); % one bin per ms, for onsets
     
     % fill in all gaps (after first offset)
@@ -31,7 +42,7 @@ for kk=1:length(TrialInds)
             ind2 = ceil(1000*segextract(trialindtmp).sylOnTimes_RelDataOnset(tmpind));
             tmpons(ind1:ind2) = 0;
         else
-            % end of song, 
+            % end of song,
             tmpons(ceil(1000*segextract(trialindtmp).sylOffTimes_RelDataOnset(k)):end) ...
                 = 0;
         end
@@ -47,9 +58,10 @@ for kk=1:length(TrialInds)
     tmpons = tmpons(1:ceil(1000*(maxdur)));
     
     % =========== OUTPUT
-    SylContours = [SylContours; tmpons];
-     x = (1:length(tmpons))/1000;
- %%   
+    %     SylContours = [SylContours; tmpons];
+    SylContours(kk, 1:length(tmpons)) = tmpons;
+    x = (1:length(tmpons))/1000;
+    %%
     if (0) % troubleshooting (overlaying onset offset plotted as balls with outputted contours
         lt_figure; hold on;
         plot(segextract(trialindtmp).sylOnTimes_RelDataOnset, 1, 'og');
