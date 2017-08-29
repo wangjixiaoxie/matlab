@@ -149,7 +149,8 @@ CLASSES = lt_neural_v2_CTXT_GetBrnchPosControl(CLASSES, SummaryStruct, prms, str
 % &&&&&&&&&&&&& 2) PLOT MEAN FR ACROSS CONTEXTS FOR EACH BRANCH 
 close all;
 plotPosControl = 1; % will do if exists.
-lt_neural_v2_CTXT_FRanyclass(CLASSES, SummaryStruct, prms, plotPosControl);
+LMANorX = 1; % 0 for all; 1 for LMAN; 2 for X
+lt_neural_v2_CTXT_FRanyclass(CLASSES, SummaryStruct, prms, plotPosControl, LMANorX);
 
 
 % &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& CLASSIFIER
@@ -186,8 +187,8 @@ close all;
 lt_neural_v2_CTXT_PlotGeneral(CLASSES, SummaryStruct, prms);
 
 % ========== VERSION 2- PLOT ALL
-strtype = 'axa';
-algnsyl = 1;
+strtype = 'xaaa';
+algnsyl = 2;
 algnonset = 1;
 CLASSEScompiled = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, algnonset);
 
@@ -201,10 +202,44 @@ lt_neural_v2_CTXT_PlotGeneral_M2(CLASSEScompiled, plotstat);
 % NOTE!!: NEED TO FIRST RUN lt_neural_v2_CTXT_PlotGeneral_M to get compiled
 % stats
 close all; 
-strtype = 'axa';
+strtype = 'xaaa';
 plotstat = 'F1';
-lt_neural_v2_CTXT_PlotAll(strtype, plotstat);
+ALLBRANCH = lt_neural_v2_CTXT_PlotAll(strtype, plotstat);
 
+% ================ EXTRACT NEURAL FR TO BRANCHES
+saveOn = 1;
+ALLBRANCH = lt_neural_v2_CTXT_BranchGetFR(ALLBRANCH, saveOn);
+
+% ============== PLOT BY BRANCH 
+% 1)  First load branch
+close all; 
+dattoplot = 'classperform';
+% dattoplot = 'frmean';
+% dattoplot = 'dprime';
+LMANorX = 1; % 0, both; 1, LMAN; 2, X
+birdstoexclude = {};
+lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoexclude)
+
+
+
+
+% ====== TEMP, MOVE TO FUNCTION - SAVES COMPILED FOR ALL
+if (0)
+    listofresults = dir('Results_*');
+
+%%
+
+for i=1:length(listofresults)
+uscores = strfind(listofresults(i).name, '_');
+
+strtype = listofresults(i).name(uscores(1)+1:uscores(2)-1);
+algnsyl = listofresults(i).name(uscores(2)+8);
+algnonset = listofresults(i).name(uscores(3)-1);
+assert(uscores(3)-uscores(2) == 15, 'problem, mult digits')
+    
+CLASSEScompiled = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, algnonset);
+end
+end
 
 
 %% ============ 1) CLASSIFY CONTEXT USING NEURAL

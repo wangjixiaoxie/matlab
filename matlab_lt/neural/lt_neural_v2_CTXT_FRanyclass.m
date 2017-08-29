@@ -1,4 +1,4 @@
-function lt_neural_v2_CTXT_FRanyclass(CLASSES, SummaryStruct, prms, plotPosControl)
+function lt_neural_v2_CTXT_FRanyclass(CLASSES, SummaryStruct, prms, plotPosControl, LMANorX)
 %% lt 8/12/17 - plots fr for all classes of branch points
 
 %%
@@ -11,25 +11,41 @@ Nmin = 5; % min dat to plot
 
 %%
 
-figcount=1;
-subplotrows=8;
-subplotcols=3;
-fignums_alreadyused=[];
-hfigs=[];
 
 
 for i=1:numbirds
     numneurons = length(CLASSES.birds(i).neurons);
     birdname = CLASSES.birds(i).birdname;
+figcount=1;
+subplotrows=5;
+subplotcols=2;
+fignums_alreadyused=[];
+hfigs=[];
+
     for ii=1:numneurons
         
         numbranches = length(CLASSES.birds(i).neurons(ii).branchnum);
+        
+        if LMANorX==1
+           if ~strcmp(SummaryStruct.birds(i).neurons(ii).NOTE_Location, 'LMAN')
+               continue
+           end
+        elseif LMANorX==2
+            if ~strcmp(SummaryStruct.birds(i).neurons(ii).NOTE_Location, 'X')
+               continue
+           end
+        end
         
         for iii=1:numbranches
             
             % ========================== plot dat
             
             if ~isfield(CLASSES.birds(i).neurons(ii).branchnum(iii), 'SEGEXTRACT')
+                continue
+            end
+            
+            if sum(cellfun('length', {CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum.SegmentsExtract})>5)<2
+                % then fewer than 2 contexts with at least n =5;
                 continue
             end
             
@@ -47,13 +63,17 @@ for i=1:numbirds
                 segextract = CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum(cc).SegmentsExtract;
                 sylname = CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum(cc).regexpstr;
                 
-                if ~isfield(segextract, 'FRsmooth_xbin_CommonTrialDur')
+                if ~isfield(segextract, 'fs')
                     continue
                 end
                 
                 if numel(segextract)<Nmin
                     continue
                 end
+                
+                % ---- extract shmoothed FR
+                clustnum = SummaryStruct.birds(i).neurons(ii).clustnum;
+                segextract= lt_neural_SmoothFR(segextract, clustnum);
                 
                 % extract smoothed FR
                 xtimes = segextract(1).FRsmooth_xbin_CommonTrialDur;
@@ -110,14 +130,19 @@ for i=1:numbirds
                     segextract = CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT_POSCONTR.classnum(cc).SegmentsExtract;
                     sylname = CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT_POSCONTR.classnum(cc).regexpstr;
                     
-                    if ~isfield(segextract, 'FRsmooth_xbin_CommonTrialDur')
-                        continue
-                    end
+                if ~isfield(segextract, 'fs')
+                    continue
+                end
+                
                     
                     if numel(segextract)<Nmin
                         continue
                     end
                     
+                                    % ---- extract shmoothed FR
+                clustnum = SummaryStruct.birds(i).neurons(ii).clustnum;
+                segextract= lt_neural_SmoothFR(segextract, clustnum);
+
                     % extract smoothed FR
                     xtimes = segextract(1).FRsmooth_xbin_CommonTrialDur;
                     if isempty(WindowToPlot)

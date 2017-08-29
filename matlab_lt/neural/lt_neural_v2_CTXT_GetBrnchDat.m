@@ -47,7 +47,7 @@ for i=1:numbirds
                 if (0)
                 % takes up too much space...
                     clustnum = SummaryStruct.birds(i).neurons(ii).clustnum;
-                SegmentsExtract = lt_neural_SmoothFR(SegmentsExtract, clustnum);
+                    SegmentsExtract = lt_neural_SmoothFR(SegmentsExtract, clustnum);
                 end
                 
                 % ---- STORE

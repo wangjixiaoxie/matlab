@@ -5,8 +5,6 @@ function Stats = lt_neural_ConfMatStats(ConfMat)
 
 % ConfMat - n x n matrix, rows = actual class; columns = predictions
 
-%%
-
 
 %%
 clear Stats
@@ -54,6 +52,8 @@ end
 end
 
 function Stats = getstats(ConfMat)
+ConfMat = double(ConfMat);
+% 
 
 accuracy = trace(ConfMat)./sum(ConfMat(:));
 

@@ -17,7 +17,6 @@ cd(savedir)
 
 %%
 
-
 CLASSEScompiled = struct;
 
 dirnames = dir(['Results_' strtype '_AlgnSyl' num2str(algnsyl) 'Onset' num2str(algnonset) '_*']);
@@ -43,6 +42,8 @@ for i=1:length(dirnames)
     CLASSEScompiled.analynum(i).analydate = analydate;
     CLASSEScompiled.analynum(i).savenote = savenote;
     
+    tmp = load('SummaryStruct');
+    CLASSEScompiled.analynum(i).SummaryStruct = tmp.SummaryStruct;
     
     for j=1:length(datfiles)
         
@@ -127,8 +128,10 @@ for i=1:length(dirnames)
                     
                     
                     % ---- extract syl contours
-                    maxdur = params.prms.motifpredur + params.prms.ClassGeneral.frtimewindow(2);
-                    numtrials = 5;
+%                     maxdur = params.prms.motifpredur + params.prms.ClassGeneral.frtimewindow(2);
+                    maxdur = params.prms.motifpredur + params.prms.motifpostdur;
+                    
+                    numtrials = 4;
                     SylContours = [];
                     Ctxtnum = [];
                     numctxtstmp = length(dattmp.SEGEXTRACT.classnum);
@@ -144,7 +147,8 @@ for i=1:length(dirnames)
                         SylContours = [SylContours; sylcon];
                         Ctxtnum = [Ctxtnum; l*ones(size(sylcon,1),1)];
                     end
-                    
+                    assert(sum(sum(isnan(SylContours)))./numel(SylContours) < 0.01, 'problem - >1% are nan');
+                    SylContours = int8(SylContours);
                     %                   AllBranchSylContours = [AllBranchSylContours SylContours];
                     %                   AllBranchSylContours_ctxtnums = [AllBranchSylContours_ctxtnums Ctxtnum];
                     
@@ -157,7 +161,7 @@ for i=1:length(dirnames)
                     NEGCONTR_ConfMatAll = dattmp.CLASSIFIER.ShuffNeg_ConfMatAll;
                     POSTCONTR_ConfMat = dattmp.CLASSIFIER.ContrPos_ConfMat;
                     end
-                    
+
                     
                     % ===================== COLLECT
                     bb=bb+1;
@@ -169,6 +173,7 @@ for i=1:length(dirnames)
                     CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllNeurnum = kk;
                     CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllBirdnum = k;
                     CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllBranchnum = kkk;
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllBranchnum_NOTE = 'AllBranchNum is meaningless (is arbitrary, originally was lower level than each neuron, used in CLASSES). Also, the index for allbranches is also meaningless';
                     
                     CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllBranchCtxts = ctxts;
                     CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllBranchRegexp = regexprstr;
@@ -176,8 +181,28 @@ for i=1:length(dirnames)
                     CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllBranchSylContours = SylContours;
                     CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllBranchSylContours_ctxtnums = Ctxtnum;
                     
-                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllConfMat = ConfMat;
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).AllConfMat = int16(ConfMat);
                     
+                    % ========== COLLECT FR BINNED THAT WAS USED FOR
+                    % CLASSIFICATION
+                    % -- dat
+                    frtbins = dattmp.CLASSIFIER.Dat_xbins;
+                    frmean = mean(dattmp.CLASSIFIER.Dat_X,1);
+                    frstd_xtrials = std(dattmp.CLASSIFIER.Dat_X,0,1);
+                    frstd_xbins = median(std(dattmp.CLASSIFIER.Dat_X, 0, 2));
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).FRdat_t = single(frtbins);
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).FRdat_mean = single(frmean);
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).FRdat_stdxtrials = single(frstd_xtrials);
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).FRdat_stdxbins = single(frstd_xbins);
+                    
+                    % -- pos contr
+                    frmean = mean(dattmp.CLASSIFIER.ContrPos_Xall,1);
+                    frstd_xtrials = std(dattmp.CLASSIFIER.ContrPos_Xall,0,1);
+                    frstd_xbins = median(std(dattmp.CLASSIFIER.ContrPos_Xall,0,2));
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).FRdat_mean_PosContr = single(frmean);
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).FRdat_stdxtrials_PosContr = single(frstd_xtrials);
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).FRdat_stdxbins_PosContr = single(frstd_xbins);
+                   
                     
                     % --- CONTROLS
                     if isfield(dattmp.CLASSIFIER, 'ShuffNeg_ConfMatAll')
@@ -190,11 +215,59 @@ for i=1:length(dirnames)
                         negconfmat = NEGCONTR_ConfMatAll;
                     end
                     
-                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).NEGCONTR_AllConfMatAllShuff = NEGCONTR_ConfMatAll;
-                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).NEGCONTR_AllConfMat = negconfmat;
-                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).POSCONTR_AllConfMat = POSTCONTR_ConfMat;
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).NEGCONTR_AllConfMatAllShuff = int16(NEGCONTR_ConfMatAll);
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).NEGCONTR_AllConfMat = int16(negconfmat);
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).POSCONTR_AllConfMat = int16(POSTCONTR_ConfMat);
                     end                   
                     
+                    % --------------- save segextract
+                    if (0) % TOO LARGE
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT = ...
+                        dattmp.SEGEXTRACT;
+
+                    numclasses= length(dattmp.SEGEXTRACT.classnum);
+                    for cc=1:numclasses
+                        numtrials = length(CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT.classnum(cc).SegmentsExtract);
+                        
+                        for ccc = 1:numtrials
+                        CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT.classnum(cc).SegmentsExtract(ccc).spk_Clust = ...
+                            int8(CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT.classnum(cc).SegmentsExtract(ccc).spk_Clust);
+                        CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT.classnum(cc).SegmentsExtract(ccc).spk_Times = ...
+                            single(CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT.classnum(cc).SegmentsExtract(ccc).spk_Times);
+                        CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT.classnum(cc).SegmentsExtract(ccc).sylOnTimes_RelDataOnset = ...
+                            single(CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT.classnum(cc).SegmentsExtract(ccc).sylOnTimes_RelDataOnset);
+                        CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT.classnum(cc).SegmentsExtract(ccc).sylOffTimes_RelDataOnset = ...
+                            single(CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT.classnum(cc).SegmentsExtract(ccc).sylOffTimes_RelDataOnset);
+                        end
+                    end
+                    
+                    % ----------------- save segextract POS CONTROL
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT_POSCONTR = ...
+                        dattmp.SEGEXTRACT_POSCONTR;
+
+                    numclasses= length(dattmp.SEGEXTRACT_POSCONTR.classnum);
+                    for cc=1:numclasses
+                        numtrials = length(CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT_POSCONTR.classnum(cc).SegmentsExtract);
+                        
+                        for ccc = 1:numtrials
+                        CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT_POSCONTR.classnum(cc).SegmentsExtract(ccc).spk_Clust = ...
+                            int8(CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT_POSCONTR.classnum(cc).SegmentsExtract(ccc).spk_Clust);
+                        CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT_POSCONTR.classnum(cc).SegmentsExtract(ccc).spk_Times = ...
+                            single(CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT_POSCONTR.classnum(cc).SegmentsExtract(ccc).spk_Times);
+                        CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT_POSCONTR.classnum(cc).SegmentsExtract(ccc).sylOnTimes_RelDataOnset = ...
+                            single(CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT_POSCONTR.classnum(cc).SegmentsExtract(ccc).sylOnTimes_RelDataOnset);
+                        CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT_POSCONTR.classnum(cc).SegmentsExtract(ccc).sylOffTimes_RelDataOnset = ...
+                            single(CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).SEGEXTRACT_POSCONTR.classnum(cc).SegmentsExtract(ccc).sylOffTimes_RelDataOnset);
+                        end
+                    end
+                    end
+                    
+                    % ============ save regexp strings for controls
+                    POSCONTR_regexpstrlist ={dattmp.SEGEXTRACT_POSCONTR.classnum.regexpstr};
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).POSCONTR_regexpstrlist = POSCONTR_regexpstrlist;
+                    
+                    POSCONTR_regexpstrlist_N = cellfun('length', {dattmp.SEGEXTRACT_POSCONTR.classnum.SegmentsExtract});
+                    CLASSEScompiled.analynum(i).iterationnum(j).allbranches(bb).POSCONTR_regexpstrlist_N = POSCONTR_regexpstrlist_N;
                 end
                 
             end
