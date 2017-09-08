@@ -889,6 +889,16 @@ if plotLearnStatsOn==1
     subplot(223);
     lt_plot_zeroline; lt_plot_zeroline_vert;
 end
+
+%% ===== display sample size
+
+% numbirds = length(unique(DATSTRUCT.AllBirdnum))
+% numswitches = length(unique(DATSTRUCT.AllSwitchnumGlobal))
+% 
+% tmp = tabulate(([num2str(DATSTRUCT.AllSwitchnumGlobal') num2str(DATSTRUCT.AllNeuronnum')]));
+% size(tmp)
+
+
 %% sanity check
 all(sum([AllIsSame==0; AllIsDiff==0; AllIsTarg==0],1)==2); % everything is either (xor) targ, same, or diff
 

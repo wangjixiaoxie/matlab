@@ -1,0 +1,203 @@
+function lt_neural_v2_ANALY_Swtch_Separation(MOTIFSTATS_Compiled, SwitchStruct)
+%%  lt 9/7/17 - compare separation between contexts pre and end of
+
+Nmin = 5;
+
+%%
+% learning
+% - does not compare same neuron pre and post. instead compares pairs.
+% depending on extp (1) targ one context; 2) bidir; 3) same dir, predict
+% difference effect on different types of pairs.
+
+
+%
+%
+% %% == all cases where target only one context for a given syl.
+%
+%
+% %
+% % MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params
+%
+% targsyls = SwitchStruct.bird(bb).exptnum(ee).switchlist(ss).learningContingencies(1:2:end);
+%
+%
+% %%
+%
+
+% % 1) ONSETS
+% - one targ
+% - two targ (bidir)
+% - two targ (same dir)
+%
+% % 2) SWITCHES
+% - any transition between (i) onetarg, (ii) two targ(bidir) and (iii) two targ (same dir)
+
+
+
+%% ---------------------------------
+numbirds = length(MOTIFSTATS_Compiled.birds);
+ecount = 0;
+
+for bb = 1:numbirds
+    
+    numexpts = length(MOTIFSTATS_Compiled.birds(bb).exptnum);
+    
+    for ee =1:numexpts
+        
+        numswitches = length(SwitchStruct.bird(bb).exptnum(ee).switchlist);
+        motifstats = MOTIFSTATS_Compiled.birds(bb).exptnum(ee).MOTIFSTATS;
+        
+        for ss = 1:numswitches
+            
+            % ===================== only continue if is onset of experiment
+            tmptmp = SwitchStruct.bird(bb).exptnum(ee).switchlist(ss).learningContingencies(2:2:end);
+            tmptmp = cell2mat(tmptmp');
+            if ~all(tmptmp(:,1)==0)
+                disp('SKIPPED - not starting from WN off')
+                continue
+            end
+            
+            % ======= note down experiment type 
+            singlesyls = motifstats.params.SingleSyls_inorder;
+            learnconting = SwitchStruct.bird(bb).exptnum(ee).switchlist(ss).learningContingencies;
+            
+            expttype = [];
+            numtargs = [];
+            if length(learnconting) ==2 
+                numtargs = 1;
+                % then only one targ - other contexts exist?
+                targsinglesyl = learnconting{1}(findstr(learnconting{1}, '(')+1);
+                if sum(strcmp(singlesyls, targsinglesyl))>1
+                   expttype =   'one targ context';
+                elseif sum(strcmp(singlesyls, targsinglesyl)) ==1
+                    expttype = 'one targ - stereotyped';
+                else
+                    asdfhasdlhihildsaf;                    
+                end
+            elseif length(learnconting)>2
+                numtargs = length(learnconting)/2;
+                % then multiple targets - are they same direction?
+                if length(unique(cell2mat(SwitchStruct.bird(bb).exptnum(ee).switchlist(ss).learningDirs(2:2:end)))) ==1
+                    expttype = 'mult targ context - samedir';
+                else
+                    expttype = 'mult targ context - diff dir';
+                end
+            end
+            
+            ecount = ecount+1;
+            Datstruct.exptcount(ecount).birdnum_old = bb;
+            Datstruct.exptcount(ecount).exptnum_old = ee;
+            Datstruct.exptcount(ecount).switchnum_old = ss;
+            Datstruct.exptcount(ecount).expttype = expttype;
+            Datstruct.exptcount(ecount).numtargs = numtargs;
+            
+            
+            
+            % ==========================================================
+            % collect data for each neuron
+            goodneurons = SwitchStruct.bird(bb).exptnum(ee).switchlist(ss).goodneurons;
+            
+            for nn=goodneurons
+                
+                motiflist = motifstats.params.motif_regexpr_str;
+                nummotifs = length(SwitchStruct.bird(bb).exptnum(ee).switchlist(ss).neuron(nn).DATA.motif);
+%                 nummotifs = length(motifstats.params.motif_regexpr_str);
+%                 
+                for mm=1:nummotifs
+                    syl1 = motiflist{mm};
+                    
+                    for mmm = mm+1:nummotifs
+                        syl2 = motiflist{mmm};
+                        
+                        % ==================================== GET STATS
+                        % ABOUT THIS PAIR OF MOTIFS
+                        
+                        singlesyl1 = syl1(findstr(syl1, '(')+1);
+                        % -- is this target?
+                        % -- is this target 
+                        
+                        
+                        
+                        
+                        singlesyl2 = syl2(findstr(syl2, '(')+1);
+                        
+                        
+                        
+                       
+                        
+                        
+                        % ==================================== COLLECT
+                        % DPRIME
+                        
+                        
+                        % --------------------------------------- train and base Inds
+                        baseInds_m1 = find(SwitchStruct.bird(bb).exptnum(ee).switchlist(ss).neuron(nn).DATA.motif(mm).baseInds);
+                        trainInds_m1 = find(SwitchStruct.bird(bb).exptnum(ee).switchlist(ss).neuron(nn).DATA.motif(mm).trainInds);
+                        
+                        baseInds_m2 = find(SwitchStruct.bird(bb).exptnum(ee).switchlist(ss).neuron(nn).DATA.motif(mmm).baseInds);
+                        trainInds_m2 = find(SwitchStruct.bird(bb).exptnum(ee).switchlist(ss).neuron(nn).DATA.motif(mmm).trainInds);
+                        
+                        
+                        % --- figure out max sample size for base and train that allows for matched
+                        % sample sizes
+                        
+                        N1 = min([length(baseInds_m1) length(trainInds_m1)]);
+                        N2 = min([length(baseInds_m2) length(trainInds_m2)]);
+                        
+                        % ============================ only continue if have data
+                        % for both train and base
+                        if N1<Nmin | N2< Nmin
+                            disp('SKUIPPED - low N for eitehr base or train');
+                            continue
+                        end
+                        
+                        % ============================= COLLECT BASELINE AND TRAINING FR DIFF
+                        % METRICS
+                        frmat1 = [motifstats.neurons(nn).motif(mm).SegmentsExtract.FRsmooth_rate_CommonTrialDur];
+                        frmat2 = [motifstats.neurons(nn).motif(mmm).SegmentsExtract.FRsmooth_rate_CommonTrialDur];
+                        
+                        xbins = motifstats.neurons(nn).motif(mm).SegmentsExtract(1).FRsmooth_xbin_CommonTrialDur;
+                        
+                        % --- prune time bins so matched between two motifs
+                        maxbins = min([size(frmat1,1) size(frmat2,1)]);
+                        frmat1 = frmat1(1:maxbins, :);
+                        frmat2 = frmat2(1:maxbins, :);
+                        xbins = xbins(1:maxbins);
+                        
+                        % ---- 1) Baseline
+                        % - set
+                        inds1 = baseInds_m1(end-N1+1:end); % use vals closest to onset of WN
+                        inds2 = baseInds_m2(end-N2+1:end);
+                        
+                        % - run
+                        mean1 = mean(frmat1(:, inds1),2);
+                        mean2 = mean(frmat2(:, inds2),2);
+                        
+                        var1 = var(frmat1(:, inds1),0, 2);
+                        var2 = var(frmat2(:, inds2),0, 2);
+                        
+                        dprime_base = abs((mean1-mean2)./sqrt((var1+var2)/2));
+                        
+                        
+                        % ------ 2) Train end
+                        % - set
+                        inds1 = trainInds_m1(end-N1+1:end); % use vals closest to onset of WN
+                        inds2 = trainInds_m2(end-N2+1:end);
+                        
+                        % - run
+                        mean1 = mean(frmat1(:, inds1),2);
+                        mean2 = mean(frmat2(:, inds2),2);
+                        
+                        var1 = var(frmat1(:, inds1),0, 2);
+                        var2 = var(frmat2(:, inds2),0, 2);
+                        
+                        dprime_train = abs((mean1-mean2)./sqrt((var1+var2)/2));
+                        
+                        
+                        
+                    end
+                end
+            end
+        end
+    end
+end

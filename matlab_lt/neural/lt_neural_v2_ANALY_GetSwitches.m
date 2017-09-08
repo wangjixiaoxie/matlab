@@ -267,7 +267,7 @@ for i=1:NumBirds
             SwitchStruct.bird(i).exptnum(ii).switchlist(iii).targsAreSameSyl =0;
             end
                
-            
+            SylLower_targ = SylLower;
             
             %
             %             if length(targsyls)>1
@@ -362,6 +362,28 @@ for i=1:NumBirds
                 SwitchStruct.bird(i).exptnum(ii).switchlist(iii).STATS_motifsyl(ss).ffvals = ffvals_all;
                 SwitchStruct.bird(i).exptnum(ii).switchlist(iii).STATS_motifsyl(ss).tvals = tvals_all;
                 SwitchStruct.bird(i).exptnum(ii).switchlist(iii).STATS_motifsyl(ss).sylname = sylthis;
+                
+                % ============ FIGURE OUT OTHER THINGS ABOUT THIS SYL
+                % -- is this a target context
+                learningDirs = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).learningDirs;
+                thistargcontext = any(strcmp(learningDirs(1:2:end), sylthis));
+                
+                % -- what is learn dir (nan if not target context)
+                thislearndir = nan;
+                if thistargcontext ==1
+                    indtmp = find(strcmp(learningDirs, sylthis));
+                    thislearndir = learningDirs{indtmp+1};
+                end
+                % -- is this target syl?
+                sylthis_lower = motifstats.params.SingleSyls_inorder{ss};
+                thistargsyl = any(strcmp(SylLower_targ, sylthis_lower));
+                
+                % ============= SAVE
+                 SwitchStruct.bird(i).exptnum(ii).switchlist(iii).STATS_motifsyl(ss).Isthistargcontext = thistargcontext;
+                 SwitchStruct.bird(i).exptnum(ii).switchlist(iii).STATS_motifsyl(ss).Thislearndir = thislearndir;
+                 SwitchStruct.bird(i).exptnum(ii).switchlist(iii).STATS_motifsyl(ss).Isthistargsyl = thistargsyl;
+                 
+               
                 
             end
             

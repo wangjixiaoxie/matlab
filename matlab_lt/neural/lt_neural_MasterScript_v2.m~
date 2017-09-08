@@ -7,7 +7,7 @@ BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets 
 BrainArea = {'LMAN', 'X'};
 ExptToKeep = {};
 RecordingDepth = [];
-LearningOnly = 0;
+LearningOnly = 1;
 BatchesDesired = {};
 ChannelsDesired = [];
 % BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
@@ -213,11 +213,12 @@ ALLBRANCH = lt_neural_v2_CTXT_BranchGetFR(ALLBRANCH, saveOn);
 % ============== PLOT BY BRANCH 
 % 1)  First load branch
 close all; 
-dattoplot = 'classperform';
-% dattoplot = 'frmean';
+% dattoplot = 'classperform';
+dattoplot = 'frmean';
 % dattoplot = 'dprime';
 LMANorX = 1; % 0, both; 1, LMAN; 2, X
-birdstoexclude = {'bk7'};
+birdstoexclude = {};
+% birdstoexclude = {'bk7', 'bu77wh13', 'or74bk35', 'wh6pk36', 'br92br54'};
 lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoexclude)
 
 
@@ -489,7 +490,8 @@ lt_neural_v2_ANALY_LearningStatsPLOT(MOTIFSTATS_Compiled, convertToZscore, ...
 
 % === PULL OUT RAW FR FOR ALL NEURONS/TRIALS
 RemoveTrialsZeroFR = 1;
-premotorWind = [-0.075 0.025]; % [-a b] means "a" sec before onset and "b" sec after offset
+premotorWind = [-0.07 0.01]; % [-a b] means "a" sec before onset and "b" sec after offset
+% premotorWind = [-0.05 0]; % [-a b] means "a" sec before onset and "b" sec after offset
 [MOTIFSTATS_Compiled] = lt_neural_v2_ANALY_GetAllFR(MOTIFSTATS_Compiled, ...
     RemoveTrialsZeroFR, premotorWind);
 
@@ -506,6 +508,18 @@ RemoveTrialsZeroFR = 0; % this takes precedence over interpolateCorrNan
     lt_neural_v2_ANALY_Swtch_Extract(MOTIFSTATS_Compiled, SwitchStruct, ...
     interpolateCorrNan, RemoveTrialsZeroFR, premotorWind);
 
+
+% #############################################################################
+% ==== SEPARATION - compare separation between contexts pre and end of
+% learning
+close all;
+lt_neural_v2_ANALY_Swtch_Separation(MOTIFSTATS_Compiled, SwitchStruct);
+
+% #############################################################################
+
+% ===========================================
+lt_figure; hold on;
+lt_plot_text(0, 0.5, 'bird, expt, and neuron all match between SummaryStruct, Motifstats, and Switchstruct', 'r')
 
 % =========== PLOT SUMMARY OF LEARNING [ITERATING SWITCHES]
 close all;
@@ -529,7 +543,7 @@ close all;
 RemoveLowNumtrials = 1; % min number for both base and train(double)
 MinTrials = 10; % for removing
 skipMultiDir = 0;
-usePeakLearn = 1; % assumes that care about learning for targ 1. (median time of max learning)
+usePeakLearn = 0; % assumes that care about learning for targ 1. (median time of max learning)
 
 % ---- what metric to plot for main figs
 fieldname_baseneur = 'AllNeurSplitCorrBase';
@@ -548,8 +562,8 @@ neuralmetricname = 'NEURvsbase_FRcorr';
 % ---- filtering data by learning at target
 % note: if multiple targets then will filter on just first target...
 plotLearnStatsOn = 0; % 
-learnsigalpha = 0.15; % for deciding that an experiment showed "no learning"
-OnlyKeepSigLearn = 1; % either regression or end training has be significant.
+OnlyKeepSigLearn = 0; % either regression or end training has be significant.
+learnsigalpha = 0.01; % for deciding that an experiment showed "no learning"
 
 % ---- ONLY KEEP SWITCHES STARTING FROM WN OFF
 OnlyKeepWNonset =0; % if 1, then yes, if 2, then only keeps those with WN transition (not onset); if 0, then takes all

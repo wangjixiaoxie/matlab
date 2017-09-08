@@ -1849,11 +1849,41 @@ if p<0.15;
 end
 
 % --- is reversion (%) diff?
-p = ranksum((Ylearn_raw{1}-YMP_raw{1})./Ylearn_raw{1}, (Ylearn_raw{2}-YMP_raw{2})./Ylearn_raw{2});
+p = signrank((Ylearn_raw{1}-YMP_raw{1})./Ylearn_raw{1}, (Ylearn_raw{2}-YMP_raw{2})./Ylearn_raw{2});
 
 if p<0.3
     lt_plot_text(count+1.5, 1.4*max(Ylearn_raw{1}), ['(rever%)p=' num2str(p, '%3.2g')], 'g')
 end
+% --- plot percent reversion (using either mean of percent or percent of
+% mean)
+indtmp = 1; % targ;
+
+disp('--')
+ mean((Ylearn_raw{indtmp}-YMP_raw{indtmp}))
+ lt_sem((Ylearn_raw{indtmp}-YMP_raw{indtmp}))
+disp('--')
+ mean((Ylearn_raw{indtmp}))
+ lt_sem((Ylearn_raw{indtmp}))
+ 
+ afpbias_meanofpercent = mean((Ylearn_raw{indtmp}-YMP_raw{indtmp})./Ylearn_raw{indtmp});
+afpbias_percentofmean =  (mean(Ylearn_raw{indtmp}) - mean(YMP_raw{indtmp}))/mean(Ylearn_raw{indtmp});
+lt_plot_text(count+indtmp, 1.1*(mean(Ylearn_raw{indtmp})), ['meanofper= ' num2str(afpbias_meanofpercent)], 'b');
+lt_plot_text(count+indtmp, 1.2*(mean(Ylearn_raw{indtmp})), ['perofmean= ' num2str(afpbias_percentofmean)], 'b');
+
+indtmp = 2; % nontarg;
+
+disp('--')
+ mean((Ylearn_raw{indtmp}-YMP_raw{indtmp}))
+ lt_sem((Ylearn_raw{indtmp}-YMP_raw{indtmp}))
+disp('--')
+ mean((Ylearn_raw{indtmp}))
+ lt_sem((Ylearn_raw{indtmp}))
+
+ afpbias_meanofpercent = mean((Ylearn_raw{indtmp}-YMP_raw{indtmp})./Ylearn_raw{indtmp});
+afpbias_percentofmean =  (mean(Ylearn_raw{indtmp}) - mean(YMP_raw{indtmp}))/mean(Ylearn_raw{indtmp});
+lt_plot_text(count+indtmp, 1.1*(mean(Ylearn_raw{indtmp})), ['meanofper= ' num2str(afpbias_meanofpercent)], 'b');
+lt_plot_text(count+indtmp, 1.2*(mean(Ylearn_raw{indtmp})), ['perofmean= ' num2str(afpbias_percentofmean)], 'b');
+
 
 % --- ask if the learning is diff between contexts
 p = ranksum(Ylearn_raw{1}, Ylearn_raw{2});
@@ -1951,11 +1981,41 @@ if p<0.15;
 end
 
 % --- is reversion (%) diff?
-p = ranksum((Ylearn_raw{1}-YMP_raw{1})./Ylearn_raw{1}, (Ylearn_raw{2}-YMP_raw{2})./Ylearn_raw{2});
+% p = ranksum((Ylearn_raw{1}-YMP_raw{1})./Ylearn_raw{1}, (Ylearn_raw{2}-YMP_raw{2})./Ylearn_raw{2});
+p = signrank((Ylearn_raw{1}-YMP_raw{1})./Ylearn_raw{1}, (Ylearn_raw{2}-YMP_raw{2})./Ylearn_raw{2});
 
 if p<0.3
     lt_plot_text(count+1.5, 1.4*max(Ylearn_raw{1}), ['(rever%)p=' num2str(p, '%3.2g')], 'g')
 end
+% --- plot percent reversion (using either mean of percent or percent of
+% mean)
+indtmp = 1; % targ;
+
+disp('--')
+ mean((Ylearn_raw{indtmp}-YMP_raw{indtmp}))
+ lt_sem((Ylearn_raw{indtmp}-YMP_raw{indtmp}))
+disp('--')
+ mean((Ylearn_raw{indtmp}))
+ lt_sem((Ylearn_raw{indtmp}))
+
+ afpbias_meanofpercent = mean((Ylearn_raw{indtmp}-YMP_raw{indtmp})./Ylearn_raw{indtmp});
+afpbias_percentofmean =  (mean(Ylearn_raw{indtmp}) - mean(YMP_raw{indtmp}))/mean(Ylearn_raw{indtmp});
+lt_plot_text(count+indtmp, 1.1*(mean(Ylearn_raw{indtmp})), ['meanofper= ' num2str(afpbias_meanofpercent)], 'b');
+lt_plot_text(count+indtmp, 1.2*(mean(Ylearn_raw{indtmp})), ['perofmean= ' num2str(afpbias_percentofmean)], 'b');
+
+indtmp = 2; % nontarg;
+
+disp('--')
+ mean((Ylearn_raw{indtmp}-YMP_raw{indtmp}))
+ lt_sem((Ylearn_raw{indtmp}-YMP_raw{indtmp}))
+disp('--')
+ mean((Ylearn_raw{indtmp}))
+ lt_sem((Ylearn_raw{indtmp}))
+
+afpbias_meanofpercent = mean((Ylearn_raw{indtmp}-YMP_raw{indtmp})./Ylearn_raw{indtmp});
+afpbias_percentofmean =  (mean(Ylearn_raw{indtmp}) - mean(YMP_raw{indtmp}))/mean(Ylearn_raw{indtmp});
+lt_plot_text(count+indtmp, 1.1*(mean(Ylearn_raw{indtmp})), ['meanofper= ' num2str(afpbias_meanofpercent)], 'b');
+lt_plot_text(count+indtmp, 1.2*(mean(Ylearn_raw{indtmp})), ['perofmean= ' num2str(afpbias_percentofmean)], 'b');
 
 % --- ask if the learning is diff between contexts
 p = ranksum(Ylearn_raw{1}, Ylearn_raw{2});

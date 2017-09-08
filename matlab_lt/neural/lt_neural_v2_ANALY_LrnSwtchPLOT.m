@@ -162,10 +162,18 @@ lt_figure; hold on;
 title('each line one switch (mean within class)');
 ylabel('learning (z)');
 
-plot(1:3, LearnAll', '-ob');
-lt_plot(1.2:3.2, nanmean(LearnAll, 1), {'Errors', lt_sem(LearnAll), 'LineStyle', '-', 'Color', 'k'});
+plot(1:3, LearnAll', '-b');
+% lt_plot(1.2:3.2, nanmean(LearnAll, 1), {'Errors', lt_sem(LearnAll), 'LineStyle', '-', 'Color', 'k'});
+lt_plot_bar(1.2:3.2, nanmean(LearnAll, 1), {'Errors', lt_sem(LearnAll), 'LineStyle', '-', 'Color', 'k'});
 lt_plot_zeroline;
 xlim([0 4]);
+
+% -- test significance
+for j=1:size(LearnAll,2)
+   p = signrank(LearnAll(:,j)); 
+   lt_plot_text(j, 1.1*max(LearnAll(:,j)), ['p=' num2str(p)], 'r')
+    
+end
 
 set(gca, 'XTick', 1:3, 'XTickLabel', {'targ', 'same', 'diff'});
 

@@ -163,9 +163,9 @@ for i=1:Numbirds
                      [BaseCorr_FFvsMeanFR, BaseCorr_FFvsMeanFR_pval] = corr(ffvalstmp(baseInds)', MeanFR(baseInds)');
                      [BaseCorr_FFvsNeurSim, BaseCorr_FFvsNeurSim_pval] = corr(ffvalstmp(baseInds)', NeuralSim(baseInds));
                      else
-                         BaseCorr_FFvsMeanFR = nan
-                         BaseCorr_FFvsMeanFR_pval = nan
-                         BaseCorr_FFvsNeurSim = nan
+                         BaseCorr_FFvsMeanFR = nan;
+                         BaseCorr_FFvsMeanFR_pval = nan;
+                         BaseCorr_FFvsNeurSim = nan;
                          BaseCorr_FFvsNeurSim_pval = nan;
                      end
                      

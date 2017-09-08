@@ -351,6 +351,11 @@ numalign = length(ALLBRANCH.alignpos);
 
 DATSTRUCT = struct;
 
+                Allalign = [];
+                Allbirdnum = [];
+                Allbranchnum = [];
+                Allneuron = [];
+
 for i=1:numalign
     alignsyl = ALLBRANCH.alignpos(i).alignsyl;
     alignons = ALLBRANCH.alignpos(i).alignonset;
@@ -377,6 +382,7 @@ for i=1:numalign
 
         birdname = ALLBRANCH.SummaryStruct.birds(ii).birdname;
         if any(strcmp(birdstoexclude, birdname))
+            disp(['skipping ' birdname]);
             continue
         end
             
@@ -491,7 +497,12 @@ for i=1:numalign
                 end
                 
                 
-                % ================================ SUBTRACT CONTROLS
+                % =================================== SAMPLE SIZE TALLY
+                Allalign = [Allalign i];
+                Allbirdnum = [Allbirdnum ii];
+                Allbranchnum = [Allbranchnum j];
+                Allneuron = [Allneuron nn];
+                
                 
                 
             end
@@ -676,6 +687,19 @@ end
 linkaxes(hsplots, 'xy')
 
 
+
+%% ==== sample size, display
+
+numbirds = length(unique(Allbirdnum));
+
+numneurons = tabulate([num2str(Allbirdnum') num2str(Allneuron')]);
+numneurons = size(numneurons,1);
+
+numbranches = tabulate([num2str(Allbirdnum') num2str(Allneuron') num2str(Allbranchnum')]);
+numbranches = size(numbranches, 1);
+
+disp([num2str(numbirds) ' birds, ' num2str(numneurons) ' neurons,' num2str(numbranches) ' branches.'])
+
 %% ================= PLOT MEANS (SUBTRACTING CONTROLS, AND DOING STATS, PAIRWISE DIFFS)
 numalign = length(ALLBRANCH.alignpos);
 figcount=1;
@@ -762,7 +786,7 @@ end
 if ~exist('normbymaxmin','var')
     normbymaxmin=0;
 end
-CIalpha = 0.01;
+CIalpha = 0.05;
 
 if strcmp(dattype, 'sylcontour')
     Xcontcell = Datstruct.Dat.Xcontcell;
