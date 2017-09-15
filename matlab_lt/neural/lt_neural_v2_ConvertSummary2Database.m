@@ -226,8 +226,8 @@ if isfield(SummaryStruct_filtered, 'birds');
     SummaryStruct_filtered = lt_neural_v2_PostInfo(SummaryStruct_filtered);
     
     %% ==== confirm all metadat have permanent datenum. if not, extract
-    
+    if (1)
     lt_neural_v2_PRE_datenums(SummaryStruct);
-    
+    end
 end
 

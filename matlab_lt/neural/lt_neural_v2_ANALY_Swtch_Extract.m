@@ -101,7 +101,7 @@ for i=1:Numbirds
                   
                   %%
                   % --- extract important things 
-                  tmp = segextract(1).FRsmooth_xbin;
+                  tmp = segextract(1).FRsmooth_xbin_CommonTrialDur;
                   premotorInds = find(tmp>(MotifStats.params.motif_predur + premotorWind(1)) ...
                     & tmp<(MotifStats.params.motif_predur + premotorWind(2)));
                   

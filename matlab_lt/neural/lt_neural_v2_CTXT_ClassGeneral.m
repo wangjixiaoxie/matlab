@@ -211,7 +211,7 @@ for j=1:numclasses
                 segextract = lt_neural_SmoothFR(segextract, clustnum);
 
     
-    if ~isfield(segextract, 'FRsmooth_rate')
+    if ~isfield(segextract, 'spk_Times')
         % then no data
         continue
     end

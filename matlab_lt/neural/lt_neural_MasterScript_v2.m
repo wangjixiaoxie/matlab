@@ -4,7 +4,7 @@
 %% EXTRACT 
 clear all; close all;
 BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
-BrainArea = {'LMAN', 'X'};
+BrainArea = {};
 ExptToKeep = {};
 RecordingDepth = [];
 LearningOnly = 1;
@@ -25,6 +25,9 @@ if (0)
     [NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database;
 end
 
+%% take snapshot of current raw data - i.e. label files, extracted FF
+
+[outdir] = lt_neural_SnapshotCurrDat(SummaryStruct);
 
 %% remove song dat from metadat
 
@@ -58,7 +61,7 @@ LearningMetaDat; % OPEN AND EDIT BY HAND.
 % Note: each expt/targ syl has one column:
 % row 3 and larger gives time of switch and nature of switch (4 types of
 % switches possible) (escape dir)
-% Al = 100% WN
+% Al = 100% WN [NOTE: is currently coded same as Of (for switch struct extraction)
 % Of = off
 % Up = escape up
 % Dn = escape dn
@@ -440,6 +443,12 @@ for i=1:NumBirds
 end
    
 
+%% ============ save learning expt struct
+
+cd /bluejay5/lucas/analyses/neural/LEARNING/
+
+tstamp;
+
 %% ==== FOR EACH LEARNING EXPERIMENT, PLOT SUMMARY STATISTICS
 close all;
 
@@ -485,7 +494,8 @@ lt_neural_v2_ANALY_LearningStatsPLOT(MOTIFSTATS_Compiled, convertToZscore, ...
 
 
 
-% ******************************************************* VERSION 2 - SWITCH AS DATAPOINT
+% ######################################################################
+% ####################################### VERSION 2 - SWITCH AS DATAPOINT
 % NOTE: neuron inds in switchstruct match those in motifs_compiled
 
 % === PULL OUT RAW FR FOR ALL NEURONS/TRIALS
@@ -529,8 +539,8 @@ lt_neural_v2_ANALY_LrnSwtchPLOT(MOTIFSTATS_Compiled, SwitchStruct);
 % ============ TIMECOURSES FOR NEURAL FOR SWITCHES
 close all;
 birdname_get = 'br92br54'; % keep empty if want all.
-exptname_get = 'LMANlearn7';
-switchnum_get = [2];
+exptname_get = 'LMANlearn5';
+switchnum_get = [1];
 plotneurzscore=0;
 lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct, ...
     birdname_get, exptname_get, switchnum_get, plotneurzscore)

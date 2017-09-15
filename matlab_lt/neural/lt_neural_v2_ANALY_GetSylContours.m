@@ -26,7 +26,7 @@ for kk=1:length(TrialInds)
     trialindtmp = TrialInds(kk);
     
     % --- figure out trial dur (use all clust, since just want trial dur)
-    trialdur = max(segextract(trialindtmp).FRsmooth_xbin);
+    trialdur = max(segextract(trialindtmp).FRsmooth_xbin_CommonTrialDur);
     
     
     tmpons = ones(1, ceil((trialdur)*1000)); % one bin per ms, for onsets

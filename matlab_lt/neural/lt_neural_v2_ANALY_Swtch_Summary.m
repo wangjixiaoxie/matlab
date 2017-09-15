@@ -100,7 +100,7 @@ if (0)
                         
                         segextract = MotifStats.neurons(nn).motif(j).SegmentsExtract;
                         
-                        if ~isfield(segextract, 'FRsmooth_xbin')
+                        if ~isfield(segextract, 'spk_Times')
                             continue
                         end
                         
@@ -482,7 +482,7 @@ for i=1:Numbirds
                     
                     segextract = MotifStats.neurons(nn).motif(j).SegmentsExtract;
                     
-                    if ~isfield(segextract, 'FRsmooth_xbin')
+                    if ~isfield(segextract, 'spk_Times')
                         continue
                     end
                     

@@ -21,12 +21,12 @@ minrends = 5; % for both train and base
 premotorWind = SwitchStruct.params.premotorWind;
 
 
-%% 
+%%
 
-                    
-                    if mod(FFsmthbinsize,2)==0
-                        FFsmthbinsize= FFsmthbinsize+1; % conver to odd, so that median tval is at an actual datapoint.
-                    end
+
+if mod(FFsmthbinsize,2)==0
+    FFsmthbinsize= FFsmthbinsize+1; % conver to odd, so that median tval is at an actual datapoint.
+end
 
 %%
 for i=1:Numbirds
@@ -98,7 +98,7 @@ for i=1:Numbirds
                     
                     segextract = MotifStats.neurons(nn).motif(j).SegmentsExtract;
                     
-                    if ~isfield(segextract, 'FRsmooth_xbin')
+                    if ~isfield(segextract, 'FRsmooth_rate_CommonTrialDur')
                         continue
                     end
                     
@@ -243,8 +243,8 @@ for i=1:Numbirds
                     % then get zscore
                     neurbasemean = mean(neuralsim(baseInds));
                     if plotneurzscore==1
-                    neurbaseSD = std(neuralsim(baseInds));
-                    neuralsim = (neuralsim - neurbasemean)./neurbaseSD;
+                        neurbaseSD = std(neuralsim(baseInds));
+                        neuralsim = (neuralsim - neurbasemean)./neurbaseSD;
                     elseif plotneurzscore==0
                         neuralsim = (neuralsim - neurbasemean);
                     end

@@ -1,10 +1,16 @@
-function SegmentsExtract = lt_neural_SmoothFR(SegmentsExtract, clustnum, kernelSD, binsize_spks)
+function SegmentsExtract = lt_neural_SmoothFR(SegmentsExtract, clustnum, kernelSD, binsize_spks, extractSingleTrials)
 %%
 
 TryDiffMethods = 0; % if 1, then overlays result sof diff FR estimation methods. if 0, then uses gaussian kernel smoothing
 % note: will automaticalyl plot figure as well.
 
 % if want all clusters, then set clustnum = [];
+
+if ~exist('extractSingleTrials', 'var')
+    extractSingleTrials=0; % if 0, then will only extract one large FR mat with common duration. If 1, then cell, with each potentiayl different length
+end
+
+   
 
 %% input SegmentsExtract. output SegmentsExtract, but with smoothed FR as a field
 % uses kde, gaussian.
@@ -99,10 +105,12 @@ if isfield(SegmentsExtract, 'spk_Clust'); % only try to smooth if there is any d
             end
             
             % --- save
-            SegmentsExtract(i).FRsmooth_rate = smoothFR';
-            SegmentsExtract(i).FRsmooth_xbin = binedges(1:end-1)';
-            SegmentsExtract(i).FRsmooth_rate_CommonTrialDur = smoothFR(1:maxInd)';
-            SegmentsExtract(i).FRsmooth_xbin_CommonTrialDur = binedges(1:maxInd)';
+            if extractSingleTrials==1
+            SegmentsExtract(i).FRsmooth_rate = single(smoothFR');
+            SegmentsExtract(i).FRsmooth_xbin = single(binedges(1:end-1)');
+            end
+            SegmentsExtract(i).FRsmooth_rate_CommonTrialDur = single(smoothFR(1:maxInd)');
+            SegmentsExtract(i).FRsmooth_xbin_CommonTrialDur = single(binedges(1:maxInd)');
             
             
         end
