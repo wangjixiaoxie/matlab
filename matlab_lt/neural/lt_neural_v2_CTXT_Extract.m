@@ -37,13 +37,21 @@ for i=1:numbirds
     
     for ii=1:numneurons
         
+        % ========= extract song dat
+        if isfield(SummaryStruct.birds(i).neurons(ii), 'dirname')
+            % then is my data
         cd(SummaryStruct.birds(i).neurons(ii).dirname);
         cd ..
         
         batchf=SummaryStruct.birds(i).neurons(ii).batchfilename;
         channel_board=SummaryStruct.birds(i).neurons(ii).channel;
         [SongDat, ~, Params] = lt_neural_ExtractDat(batchf, channel_board, 0);
+        else
+            % then is sam/mel RA data
+        [SongDat, ~, Params] = lt_neural_RASamMel_ExtractDat(SummaryStruct, i, ii);            
+        end
         
+        % ------------
         singlesyls = unique(SongDat.AllLabels);
         singlesyls = singlesyls(~(singlesyls=='-')); % remove dashes
         

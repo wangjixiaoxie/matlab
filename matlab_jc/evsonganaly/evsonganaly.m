@@ -71,7 +71,8 @@ if (isempty(INPUTFILES))
 end
 handles.filter_type=FilterType;
 handles.INPUTFILES=INPUTFILES;
-handles.ChanSpec=ChanSpec;
+% handles.ChanSpec=ChanSpec;
+handles.ChanSpec='0r';
 handles.NFILE=1;
 handles.SPECTH=0.01;
 handles.SEGTH=10000;
@@ -85,6 +86,8 @@ handles.EditBndLines=-1;
 handles.EditBnds=-1;
 handles.SMUNDERSAMPLE=10;%undersample factor for smooth display - speeds everything up
 guidata(hObject, handles);handles=guidata(hObject);
+
+
 
 %setup 2^8 element colormap
 axes(handles.SpecGramAxes);

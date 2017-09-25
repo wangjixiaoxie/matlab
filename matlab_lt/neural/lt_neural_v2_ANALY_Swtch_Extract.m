@@ -112,10 +112,18 @@ for i=1:Numbirds
                   trainInds = [segextract.song_datenum] > swthis & ...
                       [segextract.song_datenum] < swpost;
                   
+                  % ---------------- get train inds that are within the
+                  % day of switch
+                  
+                  baseInds_WithinDayOfSw = baseInds & ...
+                      (floor([segextract.song_datenum]) == floor(swthis));
+                  trainInds_WithinDayOfSw = trainInds & ...
+                      (floor([segextract.song_datenum]) == floor(swthis));
                   
                   % ============ 1) Neural Similarity (correlation)
                   alltrialFR = [segextract.FRsmooth_rate_CommonTrialDur];
                   alltrialFR = alltrialFR(premotorInds, :);
+                  alltrialFR = double(alltrialFR);
                   
                   baseFRmean = mean(alltrialFR(:, baseInds),2);
                   
@@ -185,6 +193,8 @@ for i=1:Numbirds
                   SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).ffvals = [segextract.FF_val];
                   SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).baseInds  =baseInds;
                   SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds  =trainInds;
+                  SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).baseInds_WithinDayOfSw  =baseInds_WithinDayOfSw;
+                  SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds_WithinDayOfSw  =trainInds_WithinDayOfSw;
                   
                   SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).BASECORR_FFvsMeanFR = BaseCorr_FFvsMeanFR;
                   SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).BASECORR_FFvsMeanFR_pval = BaseCorr_FFvsMeanFR_pval;

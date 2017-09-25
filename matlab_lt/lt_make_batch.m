@@ -10,19 +10,20 @@ if ~exist('filetype', 'var')
     filetype = 'cbin';
 end
 
-
+%makes a batch file
 if ~strcmp(filetype, 'cbin')
     batchname = ['batch_' filetype];
-    eval(['!ls *.' filetype ' >  ' batchname]);
 else
-%makes a batch file
-batchname = 'batch';
-% batchname = input('What is the name of the batch file?  ', 's');
-db_write_batch(batchname)
+    batchname = 'batch';
 end
 
+eval(['!ls *.' filetype ' >  ' batchname]);
+
+% % batchname = input('What is the name of the batch file?  ', 's');
+% db_write_batch(batchname)
+
 if input==1;
-lt_cleandirAuto(batchname,1000,4,4, filetype)
+    lt_cleandirAuto(batchname,1000,4,4, filetype)
 end
 
 if input==2;
@@ -43,10 +44,10 @@ if input==5;
     fid=fopen([batchname '_wav'],'w');
     
     for i=1:length(wavfilenames);
-    fprintf(fid,'%s\n',wavfilenames(i).name);
+        fprintf(fid,'%s\n',wavfilenames(i).name);
     end
 end
-    
+
 
 end
 

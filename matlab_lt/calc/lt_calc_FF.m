@@ -102,6 +102,7 @@ if plotSpec==1
     
     line([mintime maxtime], [F_low F_low], 'Color', 'm');
     line([mintime maxtime], [F_high F_high], 'Color', 'm');
+    axis tight;
     
     pause; close all;
     %                 end

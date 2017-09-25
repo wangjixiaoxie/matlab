@@ -57,6 +57,13 @@ if ~exist('preAndPostDurRelSameTimept', 'var')
     % (default)
 end
 
+if isempty(FFparams)
+    FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will
+    FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
+    % +1 is 1 after token
+    FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
+end
+
 %% --
 % FFparams.collectFF=1;
 % FFparams.cell_of_FFtimebins={'h', [0.042 0.058], 'b', [0.053 0.07], ...
@@ -99,6 +106,9 @@ end
 if ~exist('alignByOnset', 'var');
     alignByOnset=1;
 end
+if isempty('alignByOnset')
+    alignByOnset=1;
+end
 
 UseLastSylAsToken=0;
 
@@ -126,8 +136,12 @@ onset_pre_threshold=1; % in seconds, minimum time preceding and following bout [
 %     offset_post_threshold=3; % in seconds
 min_syls_in_bout=10;
 
+if isfield(NeurDat, 'TotalSamps')
+    TotalSamps = NeurDat.TotalSamps;
+else
+    TotalSamps = sum([NeurDat.metaDat.numSamps]);
+end
 
-TotalSamps = sum([NeurDat.metaDat.numSamps]);
 TotalDurSec = TotalSamps/fs;
 
 
@@ -256,7 +270,7 @@ else
 %         regexpr_str(indstmp(1)+1) regexpr_str(indstmp(2)+1:end) ')']; % for lookahead assertion
     
     regexpr_str2 = [tmptmp(1) '(?=' tmptmp(2:end) ')']; % for lookahead assertion
-    
+     
     [startinds, ~, ~]=regexp(AllLabels, regexpr_str2, 'start', 'end', ...
         'match');
     
@@ -270,8 +284,12 @@ else
     for j=1:strlength
         indmat = [indmat startinds'+j-1];
     end
-    matchlabs = mat2cell(AllLabels(indmat), ones(size(indmat,1),1))';
     
+    if size(AllLabels,1)==1
+    matchlabs = mat2cell(AllLabels(indmat)', ones(size(indmat,1),1))';
+    else
+    matchlabs = mat2cell(AllLabels(indmat), ones(size(indmat,1),1))';
+    end
     
     % ---- compare methods
     if length(startinds) == length(startinds1)
@@ -365,7 +383,7 @@ for i=1:length(tokenExtents)
     ind=tokenExtents(i);
     if alignByOnset==1
         aligntime=AllOnsets(ind); % sec
-    else
+    elseif alignByOnset==0
         % align by offset of token syl
         aligntime=AllOffsets(ind); % sec
     end
@@ -389,9 +407,13 @@ for i=1:length(tokenExtents)
     
     %     spkinds=(NeurDat.spikes_cat.cluster_class(:,2) > ontime*1000) & ...
     %         (NeurDat.spikes_cat.cluster_class(:,2) < offtime*1000);
+    if isfield(NeurDat, 'spikes_cat')
     spk_ClustTimes = NeurDat.spikes_cat.cluster_class((NeurDat.spikes_cat.cluster_class(:,2) > ontime*1000) & ...
         (NeurDat.spikes_cat.cluster_class(:,2) < offtime*1000), :); % in sec, relative to onset of the segment
-    
+    else
+        % then is RA data from Sober/Mel
+    spiketimes = NeurDat.spiketimes(NeurDat.spiketimes>ontime & NeurDat.spiketimes<offtime);
+    end
     
     if keepRawSongDat ==1
         assert(isfield(SongDat, 'AllSongs'), 'PROBLEM - need to extract songdat before running this');
@@ -591,6 +613,8 @@ for i=1:length(tokenExtents)
     % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     % ========= TIME OF SONG FILE FOR THIS SEGMENT
+    if isfield(NeurDat.metaDat, 'numSamps')
+        % then is my data (i.e. not RA data from mel/sam)
     globalOnsetTime=AllOnsets(tokenExtents(i)); % sec
     globalOnsetSamp=globalOnsetTime*fs;
     cumOnsSamps=cumsum([0 NeurDat.metaDat.numSamps]);
@@ -602,12 +626,18 @@ for i=1:length(tokenExtents)
     %     SegmentsExtract(i).song_datenum=lt_neural_fn2datenum(songfname);
     SegmentsExtract(i).song_datenum=NeurDat.metaDat(songind).song_datenum;
     SegmentsExtract(i).song_ind_in_batch=songind;
+    end
     
     
     % +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
-    SegmentsExtract(i).spk_Clust=spk_ClustTimes(:,1)';
-    SegmentsExtract(i).spk_Times=(spk_ClustTimes(:,2)/1000)'-ontime;
+    if isfield(NeurDat, 'spikes_cat')
+        % then is my data
+        SegmentsExtract(i).spk_Clust=spk_ClustTimes(:,1)';
+        SegmentsExtract(i).spk_Times=(spk_ClustTimes(:,2)/1000)'-ontime;
+    else
+        % then is RA dat from sam/mel
+        SegmentsExtract(i).spk_Times = spiketimes - ontime;
+    end
     SegmentsExtract(i).global_ontime_motifInclFlank=ontime;
     SegmentsExtract(i).global_offtime_motifInclFlank=offtime;
     SegmentsExtract(i).matchlabel=matchlabs{i};

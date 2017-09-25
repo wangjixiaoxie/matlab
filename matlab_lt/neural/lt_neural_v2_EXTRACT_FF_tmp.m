@@ -168,6 +168,7 @@ for z = 1:Numbirds
                     else
                         disp(syl);
                         [FF, PC, T]= lt_calc_FF(syldat, fs, [F_low F_high], [mintime maxtime], 1);
+                       
                     end
                 else
                     [FF, PC, T]= lt_calc_FF(syldat, fs, [F_low F_high], [mintime maxtime], 0);

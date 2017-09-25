@@ -29,7 +29,7 @@ lt_plot_45degScatter(X, Y, plotcol, 1);
 Yall{1} = Y-X;
 Yall2{1} = X;
 Yall2{4} = Y;
-assert(all(~isnan(Y-X) == ~isnan(DATSTRUCT.AllNeurSimChange(inds))));
+% assert(all(~isnan(Y-X) == ~isnan(DATSTRUCT.AllNeurSimChange(inds))));
 minall = min([minall X Y]);
 maxall = max([maxall X Y]);
 

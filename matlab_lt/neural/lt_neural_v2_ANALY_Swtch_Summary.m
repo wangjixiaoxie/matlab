@@ -1,7 +1,7 @@
 function [DATSTRUCT, BYNEURONDAT] = lt_neural_v2_ANALY_Swtch_Summary(MOTIFSTATS_Compiled, SwitchStruct, RemoveLowNumtrials, ...
     MinTrials, UseZscoreNeural, neuralmetricname, fieldname_baseneur, fieldname_trainneur, ...
     skipMultiDir, usePeakLearn, plotLearnStatsOn, learnsigalpha, OnlyKeepSigLearn, ...
-    OnlyKeepWNonset)
+    OnlyKeepWNonset, OnlyUseDatOnSwitchDay)
 
 % usePeakLearn = 1;
 % plotLearnStatsOn =1;
@@ -49,140 +49,140 @@ if mod(FFsmthbinsize,2)==0
 end
 
 %% plot, for each switch, timecourse of neural and FF for all syl types [IN PROGRESS]
-if (0)
-    for i=1:Numbirds
-        
-        numexpts = length(SwitchStruct.bird(i).exptnum);
-        birdname = SwitchStruct.bird(i).birdname;
-        
-        for ii=1:numexpts
-            exptname = SwitchStruct.bird(i).exptnum(ii).exptname;
-            numswitches = length(SwitchStruct.bird(i).exptnum(ii).switchlist);
-            
-            MotifStats = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS;
-            SummaryStruct = MOTIFSTATS_Compiled.birds(i).exptnum(ii).SummaryStruct;
-            
-            motiflist = MotifStats.params.motif_regexpr_str;
-            targsyls = MotifStats.params.TargSyls;
-            nummotifs = length(motiflist);
-            
-            WindowToPlot2 = [MotifStats.params.motif_predur+WindowToPlot(1) ...
-                MotifStats.params.motif_predur+WindowToPlot(2)]; % rel data onset (not syl onset)
-            
-            for iii=1:numswitches
-                
-                figcount=1;
-                subplotrows=5;
-                subplotcols=6;
-                fignums_alreadyused=[];
-                hfigs=[];
-                
-                
-                goodneurons = find([SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron.haspostsongs] ...
-                    & [SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron.haspresongs]);
-                
-                if isempty(goodneurons)
-                    disp(['---SKIPPING - ' birdname '-' exptname '-sw' num2str(iii) ' (NO GOOD NEURONS)']);
-                    continue
-                end
-                
-                swpre = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum_previous;
-                swpost = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum_next;
-                swthis = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum;
-                
-                plotcols = lt_make_plot_colors(max(goodneurons), 0, 0);
-                
-                
-                % ==== 1) for each motif, PLOT RASTER, SMTHED, AND NEURAL/FF
-                for j=1:nummotifs
-                    
-                    for nn=goodneurons
-                        
-                        segextract = MotifStats.neurons(nn).motif(j).SegmentsExtract;
-                        
-                        if ~isfield(segextract, 'spk_Times')
-                            continue
-                        end
-                        
-                        baseInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).baseInds);
-                        trainInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds);
-                        
-                        if length(baseInds)<minrends | length(trainInds) < minrends
-                            % even for good neurosn, could occur if some motifs
-                            % labeled pre but not post.
-                            continue
-                        end
-                        
-                        trialstoplot = [baseInds trainInds];
-                        clustnum = MotifStats.neurons(nn).clustnum;
-                        
-                        
-                        % ================= PLOT TIMECOURSE OF NEURAL AND FF
-                        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-                        
-                        % ----- FF
-                        ffvals = [segextract.FF_val];
-                        tvals = [segextract.song_datenum];
-                        % -- convert tvals to days
-                        tmpday = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum;
-                        tvals = lt_convert_EventTimes_to_RelTimes(datestr(tmpday, 'ddmmmyyyy'),...
-                            tvals);
-                        tvals = tvals.FinalValue;
-                        
-                        tsmth = lt_running_stats(tvals, FFsmthbinsize);
-                        
-                        if ~all(isnan(ffvals));
-                            % ---- get zscore
-                            ffvals_basemean = mean(ffvals(baseInds));
-                            ffvalsbaseSD = std(ffvals(baseInds));
-                            
-                            ffvals = (ffvals - ffvals_basemean)./ffvalsbaseSD;
-                            
-                            ffsmth = lt_running_stats(ffvals, FFsmthbinsize);
-                            
-                            plot(tsmth.Median, ffsmth.Median, 'kx');
-                            %                       plot(tvals(trialstoplot), ffvals(trialstoplot), 'xk');
-                            %
-                        end
-                        
-                        % ---- neural (corr with baseline)
-                        neuralsim = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).(neuralmetricname);
-                        %                    if ~strcmp(neuralmetricname, 'NEURvsbase_FRcorr')
-                        % then get zscore
-                        neurbasemean = mean(neuralsim(baseInds));
-                        neurbaseSD = std(neuralsim(baseInds));
-                        neuralsim = (neuralsim - neurbasemean)./neurbaseSD;
-                        %                    end
-                        neursmth = lt_running_stats(neuralsim, FFsmthbinsize);
-                        %                     lt_plot(tsmth.Mean, neursmth.Mean, {'Errors', neursmth.SEM, ...
-                        %                         'Color', plotcols{j}});
-                        plot(tsmth.Median, neursmth.Mean, 'o', 'Color', plotcols{nn});
-                        %                    plot(tvals(trialstoplot), neuralsim(trialstoplot), 'ob');
-                        
-                        
-                        % --- stuff
-                        axis tight;
-                        ylim([-3 3]);
-                        lt_plot_zeroline;
-                        
-                        % --- line for base vs. training
-                        line([tvals(max(baseInds)) tvals(max(baseInds))], ylim, 'Color','k', 'LineWidth', 2);
-                        
-                        % --- title
-                        if any(strcmp(targsyls, motiflist{j}))
-                            title([birdname '-' exptname '-sw' num2str(iii) '-' motiflist{j}], 'Color', 'r');
-                        else
-                            title([birdname '-' exptname '-sw' num2str(iii) '-' motiflist{j}]);
-                        end
-                        
-                        % ======================== COLLECT DATA FOR PLOTTING
-                        
-                    end
-                end
-            end
-        end
-    end
-end
+% if (0)
+%     for i=1:Numbirds
+%         
+%         numexpts = length(SwitchStruct.bird(i).exptnum);
+%         birdname = SwitchStruct.bird(i).birdname;
+%         
+%         for ii=1:numexpts
+%             exptname = SwitchStruct.bird(i).exptnum(ii).exptname;
+%             numswitches = length(SwitchStruct.bird(i).exptnum(ii).switchlist);
+%             
+%             MotifStats = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS;
+%             SummaryStruct = MOTIFSTATS_Compiled.birds(i).exptnum(ii).SummaryStruct;
+%             
+%             motiflist = MotifStats.params.motif_regexpr_str;
+%             targsyls = MotifStats.params.TargSyls;
+%             nummotifs = length(motiflist);
+%             
+%             WindowToPlot2 = [MotifStats.params.motif_predur+WindowToPlot(1) ...
+%                 MotifStats.params.motif_predur+WindowToPlot(2)]; % rel data onset (not syl onset)
+%             
+%             for iii=1:numswitches
+%                 
+%                 figcount=1;
+%                 subplotrows=5;
+%                 subplotcols=6;
+%                 fignums_alreadyused=[];
+%                 hfigs=[];
+%                 
+%                 
+%                 goodneurons = find([SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron.haspostsongs] ...
+%                     & [SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron.haspresongs]);
+%                 
+%                 if isempty(goodneurons)
+%                     disp(['---SKIPPING - ' birdname '-' exptname '-sw' num2str(iii) ' (NO GOOD NEURONS)']);
+%                     continue
+%                 end
+%                 
+%                 swpre = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum_previous;
+%                 swpost = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum_next;
+%                 swthis = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum;
+%                 
+%                 plotcols = lt_make_plot_colors(max(goodneurons), 0, 0);
+%                 
+%                 
+%                 % ==== 1) for each motif, PLOT RASTER, SMTHED, AND NEURAL/FF
+%                 for j=1:nummotifs
+%                     
+%                     for nn=goodneurons
+%                         
+%                         segextract = MotifStats.neurons(nn).motif(j).SegmentsExtract;
+%                         
+%                         if ~isfield(segextract, 'spk_Times')
+%                             continue
+%                         end
+%                         
+%                         baseInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).baseInds);
+%                         trainInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds);
+%                         
+%                         if length(baseInds)<minrends | length(trainInds) < minrends
+%                             % even for good neurosn, could occur if some motifs
+%                             % labeled pre but not post.
+%                             continue
+%                         end
+%                         
+%                         trialstoplot = [baseInds trainInds];
+%                         clustnum = MotifStats.neurons(nn).clustnum;
+%                         
+%                         
+%                         % ================= PLOT TIMECOURSE OF NEURAL AND FF
+%                         [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+%                         
+%                         % ----- FF
+%                         ffvals = [segextract.FF_val];
+%                         tvals = [segextract.song_datenum];
+%                         % -- convert tvals to days
+%                         tmpday = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum;
+%                         tvals = lt_convert_EventTimes_to_RelTimes(datestr(tmpday, 'ddmmmyyyy'),...
+%                             tvals);
+%                         tvals = tvals.FinalValue;
+%                         
+%                         tsmth = lt_running_stats(tvals, FFsmthbinsize);
+%                         
+%                         if ~all(isnan(ffvals));
+%                             % ---- get zscore
+%                             ffvals_basemean = mean(ffvals(baseInds));
+%                             ffvalsbaseSD = std(ffvals(baseInds));
+%                             
+%                             ffvals = (ffvals - ffvals_basemean)./ffvalsbaseSD;
+%                             
+%                             ffsmth = lt_running_stats(ffvals, FFsmthbinsize);
+%                             
+%                             plot(tsmth.Median, ffsmth.Median, 'kx');
+%                             %                       plot(tvals(trialstoplot), ffvals(trialstoplot), 'xk');
+%                             %
+%                         end
+%                         
+%                         % ---- neural (corr with baseline)
+%                         neuralsim = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).(neuralmetricname);
+%                         %                    if ~strcmp(neuralmetricname, 'NEURvsbase_FRcorr')
+%                         % then get zscore
+%                         neurbasemean = mean(neuralsim(baseInds));
+%                         neurbaseSD = std(neuralsim(baseInds));
+%                         neuralsim = (neuralsim - neurbasemean)./neurbaseSD;
+%                         %                    end
+%                         neursmth = lt_running_stats(neuralsim, FFsmthbinsize);
+%                         %                     lt_plot(tsmth.Mean, neursmth.Mean, {'Errors', neursmth.SEM, ...
+%                         %                         'Color', plotcols{j}});
+%                         plot(tsmth.Median, neursmth.Mean, 'o', 'Color', plotcols{nn});
+%                         %                    plot(tvals(trialstoplot), neuralsim(trialstoplot), 'ob');
+%                         
+%                         
+%                         % --- stuff
+%                         axis tight;
+%                         ylim([-3 3]);
+%                         lt_plot_zeroline;
+%                         
+%                         % --- line for base vs. training
+%                         line([tvals(max(baseInds)) tvals(max(baseInds))], ylim, 'Color','k', 'LineWidth', 2);
+%                         
+%                         % --- title
+%                         if any(strcmp(targsyls, motiflist{j}))
+%                             title([birdname '-' exptname '-sw' num2str(iii) '-' motiflist{j}], 'Color', 'r');
+%                         else
+%                             title([birdname '-' exptname '-sw' num2str(iii) '-' motiflist{j}]);
+%                         end
+%                         
+%                         % ======================== COLLECT DATA FOR PLOTTING
+%                         
+%                     end
+%                 end
+%             end
+%         end
+%     end
+% end
 
 %% PLOT SUMMARY ACROSS ALL SWITCHES [IN PROGRESS - JUST STARTED]
 
@@ -225,6 +225,7 @@ AllNeurCorrShuffSD = [];
 
 AllNeurSplitCorrBase = []; % (base1 vs. base2) split into two halves
 AllNeurSplitCorrTrain = []; % (train vs. base) - multiple, then take mean.
+AllNeurSplitCorrTrainvsTrain = []; % train vs. train;
 
 % --- laerning stuff
 AllNeurTargLearnRate_targdir = [];
@@ -486,8 +487,14 @@ for i=1:Numbirds
                         continue
                     end
                     
-                    baseInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).baseInds);
+                    
+                    if OnlyUseDatOnSwitchDay==1
+                     baseInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).baseInds_WithinDayOfSw);
+                    trainInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds_WithinDayOfSw);
+                    else
+                     baseInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).baseInds);
                     trainInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds);
+                    end
                     
                     if length(baseInds)<minrends | length(trainInds) < minrends
                         % even for good neurosn, could occur if some motifs
@@ -631,6 +638,7 @@ for i=1:Numbirds
                     premotorInds = MotifStats.params.premotorInds_FR;
                     alltrialFR = [segextract.FRsmooth_rate_CommonTrialDur];
                     alltrialFR = alltrialFR(premotorInds, :);
+                    alltrialFR = double(alltrialFR);
                     
                     
                     % ==== 1) mean of (train) corr vs. (base) - this would
@@ -704,15 +712,17 @@ for i=1:Numbirds
                             traincorrall = [traincorrall corr(train1, train2)];
                             
                         end
-                        disp(['splitcorr: ' num2str(mean(basecorrall), '%3.2g') ' - ' num2str(mean(trainvsbasecorrall), '%3.2g') ...
+                        if (0)
+                            disp(['splitcorr: ' num2str(mean(basecorrall), '%3.2g') ' - ' num2str(mean(trainvsbasecorrall), '%3.2g') ...
                             ' - ' num2str(mean(traincorrall), '%3.2g')]);
+                        end
                         
                         % -- for use use mean over within base and within
                         % train. 
 %                         AllNeurSplitCorrBase = [AllNeurSplitCorrBase  mean([basecorrall traincorrall])]; 
-                        AllNeurSplitCorrBase = [AllNeurSplitCorrBase  mean([basecorrall])]; 
+                        AllNeurSplitCorrBase = [AllNeurSplitCorrBase  mean(basecorrall)]; 
                         AllNeurSplitCorrTrain = [AllNeurSplitCorrTrain mean(trainvsbasecorrall)];
-
+                        AllNeurSplitCorrTrainvsTrain = [AllNeurSplitCorrTrainvsTrain mean(traincorrall)];
                         
                         % ----------------- method 2 - old
                     elseif whichmethod ==2
@@ -760,9 +770,9 @@ for i=1:Numbirds
                     %                     segextract.
                     plotsubset = 0; % just when debugging. ..
                     
-                    premotorInds = MotifStats.params.premotorInds_FR;
-                    FRmat = [segextract.FRsmooth_rate_CommonTrialDur];
-                    FRmat = FRmat(premotorInds, :);
+%                     premotorInds = MotifStats.params.premotorInds_FR;
+%                     FRmat = [segextract.FRsmooth_rate_CommonTrialDur];
+%                     FRmat = FRmat(premotorInds, :);
                     
                     % -- baseline
                     if plotsubset==1
@@ -770,12 +780,12 @@ for i=1:Numbirds
                     else
                         plotOn=0;
                     end
-                    [SNR] = lt_neural_v2_SNR(FRmat(:, baseEndInds), plotOn);
+                    [SNR] = lt_neural_v2_SNR(alltrialFR(:, baseEndInds), plotOn);
                     AllSNRbaseEnd = [AllSNRbaseEnd SNR];
                     
                     
                     % -- trainEnd
-                    [SNR] = lt_neural_v2_SNR(FRmat(:, trainEndInds), plotOn);
+                    [SNR] = lt_neural_v2_SNR(alltrialFR(:, trainEndInds), plotOn);
                     AllSNRtrainEnd = [AllSNRtrainEnd SNR];
                     
                     if plotOn==1
@@ -871,6 +881,7 @@ DATSTRUCT.AllNeurCorrShuffSD = [AllNeurCorrShuffSD ];
 
 DATSTRUCT.AllNeurSplitCorrBase = [AllNeurSplitCorrBase ]; % (base1 vs. base2) split into two halves
 DATSTRUCT.AllNeurSplitCorrTrain = [AllNeurSplitCorrTrain ]; % (train vs. base) - multiple, then take mean.
+DATSTRUCT.AllNeurSplitCorrTrainvsTrain = [AllNeurSplitCorrTrainvsTrain ]; % (train vs. base) - multiple, then take mean.
 
 DATSTRUCT.AllSNRbaseEnd = [AllSNRbaseEnd ];
 DATSTRUCT.AllSNRtrainEnd = [AllSNRtrainEnd ];
@@ -1081,7 +1092,7 @@ for i=1:numbirds
                         y];
                     
                     YminusXall{logical([istarg issame isdiff])} = [YminusXall{logical([istarg issame isdiff])} ...
-                        y-x];
+                        double(y-x)];
                     
                     FFchangeAll{logical([istarg issame isdiff])} = ...
                         [FFchangeAll{logical([istarg issame isdiff])} ffchange];

@@ -7,7 +7,7 @@ BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets 
 BrainArea = {};
 ExptToKeep = {};
 RecordingDepth = [];
-LearningOnly = 1;
+LearningOnly = 0;
 BatchesDesired = {};
 ChannelsDesired = [];
 % BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
@@ -25,6 +25,27 @@ if (0)
     [NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database;
 end
 
+
+
+%% check fs for all
+
+numbirds = length(SummaryStruct.birds);
+for i=1:numbirds
+   numneurons = length(SummaryStruct.birds(i).neurons);
+   
+   for ii=1:numneurons 
+      
+       disp([num2str(i) '-' num2str(ii)]);
+       cd(SummaryStruct.birds(i).neurons(ii).dirname)
+       tmp = load('times_data.mat');
+       tmp2 =load('MetaDat.mat');
+     
+       assert(unique([tmp2.metaDat.fs]) == tmp.par.sr, 'problem, fs of sopng and neural not equal');
+       
+   end
+    
+end
+
 %% take snapshot of current raw data - i.e. label files, extracted FF
 
 [outdir] = lt_neural_SnapshotCurrDat(SummaryStruct);
@@ -39,8 +60,9 @@ lt_neural_v2_PRE_RefinalizeNeur
 end
 
 %% EXTRACT FF AND SAVE
-
+close all;
 lt_neural_v2_PRE_ExtrFF;
+
 
 %% ===== EXTRACT WN HITS
 
@@ -84,6 +106,13 @@ end
 %% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %% &&&&&&&&&&&&&&&&&& DIAGNOSTIC STUFF &&&&&&&&&&&&&&&&
 
+%% ===== CHECK CLUSTERING QUALITY - compare filtered neural with cluster
+% also plot other channels if want to compare 
+close all;
+displaymode = 'rand';
+skipnum = 5;
+lt_neural_v2_DIAGN_Rawdat(SummaryStruct, displaymode, skipnum)
+
 %% ======= SONG MOD METRIC - FOR EACH NEURON
 
 
@@ -92,8 +121,10 @@ end
 %% ============ Check pitch contours
 
 close all;
-useDiffColors = 1; % 1, plots each pc diff color; if 0, shades all gray
-lt_neural_v2_DIAGN_pcontours(SummaryStruct, useDiffColors);
+useDiffColors = 0; % 1, plots each pc diff color; if 0, shades all gray
+plotbysyl = 0; % if 1, then each plot one syl. if 0, then go by neuron. [IN PROGRESS]
+dolinkaxes = 0;
+lt_neural_v2_DIAGN_pcontours(SummaryStruct, useDiffColors, plotbysyl, dolinkaxes);
 % TO DO: overlay WN (first extract WN and save in diff code)
 % Get metric of how good PC is (eg fluctuation)
 
@@ -452,6 +483,7 @@ tstamp;
 %% ==== FOR EACH LEARNING EXPERIMENT, PLOT SUMMARY STATISTICS
 close all;
 
+if (0)
 % ***************************************************** VERSEION 1 (SORT
 % BY NERUON)
 % ===================== EXTRACTS LEARNING STATS
@@ -490,7 +522,7 @@ expttoplot = 'LearnLMAN1';
 lt_neural_v2_ANALY_LearningStatsPLOT(MOTIFSTATS_Compiled, convertToZscore, ...
     neuralmetric_toplot, PlotNeuralFFDeviationCorrs, plotOnlyTargSyl, ...
     birdtoplot, expttoplot)
-
+end
 
 
 
@@ -518,12 +550,29 @@ RemoveTrialsZeroFR = 0; % this takes precedence over interpolateCorrNan
     lt_neural_v2_ANALY_Swtch_Extract(MOTIFSTATS_Compiled, SwitchStruct, ...
     interpolateCorrNan, RemoveTrialsZeroFR, premotorWind);
 
+% ============ DISPLAY LABELS INFORMATION FOR ALL SWITCHES AND NEURONS
+onlyWNonset = 0; % if 0, then all switches, if 1, then only WN on
+lt_neural_v2_ANALY_Swtch_DispLabs(MOTIFSTATS_Compiled, SwitchStruct, onlyWNonset);
+
 
 % #############################################################################
 % ==== SEPARATION - compare separation between contexts pre and end of
 % learning
+% --------- 1) extract dat
+onlyUseDatOnSwitchDays=1; % if 1, then restricts analyses to just dat on day of swtich
+[DatstructSep, getdprime] = lt_neural_v2_ANALY_Swtch_Separation(MOTIFSTATS_Compiled, ...
+    SwitchStruct, onlyUseDatOnSwitchDays);
+
+% --------- 2) plot
 close all;
-lt_neural_v2_ANALY_Swtch_Separation(MOTIFSTATS_Compiled, SwitchStruct);
+expttypewanted = 'one targ context';
+% expttypewanted = 'mult targ context - samedir';
+% expttypewanted = 'mult targ context - diff dir';
+% expttypewanted=''; COLLECT ALL
+lt_neural_v2_ANALY_Swtch_SepPlot(DatstructSep, MOTIFSTATS_Compiled, ...
+    SwitchStruct, getdprime, expttypewanted);
+
+
 
 % #############################################################################
 
@@ -551,15 +600,19 @@ lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct, ...
 % TARG AND OTHER SYLS)
 close all;
 RemoveLowNumtrials = 1; % min number for both base and train(double)
-MinTrials = 10; % for removing
+MinTrials = 8; % for removing
 skipMultiDir = 0;
 usePeakLearn = 0; % assumes that care about learning for targ 1. (median time of max learning)
 
 % ---- what metric to plot for main figs
+% 1) split into half, corr those, repeat
 fieldname_baseneur = 'AllNeurSplitCorrBase';
 fieldname_trainneur = 'AllNeurSplitCorrTrain';
+% fieldname_trainneur = 'AllNeurSplitCorrTrainvsTrain';
+% 2) permute train and base, get corr, repeat - use that as base...
 % fieldname_baseneur = 'AllNeurCorrShuffMean';
 % fieldname_trainneur = 'AllNeurCorrDat';
+% 3) old version, no permuting, each trial corr to base "template"
 % fieldname_baseneur = 'AllNeurSimBase';
 % fieldname_trainneur = 'AllNeurSimTrain';
 
@@ -572,16 +625,21 @@ neuralmetricname = 'NEURvsbase_FRcorr';
 % ---- filtering data by learning at target
 % note: if multiple targets then will filter on just first target...
 plotLearnStatsOn = 0; % 
-OnlyKeepSigLearn = 0; % either regression or end training has be significant.
+OnlyKeepSigLearn = 1; % either regression or end training has be significant.
 learnsigalpha = 0.01; % for deciding that an experiment showed "no learning"
 
 % ---- ONLY KEEP SWITCHES STARTING FROM WN OFF
 OnlyKeepWNonset =0; % if 1, then yes, if 2, then only keeps those with WN transition (not onset); if 0, then takes all
 
+% --- only use data on day of switch - i.e. don't go to next day for
+% training end
+OnlyUseDatOnSwitchDay=1; % NOTE: if use with "UsePeakLearn" then will constrain to be within switch day
+% i.e. if peak learn is after switch day then will take end of first day...
+
 [DATSylMot, ~] = lt_neural_v2_ANALY_Swtch_Summary(MOTIFSTATS_Compiled, SwitchStruct, RemoveLowNumtrials, ...
     MinTrials, UseZscoreNeural, neuralmetricname, fieldname_baseneur, fieldname_trainneur, ...
     skipMultiDir, usePeakLearn, plotLearnStatsOn, learnsigalpha, OnlyKeepSigLearn, ...
-    OnlyKeepWNonset);
+    OnlyKeepWNonset, OnlyUseDatOnSwitchDay);
 
 
 

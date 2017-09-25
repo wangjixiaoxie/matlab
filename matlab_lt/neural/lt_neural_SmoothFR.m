@@ -10,7 +10,7 @@ if ~exist('extractSingleTrials', 'var')
     extractSingleTrials=0; % if 0, then will only extract one large FR mat with common duration. If 1, then cell, with each potentiayl different length
 end
 
-   
+
 
 %% input SegmentsExtract. output SegmentsExtract, but with smoothed FR as a field
 % uses kde, gaussian.
@@ -24,22 +24,28 @@ if ~exist('binsize', 'var')
 end
 
 % clustnum = desired cluster
-if isfield(SegmentsExtract, 'spk_Clust'); % only try to smooth if there is any data
+if isfield(SegmentsExtract, 'spk_Times'); % only try to smooth if there is any data
     
     NumTrials = length(SegmentsExtract);
     
     for i=1:NumTrials
-        if isempty(clustnum)
-           inds = SegmentsExtract(i).spk_Clust>0; 
+        if isfield(SegmentsExtract, 'spk_Clust')
+            % then is my data -, match to clust
+            if isempty(clustnum)
+                inds = SegmentsExtract(i).spk_Clust>0;
+            else
+                inds = SegmentsExtract(i).spk_Clust == clustnum;
+            end
+            spktimes = SegmentsExtract(i).spk_Times(inds);
         else
-        inds = SegmentsExtract(i).spk_Clust == clustnum;
+            % is Sober/Mel data
+            spktimes = SegmentsExtract(i).spk_Times;
         end
-        spktimes = SegmentsExtract(i).spk_Times(inds);
         
         commonTrialDur = min([SegmentsExtract.global_offtime_motifInclFlank] - ...
-                [SegmentsExtract.global_ontime_motifInclFlank]); % shortest trial 
+            [SegmentsExtract.global_ontime_motifInclFlank]); % shortest trial
         maxInd = floor(commonTrialDur/binsize_spks);
-            
+        
         if (0)
             disp('NOTE: KDE NOT YET WRITTEN, USING BOXCAR SMOOTHING');
             
@@ -50,7 +56,7 @@ if isfield(SegmentsExtract, 'spk_Clust'); % only try to smooth if there is any d
             
         else
             %%
-%             disp('KERNEL SMOOTHING')
+            %             disp('KERNEL SMOOTHING')
             
             trialdur = SegmentsExtract(i).global_offtime_motifInclFlank - ...
                 SegmentsExtract(i).global_ontime_motifInclFlank;
@@ -85,11 +91,11 @@ if isfield(SegmentsExtract, 'spk_Clust'); % only try to smooth if there is any d
                 plot(t, y, 'r-');
                 
                 lt_plot_text(t(1), y(1), ['opt. bwidth=' num2str(optw)], 'r');
-               
+                
                 % -- optimized, locally adaptive kernel
                 [y, t, optw] = ssvkernel(spktimes, binedges(1:end-1));
-                 y = y.*(length(spktimes)/trialdur); % convert from numspks to spkrate (APPROXIMATE!!)
-               plot(t, y, 'm-'); 
+                y = y.*(length(spktimes)/trialdur); % convert from numspks to spkrate (APPROXIMATE!!)
+                plot(t, y, 'm-');
                 lt_plot_text(t(1), y(1)+10, ['local/bwidth; median opt. bwidth=' num2str(median(optw))], 'm');
                 
                 % --- empirical bayes
@@ -106,8 +112,8 @@ if isfield(SegmentsExtract, 'spk_Clust'); % only try to smooth if there is any d
             
             % --- save
             if extractSingleTrials==1
-            SegmentsExtract(i).FRsmooth_rate = single(smoothFR');
-            SegmentsExtract(i).FRsmooth_xbin = single(binedges(1:end-1)');
+                SegmentsExtract(i).FRsmooth_rate = single(smoothFR');
+                SegmentsExtract(i).FRsmooth_xbin = single(binedges(1:end-1)');
             end
             SegmentsExtract(i).FRsmooth_rate_CommonTrialDur = single(smoothFR(1:maxInd)');
             SegmentsExtract(i).FRsmooth_xbin_CommonTrialDur = single(binedges(1:maxInd)');

@@ -28,6 +28,7 @@ for i=1:numswitches
    
    func = @(X)nanmedian(X);
    Y = cellfun(func, BYNEURONDAT.ByNeuron_NeuralsimChange(inds,:));
+%    Y = cell2mat(Y);
    
    func = @(X)lt_sem(X);
    Ysem = cellfun(func, BYNEURONDAT.ByNeuron_NeuralsimChange(inds,:));
