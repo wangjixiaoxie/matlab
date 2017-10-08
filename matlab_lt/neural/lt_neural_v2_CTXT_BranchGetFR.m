@@ -1,8 +1,18 @@
-function ALLBRANCH = lt_neural_v2_CTXT_BranchGetFR(ALLBRANCH, saveOn)
+function ALLBRANCH = lt_neural_v2_CTXT_BranchGetFR(ALLBRANCH, saveOn, suffix)
+%% gets things that require post-hoc using lt_neural_RegExp
+
+
+%% lt 9/27/17 - now extract syl and flanking gap durs if not already in regexp
+
+
+%%
+if ~exist('suffix', 'var')
+    suffix = '';
+end
 
 %% lt 8/27/17 - get smoothed FR for all branches... and saves
 
-FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will
+FFparams.collectFF=0; % note, will try to collect FF for each motif inputed in the cell array. will
 FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
 % +1 is 1 after token
 FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
@@ -98,14 +108,26 @@ for i=1:numalign
                     regexpstr = regexpstrlist{cc};
                     
                     % ----- for this branch, collect segextract
+                    if isfield(ALLBRANCH.SummaryStruct.birds(ii).neurons(nn), 'isRAsobermel');
+                        % then no learning
+                        learntmp = 0;
+                    else
+                        learntmp = LearnKeepOnlyBase;
+                    end
+                    
                     [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
                         regexpstr, motifpredur, motifpostdur, alignonset, '', FFparams, ...
-                        0, 1, collectWNhit, 0, LearnKeepOnlyBase, preAndPostDurRelSameTimept);
+                        0, 1, collectWNhit, 0, learntmp, preAndPostDurRelSameTimept);
                     
-                   Ndat = [Ndat length(SegmentsExtract)];
+                    Ndat = [Ndat length(SegmentsExtract)];
                     
                     % ----- collect smoothed FR
+                    if isfield(ALLBRANCH.SummaryStruct.birds(ii).neurons(nn), 'isRAsobermel')
+                        clustnum = '';
+                    else
                     clustnum = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).clustnum;
+                    end
+                    
                     SegmentsExtract = lt_neural_SmoothFR(SegmentsExtract, clustnum);
                     
                     % ============= save smoothed FR
@@ -114,6 +136,16 @@ for i=1:numalign
                         = single([SegmentsExtract.FRsmooth_rate_CommonTrialDur]);
                     ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).FR.classnum(cc).FRsmooth_xbin_CommonTrialDur ...
                         = single(SegmentsExtract(1).FRsmooth_xbin_CommonTrialDur);
+                    
+                    % ======= save syl and gap durs
+                    ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).SylGapDurs.classnum(cc).Dur_syl = ...
+                        [SegmentsExtract.Dur_syl];
+                    ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).SylGapDurs.classnum(cc).Dur_gappre = ...
+                        [SegmentsExtract.Dur_gappre];
+                    ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).SylGapDurs.classnum(cc).Dur_gappost = ...
+                        [SegmentsExtract.Dur_gappost];
+                    ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).SylGapDurs.classnum(cc).note = 'collected post, might not align with classificaiton samples';
+                    
                 end
                 
                 
@@ -130,19 +162,29 @@ for i=1:numalign
                     regexpstr = regexpstrlist{cc};
                     
                     % ----- for this branch, collect segextract
+                    if isfield(ALLBRANCH.SummaryStruct.birds(ii).neurons(nn), 'isRAsobermel');
+                        % then no learning
+                        learntmp = 0;
+                    else
+                        learntmp = LearnKeepOnlyBase;
+                    end
                     [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
                         regexpstr, motifpredur, motifpostdur, alignonset, '', FFparams, ...
-                        0, 1, collectWNhit, 0, LearnKeepOnlyBase, preAndPostDurRelSameTimept);
-
+                        0, 1, collectWNhit, 0, learntmp, preAndPostDurRelSameTimept);
                     
-                     % --- downsample to size of actual data(remove random dat)
-                SegmentsExtract(randperm(length(SegmentsExtract), length(SegmentsExtract)-Nall(cc))) =[];
+                    
+                    % --- downsample to size of actual data(remove random dat)
+                    SegmentsExtract(randperm(length(SegmentsExtract), length(SegmentsExtract)-Nall(cc))) =[];
 
                 Ndat_pos = [Ndat_pos length(SegmentsExtract)];
                                    
-                    % ----- collect smoothed FR
+                % ----- collect smoothed FR
+                if isfield(ALLBRANCH.SummaryStruct.birds(ii).neurons(nn), 'isRAsobermel')
+                    clustnum = '';
+                else
                     clustnum = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).clustnum;
-                    SegmentsExtract = lt_neural_SmoothFR(SegmentsExtract, clustnum);
+                end
+                SegmentsExtract = lt_neural_SmoothFR(SegmentsExtract, clustnum);
                     
                     % =============== save
                     ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).FR_POSCONTR.classnum(cc).regexpstr = regexpstr;
@@ -151,6 +193,14 @@ for i=1:numalign
                     ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).FR_POSCONTR.classnum(cc).FRsmooth_xbin_CommonTrialDur ...
                         = single([SegmentsExtract(1).FRsmooth_xbin_CommonTrialDur]);
 
+                    
+                    % ======= save syl and gap durs
+                    ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).SylGapDurs_POS.classnum(cc).Dur_syl = ...
+                        [SegmentsExtract.Dur_syl];
+                    ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).SylGapDurs_POS.classnum(cc).Dur_gappre = ...
+                        [SegmentsExtract.Dur_gappre];
+                    ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).SylGapDurs_POS.classnum(cc).Dur_gappost = ...
+                        [SegmentsExtract.Dur_gappost];
                 end
                
                 if (0)
@@ -175,7 +225,7 @@ if saveOn ==1
     % --- save
     tstamp = lt_get_timestamp(0);
     strtype = ALLBRANCH.alignpos(1).ParamsFirstIter.Extract.strtype;
-    savefname = ['ALLBRANCH_' strtype '_' tstamp];
+    savefname = ['ALLBRANCH_' strtype '_' tstamp '_' suffix];
     
     save(savefname, 'ALLBRANCH');
     

@@ -74,15 +74,19 @@ if ~gui_Create
     % will not be brought into GUIDE and not be saved in the figure file
     % when running/saving the GUI from GUIDE.
     designEval = false;
-    if (numargin>1 && ishghandle(varargin{2}))
-        fig = varargin{2};
-        while ~isempty(fig) && ~isa(handle(fig),'figure')
-            fig = get(fig,'parent');
+    if ~strcmp(version('-release'), '2017a')
+        % in 2017 gets error, can run without b elow. not sure if breaks
+        % other things thouigh.. [LT 10/2/17]
+        if (numargin>1 && ishghandle(varargin{2}))
+            fig = varargin{2};
+            while ~isempty(fig) && ~isa(handle(fig),'figure')
+                fig = get(fig,'parent');
+            end
+            
+            designEval = isappdata(0,'CreatingGUIDEFigure') || isprop(fig,'__GUIDEFigure');
         end
-        
-        designEval = isappdata(0,'CreatingGUIDEFigure') || isprop(fig,'__GUIDEFigure');
     end
-        
+    
     if designEval
         beforeChildren = findall(fig);
     end

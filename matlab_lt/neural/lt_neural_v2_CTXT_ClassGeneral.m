@@ -1,5 +1,8 @@
-function CLASSES = lt_neural_v2_CTXT_ClassGeneral(CLASSES, SummaryStruct, prms)
+function CLASSES = lt_neural_v2_CTXT_ClassGeneral(CLASSES, SummaryStruct, prms, CVmethod, CVkfoldnum)
 %% lt 8/12/17 - takes output of lt_neural_v2_CTXT_GetBrnchDat and classified class based on neural FR vec
+% CVmethod = 'LOO' or 'Kfold';
+% CVkfoldnum = 10;
+
 
 %%
 frtimewindow = prms.ClassGeneral.frtimewindow; % on and off, relative to syl onset
@@ -8,7 +11,7 @@ Nmin = prms.ClassGeneral.Nmin;
 
 rebalance =1;
 imbalance_thr = 0.7;
-            beta = 0.9;
+beta = 0.9;
 
 %%
 
@@ -32,7 +35,11 @@ for i=1:numbirds
             
             % ------------------ GET DATA IN FORMAT FOR CLASSIFICATION
             SEGEXTRACT = CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT;
-            clustnum = SummaryStruct.birds(i).neurons(ii).clustnum;
+            if isfield(SummaryStruct.birds(i).neurons(ii), 'isRAsobermel')
+                clustnum = [];
+            else
+                clustnum = SummaryStruct.birds(i).neurons(ii).clustnum;
+            end
             [Xall, xtimesall, Y, CtxtClasses] = fn_extractClassDat(SEGEXTRACT, prms, clustnum);
             
             
@@ -49,47 +56,56 @@ for i=1:numbirds
             %             end
             
             % ---------- PREDICTION
-%             rebalance=0;
-%             [Ypredicted, ConfMat, accuracy, sensitivity_mean, PiYActual] ...
-%                 = lt_neural_v2_QUICK_classify(Xall, Y, 'glmnet', ...
-%                 rebalance);
-%             
-%             disp(tabulate(Y));
-%             disp('not rebalanced');
-%             disp(ConfMat);
-%             disp(['sensitiviy: ' num2str(sensitivity_mean)]);
-%             disp('--');
-%             rebalance=1;
-%             beta = 0.6;
-%             [Ypredicted, ConfMat, accuracy, sensitivity_mean, PiYActual] ...
-%                 = lt_neural_v2_QUICK_classify(Xall, Y, 'glmnet', ...
-%                 rebalance, 0.5, beta);
-%             
-%             disp(['rebalanced, beta=' num2str(beta)]);
-%             disp(ConfMat);
-%             disp(['sensitiviy: ' num2str(sensitivity_mean)]);
-%             disp('--');
-%             
-%             rebalance=1;
-%             beta = 1;
-%             [Ypredicted, ConfMat, accuracy, sensitivity_mean, PiYActual] ...
-%                 = lt_neural_v2_QUICK_classify(Xall, Y, 'glmnet', ...
-%                 rebalance, 0.5, beta);
-%             
-%             disp(['rebalanced, beta=' num2str(beta)]);
-%             disp(ConfMat);
-%             disp(['sensitiviy: ' num2str(sensitivity_mean)]);
-%             disp('--');
-%             pause
-
-%             rebalance=1;
-            [Ypredicted, ConfMat, accuracy, sensitivity_mean, PiYActual] ...
-                = lt_neural_v2_QUICK_classify(Xall, Y, 'glmnet', ...
-                rebalance, imbalance_thr, beta);
-
-%             disp(ConfMat);
-%             lt_neural_ConfMatStats(ConfMat)
-%             
+            %             rebalance=0;
+            %             [Ypredicted, ConfMat, accuracy, sensitivity_mean, PiYActual] ...
+            %                 = lt_neural_v2_QUICK_classify(Xall, Y, 'glmnet', ...
+            %                 rebalance);
+            %
+            %             disp(tabulate(Y));
+            %             disp('not rebalanced');
+            %             disp(ConfMat);
+            %             disp(['sensitiviy: ' num2str(sensitivity_mean)]);
+            %             disp('--');
+            %             rebalance=1;
+            %             beta = 0.6;
+            %             [Ypredicted, ConfMat, accuracy, sensitivity_mean, PiYActual] ...
+            %                 = lt_neural_v2_QUICK_classify(Xall, Y, 'glmnet', ...
+            %                 rebalance, 0.5, beta);
+            %
+            %             disp(['rebalanced, beta=' num2str(beta)]);
+            %             disp(ConfMat);
+            %             disp(['sensitiviy: ' num2str(sensitivity_mean)]);
+            %             disp('--');
+            %
+            %             rebalance=1;
+            %             beta = 1;
+            %             [Ypredicted, ConfMat, accuracy, sensitivity_mean, PiYActual] ...
+            %                 = lt_neural_v2_QUICK_classify(Xall, Y, 'glmnet', ...
+            %                 rebalance, 0.5, beta);
+            %
+            %             disp(['rebalanced, beta=' num2str(beta)]);
+            %             disp(ConfMat);
+            %             disp(['sensitiviy: ' num2str(sensitivity_mean)]);
+            %             disp('--');
+            %             pause
+            
+            %             rebalance=1;
+            if strcmp(CVmethod, 'LOO')
+                [Ypredicted, ConfMat, accuracy, sensitivity_mean, PiYActual] ...
+                    = lt_neural_v2_QUICK_classifyBACKUP(Xall, Y, 'glmnet', ...
+                    rebalance, imbalance_thr, beta);
+            elseif strcmp(CVmethod, 'Kfold')
+                [Ypredicted, ConfMat, accuracy, sensitivity_mean, PiYActual] ...
+                    = lt_neural_v2_QUICK_classify(Xall, Y, 'glmnet', ...
+                    rebalance, imbalance_thr, beta, CVkfoldnum);
+            end
+            %             [Ypredicted, ConfMat, accuracy, sensitivity_mean, PiYActual] ...
+            %                 = lt_neural_v2_QUICK_classify(Xall, Y, 'matlab', ...
+            %                 rebalance, imbalance_thr, beta);
+            
+            %             disp(ConfMat);
+            %             lt_neural_ConfMatStats(ConfMat)
+            %
             if isempty(Ypredicted)
                 % then means failed.. (not full rank?)
                 continue
@@ -104,17 +120,30 @@ for i=1:numbirds
                 PiYactualMeanShuff = nan(prms.ClassGeneral.GetNegControl_N,1);
                 ConfMatShuff = nan(length(ctxtlist), length(ctxtlist), prms.ClassGeneral.GetNegControl_N);
                 
-                for nn=1:prms.ClassGeneral.GetNegControl_N;
+                for nn=1:prms.ClassGeneral.GetNegControl_N
                     
-                    % --- shuffle Y
-                    indtmp = randperm(size(Y,1));
-                    Yperm = Y(indtmp);
-                    
-                    % --- classify
-                    [~, ConfMattmp, accuracytmp, sensitivity_meantmp, PiYActualtmp] ...
-                        = lt_neural_v2_QUICK_classify(Xall, Yperm, 'glmnet', ...
-                        rebalance, imbalance_thr, beta);
-                    
+                    tmpcount=0;
+                    while tmpcount==0
+                        % --- shuffle Y
+                        indtmp = randperm(size(Y,1));
+                        Yperm = Y(indtmp);
+                        
+                        % --- classify
+                        if strcmp(CVmethod, 'LOO')
+                            [~, ConfMattmp, accuracytmp, sensitivity_meantmp, PiYActualtmp] ...
+                                = lt_neural_v2_QUICK_classifyBACKUP(Xall, Yperm, 'glmnet', ...
+                                rebalance, imbalance_thr, beta);
+                            
+                        elseif strcmp(CVmethod, 'Kfold')
+                            [~, ConfMattmp, accuracytmp, sensitivity_meantmp, PiYActualtmp] ...
+                                = lt_neural_v2_QUICK_classify(Xall, Yperm, 'glmnet', ...
+                                rebalance, imbalance_thr, beta, CVkfoldnum);
+                        end
+                        
+                        if ~isempty(accuracytmp)
+                            tmpcount=1;
+                        end
+                    end
                     AccuracyShuff(nn) = accuracytmp;
                     SensitivityShuff(nn) = sensitivity_meantmp;
                     PiYactualMeanShuff(nn) = mean(PiYActualtmp);
@@ -139,9 +168,23 @@ for i=1:numbirds
                     
                     
                     % ================ 2) RUN CLASSIFIER
-                    [~, ConfMat_pos, accuracy_pos, sensitivity_mean_pos, PiYActual_pos] ...
-                        = lt_neural_v2_QUICK_classify(Xall_pos, Y_pos, 'glmnet', ...
-                                        rebalance, imbalance_thr, beta);
+                    tmpcount=0;
+                    while tmpcount==0
+                        
+                        if strcmp(CVmethod, 'LOO')
+                            [~, ConfMat_pos, accuracy_pos, sensitivity_mean_pos, PiYActual_pos] ...
+                                = lt_neural_v2_QUICK_classifyBACKUP(Xall_pos, Y_pos, 'glmnet', ...
+                                rebalance, imbalance_thr, beta);
+                        elseif strcmp(CVmethod, 'Kfold')
+                            [~, ConfMat_pos, accuracy_pos, sensitivity_mean_pos, PiYActual_pos] ...
+                                = lt_neural_v2_QUICK_classify(Xall_pos, Y_pos, 'glmnet', ...
+                                rebalance, imbalance_thr, beta, CVkfoldnum);
+                        end
+                        
+                        if ~isempty(accuracytmp)
+                            tmpcount=1;
+                        end
+                    end
                     
                     % ================ OUTPUT
                     CLASSES.birds(i).neurons(ii).branchnum(iii).CLASSIFIER.ContrPos_ConfMat = ConfMat_pos;
@@ -208,8 +251,8 @@ for j=1:numclasses
     segextract = SEGEXTRACT.classnum(j).SegmentsExtract;
     
     % -- extract FR
-                segextract = lt_neural_SmoothFR(segextract, clustnum);
-
+    segextract = lt_neural_SmoothFR(segextract, clustnum);
+    
     
     if ~isfield(segextract, 'spk_Times')
         % then no data
@@ -253,7 +296,37 @@ for j=1:numclasses
 end
 
 % --- convert Y to categorical array
-Y = categorical(Y);
+if version('-release')=='2013a';
+    Y = nominal(Y);
+else
+    Y = categorical(Y);
+end
 
 
+%% TROUBLESHOOTING
+if (0)
+%% use this to try LOO vs. kfold CV, 
+y = [];
+for cvfold = 2:2:20;
+    
+[~, ConfMat_pos, accuracy_pos, sensitivity_mean_pos, PiYActual_pos] ...
+                                = lt_neural_v2_QUICK_classify(Xall_pos, Y_pos, 'glmnet', ...
+                                rebalance, imbalance_thr, beta, cvfold);
+                            
+                            y= [y accuracy_pos];
+end
 
+
+% LOO
+
+                            [~, ConfMat_pos, accuracy_pos_LOO, sensitivity_mean_pos, PiYActual_pos] ...
+                                = lt_neural_v2_QUICK_classifyBACKUP(Xall_pos, Y_pos, 'glmnet', ...
+                                rebalance, imbalance_thr, beta);
+
+%
+figure; hold on;
+plot(2:2:20, y, '-o');
+line([2 50], [accuracy_pos_LOO accuracy_pos_LOO]);
+ylim([0 1])
+
+end

@@ -66,8 +66,8 @@ for i=1:length(filenames)
     % ================= ADDED - COLLECT SPIKES FOR THIS SONG
     % ------ what is num inds tha make up spike duration? (for extracting
 % spike)
-    SpkPreSamps=(durPreSpike/1000)*frequency_parameters.amplifier_sample_rate;
-    SpkPostSamps=(durPostSpike/1000)*frequency_parameters.amplifier_sample_rate;
+    SpkPreSamps=ceil((durPreSpike/1000)*frequency_parameters.amplifier_sample_rate);
+    SpkPostSamps=ceil((durPostSpike/1000)*frequency_parameters.amplifier_sample_rate);
 
     % -- filter
     datfilt=lt_neural_filter(dattmp, frequency_parameters);
@@ -89,7 +89,7 @@ for i=1:length(filenames)
     numsampstmp=length(datfilt);
     % --- collect spike waveforms
     count=1;
-    for j=1:length(SpikeInds);
+    for j=1:length(SpikeInds)
         
         if SpikeInds(j)>SpkPreSamps & SpikeInds(j)+SpkPostSamps-1<=numsampstmp
         spkdat=datfilt(SpikeInds(j)-SpkPreSamps:SpikeInds(j)+SpkPostSamps-1);

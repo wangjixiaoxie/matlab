@@ -1,10 +1,13 @@
-function [ALLBRANCH] = lt_neural_v2_CTXT_PlotAll(strtype, plotstat)
+function [ALLBRANCH] = lt_neural_v2_CTXT_PlotAll(strtype, plotstat, suffix)
 %% lt 8/24/17 - plot all classification results for a given string type
 % NOTE: need to have run lt_neural_v2_CTXT_PlotGeneral_M for all Results
 % already
 
 CIalpha = 0.01;
 
+if ~exist('suffix', 'var')
+    suffix = '';
+end
 
 %% go load all compiled data structs
 
@@ -12,8 +15,8 @@ savedir = '/bluejay5/lucas/analyses/neural/CTXT_ClassGeneral_M';
 
 cd(savedir)
 
-listoffiles = dir(['CLASSEScompiled_' strtype '_*']);
-
+listoffiles = dir(['CLASSEScompiled_' strtype '_*' suffix '.mat']);
+disp({listoffiles.name});
 assert(~isempty(listoffiles), 'No data ...');
 
 count =0;
@@ -830,7 +833,9 @@ for i=1:numanalys
                 % === for this branch and neuron, get syl contours (will
                 % average over all analyses (i.e. xtime bin position)
                 indstmp = find(inds);
-                sylcontour = [];
+                sylcontour = []; % one maen across all classes
+                allsylcontours = []; % mean within each class
+                allsylcontoursCtxt = [];
                 for kk=indstmp
                     dattmp = ALLDAT.analynum(AllIdx_analy_iter_branch(kk, 1)).iterationnum(AllIdx_analy_iter_branch(kk,2)).allbranches(AllIdx_analy_iter_branch(kk,3));
                     assert(dattmp.AllBirdnum==j, 'asfasdf');
@@ -850,7 +855,23 @@ for i=1:numanalys
                         subplot(313); hold on;
                         plot(mean(dattmp.AllBranchSylContours(:,1:2:end)), '-k');
                     end
+                    
+                    % =========== version 2 - collect separate contours for
+                    % each class at this branch
+                    allsylcontours = [allsylcontours; dattmp.AllBranchSylContours];
+                    allsylcontoursCtxt = [allsylcontoursCtxt; dattmp.AllBranchSylContours_ctxtnums];
+                    
                 end
+                
+                    [sylmeans, sylstds, N] = grpstats(double(allsylcontours), ...
+                        allsylcontoursCtxt, {'mean', 'std', 'numel'});
+                    classnums = unique(allsylcontoursCtxt);
+                    N = N(:,1);
+                ALLBRANCH.alignpos(i).bird(j).branch(l).neuron(k).SylContoursByClass_means = single(sylmeans);
+                ALLBRANCH.alignpos(i).bird(j).branch(l).neuron(k).SylContoursByClass_std = single(sylstds);
+                ALLBRANCH.alignpos(i).bird(j).branch(l).neuron(k).SylContoursByClass_N = N;
+                ALLBRANCH.alignpos(i).bird(j).branch(l).neuron(k).SylContoursByClass_classnums = classnums;
+                
                 
                 
                 % 
@@ -939,5 +960,9 @@ end
 ALLBRANCH.SummaryStruct = ALLDAT.analynum(1).SummaryStruct; % already asserted that all sstructs are the same.
 
 
+%% #############################
+%% ================ EXTRACT NEURAL FR [AND OTHER POSTHOC THINGS]
+saveOn = 1;
+ALLBRANCH = lt_neural_v2_CTXT_BranchGetFR(ALLBRANCH, saveOn, suffix);
 
 

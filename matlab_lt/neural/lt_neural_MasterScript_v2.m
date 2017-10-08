@@ -106,6 +106,16 @@ end
 %% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %% &&&&&&&&&&&&&&&&&& DIAGNOSTIC STUFF &&&&&&&&&&&&&&&&
 
+%% ============= CHECK WHETHER ANY UNITS HAVE OVERLAPPING DATA - IF SO, REMOVE ONE OF THEM
+ 
+[SummaryStruct, NeurToRemove] =lt_neural_v2_DIAGN_RemoveOlap(SummaryStruct);
+
+
+%% ============ DISPLAY SONGS AND LABELS
+stoponbird = 1; % if 1, then pauses and closes; if 0 then not;
+lt_neural_v2_DIAGN_DispLabels(SummaryStruct, stoponbird);
+
+
 %% ===== CHECK CLUSTERING QUALITY - compare filtered neural with cluster
 % also plot other channels if want to compare 
 close all;
@@ -160,19 +170,29 @@ FRmat = FRmat(t1:t2, trials);
 [SNR, SignalPower, NoisePower] = lt_neural_v2_SNR(FRmat);
 
 
+%% ================================== PLOT RASTER AND SMOOTHED FR FOR ANY MOTIF
+close all
+BirdToPlot = 'bk7';
+NeurToPlot = 1; % 4
+motiflist = {'n(h)hh', 'g(h)'};
+plotbytime = 0; % links rasters for all motifs by time of song.
+lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
+    motiflist, plotbytime)
 
 %% &&&&&&&&&&&&&&&&&&&&&& CONTEXT &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 clear CLASSES
 
+% ###########################################################################
+% ############################################## DATA PREPROCESSING
 % &&&&&&&&&&&&& 1) ARBITRARY CONTEXTS
-strtype = 'xaa'; % a is fixed, x variable, across contexts
+strtype = 'xaaa'; % a is fixed, x variable, across contexts
 [CLASSES, prms] = lt_neural_v2_CTXT_Extract(SummaryStruct, strtype);
 
 % &&&&&&&&&&&&& 2) EXTRACT REGEXP STRUCT 
 prms.alignWhichSyl = 2; % which syl (in order) to align to
 prms.alignOnset = 1; % if 1, then onset, if 0, then offset
-prms.motifpredur = 0.2;
-prms.motifpostdur = 0.3;
+prms.motifpredur = 0.25;
+prms.motifpostdur = 0.25;
 prms.preAndPostDurRelSameTimept = 1; % 1, then pre and post both aligned at same time. if 0, then post is aligned to motif ofset.
 CLASSES = lt_neural_v2_CTXT_GetBrnchDat(CLASSES, SummaryStruct, prms);
 
@@ -182,13 +202,18 @@ CLASSES = lt_neural_v2_CTXT_GetBrnchPosControl(CLASSES, SummaryStruct, prms, str
 
 % &&&&&&&&&&&&& 2) PLOT MEAN FR ACROSS CONTEXTS FOR EACH BRANCH 
 close all;
-plotPosControl = 1; % will do if exists.
-LMANorX = 1; % 0 for all; 1 for LMAN; 2 for X
-lt_neural_v2_CTXT_FRanyclass(CLASSES, SummaryStruct, prms, plotPosControl, LMANorX);
+plotPosControl = 0; % will do if exists.
+LMANorX = 0; % 0 for all; 1 for LMAN; 2 for X
+closeAfterEachBird = 1; % closes figss
+lt_neural_v2_CTXT_FRanyclass(CLASSES, SummaryStruct, prms, plotPosControl, ...
+    LMANorX, closeAfterEachBird);
 
 
-% &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& CLASSIFIER
-% =========================== VERSION 1 (SINGLE ITERATION)
+
+% ###########################################################################
+% ######################################## CLASSIFICATION (SINGLE TIME WINDOW)
+
+% ========================= CLASSIFIER( SINGLE ITERATION)
 prms.ClassGeneral.frtimewindow =[-0.075 0.025]; % on and off, relative to syl onset
 prms.ClassGeneral.frbinsize = 0.01; % in s.
 prms.ClassGeneral.Nmin = 7; % in s.
@@ -199,8 +224,18 @@ prms.ClassGeneral.GetNegControl_N = 20; % number iterations for each case
 prms.ClassGeneral.GetPosControl =1;
 CLASSES = lt_neural_v2_CTXT_ClassGeneral(CLASSES, SummaryStruct, prms);
 
-% ============================ VERSION 2 - VARY PARAMETERS, MULTIPLE
-% ITERATIONS
+
+% ===================== PLOTS SINGLE ITERATION
+close all;
+lt_neural_v2_CTXT_PlotGeneral(CLASSES, SummaryStruct, prms);
+
+
+
+% ###########################################################################
+% ######################################## CLASSIFICATION (SLIDING TIME WINDOW)
+
+
+% ============================ CLASSIFIER (SLIDING WINDOW MULT ITERATIONS)
 TimeWindowDur = 0.04;
 TimeWindowSlide = 0.01;
 ListOfTimeWindows = [-prms.motifpredur:TimeWindowSlide:prms.motifpostdur-TimeWindowDur; ...
@@ -210,50 +245,81 @@ savenotes = 'allXLman';
 
 prms.ClassGeneral.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
 prms.ClassGeneral.GetNegControl_N = 20; % number iterations for each case
-
 prms.ClassGeneral.GetPosControl =1;
+
 [savedir] = lt_neural_v2_CTXT_ClassGeneral_M(CLASSES, SummaryStruct, prms, ListOfTimeWindows, ...
     ListOfFrBinSizes, savenotes);
 
-% &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& PLOTS
-% ========== VERSION 1 - PLOT SINGLE ITERATION
-close all;
-lt_neural_v2_CTXT_PlotGeneral(CLASSES, SummaryStruct, prms);
+% ------------ debugging: to systematically change names of classes...
+lt_neural_v2_CTXT_Debug;
 
-% ========== VERSION 2- PLOT ALL
-strtype = 'xaaa';
+
+
+% ======================================== PLOT RESULTS FOR SINGLE ANALYSIS
+% 1) COLLECT DATA
+strtype = 'xaa';
 algnsyl = 2;
 algnonset = 1;
-CLASSEScompiled = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, algnonset);
+suffix = 'RAallbirds20ms'; % leave blank to get any
+CLASSEScompiled = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, ...
+    algnonset, suffix);
 
+% 2) PLOT
+close all; 
 plotstat = 'F1';
 lt_neural_v2_CTXT_PlotGeneral_M2(CLASSEScompiled, plotstat);
 
 
-% ========== VERSION 3- COMBINE ALL PLOTS FOR A GIVEN MOTIF
-% combine across 1) syl aligned to 2) aligned to onset or offset, 3) fr
-% window size 4) fr bin size
+
+% ===================================== COMBINE ALL PLOTS FOR A GIVEN MOTIF 
 % NOTE!!: NEED TO FIRST RUN lt_neural_v2_CTXT_PlotGeneral_M to get compiled
 % stats
+% combine across 1) syl aligned to 2) aligned to onset or offset, 3) fr
+% window size 4) fr bin size
 close all; 
-strtype = 'xaaa';
+strtype = 'xaa';
 plotstat = 'F1';
-ALLBRANCH = lt_neural_v2_CTXT_PlotAll(strtype, plotstat);
+suffix = 'RAallbirds20ms'; % leave blank to get all
+ALLBRANCH = lt_neural_v2_CTXT_PlotAll(strtype, plotstat, suffix);
 
-% ================ EXTRACT NEURAL FR TO BRANCHES
-saveOn = 1;
-ALLBRANCH = lt_neural_v2_CTXT_BranchGetFR(ALLBRANCH, saveOn);
 
-% ============== PLOT BY BRANCH 
-% 1)  First load branch
+
+% ============================== PLOTTING ALLBRANCH ======================
+% ======= EXTRACT GAP/SYL DURS
+close all;
+ALLBRANCH = lt_neural_v2_CTXT_BranchGaps(ALLBRANCH);
+
+% ==== 1)  REMOVE ANY REDUNDANT NEURONS FROM ALLBRANCH
+ALLBRANCH = lt_neural_v2_CTXT_BranchRemvOlap(ALLBRANCH);
+
+
+% ==== 2)  PLOT EACH BRANCH/BIRD/NEURON
+close all;
+birdtoplot = 'pu26y2'; % leave blank to plot all;
+lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot)
+
+
+% ==== 3)  SUMMARIZE PLOT ACROSS BRANCHES 
 close all; 
-% dattoplot = 'classperform';
-dattoplot = 'frmean';
+dattoplot = 'classperform';
+% dattoplot = 'frmean';
 % dattoplot = 'dprime';
-LMANorX = 1; % 0, both; 1, LMAN; 2, X
+LMANorX = 0; % 0, both; 1, LMAN; 2, X
 birdstoexclude = {};
 % birdstoexclude = {'bk7', 'bu77wh13', 'or74bk35', 'wh6pk36', 'br92br54'};
-lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoexclude)
+
+durThreshOmega.syl = 0.15; % omega2 (will only keep if lower) [leave empty to ignore]
+% durThreshOmega.gappre= 0.5;
+durThreshOmega.gappost= 0.2;
+% durThreshOmega.syl = []; % omega2 (will only keep if lower) [leave empty to ignore]
+durThreshOmega.gappre= [];
+% durThreshOmega.gappost= [];
+
+RemoveRepeats=1; % if 1, then removes any branch with a class with token preceded by same syl (e.g. a(a)bc or a(a)ab);
+RemovePrecededByIntro=0; % if 1, then removes any token preceded by "i" (e.g. i(a)bc) [REQUIRES REMOVE REPEATS =1, since in progress]
+
+lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoexclude, ...
+    durThreshOmega, RemoveRepeats, RemovePrecededByIntro)
 
 
 
@@ -551,6 +617,7 @@ RemoveTrialsZeroFR = 0; % this takes precedence over interpolateCorrNan
     interpolateCorrNan, RemoveTrialsZeroFR, premotorWind);
 
 % ============ DISPLAY LABELS INFORMATION FOR ALL SWITCHES AND NEURONS
+% [LEARNING SPECIFIC]
 onlyWNonset = 0; % if 0, then all switches, if 1, then only WN on
 lt_neural_v2_ANALY_Swtch_DispLabs(MOTIFSTATS_Compiled, SwitchStruct, onlyWNonset);
 

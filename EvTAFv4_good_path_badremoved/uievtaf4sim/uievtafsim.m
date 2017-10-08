@@ -576,8 +576,10 @@ for iND=1:length(ND)
     SimTrigInfo=[SimTrigInfo;...
         ND(iND).TriggerTimes*1e3,ones(size(ND(iND).TriggerTimes))*(iND-1)];
 end
+% if ~isempty(SimTrigInfo)
 [sortv,sorti]=sort(SimTrigInfo(:,1));
 SimTrigInfo=SimTrigInfo(sorti,:);
+% end
 
 rd.ttimes=SimTrigInfo(:,1);
 rd.trignote=SimTrigInfo(:,2);

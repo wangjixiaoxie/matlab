@@ -32,7 +32,7 @@ if (REPLOTSPECGRAM==1)
     imagesc(t,f,log(abs(sp)));
     set(gca,'YD','n');
     set(gca,'YTick',[0:2e3:1e4]);
-    set(gca,'YTickL',{'0','2','4','6','8','10'});
+    set(gca,'YTickLabel',{'0','2','4','6','8','10'});
     title(fn,'Interpreter','none');xlim([0,t(end)]);ylim([0,1e4]);
 end
 

@@ -38,13 +38,15 @@ for i=1:numbirds
     birdname = CLASSES.birds(i).birdname;
     for ii=1:numneurons
         
+        disp([num2str(i) '-' num2str(ii)]);
         numbranches = length(CLASSES.birds(i).neurons(ii).branchnum);
         
+       
         % --- prepare list of syls for this neuron
         [SongDat, NeurDat, Params] = lt_neural_ExtractDat2(SummaryStruct, i, ii);
         
         % ----- only keep songs without WN, if is learning expt
-        if LearnKeepOnlyBase==1
+        if LearnKeepOnlyBase==1 & ~isfield(SummaryStruct.birds(i).neurons(ii), 'isRAsobermel'); 
             exptname = SummaryStruct.birds(i).neurons(ii).exptID;
             [islearning, LearnSummary, switchtime] = ...
                 lt_neural_v2_QUICK_islearning(birdname, exptname, 1);
@@ -176,9 +178,14 @@ for i=1:numbirds
                     mclass(prms.alignWhichSyl) ')' mclass(prms.alignWhichSyl+1:end)];
                 
                 % --- extract
+                if  ~isfield(SummaryStruct.birds(i).neurons(ii), 'isRAsobermel')
+                    learntmp = LearnKeepOnlyBase;
+                else
+                    learntmp = 0;
+                end
                 [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
                     mclass, prms.motifpredur, prms.motifpostdur, prms.alignOnset, '', FFparams, ...
-                    0, 1, collectWNhit, 0, LearnKeepOnlyBase, prms.preAndPostDurRelSameTimept);
+                    0, 1, collectWNhit, 0, learntmp, prms.preAndPostDurRelSameTimept);
                 
                 % --- confirm that sample sizes match actual data
                 assert(length(SegmentsExtract) >= Nall(j), 'problem - likely becuyase regexp didnt get overlapping, so N is small')

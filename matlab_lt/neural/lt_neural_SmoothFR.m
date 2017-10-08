@@ -24,11 +24,15 @@ if ~exist('binsize', 'var')
 end
 
 % clustnum = desired cluster
-if isfield(SegmentsExtract, 'spk_Times'); % only try to smooth if there is any data
+if isfield(SegmentsExtract, 'spk_Times') % only try to smooth if there is any data
     
     NumTrials = length(SegmentsExtract);
     
-    for i=1:NumTrials
+        commonTrialDur = min([SegmentsExtract.global_offtime_motifInclFlank] - ...
+            [SegmentsExtract.global_ontime_motifInclFlank]); % shortest trial
+        maxInd = floor(commonTrialDur/binsize_spks);
+
+        for i=1:NumTrials
         if isfield(SegmentsExtract, 'spk_Clust')
             % then is my data -, match to clust
             if isempty(clustnum)
@@ -42,9 +46,6 @@ if isfield(SegmentsExtract, 'spk_Times'); % only try to smooth if there is any d
             spktimes = SegmentsExtract(i).spk_Times;
         end
         
-        commonTrialDur = min([SegmentsExtract.global_offtime_motifInclFlank] - ...
-            [SegmentsExtract.global_ontime_motifInclFlank]); % shortest trial
-        maxInd = floor(commonTrialDur/binsize_spks);
         
         if (0)
             disp('NOTE: KDE NOT YET WRITTEN, USING BOXCAR SMOOTHING');

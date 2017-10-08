@@ -71,7 +71,9 @@ else
     end
        
     hfig=errorbar(X, Y, Yerr);
+    if ~strcmp(version('-release'), '2017a')
     errorbar_tick(hfig, 10000000)
+    end
 end
 
 % apply modifiers

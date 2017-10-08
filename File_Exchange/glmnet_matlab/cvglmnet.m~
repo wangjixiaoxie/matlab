@@ -263,7 +263,7 @@ is_offset = glmfit.offset;
 options.lambda = glmfit.lambda;
 
 nz = glmnetPredict(glmfit,[],[],'nonzero');
-if (strcmp(glmfit.class,'multnet'))
+if (strcmp(glmfit.class,'multnet') && (~grouped))
     nnz = zeros(length(options.lambda),length(nz));
     for i = 1:length(nz)
         nnz(:,i) = transpose(sum(nz{i},1));
@@ -274,6 +274,7 @@ elseif strcmp(glmfit.class, 'mrelnet')
 else
     nz = transpose(sum(nz,1));
 end
+nz
 
 if isempty(foldid)
     population = cat(2, repmat(1:nfolds, 1, floor(N/nfolds)), 1:mod(N,nfolds));
@@ -322,7 +323,7 @@ else
         end
         xr = x(~which,:); yr = y(~which,:);
         cpredmat{i} = glmnet(xr, yr, family, opts);
-    end
+    end    
 end
 
 switch cpredmat{1}.class

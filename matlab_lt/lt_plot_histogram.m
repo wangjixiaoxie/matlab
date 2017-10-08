@@ -15,7 +15,7 @@ if ~exist('Xcenters', 'var');
      minbin=min(Y)-std(Y)/3;
     maxbin=max(Y)+std(Y)/3;
     
-    Nbins=ceil(numel(Y)/4);
+    Nbins=ceil(numel(Y)/5);
     if Nbins<8;
         Nbins=8;
     end
@@ -25,7 +25,7 @@ elseif isempty(Xcenters);
     minbin=min(Y)-std(Y)/3;
     maxbin=max(Y)+std(Y)/3;
     
-    Nbins=ceil(numel(Y)/4);
+    Nbins=ceil(numel(Y)/5);
     if Nbins<8;
         Nbins=8;
     end

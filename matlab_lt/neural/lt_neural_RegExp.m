@@ -280,16 +280,25 @@ else
     endinds = startinds + strlength -1;
     
     % - get match syls
+    if size(startinds,2)==1
+        startinds = startinds';
+    end
+    
     indmat = [];
     for j=1:strlength
         indmat = [indmat startinds'+j-1];
     end
     
-    if size(AllLabels,1)==1
-    matchlabs = mat2cell(AllLabels(indmat)', ones(size(indmat,1),1))';
-    else
+%     if size(AllLabels,1)==1
+%     matchlabs = mat2cell(AllLabels(indmat)', ones(size(indmat,1),1))';
+%     else
+if size(indmat,2)==1
+    % then is one col (i.e. only one syl in motif) so need to make sure
+    % output is col
+      matchlabs = mat2cell(AllLabels(indmat)', ones(size(indmat,1),1))';
+else  
     matchlabs = mat2cell(AllLabels(indmat), ones(size(indmat,1),1))';
-    end
+end
     
     % ---- compare methods
     if length(startinds) == length(startinds1)
@@ -379,6 +388,17 @@ for i=1:length(tokenExtents)
     end
     
     
+    % ------------------- EXTRACT SYL DUR AND FLANKING GAP DURS
+    ind=tokenExtents(i);
+    syldur = AllOffsets(ind) - AllOnsets(ind);
+    gapdur_pre = AllOnsets(ind) - AllOffsets(ind-1);
+    gapdur_post = AllOnsets(ind+1) - AllOffsets(ind);
+    
+    SegmentsExtract(i).Dur_syl = syldur;
+    SegmentsExtract(i).Dur_gappre = gapdur_pre;
+    SegmentsExtract(i).Dur_gappost = gapdur_post;
+    
+
     % on time
     ind=tokenExtents(i);
     if alignByOnset==1

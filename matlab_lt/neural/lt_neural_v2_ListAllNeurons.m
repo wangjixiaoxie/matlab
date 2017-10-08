@@ -1,6 +1,8 @@
 function lt_neural_v2_ListAllNeurons
 %% LT 2/6/17 - lists all neurons that have been saved to summarystruct
 
+currdir = pwd;
+%%
 % % load
 % SummaryStruct = lt_neural_v2_LoadSummary;
 % 
@@ -24,3 +26,6 @@ t = uitable('Parent', f, 'Data',dat,'ColumnName',cnames, 'Position', positions2,
     'ColumnWidth', {'auto'}, 'RowName', rownames);
 
 % === if there are any empty neurons, then move another neuron
+
+%%
+cd(currdir);

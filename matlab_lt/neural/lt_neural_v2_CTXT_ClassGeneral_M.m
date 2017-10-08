@@ -1,6 +1,12 @@
 function [savedir] = lt_neural_v2_CTXT_ClassGeneral_M(CLASSES_ori, SummaryStruct, ...
-    prms, ListOfTimeWindows, ListOfFrBinsizes, savenotes)
+    prms, ListOfTimeWindows, ListOfFrBinsizes, savenotes, CVmethod, CVkfoldnum)
 
+if ~exist('CVmethod', 'var')
+    CVmethod = 'Kfold'; % could also be LOO
+    CVkfoldnum = 8; % seems comparable to LOO at 8fold.
+end
+
+%%
 prms.ClassGeneral.Nmin = 6; %
 savedir = '/bluejay5/lucas/analyses/neural/CTXT_ClassGeneral_M';
 
@@ -16,7 +22,7 @@ mkdir(savedir);
 cd(savedir)
 
 save('SummaryStruct', 'SummaryStruct');
-
+save('OriginalClasses', 'CLASSES_ori');
 %% lt 8/12/17 - will run classifier for each combination of time window and bin size
 
 counter = 1;
@@ -28,7 +34,8 @@ for i=1:size(ListOfTimeWindows,1);
         prms.ClassGeneral.frbinsize = ListOfFrBinsizes(ii); % in s.
        
         % === run
-        CLASSES = lt_neural_v2_CTXT_ClassGeneral(CLASSES_ori, SummaryStruct, prms);
+        CLASSES = lt_neural_v2_CTXT_ClassGeneral(CLASSES_ori, SummaryStruct, ...
+            prms, CVmethod, CVkfoldnum);
         
         % ======== save output
         classes_fname = ['classes' num2str(counter) '.mat'];

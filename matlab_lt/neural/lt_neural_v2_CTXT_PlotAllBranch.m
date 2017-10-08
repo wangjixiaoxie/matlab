@@ -1,4 +1,5 @@
-function lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoexclude)
+function lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoexclude, ...
+   durThreshOmega, RemoveRepeats, RemovePrecededByIntro)
 %% TO DO
 
 % 1) for pos control, get syl contours. (and then can do stretching for all
@@ -11,13 +12,7 @@ function lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoe
 
 % LMANorX = 1; % 0, both; 1, LMAN; 2, X
 
-Niter = 3; % shuffles
-Nmin = 3; % min sample size;
-% Nmin = ALLBRANCH.alignpos(1).ParamsFirstIter.minN; % min sample size;
-
 CompareDprimeWohl = 1; % if 1, then overlays Sober and Wohl values
-DprimeNegVersion = 'shuff'; % DONT USE THIS - is biased to be large,  because of lower sample size (this splits data in half)
-% DprimeNegVersion = 'shuff'; % correct version, shuffles and resplits, maintaining sampel size.
 
 stdbinsize = diff(ALLBRANCH.alignpos(1).ParamsFirstIter.ClassGeneral.frtimewindow(1:2))/2; % divide 2 since can be smaller
 
@@ -49,290 +44,17 @@ for i=1:numalign
 end
 
 %% ======== dprime stuff [and mean FR and FR std]
-numalign = length(ALLBRANCH.alignpos);
 
-for i=1:numalign
-    
-    numbirds = length(ALLBRANCH.alignpos(i).bird);
-    Nall_dat = [];
-    Nall_pos = [];
-    Nall_neg = [];
-    for ii = 1:numbirds
-        numbranches = length(ALLBRANCH.alignpos(i).bird(ii).branch);
-        
-        Maxbranches = max([Maxbranches numbranches]);
-        
-        for bb = 1:numbranches
-            
-            numneurons = length(ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron);
-            
-            for nn=1:numneurons
-                
-                if isempty(ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).yvals)
-                    continue
-                end
-                
-                
-                motifpredur = ALLBRANCH.alignpos(i).ParamsFirstIter.motifpredur;
-                motifpostdur = ALLBRANCH.alignpos(i).ParamsFirstIter.motifpostdur;
-                
-                
-                
-                % ================================== CALCULATE RUNNING
-                % D-PRIME AND FR
-                
-                % ------------- ACTUAL DAT
-                dattmp = ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).FR;
-                numclasses = length(dattmp.classnum);
-                
-                indstokeep = round(1:1000*(motifpredur+motifpostdur-0.005));
-                %
-                dprimethisbranch = [];
-                
-                for cc=1:numclasses
-                    N1= size(dattmp.classnum(cc).FRsmooth_rate_CommonTrialDur,2);
-                    
-                    % --------------------------- GET FR
-                    if N1<Nmin
-                        continue
-                    end
-                    
-                    frmean = mean(dattmp.classnum(cc).FRsmooth_rate_CommonTrialDur(indstokeep, :),2);
-                    ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).FR.classnum(cc).frmean = frmean;
-%                     frRunningStdOfMean = lt_running_stats(frmean, round(stdbinsize*1000), 1);
-%                     frRunningStdOfMean = frRunningStdOfMean.STD';
-%                     numnan = length(frmean) - length(frRunningStdOfMean);
-%                     frRunningStdOfMean = [nan(floor(numnan/2),1); frRunningStdOfMean ...
-%                         ; nan(ceil(numnan/2),1)];
-                    
-%                     ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).FR.classnum(cc).frRunningStdOfMean ...
-%                         = frRunningStdOfMean;
-%                     ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).FR.classnum(cc).stdbinsize ...
-%                         = single(stdbinsize);
-                    
-                    
-                    
-                    % -------------------------- DPRIME
-                    Nall_dat = [Nall_dat N1];
-                    for ccc = cc+1:numclasses
-                        N2 = size(dattmp.classnum(ccc).FRsmooth_rate_CommonTrialDur,2);
-                        
-                        if N1<Nmin || N2<Nmin
-                            continue
-                        end
-                        
-                        % ===== method 2
-                        alldat = [dattmp.classnum(cc).FRsmooth_rate_CommonTrialDur(indstokeep,:) ...
-                            dattmp.classnum(ccc).FRsmooth_rate_CommonTrialDur(indstokeep,:)];
-                        
-                        class1mean = nanmean(alldat(:, 1:N1),2);
-                        class1var = nanvar(alldat(:, 1:N1)');
-                        
-                        class2mean = nanmean(alldat(:, N1+1:N1+N2),2);
-                        class2var = nanvar(alldat(:, N1+1:N1+N2)');
-                        
-                        if (0)
-                            lt_figure; hold on;
-                            shadedErrorBar(1:length(class1mean), class1mean, sqrt(class1var), {'Color', 'r'},1 );
-                            shadedErrorBar(1:length(class2mean), class1mean, sqrt(class2var), {'Color', 'b'},1 )
-                        end
-                        
-                        
-                        dprime = abs((class1mean-class2mean)./sqrt((class1var'+class2var')/2));
-                        % from Wohlgemuth, Sober, 2010 (they took abs
-                        % value)
-                        
-                        % ================ OUTPUT FOR THIS BRANCH
-                        dprimethisbranch = [dprimethisbranch dprime];
-                    end
-                end
-                
-                ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).DprimeAllPairwise = dprimethisbranch;
-                
-                
-                % ------------------ NEG CONTROL
-                % =========== version 1 (shuffle across contexts)
-                if strcmp(DprimeNegVersion, 'shuff');
-                    dattmp = ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).FR;
-                    numclasses = length(dattmp.classnum);
-                    
-                    %                 DprimeAll = [];
-                    dprimethisbranch = [];
-                    
-                    for cc=1:numclasses
-                        N1= size(dattmp.classnum(cc).FRsmooth_rate_CommonTrialDur,2);
-                        Nall_neg = [Nall_neg N1];
-                        if N1<Nmin
-                            continue
-                        end
-                        for ccc = cc+1:numclasses
-                            N2 = size(dattmp.classnum(ccc).FRsmooth_rate_CommonTrialDur,2);
-                            
-                            
-                            if N1<Nmin || N2<Nmin
-                                continue
-                            end
-                            
-                            % -- actual dat
-                            alldat = [dattmp.classnum(cc).FRsmooth_rate_CommonTrialDur(indstokeep,:) ...
-                                dattmp.classnum(ccc).FRsmooth_rate_CommonTrialDur(indstokeep,:)];
-                            
-                            % ---- shuffle
-                            DprimeShuffAll = [];
-                            for nshuf = 1:Niter
-                                indshuff = randperm(N1+N2);
-                                %                              indshuff = 1:(N1+N2);
-                                alldatshuff = alldat(:, indshuff);
-                                
-                                class1mean = nanmean(alldatshuff(:, 1:N1),2);
-                                class1var = nanvar(alldatshuff(:, 1:N1)');
-                                
-                                class2mean = nanmean(alldatshuff(:, N1+1:N1+N2),2);
-                                class2var = nanvar(alldatshuff(:, N1+1:N1+N2)');
-                                
-                                %                             % --- cut slightly shorter, so no mismatch
-                                %                             class1mean = class1mean(indstokeep);
-                                %                             class1var = class1var(indstokeep);
-                                %                             class2mean = class2mean(indstokeep);
-                                %                             class2var = class2var(indstokeep);
-                                %
-                                if (0)
-                                    lt_figure; hold on;
-                                    shadedErrorBar(1:length(class1mean), class1mean, sqrt(class1var), {'Color', 'r'},1 );
-                                    shadedErrorBar(1:length(class2mean), class1mean, sqrt(class2var), {'Color', 'b'},1 )
-                                end
-                                dprime = abs((class1mean-class2mean)./sqrt((class1var'+class2var')/2));
-                                % from Wohlgemuth, Sober, 2010 (they took abs
-                                % value)
-                                
-                                DprimeShuffAll = [DprimeShuffAll dprime];
-                            end
-                            
-                            dprimethisbranch = [dprimethisbranch mean(DprimeShuffAll,2)];
-                        end
-                    end
-                elseif strcmp(DprimeNegVersion, 'Wohl')
-                    % then within each syl in stereotyped context, shuffle
-                    dattmp = ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).FR;
-                    %                     dattmp = ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).FR;
-                    numclasses = length(dattmp.classnum);
-                    
-                    %                 DprimeAll = [];
-                    dprimethisbranch = [];
-                    
-                    for cc=1:numclasses
-                        N1= floor(size(dattmp.classnum(cc).FRsmooth_rate_CommonTrialDur,2)./2);
-                        N2 = ceil(size(dattmp.classnum(cc).FRsmooth_rate_CommonTrialDur,2)./2);
-                        
-                        Nall_neg = [Nall_neg N1];
-                        if N1<Nmin
-                            continue
-                        end
-                        
-                        if N1<Nmin || N2<Nmin
-                            continue
-                        end
-                        
-                        % -- actual dat
-                        alldat = dattmp.classnum(cc).FRsmooth_rate_CommonTrialDur(indstokeep,:);
-                        
-                        % ---- shuffle
-                        DprimeShuffAll = [];
-                        for nshuf = 1:Niter
-                            indshuff = randperm(N1+N2);
-                            %                              indshuff = 1:(N1+N2);
-                            alldatshuff = alldat(:, indshuff);
-                            
-                            class1mean = nanmean(alldatshuff(:, 1:N1),2);
-                            class1var = nanvar(alldatshuff(:, 1:N1)');
-                            
-                            class2mean = nanmean(alldatshuff(:, N1+1:N1+N2),2);
-                            class2var = nanvar(alldatshuff(:, N1+1:N1+N2)');
-                            
-                            %                             % --- cut slightly shorter, so no mismatch
-                            %                             class1mean = class1mean(indstokeep);
-                            %                             class1var = class1var(indstokeep);
-                            %                             class2mean = class2mean(indstokeep);
-                            %                             class2var = class2var(indstokeep);
-                            %
-                            if (0)
-                                lt_figure; hold on;
-                                shadedErrorBar(1:length(class1mean), class1mean, sqrt(class1var), {'Color', 'r'},1 );
-                                shadedErrorBar(1:length(class2mean), class1mean, sqrt(class2var), {'Color', 'b'},1 )
-                            end
-                            dprime = abs((class1mean-class2mean)./sqrt((class1var'+class2var')/2));
-                            % from Wohlgemuth, Sober, 2010 (they took abs
-                            % value)
-                            
-                            DprimeShuffAll = [DprimeShuffAll dprime];
-                        end
-                        
-                        dprimethisbranch = [dprimethisbranch mean(DprimeShuffAll,2)];
-                        
-                    end
-                    
-                end
-                ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).DprimeAllPairwise_Neg = dprimethisbranch;
-                ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).DprimeAllPairwise_Neg_Niter = Niter;
-                
-                
-                % ------------------- POS CONTROL
-                dattmp = ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).FR_POSCONTR;
-                numclasses = length(dattmp.classnum);
-                dprimethisbranch = [];
-                for cc=1:numclasses
-                    N1 = size(dattmp.classnum(cc).FRsmooth_rate_CommonTrialDur,2);
-                    Nall_pos = [Nall_pos N1];
-                    if N1<Nmin
-                        continue
-                    end
-                    
-                    % --------------------------- GET FR
-                    frmean = mean(dattmp.classnum(cc).FRsmooth_rate_CommonTrialDur(indstokeep, :),2);
-                    ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).FR_POSCONTR.classnum(cc).frmean = frmean;
-                    
-                    for ccc = cc+1:numclasses
-                        N2 = size(dattmp.classnum(ccc).FRsmooth_rate_CommonTrialDur,2);
-                        
-                        if N1<Nmin || N2<Nmin
-                            continue
-                        end
-                        
-                        class1mean = nanmean(dattmp.classnum(cc).FRsmooth_rate_CommonTrialDur,2);
-                        class1var = nanvar(dattmp.classnum(cc).FRsmooth_rate_CommonTrialDur');
-                        class2mean = nanmean(dattmp.classnum(ccc).FRsmooth_rate_CommonTrialDur,2);
-                        class2var = nanvar(dattmp.classnum(ccc).FRsmooth_rate_CommonTrialDur');
-                        
-                        % --- cut slightly shorter, so no mismatch
-                        class1mean = class1mean(indstokeep);
-                        class1var = class1var(indstokeep);
-                        class2mean = class2mean(indstokeep);
-                        class2var = class2var(indstokeep);
-                        
-                        dprime = abs((class1mean-class2mean)./sqrt((class1var'+class2var')/2));
-                        % from Wohlgemuth, Sober, 2010 (they took abs
-                        % value)
-                        
-                        dprimethisbranch = [dprimethisbranch dprime];
-                    end
-                    
-                end
-                ALLBRANCH.alignpos(i).bird(ii).branch(bb).neuron(nn).DprimeAllPairwise_Pos = dprimethisbranch;
-                
-            end
-            
-        end
-        
-    end
-    
-    %% ==================== COMPARE SAMPLE SIZES FOR DAT AND POS
-    lt_figure; hold on;
-    ylabel('N');
-    xlabel('dat, pos, neg');
-    lt_plot_MultDist({Nall_dat, Nall_pos, Nall_neg}, [1 2 3], 1);
-    
-end
+% DPRIME STUFF
+Niter = 3; % shuffles
+Nmin = 3; % min sample size;
+% Nmin = ALLBRANCH.alignpos(1).ParamsFirstIter.minN; % min sample size;
 
+% DprimeNegVersion = 'Wohl'; % DONT USE THIS - is biased to be large,  because of lower sample size (this splits data in half)
+DprimeNegVersion = 'shuff'; % correct version, shuffles and resplits, maintaining sampel size.
+
+ALLBRANCH = lt_neural_v2_CTXT_AllBranchDprime(ALLBRANCH, Nmin, Niter, ...
+    DprimeNegVersion);
 
 
 %% PLOT ACROSS BRANCHES [sep by alignment, stretch or no stretch
@@ -351,11 +73,13 @@ numalign = length(ALLBRANCH.alignpos);
 
 DATSTRUCT = struct;
 
-                Allalign = [];
-                Allbirdnum = [];
-                Allbranchnum = [];
-                Allneuron = [];
+Allalign = [];
+Allbirdnum = [];
+Allbranchnum = [];
+Allneuron = [];
 
+NumRemovedDueToThresh = 0;
+NumKeptDueToThresh = 0;
 for i=1:numalign
     alignsyl = ALLBRANCH.alignpos(i).alignsyl;
     alignons = ALLBRANCH.alignpos(i).alignonset;
@@ -375,17 +99,19 @@ for i=1:numalign
     Xcell_neg = {};
     Ycell_neg = {};
     
+    BirdnumAll = [];
+    
     Datstruct = struct;
     
     for ii=1:numbirds
         
-
+        
         birdname = ALLBRANCH.SummaryStruct.birds(ii).birdname;
         if any(strcmp(birdstoexclude, birdname))
             disp(['skipping ' birdname]);
             continue
         end
-            
+        
         numbranch = length(ALLBRANCH.alignpos(i).bird(ii).branch);
         
         for j=1:numbranch
@@ -395,14 +121,16 @@ for i=1:numalign
                 
                 datneur = ALLBRANCH.alignpos(i).bird(ii).branch(j).neuron(nn);
                 
+                
                 %% if care about location
-                location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
                 if LMANorX==1
+                    location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
                     % LMAN
                     if ~strcmp(location, 'LMAN')
                         continue
                     end
                 elseif LMANorX==2
+                    location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
                     if ~strcmp(location, 'X')
                         continue
                     end
@@ -413,8 +141,49 @@ for i=1:numalign
                 if isempty(datneur.yvals)
                     continue
                 end
+                if length(datneur.xtimes)==1
+                    continue
+                end
                 
-                % ========================================== DATA
+               %% ==== remove anything with repeats?
+               if RemoveRepeats ==1
+                   isrepeat=0;
+                   for k =1:length(datneur.prms_regexpstrlist)
+                       thisstr = datneur.prms_regexpstrlist{k};
+                       
+                       tokensyl = thisstr(strfind(thisstr, '(')+1);
+                       presyl = thisstr(strfind(thisstr, '(')-1);
+                       
+                       if tokensyl == presyl
+                           isrepeat =1;
+                       end
+                       
+                       % NOTE: ad hoc, change this to separate section.
+                       if presyl =='i'
+                           isrepeat=1;
+                       end
+                   end
+                   
+                   if isrepeat==1
+                       continue
+                   end
+               end
+               
+               %% ===== if want to filter by syl/gap duration differences across classes (within context)
+               if datneur.DurAnovas.syl_omega>durThreshOmega.syl | ...
+                       datneur.DurAnovas.gappre_omega > durThreshOmega.gappre | ...
+                       datneur.DurAnovas.gappost_omega > durThreshOmega.gappost
+                   NumRemovedDueToThresh = NumRemovedDueToThresh+1;
+                   continue
+               else
+                   NumKeptDueToThresh = NumKeptDueToThresh+1;
+               end
+                 
+               
+              
+                %% ========================================== DATA
+                
+               DatN = nan(1,3);
                 if strcmp(dattoplot, 'classperform')
                     Xcell = [Xcell datneur.xtimes];
                     Ycell = [Ycell datneur.yvals];
@@ -443,6 +212,7 @@ for i=1:numalign
                 Xcontcell = [Xcontcell datneur.sylcontours_x];
                 Ycontcell = [Ycontcell datneur.sylcontours_mean];
                 
+                DatN(1) = length(Ycell{end});
                 
                 
                 
@@ -468,9 +238,10 @@ for i=1:numalign
                     xtimes = -motifpredur + (1:size([datneur.FR_POSCONTR.classnum.frmean],1))./1000;
                     Xcell_pos = [Xcell_pos xtimes];
                     Ycell_pos = [Ycell_pos nanmean([datneur.FR_POSCONTR.classnum.frmean],2)];
-
+                    
                 end
-                
+                DatN(2) = length(Ycell_pos{end});
+
                 
                 % ========================================= NEG CONTROL
                 if strcmp(dattoplot, 'classperform')
@@ -495,7 +266,8 @@ for i=1:numalign
                     Xcell_neg = [Xcell_neg xtimes];
                     Ycell_neg = [Ycell_neg nanmean([datneur.FR.classnum.frmean],2)];
                 end
-                
+                DatN(3) = length(Ycell_neg{end});
+
                 
                 % =================================== SAMPLE SIZE TALLY
                 Allalign = [Allalign i];
@@ -503,12 +275,17 @@ for i=1:numalign
                 Allbranchnum = [Allbranchnum j];
                 Allneuron = [Allneuron nn];
                 
+                BirdnumAll = [BirdnumAll ii];
                 
-                
+                % ======= confirm that is paired - i.e. each datapoint has dat and both controls
+%                 disp(DatN);
+                assert(length(unique(DatN))==1, 'dat and controls have diff lengths ...');
             end
         end
     end
     
+    assert(length(Ycell) == length(Ycell_pos), 'asfds');
+    assert(length(Ycell) == length(Ycell_neg), 'asdf');
     
     % ================== PUT INTO STRUCT
     Datstruct.Dat.Xcell = Xcell;
@@ -521,6 +298,8 @@ for i=1:numalign
     
     Datstruct.NegContr.Xcell = Xcell_neg;
     Datstruct.NegContr.Ycell = Ycell_neg;
+    
+    Datstruct.Dat.BirdnumAll = BirdnumAll;
     
     %% ====================== SUBTRACT CONTROLS
     
@@ -603,13 +382,13 @@ for i=1:numalign
     
     dattype = 'PosContr';
     Datstruct = warp_stretch(Datstruct, dattype);
-
+    
     dattype = 'DatMinusNeg';
     Datstruct = warp_stretch(Datstruct, dattype);
     
-     dattype = 'DatMinusPos';
+    dattype = 'DatMinusPos';
     Datstruct = warp_stretch(Datstruct, dattype);
-
+    
     %% ==================== PLOT (STRETCHED)
     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     title(['[AFTER STRETCH] algnsyl' num2str(alignsyl) ', onset' num2str(alignons)]);
@@ -686,6 +465,10 @@ for i=1:numalign
 end
 linkaxes(hsplots, 'xy')
 
+%%
+
+disp([' ============ REMOVED due to fail syl/gap dur similarity thesrhold: ' ...
+    num2str(NumRemovedDueToThresh) '/' num2str(NumRemovedDueToThresh+NumKeptDueToThresh)]);
 
 
 %% ==== sample size, display
@@ -751,7 +534,7 @@ for i=1:numalign
     plotcol = 'b';
     warpOn=1;
     plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn);
-
+    
     % -- syl contor
     dattype = 'sylcontour';
     warpOn=1;
@@ -762,6 +545,217 @@ end
 
 linkaxes(hsplots, 'xy');
 
+
+
+%% ======================== PLOT EACH BIRD SEPARATELY [RAW, STRETCHED]
+
+Numbirds = max(Allbirdnum);
+numalign = length(ALLBRANCH.alignpos);
+
+figcount=1;
+subplotrows=3;
+subplotcols=3;
+fignums_alreadyused=[];
+hfigs=[];
+hsplots = [];
+
+for i=1:numalign
+    alignsyl = ALLBRANCH.alignpos(i).alignsyl;
+    alignons = ALLBRANCH.alignpos(i).alignonset;
+    
+    Datstruct = DATSTRUCT.numalign(i).Datstruct;
+    
+    for ii=1:Numbirds
+        
+        birdname = ALLBRANCH.SummaryStruct.birds(ii).birdname;
+        
+        % ====================== NO STRETCH
+        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+        hsplots = [hsplots hsplot];
+        title(['[' birdname ']' num2str(alignsyl) ', onset' num2str(alignons)]);
+        
+        % ----- Dat
+        dattype = 'Dat';
+        plotcol = 'k';
+        warpOn=1;
+        plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn, ii);
+        
+        % ---- Neg
+        dattype = 'NegContr';
+        plotcol = 'r';
+        warpOn=1;
+        plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn, ii);
+        
+        
+        % ---- Pos (skip for now, need to stretch relative to itself)
+        dattype = 'PosContr';
+        plotcol = 'b';
+        warpOn=1;
+        plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn, ii);
+        
+        
+        % -- contour
+        dattype = 'sylcontour';
+        plotcol = 'k';
+        warpOn=1;
+        plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn, ii);
+        
+    end
+end
+
+linkaxes(hsplots, 'xy');
+lt_subtitle('stretched')
+
+%% ======================== PLOT EACH BIRD SEPARATELY [RAW, NOT STRETCHED]
+
+Numbirds = max(Allbirdnum);
+numalign = length(ALLBRANCH.alignpos);
+
+figcount=1;
+subplotrows=3;
+subplotcols=3;
+fignums_alreadyused=[];
+hfigs=[];
+hsplots = [];
+
+        
+for i=1:numalign
+    alignsyl = ALLBRANCH.alignpos(i).alignsyl;
+    alignons = ALLBRANCH.alignpos(i).alignonset;
+    
+    Datstruct = DATSTRUCT.numalign(i).Datstruct;
+    
+    for ii=1:Numbirds
+        
+        birdname = ALLBRANCH.SummaryStruct.birds(ii).birdname;
+        
+        % ====================== NO STRETCH
+        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+        hsplots = [hsplots hsplot];
+        title(['[' birdname ']' num2str(alignsyl) ', onset' num2str(alignons)]);
+        
+        % ----- Dat
+        dattype = 'Dat';
+        plotcol = 'k';
+        warpOn=0;
+        plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn, ii);
+        
+        % ---- Neg
+        dattype = 'NegContr';
+        plotcol = 'r';
+        plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn, ii);
+        
+        
+        % ---- Pos (skip for now, need to stretch relative to itself)
+        dattype = 'PosContr';
+        plotcol = 'b';
+        plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn, ii);
+        
+        
+        % -- contour
+        dattype = 'sylcontour';
+        plotcol = 'k';
+        plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn, ii);
+        
+    end
+end
+
+linkaxes(hsplots, 'xy');
+lt_subtitle('not strethed')
+
+
+%% ======================== PLOT EACH BIRD SEPARATELY [MINUS CONTROL, STRETCHED]
+
+Numbirds = max(Allbirdnum);
+numalign = length(ALLBRANCH.alignpos);
+
+figcount=1;
+subplotrows=3;
+subplotcols=3;
+fignums_alreadyused=[];
+hfigs=[];
+hsplots = [];
+
+for i=1:numalign
+    alignsyl = ALLBRANCH.alignpos(i).alignsyl;
+    alignons = ALLBRANCH.alignpos(i).alignonset;
+    
+    Datstruct = DATSTRUCT.numalign(i).Datstruct;
+    
+    for ii=1:Numbirds
+        
+        birdname = ALLBRANCH.SummaryStruct.birds(ii).birdname;
+        
+        % ====================== NO STRETCH
+        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+        hsplots = [hsplots hsplot];
+        title(['[' birdname ']' num2str(alignsyl) ', onset' num2str(alignons)]);
+        
+        % ----- Dat minus neg
+        dattype = 'DatMinusNeg';
+        plotcol = 'r';
+        warpOn=1;
+        plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn, ii);
+        
+        
+        % ---- Dat minus pos
+        dattype = 'DatMinusPos';
+        plotcol = 'b';
+        warpOn=1;
+        plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn, ii);
+
+       
+        % -- contour
+        dattype = 'sylcontour';
+        plotcol = 'k';
+        warpOn=0;
+        plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn, ii);
+        
+    end
+end
+
+linkaxes(hsplots, 'xy');
+
+
+%% =========================== PLOT DISTRIBUTIONS
+lt_figure; hold on;
+
+onsetbounds = [-0.02 0.01];
+
+% --- data
+dattype = 'Dat';
+lt_subplot(3,1,1); hold on;
+title('data');
+
+Xmat = cell2mat(Datstruct.(dattype).Xcell);
+Ymat = cell2mat(Datstruct.(dattype).Ycell);
+indtmp = Xmat>onsetbounds(1) & Xmat<onsetbounds(2)  & ~isnan(Ymat);
+lt_plot_histogram(Ymat(indtmp))
+xlim([0 1]);
+
+% --- neg
+dattype = 'NegContr';
+lt_subplot(3,1,2); hold on;
+title('neg contr');
+
+Xmat = cell2mat(Datstruct.(dattype).Xcell);
+Ymat = cell2mat(Datstruct.(dattype).Ycell);
+indtmp = Xmat>onsetbounds(1) & Xmat<onsetbounds(2)  & ~isnan(Ymat);
+lt_plot_histogram(Ymat(indtmp))
+xlim([0 1]);
+
+% --- pos
+dattype = 'PosContr';
+lt_subplot(3,1,3); hold on;
+title('pos contr');
+
+Xmat = cell2mat(Datstruct.(dattype).Xcell);
+Ymat = cell2mat(Datstruct.(dattype).Ycell);
+indtmp = Xmat>onsetbounds(1) & Xmat<onsetbounds(2)  & ~isnan(Ymat);
+lt_plot_histogram(Ymat(indtmp))
+xlim([0 1]);
+
+lt_subtitle('performance, at bin at syl onset');
 
 end
 
@@ -775,9 +769,30 @@ end
 %%
 
 
-function plotMeanTraj(Datstruct, dattype, plotcol, normbymaxmin, warpOn)
-% combines all data (i.e. each datapoint grp stats, grouped by x value)
+function plotMeanTraj(Datstruct, dattype, plotcol, normbymaxmin, warpOn, ...
+    birdnum)
+%% combines all data (i.e. each datapoint grp stats, grouped by x value)
 
+%% =========== pare down Datstruct for specific bird
+% leave exmpty [] to ignore
+
+if ~exist('birdnum', 'var')
+    birdnum = [];
+end
+
+if ~isempty(birdnum)
+    datfields = fieldnames(Datstruct);
+    for i=1:length(datfields)
+        dfield = datfields{i};
+        indstokeep = Datstruct.Dat.BirdnumAll==birdnum;
+        
+        Datstruct.(dfield) = lt_structure_subsample_all_fields(Datstruct.(dfield), indstokeep);
+%         disp(indstokeep);
+    end
+end
+
+
+%%
 % --- warp
 if ~exist('warpOn', 'var')
     warpOn = 0;
@@ -789,6 +804,7 @@ end
 CIalpha = 0.05;
 
 if strcmp(dattype, 'sylcontour')
+    % ############################################## SYL CONTOUR
     Xcontcell = Datstruct.Dat.Xcontcell;
     
     if warpOn==1
@@ -825,6 +841,7 @@ else
     Yall = Yall(:);
     Xall = Xall(:);
     
+    % ###################################################### DAT MINUS CONTROL
     if strcmp(dattype, 'DatMinusNeg')==1 | strcmp(dattype, 'DatMinusPos')==1
         % then calculate CI, for each time bin
         
@@ -843,7 +860,7 @@ else
         lt_plot_zeroline;
         
     else
-        
+        % ############################################## PERFORMANCE
         [Ymean, Ysem] = grpstats(Yall, Xall, {'mean', 'sem'});
         X = unique(Xall);
         
@@ -866,7 +883,7 @@ else
         
         
         %     lt_plot(X, Ymean, {'Errors', Ysem, 'Color', plotcol});
-        shadedErrorBar(X, Ymean, Ysem, {'Color', plotcol}, 0);
+        shadedErrorBar(X, Ymean, Ysem, {'Color', plotcol}, 1);
     end
     
     
@@ -903,6 +920,11 @@ for j=1:numsamps
     % --- performance
     xtimes = Xcell{j};
     yvals = Ycell{j};
+    if length(xtimes)<3
+        Ycell_WARP{j} = Ycell{j};
+        Ycontcell_WARP{j} = Ycontcell{j};
+        continue
+    end
     xtimes_new = xtimes.*pkwidthtarg/pkwidth;
     % resample at the original xtimes
     yvals_new = interp1(xtimes_new, yvals, xtimes);

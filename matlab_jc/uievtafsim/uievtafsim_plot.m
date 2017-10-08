@@ -58,8 +58,10 @@ end
 
 rdata=readrecf(fn);
 if (exist('rdata'))
+    if ~isempty(rdata)
     if (length(rdata.ttimes)>0)
         handles.ActTrigTimes=plot(rdata.ttimes*1e-3,0*rdata.ttimes,'r^');hold on;
+    end
     end
 end
 

@@ -1,10 +1,11 @@
-function lt_neural_v2_CTXT_FRanyclass(CLASSES, SummaryStruct, prms, plotPosControl, LMANorX)
+function lt_neural_v2_CTXT_FRanyclass(CLASSES, SummaryStruct, prms, plotPosControl, ...
+    LMANorX, closeAfterEachBird)
 %% lt 8/12/17 - plots fr for all classes of branch points
 
 %%
 
 numbirds = length(CLASSES.birds);
-numsyltrialstoplot = 5;  % to overlay syl profiles, num to take for each neuron/motif.
+numsyltrialstoplot = 10;  % to overlay syl profiles, num to take for each neuron/motif.
 WindowToPlot = []; % relative to onset of syl [ if empty, then plot all (and will minimize window to min dur]
 
 Nmin = 5; % min dat to plot
@@ -16,24 +17,24 @@ Nmin = 5; % min dat to plot
 for i=1:numbirds
     numneurons = length(CLASSES.birds(i).neurons);
     birdname = CLASSES.birds(i).birdname;
-figcount=1;
-subplotrows=5;
-subplotcols=2;
-fignums_alreadyused=[];
-hfigs=[];
-
+    figcount=1;
+    subplotrows=5;
+    subplotcols=2;
+    fignums_alreadyused=[];
+    hfigs=[];
+    
     for ii=1:numneurons
         
         numbranches = length(CLASSES.birds(i).neurons(ii).branchnum);
         
         if LMANorX==1
-           if ~strcmp(SummaryStruct.birds(i).neurons(ii).NOTE_Location, 'LMAN')
-               continue
-           end
+            if ~strcmp(SummaryStruct.birds(i).neurons(ii).NOTE_Location, 'LMAN')
+                continue
+            end
         elseif LMANorX==2
             if ~strcmp(SummaryStruct.birds(i).neurons(ii).NOTE_Location, 'X')
-               continue
-           end
+                continue
+            end
         end
         
         for iii=1:numbranches
@@ -51,7 +52,7 @@ hfigs=[];
             
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
             title([birdname '-n' num2str(ii) '-' CLASSES.birds(i).neurons(ii).branchnum(iii).regexprstr])
-
+            
             numclasses = length(CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum);
             plotcols = lt_make_plot_colors(numclasses, 0,0);
             ymax = [];
@@ -72,8 +73,13 @@ hfigs=[];
                 end
                 
                 % ---- extract shmoothed FR
-                clustnum = SummaryStruct.birds(i).neurons(ii).clustnum;
-                segextract= lt_neural_SmoothFR(segextract, clustnum);
+                if isfield(SummaryStruct.birds(i).neurons(ii), 'isRAsobermel')
+                    % then is RA, don't need clustnum
+                    segextract= lt_neural_SmoothFR(segextract);
+                else
+                    clustnum = SummaryStruct.birds(i).neurons(ii).clustnum;
+                    segextract= lt_neural_SmoothFR(segextract, clustnum);
+                end
                 
                 % extract smoothed FR
                 xtimes = segextract(1).FRsmooth_xbin_CommonTrialDur;
@@ -101,7 +107,11 @@ hfigs=[];
                     numsyltrialstoplot, xtimes(end-1));
                 
                 x = (1:size(sylconttmp,2))/1000;
-                plot(x, -30+30*sylconttmp, 'Color', plotcols{cc});
+%                     plot(x, -30+30*sylconttmp, 'Color', plotcols{cc}, 'LineStyle', '--');
+                    % - plot mean contours
+                    sylmean = mean(sylconttmp,1);
+                    sylstd = std(sylconttmp, 0, 1);
+                    shadedErrorBar(x, -30+30*sylmean, sylstd, {'Color', plotcols{cc}}, 1);
             end
             
             axis tight;
@@ -130,19 +140,23 @@ hfigs=[];
                     segextract = CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT_POSCONTR.classnum(cc).SegmentsExtract;
                     sylname = CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT_POSCONTR.classnum(cc).regexpstr;
                     
-                if ~isfield(segextract, 'fs')
-                    continue
-                end
-                
+                    if ~isfield(segextract, 'fs')
+                        continue
+                    end
+                    
                     
                     if numel(segextract)<Nmin
                         continue
                     end
                     
-                                    % ---- extract shmoothed FR
-                clustnum = SummaryStruct.birds(i).neurons(ii).clustnum;
-                segextract= lt_neural_SmoothFR(segextract, clustnum);
-
+                    % ---- extract shmoothed FR
+                    if isfield(SummaryStruct.birds(i).neurons(ii), 'isRAsobermel');
+                        clustnum = '';
+                    else
+                        clustnum = SummaryStruct.birds(i).neurons(ii).clustnum;
+                    end
+                    segextract= lt_neural_SmoothFR(segextract, clustnum);
+                    
                     % extract smoothed FR
                     xtimes = segextract(1).FRsmooth_xbin_CommonTrialDur;
                     if isempty(WindowToPlot)
@@ -169,7 +183,11 @@ hfigs=[];
                         numsyltrialstoplot, xtimes(end-1));
                     
                     x = (1:size(sylconttmp,2))/1000;
-                    plot(x, -30+30*sylconttmp, 'Color', plotcols{cc});
+%                     plot(x, -30+30*sylconttmp, 'Color', plotcols{cc}, 'LineStyle', '--');
+                    % - plot mean contours
+                    sylmean = mean(sylconttmp,1);
+                    sylstd = std(sylconttmp, 0, 1);
+                    shadedErrorBar(x, -30+30*sylmean, sylstd, {'Color', plotcols{cc}}, 1);
                 end
                 
                 axis tight;
@@ -184,5 +202,10 @@ hfigs=[];
         
     end
     
+    if closeAfterEachBird==1
+        disp('PAUSED - tuype anything');
+        pause
+        close all
+    end
 end
 

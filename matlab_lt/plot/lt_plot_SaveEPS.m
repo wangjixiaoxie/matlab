@@ -5,7 +5,8 @@ randnum=randi(10000, 1);
 SavePath=[SaveDir '/' timestamp '_rand' num2str(randnum) '.eps'];
 
 
-print('-depsc2', '-noui', '-adobecset', '-painters', SavePath)
+% print('-depsc2', '-noui', '-adobecset', '-painters', SavePath)
+print('-depsc2', '-noui', '-painters', SavePath)
 
 %% Using export_fig, poptentialyl better?
 

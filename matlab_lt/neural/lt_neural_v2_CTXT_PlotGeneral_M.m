@@ -1,4 +1,5 @@
-function [CLASSEScompiled] = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, algnonset)
+function [CLASSEScompiled] = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, ...
+    algnonset, suffix)
 %% lt 8/15/17 -
 
 % strtype = 'xaaa' - i.e. what was used for lt_neural_v2_CTXT_Extract. Will
@@ -8,6 +9,9 @@ function [CLASSEScompiled] = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, a
 % loook in folder for saved version. will only use this arguemnt if that
 % saved ver. doesn't exist.
 
+if ~exist('suffix', 'var')
+    suffix = '';
+end
 
 savedir = '/bluejay5/lucas/analyses/neural/CTXT_ClassGeneral_M';
 
@@ -19,7 +23,7 @@ cd(savedir)
 
 CLASSEScompiled = struct;
 
-dirnames = dir(['Results_' strtype '_AlgnSyl' num2str(algnsyl) 'Onset' num2str(algnonset) '_*']);
+dirnames = dir(['Results_' strtype '_AlgnSyl' num2str(algnsyl) 'Onset' num2str(algnonset) '_*' suffix]);
 
 for i=1:length(dirnames)
     
@@ -131,7 +135,7 @@ for i=1:length(dirnames)
 %                     maxdur = params.prms.motifpredur + params.prms.ClassGeneral.frtimewindow(2);
                     maxdur = params.prms.motifpredur + params.prms.motifpostdur;
                     
-                    numtrials = 4;
+                    numtrials = 8;
                     SylContours = [];
                     Ctxtnum = [];
                     numctxtstmp = length(dattmp.SEGEXTRACT.classnum);
@@ -147,7 +151,7 @@ for i=1:length(dirnames)
                         SylContours = [SylContours; sylcon];
                         Ctxtnum = [Ctxtnum; l*ones(size(sylcon,1),1)];
                     end
-                    assert(sum(sum(isnan(SylContours)))./numel(SylContours) < 0.01, 'problem - >1% are nan');
+                    assert(sum(sum(isnan(SylContours)))./numel(SylContours) < 0.02, 'problem - >2% are nan');
                     SylContours = int8(SylContours);
                     %                   AllBranchSylContours = [AllBranchSylContours SylContours];
                     %                   AllBranchSylContours_ctxtnums = [AllBranchSylContours_ctxtnums Ctxtnum];
@@ -283,7 +287,7 @@ end
 
 tstamp = lt_get_timestamp(0);
 
-fname = ['CLASSEScompiled_' strtype '_AlgnSyl' num2str(algnsyl) 'Onset' num2str(algnonset) '_' tstamp];
+fname = ['CLASSEScompiled_' strtype '_AlgnSyl' num2str(algnsyl) 'Onset' num2str(algnonset) '_' tstamp '_' suffix];
 
 save(fname, 'CLASSEScompiled');
 

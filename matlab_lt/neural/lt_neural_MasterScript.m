@@ -24,7 +24,7 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='br92br54_170628_095644.rhd';
+filename='bk7_160816_215834.rhd';
 ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
@@ -100,7 +100,7 @@ clear all; close all;
 % channel_board = [8 11 14 18 20]; % wh6
 % channel_board = [9 11 12 14 15 18]; % bu77
 % channel_board = [14];
-channel_board = 14;
+channel_board = 0:31;
 batchf = 'batchtmp';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
@@ -118,7 +118,7 @@ PlotFiltDat=1; % usually 1, filt neural.
 PosAndNeg =0; % then gets both. if 0, then just downwards
 
 
-lt_neural_concatExplore_v2(batchf, channel_board, PlotRectDat, PlotFiltDat,PosAndNeg); % WAVEFORMS ONLY PLOTTED FOR ONE CHANNEL!!
+lt_neural_concatExplore_v2(batchf, channel_board, PlotRectDat, PlotFiltDat, PosAndNeg); % WAVEFORMS ONLY PLOTTED FOR ONE CHANNEL!!
 
 % ------- v3 -plots song by song
 if (0)
@@ -175,13 +175,14 @@ lt_neural_AutoMakeNotmat(batchf);
 %% ==== [SANITY CHECK] plot song files in entirety, aligned to extracted spikes
 % -- makes multiple plots if too much dat.
 close all;
-PlotSecondChan = 1;
-SecondChan = 8;
+PlotSecondChan = 0;
+SecondChan = 19;
 plotcols={'m', 'r','c', 'b', 'g'};
 
 % want to plot 2nd channel to compare noise?
-lt_neural_AlgnWavclus(batchf, channel_board, plotcols, PlotSecondChan, SecondChan);
-
+if (0)
+    lt_neural_AlgnWavclus(batchf, channel_board, plotcols, PlotSecondChan, SecondChan);
+end
         
 % === VERSION 2 - PLOTS EACH SONG FILE ONE AT A TIME - CAN CLOSE THEM ONE
 % AT A TIME

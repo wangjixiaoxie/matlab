@@ -11,23 +11,32 @@ function [SylContours, x] = lt_neural_v2_ANALY_GetSylContours(segextract, numsyl
 % CURRENTLY ONLY OUTPUTS MATRIX (so forced to have same num time bins)
 % time bins is 1ms
 
+%% shorten desired trial number if not enough
+numsyltrialstoplot = min([length(segextract) numsyltrialstoplot]);
+
 %%
 TrialInds = randi(length(segextract), 1, numsyltrialstoplot); % which random trials to get
 
 SylContours = nan(numsyltrialstoplot, ceil(1000*(maxdur))); % fill with nans, if actual contyours too short, then edges will have nans
 
 
-if ~isfield(segextract, 'FRsmooth_xbin');
-    segextract = lt_neural_SmoothFR(segextract, []);
+% --- figure out min trial dur
+trialdur = min([segextract.global_offtime_motifInclFlank] - ...
+    [segextract.global_ontime_motifInclFlank]) - 0.002;
+% - old, too slow
+if (0)
+    if ~isfield(segextract, 'FRsmooth_xbin')
+        segextract = lt_neural_SmoothFR(segextract, []);
+    end
+    trialdur = max(segextract(1).FRsmooth_xbin_CommonTrialDur);
 end
-maxdur = min([maxdur segextract(1).FRsmooth_xbin_CommonTrialDur(end)]);
+
+maxdur = min([maxdur trialdur]);
 
 for kk=1:length(TrialInds)
     trialindtmp = TrialInds(kk);
     
     % --- figure out trial dur (use all clust, since just want trial dur)
-    trialdur = max(segextract(trialindtmp).FRsmooth_xbin_CommonTrialDur);
-    
     
     tmpons = ones(1, ceil((trialdur)*1000)); % one bin per ms, for onsets
     
