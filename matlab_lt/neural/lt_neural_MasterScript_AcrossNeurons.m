@@ -180,9 +180,9 @@ close all;
 % motif_predur=0.1;
 % motif_postdur=0.1;
  
-motif_regexpr_str={'g(h)', 'h(h)', 'n(h)'};
-motif_predur=0.1;
-motif_postdur=0.1;
+motif_regexpr_str={'g(h)h', 'h(h)h', 'n(h)h'};
+motif_predur=0.15;
+motif_postdur=0.2;
 
 % motif_regexpr_str={'r(g)', 'v(g)', 'h(g)', 'b(g)', 'n(g)'};
 % motif_predur=0.05;
@@ -253,11 +253,11 @@ LinScaleGlobal=0; % 0:NONE; 1: global (across neurosn and motifs); 2: local (spe
 WHOLEBOUTS_edgedur = '';
 
 % --- for whole motif
-motif_regexpr_str={'WHOLEBOUTS'};
-motif_predur=6; % to be able to collect about 2 sec pre and post after stretch, account for up to 3x contraction (so get 6s)
-motif_postdur=6;
-LinScaleGlobal=1;
-WHOLEBOUTS_edgedur = 6;
+% motif_regexpr_str={'WHOLEBOUTS'};
+% motif_predur=6; % to be able to collect about 2 sec pre and post after stretch, account for up to 3x contraction (so get 6s)
+% motif_postdur=6;
+% LinScaleGlobal=1;
+% WHOLEBOUTS_edgedur = 6;
 % --
 
 lt_neural_MultNeur_MotifRasters_v2(NeuronDatabase, motif_regexpr_str, motif_predur, motif_postdur, LinScaleGlobal, WHOLEBOUTS_edgedur);

@@ -720,7 +720,7 @@ linkaxes(hsplots, 'xy');
 %% =========================== PLOT DISTRIBUTIONS
 lt_figure; hold on;
 
-onsetbounds = [-0.02 0.01];
+onsetbounds = [-0.001 0.001];
 
 % --- data
 dattype = 'Dat';
@@ -729,6 +729,7 @@ title('data');
 
 Xmat = cell2mat(Datstruct.(dattype).Xcell);
 Ymat = cell2mat(Datstruct.(dattype).Ycell);
+
 indtmp = Xmat>onsetbounds(1) & Xmat<onsetbounds(2)  & ~isnan(Ymat);
 lt_plot_histogram(Ymat(indtmp))
 xlim([0 1]);
@@ -781,15 +782,17 @@ if ~exist('birdnum', 'var')
 end
 
 if ~isempty(birdnum)
+    indstokeep = Datstruct.Dat.BirdnumAll==birdnum;
+    
     datfields = fieldnames(Datstruct);
     for i=1:length(datfields)
         dfield = datfields{i};
-        indstokeep = Datstruct.Dat.BirdnumAll==birdnum;
         
         Datstruct.(dfield) = lt_structure_subsample_all_fields(Datstruct.(dfield), indstokeep);
-%         disp(indstokeep);
+        %         disp(indstokeep);
     end
 end
+
 
 
 %%

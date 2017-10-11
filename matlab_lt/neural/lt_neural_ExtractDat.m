@@ -130,7 +130,7 @@ if exist('extractFF.mat', 'file')
 end
 
 if extractSound==1
-SongDat.AllSongs=AllSongs;
+SongDat.AllSongs=single(AllSongs);
 end
 
 SongDat.AllLabels=AllLabels;

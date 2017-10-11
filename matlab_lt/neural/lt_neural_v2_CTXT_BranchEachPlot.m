@@ -1,10 +1,14 @@
-function lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot)
+function lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot, plotspec_num)
 
 %%
 
 motifpredur = ALLBRANCH.alignpos(1).ParamsFirstIter.motifpredur;
 motifpostdur = ALLBRANCH.alignpos(1).ParamsFirstIter.motifpostdur;
 
+% --- defaults -- don't change
+                LearnKeepOnlyBase = 1;
+
+                
 %% First get dprime for all branches
 
 % DPRIME STUFF
@@ -35,7 +39,11 @@ for i=1:numalignpos
         
         figcount=1;
         subplotrows=4;
+        if plotspec_num>0
+            subplotcols = 3;
+        else
         subplotcols=2;
+        end
         fignums_alreadyused=[];
         hfigs=[];
         
@@ -60,14 +68,84 @@ for i=1:numalignpos
                     continue
                 end
                 
+                
+                % ################################ Do you want to extact
+                % spectrogram?
+                if plotspec_num>0
+                    
+                    % ---- extract spectrograms
+                    % random subset, limited to s size that is desired
+                    sstruct_tmp = ALLBRANCH.SummaryStruct;
+                    prms_tmp =ALLBRANCH.alignpos(i).ParamsFirstIter;
+                    [SongDat, NeurDat, Params] = lt_neural_ExtractDat2(sstruct_tmp, ii, ...
+                        nn, 1);
+                    
+                    
+                    % ==== for each class, extract sound dat
+                numclasses = length(dat.FR.classnum);
+                plotcols = lt_make_plot_colors(numclasses, 0, 0);
+                    SoundDatAllTrial = {};
+                    FsAllTrial = {};
+                    
+                    for cc = 1:numclasses
+                    
+                    mclass = dat.FR.classnum(cc).regexpstr;    
+                    [segextract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
+                    mclass, prms_tmp.motifpredur, prms_tmp.motifpostdur, ...
+                    prms_tmp.alignOnset, '', '', 1, 1, 0, ...
+                    0, LearnKeepOnlyBase, prms_tmp.preAndPostDurRelSameTimept);
+                
+                    % ================ 
+                    indtmp = randperm(length(segextract), plotspec_num);
+                    SoundDatAllTrial{cc} = {segextract(indtmp).songdat};
+                    FsAllTrial{cc} = [segextract(indtmp).fs];
+                    
+                    end
+                
+                    % ===================================== PLOT
+                    % SPECTROGRAMS
+                    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+                    fs = FsAllTrial{1}(1);
+                    XMAX = min([1 numclasses*0.25]); % so image is not distorted for small numbesr
+                    YMAX = min([1 plotspec_num*0.25]);
+                    xlimvals = linspace(0,XMAX, numclasses+1);
+                    ylimvals = linspace(0,YMAX,plotspec_num+1);
+                    
+                    for cc = 1:numclasses
+                        for ccc = 1:plotspec_num
+                            songdat = SoundDatAllTrial{cc}{ccc};
+                            
+                            % -- to arrange as trial x class, get position
+                            % of this figure
+                            XLIM = xlimvals(cc:cc+1);
+                            YLIM = ylimvals(ccc:ccc+1);               
+                            lt_plot_spectrogram(double(songdat), fs, 1, 0, ...
+                                XLIM, YLIM);
+                            
+%                             patch([XLIM(1) XLIM(1) XLIM(2) XLIM(2)], ...
+%                                 [YLIM(1) YLIM(2) YLIM(1) YLIM(2)], [1 1 1], 'MarkerFaceColor', 'none')
+                            line([XLIM(1) XLIM(1)], [YLIM(1) YLIM(2)], 'LineWidth', 2, 'Color', plotcols{cc});
+                            line([XLIM(2) XLIM(2)], [YLIM(1) YLIM(2)], 'LineWidth', 2, 'Color', plotcols{cc});
+                            line([XLIM(1) XLIM(2)], [YLIM(1) YLIM(1)], 'LineWidth', 2, 'Color', plotcols{cc});
+                            line([XLIM(1) XLIM(2)], [YLIM(2) YLIM(2)], 'LineWidth', 2, 'Color', plotcols{cc});
+                            
+                            
+                            
+                        end
+                    end
+                    xlim([0 1]);
+                    ylim([0 1]);
+                    
+                    
+                end
+                
+                
                 % ################################ fig 1 - raw hz
                 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
                 hsplots = [hsplots hsplot];
                 title([birdname '-' sylregexp '-n' num2str(nn)]);
                 ylabel('fr(hz) OR classperformance/dprime*100');
                 
-                numclasses = length(dat.FR.classnum);
-                plotcols = lt_make_plot_colors(numclasses, 0, 0);
                 
                 % ============ 1) mean FR
                 for cc =1 :numclasses
@@ -78,7 +156,7 @@ for i=1:numalignpos
                     x = dat.FR.classnum(cc).FRsmooth_xbin_CommonTrialDur-motifpredur;
                     shadedErrorBar(x, frmean, frsem, {'Color', plotcols{cc}}, 1);
                     
-                    lt_plot_text(x(end), frmean(end), syllist{cc}, plotcols{cc});
+                    lt_plot_text(x(1), frmean(end), syllist{cc}, plotcols{cc});
                 end
                 
                 
@@ -143,9 +221,9 @@ for i=1:numalignpos
         end
         
         if isempty(birdtoplot)
-        disp('PAUSSED --');
-        pause;
-        close all;
+            disp('PAUSSED --');
+            pause;
+            close all;
         end
     end
     

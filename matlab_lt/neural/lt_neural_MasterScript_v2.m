@@ -3,7 +3,7 @@
 
 %% EXTRACT 
 clear all; close all;
-BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BirdsToKeep = {'bk7'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 BrainArea = {};
 ExptToKeep = {};
 RecordingDepth = [];
@@ -179,6 +179,9 @@ plotbytime = 0; % links rasters for all motifs by time of song.
 lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
     motiflist, plotbytime)
 
+
+%% ==================================== 
+
 %% &&&&&&&&&&&&&&&&&&&&&& CONTEXT &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 clear CLASSES
 
@@ -295,8 +298,9 @@ ALLBRANCH = lt_neural_v2_CTXT_BranchRemvOlap(ALLBRANCH);
 
 % ==== 2)  PLOT EACH BRANCH/BIRD/NEURON
 close all;
-birdtoplot = 'pu26y2'; % leave blank to plot all;
-lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot)
+birdtoplot = 'br92br54'; % leave blank to plot all;
+plotspec_num = 3; % how many spectrograms to plot for each class in each branch point? if 0 then none.
+lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot, plotspec_num)
 
 
 % ==== 3)  SUMMARIZE PLOT ACROSS BRANCHES 
@@ -310,12 +314,12 @@ birdstoexclude = {};
 
 durThreshOmega.syl = 0.15; % omega2 (will only keep if lower) [leave empty to ignore]
 % durThreshOmega.gappre= 0.5;
-durThreshOmega.gappost= 0.2;
+% durThreshOmega.gappost= 0.2;
 % durThreshOmega.syl = []; % omega2 (will only keep if lower) [leave empty to ignore]
 durThreshOmega.gappre= [];
-% durThreshOmega.gappost= [];
+durThreshOmega.gappost= [];
 
-RemoveRepeats=1; % if 1, then removes any branch with a class with token preceded by same syl (e.g. a(a)bc or a(a)ab);
+RemoveRepeats=0; % if 1, then removes any branch with a class with token preceded by same syl (e.g. a(a)bc or a(a)ab);
 RemovePrecededByIntro=0; % if 1, then removes any token preceded by "i" (e.g. i(a)bc) [REQUIRES REMOVE REPEATS =1, since in progress]
 
 lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoexclude, ...

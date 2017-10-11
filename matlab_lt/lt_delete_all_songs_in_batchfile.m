@@ -9,13 +9,13 @@ try cd('DELETED_SONGS');
 catch err
     mkdir('DELETED_SONGS');
 end
-    
+
 
 while ischar(song);
     disp(['moving ' song ' to DELETED_SONGS']);
-% delete(song);
-eval(['!mv ' song ' DELETED_SONGS']) 
-song=fgetl(fid);
+    % delete(song);
+    eval(['!mv ' song ' DELETED_SONGS'])
+    song=fgetl(fid);
 end
 
 

@@ -20,6 +20,8 @@ function lt_disp_random_songs_syls(batch,SongOrSyl, israndom, RandNum, plotFB, F
 % PostSylOnsetDur=0.2; varargin{4}
 
 % EXAMPLES:
+% lt_disp_random_songs_syls(batch,0,0); % to show all songs
+%
 % lt_disp_random_songs_syls(batch,0,1,10); % to show 10 random songs
 %
 % lt_disp_random_songs_syls(batch,1,1,30,1,0,0,'b','dcc',0.2,0.2); % to

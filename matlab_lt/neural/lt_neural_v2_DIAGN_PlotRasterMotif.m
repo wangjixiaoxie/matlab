@@ -46,40 +46,40 @@ for i=1:numbirds
             
             % ------------- 1) PLOT RASTER
             if plotbytime==1
-            hsplot = lt_subplot(6,1,2:4); hold on;
-            hsplots = [hsplots hsplot];
-            title([birdname '-n' num2str(ii) '-' motiftoplot]);
-            ylabel('trial, down is later');
-            for tt = 1:length(SegmentsExtract)
-                spktimes = SegmentsExtract(tt).spk_Times;
-                %             spktimes = spktimes(spktimes > WindowToPlot2(1) & ...
-                %                 spktimes < WindowToPlot2(2));
-                rendtime = SegmentsExtract(tt).global_tokenind_DatAlignedToOnsetOfThis;
-                for ttt =1:length(spktimes)
-                    
-                    line([spktimes(ttt) spktimes(ttt)], -[rendtime-10 rendtime+10], ...
-                        'Color', 'k', 'LineWidth', 3);
+                hsplot = lt_subplot(6,1,2:4); hold on;
+                hsplots = [hsplots hsplot];
+                title([birdname '-n' num2str(ii) '-' motiftoplot]);
+                ylabel('trial, down is later');
+                for tt = 1:length(SegmentsExtract)
+                    spktimes = SegmentsExtract(tt).spk_Times;
+                    %             spktimes = spktimes(spktimes > WindowToPlot2(1) & ...
+                    %                 spktimes < WindowToPlot2(2));
+                    rendtime = SegmentsExtract(tt).global_tokenind_DatAlignedToOnsetOfThis;
+                    for ttt =1:length(spktimes)
+                        
+                        line([spktimes(ttt) spktimes(ttt)], -[rendtime-10 rendtime+10], ...
+                            'Color', 'k', 'LineWidth', 3);
+                    end
                 end
-            end
-            axis tight
+                axis tight
             else
-            hsplot = lt_subplot(6,1,2:4); hold on;
-            hsplots = [hsplots hsplot];
-            title([birdname '-n' num2str(ii) '-' motiftoplot]);
-            ylabel('trial, down is later');
-            for tt = 1:length(SegmentsExtract)
-                spktimes = SegmentsExtract(tt).spk_Times;
-                %             spktimes = spktimes(spktimes > WindowToPlot2(1) & ...
-                %                 spktimes < WindowToPlot2(2));
-                for ttt =1:length(spktimes)
-                    
-                    line([spktimes(ttt) spktimes(ttt)], -[tt-0.4 tt+0.4], ...
-                        'Color', 'k', 'LineWidth', 1);
+                hsplot = lt_subplot(6,1,2:4); hold on;
+                hsplots = [hsplots hsplot];
+                title([birdname '-n' num2str(ii) '-' motiftoplot]);
+                ylabel('trial, down is later');
+                for tt = 1:length(SegmentsExtract)
+                    spktimes = SegmentsExtract(tt).spk_Times;
+                    %             spktimes = spktimes(spktimes > WindowToPlot2(1) & ...
+                    %                 spktimes < WindowToPlot2(2));
+                    for ttt =1:length(spktimes)
+                        
+                        line([spktimes(ttt) spktimes(ttt)], -[tt-0.4 tt+0.4], ...
+                            'Color', 'k', 'LineWidth', 1);
+                    end
                 end
-            end
-            axis tight
-            line([motifpredur motifpredur], ylim);
-            set(gca, 'Ytick', []);
+                axis tight
+                line([motifpredur motifpredur], ylim);
+                set(gca, 'Ytick', []);
             end
             
             % ------------- 2) PLOT SMOOTHED FR
@@ -92,9 +92,9 @@ for i=1:numbirds
             for tt =1:length(SegmentsExtract)
                 plot(X, FRmat(:,tt), 'Color', [0.7 0.7 0.7]);
             end
-                        line([motifpredur motifpredur], ylim);
-
-                        % 2) mean
+            line([motifpredur motifpredur], ylim);
+            
+            % 2) mean
             if length(SegmentsExtract)>2
                 hsplot = lt_subplot(6,1,6); hold on;
                 hsplots = [hsplots hsplot];
@@ -102,8 +102,8 @@ for i=1:numbirds
                 FRsem = lt_sem(FRmat');
                 shadedErrorBar(X, FRmean, FRsem, {'Color','r'},1);
             end
-                        line([motifpredur motifpredur], ylim);
-
+            line([motifpredur motifpredur], ylim);
+            
             
             % ------------- 3) PLOT syl onset/offsets
             hsplot = lt_subplot(6,1,1); hold on;

@@ -1,4 +1,18 @@
-function lt_plot_spectrogram(songdat, fs, bk_red, plot_ms)
+function lt_plot_spectrogram(songdat, fs, bk_red, plot_ms, XLIM, YLIM)
+%% lt 10/2017 - XLIM and YLIM, to scale spectrogram to plot in certain posiiton
+% note: x and y values will be innacurate
+
+if ~exist('XLIM','var')
+    XLIM = [];
+    YLIM = [];
+end
+
+if ~exist('YLIM', 'var');
+    XLIM = [];
+    YLIM = [];
+end
+
+
 %% lt 8/18/16 - takes song vector and plots spectrogram on current active axes
 
 % plot_ms=1, ms (if 0, sec)
@@ -72,8 +86,17 @@ if bk_red==1
     
     % Plot
     colormap('hot')
+    if ~isempty(XLIM)
+        t = linspace(XLIM(1), XLIM(2), length(t));
+        f = linspace(YLIM(1), YLIM(2), length(f))';
+    end
     imagesc(t, f, sptemp, [Cmin+Cmin/10 Cmax]);
+    
 else
+    if ~isempty(XLIM)
+        t = linspace(XLIM(1), XLIM(2), length(t));
+        f = linspace(YLIM(1), YLIM(2), length(f))';
+    end
             imagesc(t, f, sptemp);
 end
             axis([t(1) t(end) f(1) f(end)]);

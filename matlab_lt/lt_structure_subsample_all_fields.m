@@ -38,6 +38,15 @@ else
 func=@(x)x(inds);
 end
 
+% === if inds are logical array, make sure is same length as all fields
+functmp = @(x)numel(x);
+tmpout = structfun(functmp, Struct_in);
+assert(length(unique(tmpout))==1, 'problem: not all fields are smae length');
+if islogical(inds)
+    assert(unique(tmpout) == length(inds), 'problem: logical array wrong length');
+end
+
+
 % === get subset of all fields
 Struct_out=structfun(func, Struct_in,'UniformOutput',0);
 
