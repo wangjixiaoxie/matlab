@@ -231,3 +231,19 @@ if isfield(SummaryStruct_filtered, 'birds');
     end
 end
 
+%% ===== save current params to summary struct
+
+SummaryStruct_filtered.loadparams.BirdsToKeep = BirdsToKeep;
+SummaryStruct_filtered.loadparams.BrainArea = BrainArea;
+SummaryStruct_filtered.loadparams.ExptToKeep = ExptToKeep;
+SummaryStruct_filtered.loadparams.RecordingDepth = RecordingDepth;
+SummaryStruct_filtered.loadparams.LearningOnly = LearningOnly;
+SummaryStruct_filtered.loadparams.BatchesDesired = BatchesDesired;
+SummaryStruct_filtered.loadparams.ChannelsDesired = ChannelsDesired;
+
+tstamp = lt_get_timestamp(0);
+SummaryStruct_filtered.loadparams.extractiontime = tstamp;
+
+
+
+

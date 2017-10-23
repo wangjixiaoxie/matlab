@@ -103,7 +103,9 @@ for i=1:Numbirds
                     end
                     
                     baseInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).baseInds);
-                    trainInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds);
+%                     trainInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds);
+                    trainInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds_WithinDayOfSw);
+                    
                     
                     if length(baseInds)<minrends | length(trainInds) < minrends
                         % even for good neurosn, could occur if some motifs
@@ -256,13 +258,13 @@ for i=1:Numbirds
                     plot(tsmth.Median, neursmth.Mean, 'o', 'Color', plotcols{nn});
                     
                     % --- annotate baseline neural sim in text
-                    lt_plot_text(tsmth.Median(max(baseInds)), neursmth.Mean(max(baseInds)), ...
+                    lt_plot_text(tsmth.Median(1), neursmth.Mean(1), ...
                         num2str(neurbasemean, '%3.2g'), 'k');
                     
                     
                     % --- stuff
                     axis tight;
-                    ylim([-3 3]);
+                    ylim([-2 2]);
                     lt_plot_zeroline;
                     
                     % --- line for base vs. training

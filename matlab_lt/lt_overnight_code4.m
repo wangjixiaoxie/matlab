@@ -1,44 +1,48 @@
+
+
+
+%% #############################################################
 %% 9/28 -
 
 %% =================== EXTRACT SOBER/WOHL RA DATA
-clear all; close all;
-SummaryStruct = lt_neural_RASamMel_SummaryStruct;
-
-
-% &&&&&&&&&&&&& 1) ARBITRARY CONTEXTS
-strtype = 'xaa'; % a is fixed, x variable, across contexts
-[CLASSES, prms] = lt_neural_v2_CTXT_Extract(SummaryStruct, strtype);
-
-% &&&&&&&&&&&&& 2) EXTRACT REGEXP STRUCT 
-prms.alignWhichSyl = 2; % which syl (in order) to align to
-prms.alignOnset = 1; % if 1, then onset, if 0, then offset
-prms.motifpredur = 0.15;
-prms.motifpostdur = 0.2;
-prms.preAndPostDurRelSameTimept = 1; % 1, then pre and post both aligned at same time. if 0, then post is aligned to motif ofset.
-CLASSES = lt_neural_v2_CTXT_GetBrnchDat(CLASSES, SummaryStruct, prms);
-
-% &&&&&&&&&&&&&& OPTIONAL - COLLECT POSITIVE CONTROL DATA
-CLASSES = lt_neural_v2_CTXT_GetBrnchPosControl(CLASSES, SummaryStruct, prms, strtype);
-
-
-% =============== 1
-% ITERATIONS
-TimeWindowDur = 0.02;
-TimeWindowSlide = 0.005;
-ListOfTimeWindows = [-0.01:TimeWindowSlide:0.09; ...
-    0.01:TimeWindowSlide:0.11]'; % N x 2 (pre and post onset)
-% ListOfTimeWindows = [0.095:TimeWindowSlide:prms.motifpostdur-TimeWindowDur; ...
-%     0.095+TimeWindowDur:TimeWindowSlide:prms.motifpostdur]'; % N x 2 (pre and post onset)
-ListOfFrBinSizes = [0.004];
-savenotes = 'RAallbirds20ms';
-
-prms.ClassGeneral.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
-prms.ClassGeneral.GetNegControl_N = 1; % number iterations for each case
-prms.ClassGeneral.GetPosControl =1;
-
-[savedir] = lt_neural_v2_CTXT_ClassGeneral_M(CLASSES, SummaryStruct, prms, ListOfTimeWindows, ...
-    ListOfFrBinSizes, savenotes);
-
+% clear all; close all;
+% SummaryStruct = lt_neural_RASamMel_SummaryStruct;
+% 
+% 
+% % &&&&&&&&&&&&& 1) ARBITRARY CONTEXTS
+% strtype = 'xaa'; % a is fixed, x variable, across contexts
+% [CLASSES, prms] = lt_neural_v2_CTXT_Extract(SummaryStruct, strtype);
+% 
+% % &&&&&&&&&&&&& 2) EXTRACT REGEXP STRUCT 
+% prms.alignWhichSyl = 2; % which syl (in order) to align to
+% prms.alignOnset = 1; % if 1, then onset, if 0, then offset
+% prms.motifpredur = 0.15;
+% prms.motifpostdur = 0.2;
+% prms.preAndPostDurRelSameTimept = 1; % 1, then pre and post both aligned at same time. if 0, then post is aligned to motif ofset.
+% CLASSES = lt_neural_v2_CTXT_GetBrnchDat(CLASSES, SummaryStruct, prms);
+% 
+% % &&&&&&&&&&&&&& OPTIONAL - COLLECT POSITIVE CONTROL DATA
+% CLASSES = lt_neural_v2_CTXT_GetBrnchPosControl(CLASSES, SummaryStruct, prms, strtype);
+% 
+% 
+% % =============== 1
+% % ITERATIONS
+% TimeWindowDur = 0.02;
+% TimeWindowSlide = 0.005;
+% ListOfTimeWindows = [-0.01:TimeWindowSlide:0.09; ...
+%     0.01:TimeWindowSlide:0.11]'; % N x 2 (pre and post onset)
+% % ListOfTimeWindows = [0.095:TimeWindowSlide:prms.motifpostdur-TimeWindowDur; ...
+% %     0.095+TimeWindowDur:TimeWindowSlide:prms.motifpostdur]'; % N x 2 (pre and post onset)
+% ListOfFrBinSizes = [0.004];
+% savenotes = 'RAallbirds20ms';
+% 
+% prms.ClassGeneral.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
+% prms.ClassGeneral.GetNegControl_N = 1; % number iterations for each case
+% prms.ClassGeneral.GetPosControl =1;
+% 
+% [savedir] = lt_neural_v2_CTXT_ClassGeneral_M(CLASSES, SummaryStruct, prms, ListOfTimeWindows, ...
+%     ListOfFrBinSizes, savenotes);
+% 
 
 %%  AFP 20ms
 
@@ -101,6 +105,25 @@ prms.ClassGeneral.GetPosControl =1;
 
 [savedir] = lt_neural_v2_CTXT_ClassGeneral_M(CLASSES, SummaryStruct, prms, ListOfTimeWindows, ...
     ListOfFrBinSizes, savenotes);
+
+
+%%
+close all;
+clear all;
+
+strtype = 'xaa';
+algnsyl = 2;
+algnonset = 1;
+suffix = 'LMANXallbirds20ms'; % leave blank to get any
+CLASSEScompiled = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, ...
+    algnonset, suffix);
+
+
+close all; 
+strtype = 'xaa';
+plotstat = 'F1';
+suffix = 'LMANXallbirds20ms'; % leave blank to get all
+ALLBRANCH = lt_neural_v2_CTXT_PlotAll(strtype, plotstat, suffix);
 
 
 %% ########################### below, night of 9/27

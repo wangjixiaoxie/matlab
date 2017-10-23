@@ -69,7 +69,17 @@ for ii = 1:length(files);
     %
     %     end
     
-    [dat,fs]=evsoundin('',fn,CS);
+    if ~isempty(findstr(fn, '.rhd'))
+        % intan
+        [frequency_parameters, dat] = pj_readIntanNoGui_AudioOnly(fn);
+        dat = dat';
+        fs = frequency_parameters.amplifier_sample_rate;
+        
+    else
+        % labview
+        [dat,fs]=evsoundin('',fn,CS);
+    end
+    
     dat = dat *1e-4;
     
     NPRE=ceil(PRETIME*fs);%time before syllable in samples

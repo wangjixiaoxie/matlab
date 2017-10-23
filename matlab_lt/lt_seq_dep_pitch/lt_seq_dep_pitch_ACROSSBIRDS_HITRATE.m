@@ -356,6 +356,11 @@ lt_plot_bar([0 1], Ymean, {'Errors', Ysem});
 p = ranksum(Y(X==0), Y(X==1));
 lt_plot_pvalue(p);
 
+% each one sig from 0?
+p1 = signrank(Y(X==0));
+p2 = signrank(Y(X==1));
+lt_plot_text(0, Ymean(1)*1.1, ['p=' num2str(p1)], 'r');
+lt_plot_text(1, Ymean(2)*1.1, ['p=' num2str(p2)], 'r');
 
 
 
@@ -380,6 +385,11 @@ Ysem(2) = lt_sem(Y(X==1));
 lt_plot_bar([0 1], Ymean, {'Errors', Ysem});
 p = ranksum(Y(X==0), Y(X==1));
 lt_plot_pvalue(p);
+% each one sig from 0?
+p1 = signrank(Y(X==0));
+p2 = signrank(Y(X==1));
+lt_plot_text(0, Ymean(1)*1.1, ['p=' num2str(p1)], 'r');
+lt_plot_text(1, Ymean(2)*1.1, ['p=' num2str(p2)], 'r');
 
 
 %% ========= FIGURES SAME AS ABOVE, BUT PLOTTED FOR ILLUSTRATOR

@@ -1,7 +1,7 @@
 function [DATSTRUCT, BYNEURONDAT] = lt_neural_v2_ANALY_Swtch_Summary(MOTIFSTATS_Compiled, SwitchStruct, RemoveLowNumtrials, ...
     MinTrials, UseZscoreNeural, neuralmetricname, fieldname_baseneur, fieldname_trainneur, ...
     skipMultiDir, usePeakLearn, plotLearnStatsOn, learnsigalpha, OnlyKeepSigLearn, ...
-    OnlyKeepWNonset, OnlyUseDatOnSwitchDay)
+    OnlyKeepWNonset, OnlyUseDatOnSwitchDay, useTrialsRightAfterWNOn)
 
 % usePeakLearn = 1;
 % plotLearnStatsOn =1;
@@ -47,142 +47,6 @@ numtrain = 25; % trials to get at end of training (will match base and train. wi
 if mod(FFsmthbinsize,2)==0
     FFsmthbinsize= FFsmthbinsize+1; % conver to odd, so that median tval is at an actual datapoint.
 end
-
-%% plot, for each switch, timecourse of neural and FF for all syl types [IN PROGRESS]
-% if (0)
-%     for i=1:Numbirds
-%         
-%         numexpts = length(SwitchStruct.bird(i).exptnum);
-%         birdname = SwitchStruct.bird(i).birdname;
-%         
-%         for ii=1:numexpts
-%             exptname = SwitchStruct.bird(i).exptnum(ii).exptname;
-%             numswitches = length(SwitchStruct.bird(i).exptnum(ii).switchlist);
-%             
-%             MotifStats = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS;
-%             SummaryStruct = MOTIFSTATS_Compiled.birds(i).exptnum(ii).SummaryStruct;
-%             
-%             motiflist = MotifStats.params.motif_regexpr_str;
-%             targsyls = MotifStats.params.TargSyls;
-%             nummotifs = length(motiflist);
-%             
-%             WindowToPlot2 = [MotifStats.params.motif_predur+WindowToPlot(1) ...
-%                 MotifStats.params.motif_predur+WindowToPlot(2)]; % rel data onset (not syl onset)
-%             
-%             for iii=1:numswitches
-%                 
-%                 figcount=1;
-%                 subplotrows=5;
-%                 subplotcols=6;
-%                 fignums_alreadyused=[];
-%                 hfigs=[];
-%                 
-%                 
-%                 goodneurons = find([SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron.haspostsongs] ...
-%                     & [SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron.haspresongs]);
-%                 
-%                 if isempty(goodneurons)
-%                     disp(['---SKIPPING - ' birdname '-' exptname '-sw' num2str(iii) ' (NO GOOD NEURONS)']);
-%                     continue
-%                 end
-%                 
-%                 swpre = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum_previous;
-%                 swpost = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum_next;
-%                 swthis = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum;
-%                 
-%                 plotcols = lt_make_plot_colors(max(goodneurons), 0, 0);
-%                 
-%                 
-%                 % ==== 1) for each motif, PLOT RASTER, SMTHED, AND NEURAL/FF
-%                 for j=1:nummotifs
-%                     
-%                     for nn=goodneurons
-%                         
-%                         segextract = MotifStats.neurons(nn).motif(j).SegmentsExtract;
-%                         
-%                         if ~isfield(segextract, 'spk_Times')
-%                             continue
-%                         end
-%                         
-%                         baseInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).baseInds);
-%                         trainInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds);
-%                         
-%                         if length(baseInds)<minrends | length(trainInds) < minrends
-%                             % even for good neurosn, could occur if some motifs
-%                             % labeled pre but not post.
-%                             continue
-%                         end
-%                         
-%                         trialstoplot = [baseInds trainInds];
-%                         clustnum = MotifStats.neurons(nn).clustnum;
-%                         
-%                         
-%                         % ================= PLOT TIMECOURSE OF NEURAL AND FF
-%                         [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-%                         
-%                         % ----- FF
-%                         ffvals = [segextract.FF_val];
-%                         tvals = [segextract.song_datenum];
-%                         % -- convert tvals to days
-%                         tmpday = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).switchdnum;
-%                         tvals = lt_convert_EventTimes_to_RelTimes(datestr(tmpday, 'ddmmmyyyy'),...
-%                             tvals);
-%                         tvals = tvals.FinalValue;
-%                         
-%                         tsmth = lt_running_stats(tvals, FFsmthbinsize);
-%                         
-%                         if ~all(isnan(ffvals));
-%                             % ---- get zscore
-%                             ffvals_basemean = mean(ffvals(baseInds));
-%                             ffvalsbaseSD = std(ffvals(baseInds));
-%                             
-%                             ffvals = (ffvals - ffvals_basemean)./ffvalsbaseSD;
-%                             
-%                             ffsmth = lt_running_stats(ffvals, FFsmthbinsize);
-%                             
-%                             plot(tsmth.Median, ffsmth.Median, 'kx');
-%                             %                       plot(tvals(trialstoplot), ffvals(trialstoplot), 'xk');
-%                             %
-%                         end
-%                         
-%                         % ---- neural (corr with baseline)
-%                         neuralsim = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).(neuralmetricname);
-%                         %                    if ~strcmp(neuralmetricname, 'NEURvsbase_FRcorr')
-%                         % then get zscore
-%                         neurbasemean = mean(neuralsim(baseInds));
-%                         neurbaseSD = std(neuralsim(baseInds));
-%                         neuralsim = (neuralsim - neurbasemean)./neurbaseSD;
-%                         %                    end
-%                         neursmth = lt_running_stats(neuralsim, FFsmthbinsize);
-%                         %                     lt_plot(tsmth.Mean, neursmth.Mean, {'Errors', neursmth.SEM, ...
-%                         %                         'Color', plotcols{j}});
-%                         plot(tsmth.Median, neursmth.Mean, 'o', 'Color', plotcols{nn});
-%                         %                    plot(tvals(trialstoplot), neuralsim(trialstoplot), 'ob');
-%                         
-%                         
-%                         % --- stuff
-%                         axis tight;
-%                         ylim([-3 3]);
-%                         lt_plot_zeroline;
-%                         
-%                         % --- line for base vs. training
-%                         line([tvals(max(baseInds)) tvals(max(baseInds))], ylim, 'Color','k', 'LineWidth', 2);
-%                         
-%                         % --- title
-%                         if any(strcmp(targsyls, motiflist{j}))
-%                             title([birdname '-' exptname '-sw' num2str(iii) '-' motiflist{j}], 'Color', 'r');
-%                         else
-%                             title([birdname '-' exptname '-sw' num2str(iii) '-' motiflist{j}]);
-%                         end
-%                         
-%                         % ======================== COLLECT DATA FOR PLOTTING
-%                         
-%                     end
-%                 end
-%             end
-%         end
-%     end
-% end
 
 %% PLOT SUMMARY ACROSS ALL SWITCHES [IN PROGRESS - JUST STARTED]
 
@@ -502,6 +366,16 @@ for i=1:Numbirds
                         continue
                     end
                     
+                    % ================= USE TRIAL RIGHT AFTER WN ON
+                    if useTrialsRightAfterWNOn==1
+                        if length(trainInds)>numtrain*2
+                        trainInds = trainInds(1:numtrain*2);
+                        end
+                    end
+
+                    
+                    % ====================================
+                    
                     trialstoplot = [baseInds trainInds];
                     
                     
@@ -589,7 +463,11 @@ for i=1:Numbirds
                     end
                     
                     
-                    
+%                     disp(trainEndInds);
+%                     disp(trainEndInds_longer);
+%                     
+%                     disp(baseEndInds);
+%                     disp(baseEndInds_longer);
                     
                     
                     

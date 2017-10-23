@@ -140,7 +140,7 @@ for i=1:NumNeurons
             if any(strcmp(regexpr_str, TargSyls))
                 [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
                     regexpr_str, motif_predur, motif_postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
-                    0, 1, collectWNhit, 0, LearnKeepOnlyBase);
+                    0, 1, collectWNhit, 1, LearnKeepOnlyBase);
                 
             else
                 SegmentsExtract=struct;
@@ -149,7 +149,7 @@ for i=1:NumNeurons
         else
             [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
                 regexpr_str, motif_predur, motif_postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
-                0, 1, collectWNhit, 0, LearnKeepOnlyBase);
+                0, 1, collectWNhit, 1, LearnKeepOnlyBase);
             
         end
         

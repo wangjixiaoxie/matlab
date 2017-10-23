@@ -758,6 +758,105 @@ xlim([0 1]);
 
 lt_subtitle('performance, at bin at syl onset');
 
+
+%% ============================= TIMING OF DECREASE IN CONTEXTUAL INFORMATION
+
+% ==================== METHOD 1, fit sigmoid to mean
+% ---- 1) COLLECT ALL (X,Y)
+for i=1:numalign
+    alignsyl = ALLBRANCH.alignpos(i).alignsyl;
+    alignons = ALLBRANCH.alignpos(i).alignonset;
+    
+    Datstruct = DATSTRUCT.numalign(i).Datstruct;
+    
+    % ===================== collect all datapoints across all birds
+    Xall = cell2mat(Datstruct.Dat.Xcell);
+    Xall = Xall(:);
+    Yall = cell2mat(Datstruct.Dat.Ycell);
+    Yall = Yall(:);
+    
+    
+%     lt_figure; hold on;
+%     plot(Xall, Yall, 'x');
+    
+    % ----- fit sigmoid (individual points)
+%     modelfun = @(A, x) (A(1) + A(2)./(1 + A(4).*exp(-A(3)*x))); % logistic
+        modelfun = @(A, x) (A(1) + A(2)./(1 + exp(-A(3)*x + A(4)))); % logistic
+    beta0 = [0.5 0.1 50 0.1]';
+    mdl = fitnlm(Xall, Yall, modelfun, beta0);
+    
+    % -- plot
+    lt_figure; hold on; 
+    plot(Xall, Yall, 'x')
+    x = min(Xall):0.001:max(Xall); plot(x, mdl.feval(x), 'o-');
+    
+    
+    % ----- fit sigmoid (individual points, + var for neur/branch (i.e. offset))
+%     modelfun = @(A, x) (A(1)./(1 + exp(-A(2)*x))); % logistic
+%     beta0 = [0 0]';
+%     mdl = fitnlm(Xall, Yall, modelfun, beta0);
+%     
+%     % -- plot
+%     lt_figure; hold on; x = -10:0.01:10; plot(x, mdl.feval(x), 'o-');
+%     
+    
+    % --- fit sigmoid (on the mean)
+        [Ymean] = grpstats(Yall, Xall, {'mean'});
+        X = unique(Xall);
+%         Ymean = Ymean-mean(Ymean); %  Y vals
+        
+%         modelfun = @(A, x) (A(1)./(1 + exp(-A(2)*x))); % logistic
+        modelfun = @(A, x) (A(1) + A(2)./(1 + exp(-A(3)*x + A(4)))); % logistic
+%     beta0 = [0.01 0.02 1]';
+    beta0 = [0.5 0.1 50 0.1]';
+%     opt = statset('fitnlm');
+%     opt.RobustWgtFun = 'bisquare';
+    mdl = fitnlm(X, Ymean, modelfun, beta0);
+    
+    lt_figure; hold on; 
+    plot(X, Ymean, 'xk')
+    x = min(X):0.001:max(X); 
+    plot(x, mdl.feval(x), 'o-');
+%     x = -1:0.001:1; plot(x, mdl.feval(x), 'o-');
+    
+
+    
+    % ===== debug - playing around with sigmoid function
+    if (0)
+        lt_figure; hold on; plot(X, Ymean, 'o');
+        
+%         modelfun = @(A, x) (A(1) + A(2)./(1 + A(4).*exp(-A(3)*x))); % logistic
+        modelfun = @(A, x) (A(1) + A(2)./(1 + exp((-A(3)*x) + A(4)))); % logistic
+        
+        x = -0.1:0.01:0.1;
+        
+        for a = [0.7]
+            A = [0.6 -0.12 80 a];
+            
+            plot(x, modelfun(A, x), '-o')
+        end
+    end
+    
+    %% fitting using logistic regression
+    if (0)
+%     Ymean = (Ymean - 0.42)./0.04;
+Yall = (Yall - 0.42)./0.04;    
+mdl = fitglm(Xall, Yall, 'Distribution', 'normal', 'Link', 'logit');
+    
+    
+    lt_figure; hold on; 
+    plot(Xall, Yall, 'xk')
+%     x = min(X):0.001:max(X); 
+    x =-1:0.01:1; 
+    plot(x, mdl.feval(x), 'o-');
+    end
+    
+end
+
+
+
+
+
 end
 
 

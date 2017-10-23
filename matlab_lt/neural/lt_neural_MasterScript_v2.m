@@ -3,11 +3,11 @@
 
 %% EXTRACT 
 clear all; close all;
-BirdsToKeep = {'bk7'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 BrainArea = {};
 ExptToKeep = {};
 RecordingDepth = [];
-LearningOnly = 0;
+LearningOnly = 1;
 BatchesDesired = {};
 ChannelsDesired = [];
 % BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
@@ -105,6 +105,12 @@ end
 
 %% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %% &&&&&&&&&&&&&&&&&& DIAGNOSTIC STUFF &&&&&&&&&&&&&&&&
+%% ====== check if SU or MU
+
+
+%% ======= CHECK IF GOOD FR MODULATION
+
+
 
 %% ============= CHECK WHETHER ANY UNITS HAVE OVERLAPPING DATA - IF SO, REMOVE ONE OF THEM
  
@@ -181,6 +187,37 @@ lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
 
 
 %% ==================================== 
+
+
+
+%% ===== COMPARE RAW NEURAL (FILTERED) FOR ALL RENDS FOR SEGMENT
+
+% --- IN PROGRESS
+lt_neural_v2_ANALY_PlotRawNeural(SegmentsExtract);
+
+
+
+%% ################# ENCODING OF SONG PARAMS (OTHER THAN CONTEXT) ###
+%% ##################################################################
+
+%% ======= CORRELATION BETWEEN SINGLE UNITS AND VARIOUS PARAMS
+
+
+
+
+%% ===== EFFECT OF MOTIF POSITION (WITHIN SONG BOUT) ON SYL FEATURES + NEURAL [JOANNE]
+
+% === IMPORTANT!! - ASSUMES THAT ALL NEURONS FOR A GIVEN BIRD HAVE SAME
+% MOTIFS IN SAME ORDER (I.E. IN lt_neural_v2_PostInfo)
+close all;
+PlotRaw = 0;
+lt_neural_v2_ANALY_BoutPositionJC(SummaryStruct,PlotRaw);
+
+
+
+
+
+
 
 %% &&&&&&&&&&&&&&&&&&&&&& CONTEXT &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 clear CLASSES
@@ -298,7 +335,7 @@ ALLBRANCH = lt_neural_v2_CTXT_BranchRemvOlap(ALLBRANCH);
 
 % ==== 2)  PLOT EACH BRANCH/BIRD/NEURON
 close all;
-birdtoplot = 'br92br54'; % leave blank to plot all;
+birdtoplot = 'or74bk35'; % leave blank to plot all;
 plotspec_num = 3; % how many spectrograms to plot for each class in each branch point? if 0 then none.
 lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot, plotspec_num)
 
@@ -373,7 +410,7 @@ lt_neural_v2_CTXT_Plot(CLASSIFIEROUT);
 
 %% +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %% +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-%% &&&&&&&&&&&&&&&&&& VOCLATIONS --> predict neural &&&&&&&&&&&&&&&&&&
+%% &&&&&&&&& VOCLATIONS --> predict neural using context/FF, etc &&&&&&&&&&&&&&&&&&
 
 close all;
 plotRaw = 0; % individaul neuronf igs (note, hand entering neuron ind currently, in code)
@@ -413,26 +450,9 @@ lt_neural_v2_ANALY_VocModel_glm(VOCALSTRUCTall)
 
 
 
-%% ===== EFFECT OF MOTIF POSITION (WITHIN SONG BOUT) ON SYL FEATURES + NEURAL [JOANNE]
-
-% === IMPORTANT!! - ASSUMES THAT ALL NEURONS FOR A GIVEN BIRD HAVE SAME
-% MOTIFS IN SAME ORDER (I.E. IN lt_neural_v2_PostInfo)
-close all;
-PlotRaw = 0;
-lt_neural_v2_ANALY_BoutPositionJC(SummaryStruct,PlotRaw);
 
 
-
-
-%% ===== COMPARE RAW NEURAL (FILTERED) FOR ALL RENDS FOR SEGMENT
-
-% --- IN PROGRESS
-lt_neural_v2_ANALY_PlotRawNeural(SegmentsExtract);
-
-
-
-
-%% &&&&&&&&&&&&&&&&&&&&& SINGLE EXPERIMENTS &&&&&&&&&&&&&&&&&&&&&&&&&
+%% &&&&&&&&&&&&&&&&&&&&& [LEARNING] SINGLE EXPERIMENTS &&&&&&&&&&&&&&&&&&&&&&&&&
 %% ============== FOR EACH LEARNING EXPERIMENT, PLOT ALL NEURONS AND ALL MOTIFS
 % ONE BIRD/LEARNING EXPT AT A TIME [BUT CAN COMBINE NEURONS]
 
@@ -658,8 +678,8 @@ lt_neural_v2_ANALY_LrnSwtchPLOT(MOTIFSTATS_Compiled, SwitchStruct);
 
 % ============ TIMECOURSES FOR NEURAL FOR SWITCHES
 close all;
-birdname_get = 'br92br54'; % keep empty if want all.
-exptname_get = 'LMANlearn5';
+birdname_get = 'or74bk35'; % keep empty if want all.
+exptname_get = 'LMANneural2';
 switchnum_get = [1];
 plotneurzscore=0;
 lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct, ...
@@ -672,8 +692,10 @@ lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct, ...
 close all;
 RemoveLowNumtrials = 1; % min number for both base and train(double)
 MinTrials = 8; % for removing
-skipMultiDir = 0;
+skipMultiDir = 1;
 usePeakLearn = 0; % assumes that care about learning for targ 1. (median time of max learning)
+useTrialsRightAfterWNOn = 1; % note, if 1, then overrides usePeakLearn; if n is numtrials, takes the trials from n+1:2n from WN onset.
+
 
 % ---- what metric to plot for main figs
 % 1) split into half, corr those, repeat
@@ -689,7 +711,7 @@ fieldname_trainneur = 'AllNeurSplitCorrTrain';
 
 % -- following only matter if use fieldname_baseneur = 'AllNeurSimBase' & fieldname_trainneur = 'AllNeurSimTrain';
 UseZscoreNeural = 0;
-neuralmetricname = 'NEURvsbase_FRcorr';
+% neuralmetricname = 'NEURvsbase_FRcorr';
 % neuralmetricname = 'NEUR_meanFR';
 % neuralmetricname = 'NEUR_cvFR';
 
@@ -710,7 +732,14 @@ OnlyUseDatOnSwitchDay=1; % NOTE: if use with "UsePeakLearn" then will constrain 
 [DATSylMot, ~] = lt_neural_v2_ANALY_Swtch_Summary(MOTIFSTATS_Compiled, SwitchStruct, RemoveLowNumtrials, ...
     MinTrials, UseZscoreNeural, neuralmetricname, fieldname_baseneur, fieldname_trainneur, ...
     skipMultiDir, usePeakLearn, plotLearnStatsOn, learnsigalpha, OnlyKeepSigLearn, ...
-    OnlyKeepWNonset, OnlyUseDatOnSwitchDay);
+    OnlyKeepWNonset, OnlyUseDatOnSwitchDay, useTrialsRightAfterWNOn);
+
+
+
+
+% ============================================ PAIRWISE CORRELATIONS DUR
+% LEARNING
+lt_neural_v2_LEARNING_NeurPairCorr(MOTIFSTATS_Compiled, SwitchStruct);
 
 
 

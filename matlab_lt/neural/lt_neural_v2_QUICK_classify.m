@@ -63,6 +63,9 @@ end
 
 % -- current method, makes sure at least one of each group is in training
 % set.
+
+% tmp = cvpartition(Yinput, 'kfold', numfold)
+
 kfoldinds = crossvalind('Kfold', Yinput, numfold);
 
 %%
@@ -78,7 +81,6 @@ tmpsum = 0;
 kfoldlist = unique(kfoldinds);
 
 for xx = kfoldlist'
-    
     X_test = Xinput(kfoldinds==xx, :);
     
     X_train = Xinput(kfoldinds~=xx, :);

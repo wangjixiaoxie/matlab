@@ -43,7 +43,8 @@ if ~exist('collectWNhit', 'var')
 end
 
 if ~exist('collectWholeBoutPosition', 'var')
-    collectWholeBoutPosition=0; % to get position of a given datapoint within its bout
+%     collectWholeBoutPosition=0; % to get position of a given datapoint within its bout
+    collectWholeBoutPosition=1; % to get position of a given datapoint within its bout
 end
 
 if ~exist('LearnKeepOnlyBase', 'var');
@@ -391,8 +392,17 @@ for i=1:length(tokenExtents)
     % ------------------- EXTRACT SYL DUR AND FLANKING GAP DURS
     ind=tokenExtents(i);
     syldur = AllOffsets(ind) - AllOnsets(ind);
-    gapdur_pre = AllOnsets(ind) - AllOffsets(ind-1);
-    gapdur_post = AllOnsets(ind+1) - AllOffsets(ind);
+    if ind>1
+        gapdur_pre = AllOnsets(ind) - AllOffsets(ind-1);
+    else
+        gapdur_pre = nan;
+    end
+    
+    if ind == length(AllOnsets);
+        gapdur_post = nan;
+    else
+        gapdur_post = AllOnsets(ind+1) - AllOffsets(ind);
+    end
     
     SegmentsExtract(i).Dur_syl = syldur;
     SegmentsExtract(i).Dur_gappre = gapdur_pre;
@@ -586,7 +596,7 @@ for i=1:length(tokenExtents)
     
     % =============== FIGURE OUT POSITION OF MOTIF WITHIN ITS BOUT
     if collectWholeBoutPosition==1
-        ind; % current syl posotion
+       ind; % current syl posotion
         
         boutnum = find(wholebout_firstsyls<=ind & wholebout_lastsyls>=ind);
         if length(boutnum)==0
