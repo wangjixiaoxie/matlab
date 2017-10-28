@@ -223,6 +223,35 @@ for i=1:numbirds
             
         end
     end
+    
+    
+%% TROUBLESHOOTING
+if (0)
+%% use this to try LOO vs. kfold CV, 
+y = [];
+for cvfold = 2:2:20;
+    
+[~, ConfMat_pos, accuracy_pos, sensitivity_mean_pos, PiYActual_pos] ...
+                                = lt_neural_v2_QUICK_classify(Xall_pos, Y_pos, 'glmnet', ...
+                                rebalance, imbalance_thr, beta, cvfold);
+                            
+                            y= [y accuracy_pos];
+end
+
+
+% LOO
+
+                            [~, ConfMat_pos, accuracy_pos_LOO, sensitivity_mean_pos, PiYActual_pos] ...
+                                = lt_neural_v2_QUICK_classifyBACKUP(Xall_pos, Y_pos, 'glmnet', ...
+                                rebalance, imbalance_thr, beta);
+
+%
+figure; hold on;
+plot(2:2:20, y, '-o');
+line([2 50], [accuracy_pos_LOO accuracy_pos_LOO]);
+ylim([0 1])
+
+
 end
 
 
@@ -303,30 +332,5 @@ else
 end
 
 
-%% TROUBLESHOOTING
-if (0)
-%% use this to try LOO vs. kfold CV, 
-y = [];
-for cvfold = 2:2:20;
-    
-[~, ConfMat_pos, accuracy_pos, sensitivity_mean_pos, PiYActual_pos] ...
-                                = lt_neural_v2_QUICK_classify(Xall_pos, Y_pos, 'glmnet', ...
-                                rebalance, imbalance_thr, beta, cvfold);
-                            
-                            y= [y accuracy_pos];
-end
-
-
-% LOO
-
-                            [~, ConfMat_pos, accuracy_pos_LOO, sensitivity_mean_pos, PiYActual_pos] ...
-                                = lt_neural_v2_QUICK_classifyBACKUP(Xall_pos, Y_pos, 'glmnet', ...
-                                rebalance, imbalance_thr, beta);
-
-%
-figure; hold on;
-plot(2:2:20, y, '-o');
-line([2 50], [accuracy_pos_LOO accuracy_pos_LOO]);
-ylim([0 1])
 
 end

@@ -17,7 +17,6 @@ numsyltrialstoplot = min([length(segextract) numsyltrialstoplot]);
 %%
 TrialInds = randi(length(segextract), 1, numsyltrialstoplot); % which random trials to get
 
-SylContours = nan(numsyltrialstoplot, ceil(1000*(maxdur))); % fill with nans, if actual contyours too short, then edges will have nans
 
 
 % --- figure out min trial dur
@@ -32,6 +31,7 @@ if (0)
 end
 
 maxdur = min([maxdur trialdur]);
+SylContours = nan(numsyltrialstoplot, ceil(1000*(maxdur))); % fill with nans, if actual contyours too short, then edges will have nans
 
 for kk=1:length(TrialInds)
     trialindtmp = TrialInds(kk);
@@ -58,7 +58,10 @@ for kk=1:length(TrialInds)
     end
     
     % fill in if trial started on a gap
-    if segextract(trialindtmp).sylOnTimes_RelDataOnset(1)<segextract(trialindtmp).sylOffTimes_RelDataOnset(1);
+    if isempty(segextract(trialindtmp).sylOffTimes_RelDataOnset)
+        % then must start during off
+        tmpons(1:ceil(segextract(trialindtmp).sylOnTimes_RelDataOnset(1)*1000))=0;
+    elseif segextract(trialindtmp).sylOnTimes_RelDataOnset(1)<segextract(trialindtmp).sylOffTimes_RelDataOnset(1)
         % then starts during off
         tmpons(1:ceil(segextract(trialindtmp).sylOnTimes_RelDataOnset(1)*1000))=0;
     end

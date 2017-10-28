@@ -3,11 +3,11 @@
 
 %% EXTRACT 
 clear all; close all;
-BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BirdsToKeep = {'bu77wh13', 'or74bk35'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 BrainArea = {};
 ExptToKeep = {};
 RecordingDepth = [];
-LearningOnly = 1;
+LearningOnly = 0;
 BatchesDesired = {};
 ChannelsDesired = [];
 % BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
@@ -225,14 +225,14 @@ clear CLASSES
 % ###########################################################################
 % ############################################## DATA PREPROCESSING
 % &&&&&&&&&&&&& 1) ARBITRARY CONTEXTS
-strtype = 'xaaa'; % a is fixed, x variable, across contexts
+strtype = 'xaa'; % a is fixed, x variable, across contexts
 [CLASSES, prms] = lt_neural_v2_CTXT_Extract(SummaryStruct, strtype);
 
 % &&&&&&&&&&&&& 2) EXTRACT REGEXP STRUCT 
 prms.alignWhichSyl = 2; % which syl (in order) to align to
 prms.alignOnset = 1; % if 1, then onset, if 0, then offset
-prms.motifpredur = 0.25;
-prms.motifpostdur = 0.25;
+prms.motifpredur = 0.1;
+prms.motifpostdur = 0.5;
 prms.preAndPostDurRelSameTimept = 1; % 1, then pre and post both aligned at same time. if 0, then post is aligned to motif ofset.
 CLASSES = lt_neural_v2_CTXT_GetBrnchDat(CLASSES, SummaryStruct, prms);
 
@@ -289,6 +289,27 @@ prms.ClassGeneral.GetPosControl =1;
 
 [savedir] = lt_neural_v2_CTXT_ClassGeneral_M(CLASSES, SummaryStruct, prms, ListOfTimeWindows, ...
     ListOfFrBinSizes, savenotes);
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CLASSIFIER (V2) - picks a branch,
+% does all time points, goes to next branch.
+TimeWindowDur = 0.04;
+TimeWindowSlide = 0.01;
+FRbinsize = 0.005;
+savenotes = 'test';
+
+prms.ClassSlide.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
+prms.ClassSlide.GetPosControl =1;
+
+CVmethod = 'Kfold';
+plotstat = 'F1';
+
+saveON =1;
+
+ALLBRANCH = lt_neural_v2_CTXT_ClassSliding(CLASSES, SummaryStruct, prms, ...
+    TimeWindowDur, TimeWindowSlide, FRbinsize, savenotes, CVmethod, plotstat, ...
+    saveON);
+
 
 % ------------ debugging: to systematically change names of classes...
 lt_neural_v2_CTXT_Debug;
@@ -349,10 +370,10 @@ LMANorX = 0; % 0, both; 1, LMAN; 2, X
 birdstoexclude = {};
 % birdstoexclude = {'bk7', 'bu77wh13', 'or74bk35', 'wh6pk36', 'br92br54'};
 
-durThreshOmega.syl = 0.15; % omega2 (will only keep if lower) [leave empty to ignore]
+% durThreshOmega.syl = 0.15; % omega2 (will only keep if lower) [leave empty to ignore]
 % durThreshOmega.gappre= 0.5;
 % durThreshOmega.gappost= 0.2;
-% durThreshOmega.syl = []; % omega2 (will only keep if lower) [leave empty to ignore]
+durThreshOmega.syl = []; % omega2 (will only keep if lower) [leave empty to ignore]
 durThreshOmega.gappre= [];
 durThreshOmega.gappost= [];
 
@@ -362,6 +383,32 @@ RemovePrecededByIntro=0; % if 1, then removes any token preceded by "i" (e.g. i(
 lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoexclude, ...
     durThreshOmega, RemoveRepeats, RemovePrecededByIntro)
 
+
+% ################################## FURTHER ANALYSES ON BRANCH (AUTO SAVE)
+
+% ============= 1) IN PREMOTOR WINDOW, COMPARE DECODING VS. SHUFFLED.
+analyfname = 'xaa_Algn2Ons1_26Oct2017_1257_testLMAN2birds';
+Niter = 5;
+TimeWindows = [-0.05 -0.05]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
+lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
+
+% ------- to plot results from above (can do multiple)
+allanalyfnames = {...
+    'xaa_Algn2Ons1_26Oct2017_1257_testLMAN2birds', ...
+    'xaa_Algn2Ons1_26Oct2017_1257_testLMAN2birds', ...
+    };
+lt_neural_v2_CTXT_BRANCH_DatVsShuffMULT(allanalyfnames);
+
+
+
+
+% ################################## COMPARE TIMING OF TWO COMPILED BRANCHES
+close all;
+% branchfname1 = 'ALLBRANCH_xaa_03Oct2017_2149_RAallbirds20ms.mat';
+% branchfname2 = 'ALLBRANCH_xaa_18Oct2017_2355_LMANXallbirds20ms.mat';
+branchfname1 = 'ALLBRANCHv2_xaa_Algn2Ons1_27Oct2017_1114_XLMAN25ms.mat';
+branchfname2 = 'ALLBRANCHv2_xaa_Algn2Ons1_27Oct2017_1156_RA25ms.mat';
+lt_neural_v2_CTXT_BranchCompareTwo(branchfname1, branchfname2);
 
 
 

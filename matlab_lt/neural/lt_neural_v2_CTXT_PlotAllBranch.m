@@ -1,5 +1,5 @@
 function lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoexclude, ...
-   durThreshOmega, RemoveRepeats, RemovePrecededByIntro)
+    durThreshOmega, RemoveRepeats, RemovePrecededByIntro)
 %% TO DO
 
 % 1) for pos control, get syl contours. (and then can do stretching for all
@@ -14,7 +14,8 @@ function lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoe
 
 CompareDprimeWohl = 1; % if 1, then overlays Sober and Wohl values
 
-stdbinsize = diff(ALLBRANCH.alignpos(1).ParamsFirstIter.ClassGeneral.frtimewindow(1:2))/2; % divide 2 since can be smaller
+% stdbinsize = diff(ALLBRANCH.alignpos(1).ParamsFirstIter.ClassGeneral.frtimewindow(1:2))/2; % divide 2 since can be smaller
+% stdbinsize = diff(ALLBRANCH.alignpos(1).ParamsFirstIter.alignOnset frtimewindow(1:2))/2; % divide 2 since can be smaller
 
 %%  get max neurons, and branches
 
@@ -57,8 +58,36 @@ ALLBRANCH = lt_neural_v2_CTXT_AllBranchDprime(ALLBRANCH, Nmin, Niter, ...
     DprimeNegVersion);
 
 
-%% PLOT ACROSS BRANCHES [sep by alignment, stretch or no stretch
+%% ======== COLLECT DATA ACROSS BRANCHES [sep by alignment, stretch or no stretch
 
+[DATSTRUCT, Diagnos] = lt_neural_v2_CTXT_BranchToDatstruct(ALLBRANCH, birdstoexclude, ...
+    LMANorX, RemoveRepeats, durThreshOmega, dattoplot);
+
+
+% ============ Diagnos
+
+numbirds = length(unique(Diagnos.Allbirdnum));
+
+numneurons = tabulate([num2str(Diagnos.Allbirdnum') num2str(Diagnos.Allneuron')]);
+numneurons = size(numneurons,1);
+
+numbranches = tabulate([num2str(Diagnos.Allbirdnum') num2str(Diagnos.Allneuron') ...
+    num2str(Diagnos.Allbranchnum')]);
+numbranches = size(numbranches, 1);
+
+disp([num2str(numbirds) ' birds, ' num2str(numneurons) ' neurons,' num2str(numbranches) ' branches.'])
+
+
+disp([' ============ REMOVED due to fail syl/gap dur similarity thesrhold: ' ...
+    num2str(Diagnos.NumRemovedDueToThresh) '/' ...
+    num2str(Diagnos.NumRemovedDueToThresh+Diagnos.NumKeptDueToThresh)]);
+
+
+%% 
+
+Allbirdnum = Diagnos.Allbirdnum;
+
+%% ============ PLOT MEAN (STRETCHED AND UNSTRETCHED)
 
 
 figcount=1;
@@ -69,262 +98,15 @@ hfigs=[];
 
 hsplots = [];
 
-numalign = length(ALLBRANCH.alignpos);
 
-DATSTRUCT = struct;
-
-Allalign = [];
-Allbirdnum = [];
-Allbranchnum = [];
-Allneuron = [];
-
-NumRemovedDueToThresh = 0;
-NumKeptDueToThresh = 0;
 for i=1:numalign
+    
     alignsyl = ALLBRANCH.alignpos(i).alignsyl;
     alignons = ALLBRANCH.alignpos(i).alignonset;
     
-    numbirds = length(ALLBRANCH.alignpos(i).bird);
-    motifpredur = ALLBRANCH.alignpos(i).ParamsFirstIter.motifpredur;
+    Datstruct = DATSTRUCT.numalign(i).Datstruct;
     
-    % === one for each branch/syl
-    Xcell = {};
-    Ycell = {};
-    Xcontcell = {};
-    Ycontcell = {};
-    
-    Xcell_pos = {};
-    Ycell_pos = {};
-    
-    Xcell_neg = {};
-    Ycell_neg = {};
-    
-    BirdnumAll = [];
-    
-    Datstruct = struct;
-    
-    for ii=1:numbirds
-        
-        
-        birdname = ALLBRANCH.SummaryStruct.birds(ii).birdname;
-        if any(strcmp(birdstoexclude, birdname))
-            disp(['skipping ' birdname]);
-            continue
-        end
-        
-        numbranch = length(ALLBRANCH.alignpos(i).bird(ii).branch);
-        
-        for j=1:numbranch
-            numneuron = length(ALLBRANCH.alignpos(i).bird(ii).branch(j).neuron);
-            
-            for nn=1:numneuron
-                
-                datneur = ALLBRANCH.alignpos(i).bird(ii).branch(j).neuron(nn);
-                
-                
-                %% if care about location
-                if LMANorX==1
-                    location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
-                    % LMAN
-                    if ~strcmp(location, 'LMAN')
-                        continue
-                    end
-                elseif LMANorX==2
-                    location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
-                    if ~strcmp(location, 'X')
-                        continue
-                    end
-                end
-                
-                %% === COLLECT FOR THIS BRANCH/ALIGNMENT
-                
-                if isempty(datneur.yvals)
-                    continue
-                end
-                if length(datneur.xtimes)==1
-                    continue
-                end
-                
-               %% ==== remove anything with repeats?
-               if RemoveRepeats ==1
-                   isrepeat=0;
-                   for k =1:length(datneur.prms_regexpstrlist)
-                       thisstr = datneur.prms_regexpstrlist{k};
-                       
-                       tokensyl = thisstr(strfind(thisstr, '(')+1);
-                       presyl = thisstr(strfind(thisstr, '(')-1);
-                       
-                       if tokensyl == presyl
-                           isrepeat =1;
-                       end
-                       
-                       % NOTE: ad hoc, change this to separate section.
-                       if presyl =='i'
-                           isrepeat=1;
-                       end
-                   end
-                   
-                   if isrepeat==1
-                       continue
-                   end
-               end
-               
-               %% ===== if want to filter by syl/gap duration differences across classes (within context)
-               if datneur.DurAnovas.syl_omega>durThreshOmega.syl | ...
-                       datneur.DurAnovas.gappre_omega > durThreshOmega.gappre | ...
-                       datneur.DurAnovas.gappost_omega > durThreshOmega.gappost
-                   NumRemovedDueToThresh = NumRemovedDueToThresh+1;
-                   continue
-               else
-                   NumKeptDueToThresh = NumKeptDueToThresh+1;
-               end
-                 
-               
-              
-                %% ========================================== DATA
-                
-               DatN = nan(1,3);
-                if strcmp(dattoplot, 'classperform')
-                    Xcell = [Xcell datneur.xtimes];
-                    Ycell = [Ycell datneur.yvals];
-                elseif strcmp(dattoplot, 'dprime');
-                    % take average for each branch
-                    if (1)
-                        Ycell = [Ycell nanmean(datneur.DprimeAllPairwise,2)];
-                        xtimes = -motifpredur + (1:size(datneur.DprimeAllPairwise,1))./1000;
-                        Xcell = [Xcell xtimes'];
-                    else
-                        % don't take average (each pairwise is one val)
-                        Ycell = [Ycell datneur.DprimeAllPairwise];
-                        xtimes = -motifpredur + (1:size(datneur.DprimeAllPairwise,1))./1000;
-                        xtimes = repmat(xtimes', 1, size(datneur.DprimeAllPairwise,2));
-                        Xcell = [Xcell xtimes];
-                    end
-                elseif strcmp(dattoplot, 'frmean')
-                    % take average for each branch
-                    xtimes = -motifpredur + (1:size([datneur.FR.classnum.frmean],1))./1000;
-                    Xcell = [Xcell xtimes];
-                    Ycell = [Ycell nanmean([datneur.FR.classnum.frmean],2)];
-                    
-                end
-                % syl contour
-                %                 plot(datneur.sylcontours_x, datneur.sylcontours_mean, '-', 'Color', [0.6 0.2 0.2]);
-                Xcontcell = [Xcontcell datneur.sylcontours_x];
-                Ycontcell = [Ycontcell datneur.sylcontours_mean];
-                
-                DatN(1) = length(Ycell{end});
-                
-                
-                
-                % =================================== POS CONTROL
-                if strcmp(dattoplot, 'classperform')
-                    Xcell_pos = [Xcell_pos datneur.xtimes];
-                    Ycell_pos = [Ycell_pos datneur.yvals_pos];
-                elseif strcmp(dattoplot, 'dprime');
-                    % take average for each branch
-                    if (1)
-                        Ycell_pos = [Ycell_pos nanmean(datneur.DprimeAllPairwise_Pos,2)];
-                        xtimes = -motifpredur + (1:size(datneur.DprimeAllPairwise_Pos,1))./1000;
-                        Xcell_pos = [Xcell_pos xtimes'];
-                    else
-                        % don't take average (each pairwise is one val)
-                        Ycell_pos = [Ycell_pos datneur.DprimeAllPairwise_Pos];
-                        xtimes = -motifpredur + (1:size(datneur.DprimeAllPairwise_Pos,1))./1000;
-                        xtimes = repmat(xtimes', 1, size(datneur.DprimeAllPairwise_Pos,2));
-                        Xcell_pos = [Xcell_pos xtimes];
-                    end
-                elseif strcmp(dattoplot, 'frmean')
-                    % take average for each branch
-                    xtimes = -motifpredur + (1:size([datneur.FR_POSCONTR.classnum.frmean],1))./1000;
-                    Xcell_pos = [Xcell_pos xtimes];
-                    Ycell_pos = [Ycell_pos nanmean([datneur.FR_POSCONTR.classnum.frmean],2)];
-                    
-                end
-                DatN(2) = length(Ycell_pos{end});
-
-                
-                % ========================================= NEG CONTROL
-                if strcmp(dattoplot, 'classperform')
-                    Xcell_neg = [Xcell_neg datneur.xtimes];
-                    Ycell_neg = [Ycell_neg datneur.yvals_neg];
-                elseif strcmp(dattoplot, 'dprime');
-                    % take average for each branch
-                    if (1)
-                        Ycell_neg = [Ycell_neg nanmean(datneur.DprimeAllPairwise_Neg,2)];
-                        xtimes = -motifpredur + (1:size(datneur.DprimeAllPairwise_Neg,1))./1000;
-                        Xcell_neg = [Xcell_neg xtimes'];
-                    else
-                        % don't take average (each pairwise is one val)
-                        Ycell_neg = [Ycell_neg datneur.DprimeAllPairwise_Neg];
-                        xtimes = -motifpredur + (1:size(datneur.DprimeAllPairwise_Neg,1))./1000;
-                        xtimes = repmat(xtimes', 1, size(datneur.DprimeAllPairwise_Neg,2));
-                        Xcell_neg = [Xcell_neg xtimes];
-                    end
-                elseif strcmp(dattoplot, 'frmean')
-                    % take average for each branch [IDENTICAL TO DATA]
-                    xtimes = -motifpredur + (1:size([datneur.FR.classnum.frmean],1))./1000;
-                    Xcell_neg = [Xcell_neg xtimes];
-                    Ycell_neg = [Ycell_neg nanmean([datneur.FR.classnum.frmean],2)];
-                end
-                DatN(3) = length(Ycell_neg{end});
-
-                
-                % =================================== SAMPLE SIZE TALLY
-                Allalign = [Allalign i];
-                Allbirdnum = [Allbirdnum ii];
-                Allbranchnum = [Allbranchnum j];
-                Allneuron = [Allneuron nn];
-                
-                BirdnumAll = [BirdnumAll ii];
-                
-                % ======= confirm that is paired - i.e. each datapoint has dat and both controls
-%                 disp(DatN);
-                assert(length(unique(DatN))==1, 'dat and controls have diff lengths ...');
-            end
-        end
-    end
-    
-    assert(length(Ycell) == length(Ycell_pos), 'asfds');
-    assert(length(Ycell) == length(Ycell_neg), 'asdf');
-    
-    % ================== PUT INTO STRUCT
-    Datstruct.Dat.Xcell = Xcell;
-    Datstruct.Dat.Ycell = Ycell;
-    Datstruct.Dat.Xcontcell = Xcontcell;
-    Datstruct.Dat.Ycontcell = Ycontcell;
-    
-    Datstruct.PosContr.Xcell = Xcell_pos;
-    Datstruct.PosContr.Ycell = Ycell_pos;
-    
-    Datstruct.NegContr.Xcell = Xcell_neg;
-    Datstruct.NegContr.Ycell = Ycell_neg;
-    
-    Datstruct.Dat.BirdnumAll = BirdnumAll;
-    
-    %% ====================== SUBTRACT CONTROLS
-    
-    for nn = 1:length(Datstruct.Dat.Ycell);
-        % ============================ VS. NEG
-        % --- confirm that xvalues match
-        assert(all(Datstruct.Dat.Xcell{nn} - Datstruct.NegContr.Xcell{nn} < 0.001), 'safasd');
-        Datstruct.DatMinusNeg.Xcell{nn} = Datstruct.Dat.Xcell{nn};
-        
-        % -- get diff
-        ydiff = Datstruct.Dat.Ycell{nn} - Datstruct.NegContr.Ycell{nn};
-        Datstruct.DatMinusNeg.Ycell{nn} = ydiff;
-        
-        
-        % ============================== VS POS
-        % --- confirm that xvalues match
-        assert(all(Datstruct.Dat.Xcell{nn} - Datstruct.PosContr.Xcell{nn} < 0.001), 'safasd');
-        Datstruct.DatMinusPos.Xcell{nn} = Datstruct.Dat.Xcell{nn};
-        
-        % -- get diff
-        ydiff = Datstruct.Dat.Ycell{nn} - Datstruct.PosContr.Ycell{nn};
-        Datstruct.DatMinusPos.Ycell{nn} = ydiff;
-    end
-    
-    %% ============= PLOT MEANS
+    % ######################################################### UNSTRETCHED
     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     hsplots = [hsplots hsplot];
     title(['[BFORE STRETCH] algnsyl' num2str(alignsyl) ', onset' num2str(alignons)]);
@@ -369,27 +151,8 @@ for i=1:numalign
     end
     
     
-    %% ========= time warping, align all neur by warping syl contours
-    % ============= METHOD 1, linear stretching, based on autocorrelation
-    % width between peaks
     
-    % --------- Actual dat
-    dattype = 'Dat';
-    Datstruct = warp_stretch(Datstruct, dattype);
-    
-    dattype = 'NegContr';
-    Datstruct = warp_stretch(Datstruct, dattype);
-    
-    dattype = 'PosContr';
-    Datstruct = warp_stretch(Datstruct, dattype);
-    
-    dattype = 'DatMinusNeg';
-    Datstruct = warp_stretch(Datstruct, dattype);
-    
-    dattype = 'DatMinusPos';
-    Datstruct = warp_stretch(Datstruct, dattype);
-    
-    %% ==================== PLOT (STRETCHED)
+    % ##################################################### PLOT (STRETCHED)
     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     title(['[AFTER STRETCH] algnsyl' num2str(alignsyl) ', onset' num2str(alignons)]);
     hsplots = [hsplots hsplot];
@@ -421,67 +184,11 @@ for i=1:numalign
     warpOn=1;
     plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn);
     
-    %
-    %     else
-    %     % ====================================
-    %     % --- MODIFY
-    %     Ycell_WARP = Datstruct.Dat.Ycell_WARP;
-    %     Xcell = Datstruct.Dat.Xcell;
-    %     Ycontcell_WARP = Datstruct.Dat.Ycontcell_WARP;
-    %     Xcontcell = Datstruct.Dat.Xcontcell;
-    %
-    %     % ---- RUN
-    %     Yall = cell2mat(Ycell_WARP);
-    %     Xall = cell2mat(Xcell);
-    %
-    %     % ---- combine all dat
-    %     Yall = Yall(:);
-    %     Xall = Xall(:);
-    %
-    %     Ycont = cell2mat(Ycontcell_WARP);
-    %     Xcont = cell2mat(Xcontcell);
-    %
-    %
-    %     [Ymean, Ysem] = grpstats(Yall, Xall, {'mean', 'sem'});
-    %     X = unique(Xall);
-    %
-    %     lt_plot(X, Ymean, {'Errors', Ysem});
-    %
-    %     % --- contour
-    %     [Ymean, Ysem] = grpstats(Ycont, Xcont, {'mean', 'sem'});
-    %     X = unique(Xcont);
-    %
-    %     axis tight
-    %     Ylim = ylim;
-    %
-    %     plot(X, Ylim(1)+Ymean.*(Ylim(2)-Ylim(1)), 'r-', 'LineWidth', 2);
-    %     end
-    
-    %%
-    
-    DATSTRUCT.numalign(i).Datstruct = Datstruct;
-    
-    
 end
 linkaxes(hsplots, 'xy')
 
-%%
-
-disp([' ============ REMOVED due to fail syl/gap dur similarity thesrhold: ' ...
-    num2str(NumRemovedDueToThresh) '/' num2str(NumRemovedDueToThresh+NumKeptDueToThresh)]);
 
 
-%% ==== sample size, display
-
-numbirds = length(unique(Allbirdnum));
-
-numneurons = tabulate([num2str(Allbirdnum') num2str(Allneuron')]);
-numneurons = size(numneurons,1);
-
-numbranches = tabulate([num2str(Allbirdnum') num2str(Allneuron') num2str(Allbranchnum')]);
-numbranches = size(numbranches, 1);
-
-disp([num2str(numbirds) ' birds, ' num2str(numneurons) ' neurons,' num2str(numbranches) ' branches.'])
 
 %% ================= PLOT MEANS (SUBTRACTING CONTROLS, AND DOING STATS, PAIRWISE DIFFS)
 numalign = length(ALLBRANCH.alignpos);
@@ -618,7 +325,7 @@ fignums_alreadyused=[];
 hfigs=[];
 hsplots = [];
 
-        
+
 for i=1:numalign
     alignsyl = ALLBRANCH.alignpos(i).alignsyl;
     alignons = ALLBRANCH.alignpos(i).alignonset;
@@ -703,8 +410,8 @@ for i=1:numalign
         plotcol = 'b';
         warpOn=1;
         plotMeanTraj(Datstruct, dattype, plotcol, 0, warpOn, ii);
-
-       
+        
+        
         % -- contour
         dattype = 'sylcontour';
         plotcol = 'k';
@@ -730,7 +437,8 @@ title('data');
 Xmat = cell2mat(Datstruct.(dattype).Xcell);
 Ymat = cell2mat(Datstruct.(dattype).Ycell);
 
-indtmp = Xmat>onsetbounds(1) & Xmat<onsetbounds(2)  & ~isnan(Ymat);
+tmp = min(abs(Xmat));
+indtmp = Xmat>onsetbounds(1)+tmp & Xmat<onsetbounds(2)+tmp  & ~isnan(Ymat);
 lt_plot_histogram(Ymat(indtmp))
 xlim([0 1]);
 
@@ -741,7 +449,8 @@ title('neg contr');
 
 Xmat = cell2mat(Datstruct.(dattype).Xcell);
 Ymat = cell2mat(Datstruct.(dattype).Ycell);
-indtmp = Xmat>onsetbounds(1) & Xmat<onsetbounds(2)  & ~isnan(Ymat);
+tmp = min(abs(Xmat));
+indtmp = Xmat>onsetbounds(1)+tmp & Xmat<onsetbounds(2)+tmp  & ~isnan(Ymat);
 lt_plot_histogram(Ymat(indtmp))
 xlim([0 1]);
 
@@ -752,7 +461,8 @@ title('pos contr');
 
 Xmat = cell2mat(Datstruct.(dattype).Xcell);
 Ymat = cell2mat(Datstruct.(dattype).Ycell);
-indtmp = Xmat>onsetbounds(1) & Xmat<onsetbounds(2)  & ~isnan(Ymat);
+tmp = min(abs(Xmat));
+indtmp = Xmat>onsetbounds(1)+tmp & Xmat<onsetbounds(2)+tmp  & ~isnan(Ymat);
 lt_plot_histogram(Ymat(indtmp))
 xlim([0 1]);
 
@@ -776,61 +486,62 @@ for i=1:numalign
     Yall = Yall(:);
     
     
-%     lt_figure; hold on;
-%     plot(Xall, Yall, 'x');
+    %     lt_figure; hold on;
+    %     plot(Xall, Yall, 'x');
     
     % ----- fit sigmoid (individual points)
-%     modelfun = @(A, x) (A(1) + A(2)./(1 + A(4).*exp(-A(3)*x))); % logistic
-        modelfun = @(A, x) (A(1) + A(2)./(1 + exp(-A(3)*x + A(4)))); % logistic
+    %     modelfun = @(A, x) (A(1) + A(2)./(1 + A(4).*exp(-A(3)*x))); % logistic
+    modelfun = @(A, x) (A(1) + A(2)./(1 + exp(-A(3)*x + A(4)))); % logistic
     beta0 = [0.5 0.1 50 0.1]';
     mdl = fitnlm(Xall, Yall, modelfun, beta0);
     
     % -- plot
-    lt_figure; hold on; 
+    lt_figure; hold on;
     plot(Xall, Yall, 'x')
     x = min(Xall):0.001:max(Xall); plot(x, mdl.feval(x), 'o-');
     
     
     % ----- fit sigmoid (individual points, + var for neur/branch (i.e. offset))
-%     modelfun = @(A, x) (A(1)./(1 + exp(-A(2)*x))); % logistic
-%     beta0 = [0 0]';
-%     mdl = fitnlm(Xall, Yall, modelfun, beta0);
-%     
-%     % -- plot
-%     lt_figure; hold on; x = -10:0.01:10; plot(x, mdl.feval(x), 'o-');
-%     
+    %     modelfun = @(A, x) (A(1)./(1 + exp(-A(2)*x))); % logistic
+    %     beta0 = [0 0]';
+    %     mdl = fitnlm(Xall, Yall, modelfun, beta0);
+    %
+    %     % -- plot
+    %     lt_figure; hold on; x = -10:0.01:10; plot(x, mdl.feval(x), 'o-');
+    %
     
     % --- fit sigmoid (on the mean)
-        [Ymean] = grpstats(Yall, Xall, {'mean'});
-        X = unique(Xall);
-%         Ymean = Ymean-mean(Ymean); %  Y vals
-        
-%         modelfun = @(A, x) (A(1)./(1 + exp(-A(2)*x))); % logistic
-        modelfun = @(A, x) (A(1) + A(2)./(1 + exp(-A(3)*x + A(4)))); % logistic
-%     beta0 = [0.01 0.02 1]';
+    [Ymean] = grpstats(Yall, Xall, {'mean'});
+    X = unique(Xall);
+    %         Ymean = Ymean-mean(Ymean); %  Y vals
+    
+    %         modelfun = @(A, x) (A(1)./(1 + exp(-A(2)*x))); % logistic
+    modelfun = @(A, x) (A(1) + A(2)./(1 + exp(-A(3)*x + A(4)))); % logistic
+    %     beta0 = [0.01 0.02 1]';
     beta0 = [0.5 0.1 50 0.1]';
-%     opt = statset('fitnlm');
-%     opt.RobustWgtFun = 'bisquare';
+    %     opt = statset('fitnlm');
+    %     opt.RobustWgtFun = 'bisquare';
     mdl = fitnlm(X, Ymean, modelfun, beta0);
     
-    lt_figure; hold on; 
+    lt_figure; hold on;
     plot(X, Ymean, 'xk')
-    x = min(X):0.001:max(X); 
+    x = min(X):0.001:max(X);
     plot(x, mdl.feval(x), 'o-');
-%     x = -1:0.001:1; plot(x, mdl.feval(x), 'o-');
+    %     x = -1:0.001:1; plot(x, mdl.feval(x), 'o-');
     
-
+    
     
     % ===== debug - playing around with sigmoid function
     if (0)
         lt_figure; hold on; plot(X, Ymean, 'o');
         
-%         modelfun = @(A, x) (A(1) + A(2)./(1 + A(4).*exp(-A(3)*x))); % logistic
-        modelfun = @(A, x) (A(1) + A(2)./(1 + exp((-A(3)*x) + A(4)))); % logistic
-        
+        %         modelfun = @(A, x) (A(1) + A(2)./(1 + A(4).*exp(-A(3)*x))); % logistic
+%         modelfun = @(A, x) (A(1) + A(2)./(1 + exp((-A(3)*x) + A(4)))); % logistic
+     modelfun = @(A, x) (A(1) + A(2)./(1 + exp(-A(3)*(x - A(4))))); % logistic
+       
         x = -0.1:0.01:0.1;
         
-        for a = [0.7]
+        for a = [0]
             A = [0.6 -0.12 80 a];
             
             plot(x, modelfun(A, x), '-o')
@@ -839,16 +550,16 @@ for i=1:numalign
     
     %% fitting using logistic regression
     if (0)
-%     Ymean = (Ymean - 0.42)./0.04;
-Yall = (Yall - 0.42)./0.04;    
-mdl = fitglm(Xall, Yall, 'Distribution', 'normal', 'Link', 'logit');
-    
-    
-    lt_figure; hold on; 
-    plot(Xall, Yall, 'xk')
-%     x = min(X):0.001:max(X); 
-    x =-1:0.01:1; 
-    plot(x, mdl.feval(x), 'o-');
+        %     Ymean = (Ymean - 0.42)./0.04;
+        Yall = (Yall - 0.42)./0.04;
+        mdl = fitglm(Xall, Yall, 'Distribution', 'normal', 'Link', 'logit');
+        
+        
+        lt_figure; hold on;
+        plot(Xall, Yall, 'xk')
+        %     x = min(X):0.001:max(X);
+        x =-1:0.01:1;
+        plot(x, mdl.feval(x), 'o-');
     end
     
 end
@@ -992,84 +703,85 @@ else
 end
 end
 
-function Datstruct = warp_stretch(Datstruct, dattype)
-%  WILL STRETCH RELATIVE TO ACTUAL DAT FOR THAT BRANCH
-
-% -- MODIFY
-Ycell = Datstruct.(dattype).Ycell; % will be stretched
-Xcell = Datstruct.(dattype).Xcell;
-
-% -------------- HARD PARAMS
-stretchtempl = 'Dat';
-Ycontcell = Datstruct.(stretchtempl).Ycontcell; % will determing how much to stretch
-Xcontcell = Datstruct.(stretchtempl).Xcontcell;
-
-pkwidthtarg = 100; % 120 ms
-
-% ----- RUN
-numsamps = length(Ycell);
-Ycell_WARP = cell(size(Ycell));
-Ycontcell_WARP = cell(size(Ycontcell));
-
-for j=1:numsamps
-    
-    tmp = xcorr(Ycontcell{j}(~isnan(Ycontcell{j})));
-    tmp = tmp(floor(end/2):end);
-    [~, pklocs] = findpeaks(double(tmp), 'sortstr', 'descend', 'npeaks', 2, 'minpeakdistance', 20);
-    pkwidth = pklocs(2)-pklocs(1);
-    
-    % ====== stretch based on pkwidth compared to target
-    % --- performance
-    xtimes = Xcell{j};
-    yvals = Ycell{j};
-    if length(xtimes)<3
-        Ycell_WARP{j} = Ycell{j};
-        Ycontcell_WARP{j} = Ycontcell{j};
-        continue
-    end
-    xtimes_new = xtimes.*pkwidthtarg/pkwidth;
-    % resample at the original xtimes
-    yvals_new = interp1(xtimes_new, yvals, xtimes);
-    
-    % -- contour
-    xtimes_cont = Xcontcell{j};
-    ycont = Ycontcell{j};
-    xtimes_cont_new = xtimes_cont.*pkwidthtarg/pkwidth;
-    ycont_new = interp1(xtimes_cont_new, ycont, xtimes_cont);
-    
-    if (0)
-        if rand<0.1
-            lt_figure; hold on;
-            
-            subplot(311); hold on;
-            title('class performance (bk = original)');
-            plot(xtimes, yvals, '-ok');
-            plot(xtimes_new, yvals, '-r');
-            plot(xtimes, yvals_new, '-or');
-            
-            subplot(312); hold on;
-            title('syl contours');
-            plot(xtimes_cont, ycont, '-xk');
-            plot(xtimes_cont_new, ycont, '-r');
-            plot(xtimes_cont, ycont_new, '-xr');
-            
-            subplot(313);  hold on;
-            title('autocor')
-            plot(tmp);
-            line([pkwidthtarg pkwidthtarg], ylim, 'Color','k');
-            lt_plot_annotation(1, ['wdth:' num2str(pkwidth)], 'r')
-            pause; close all;
-        end
-    end
-    
-    % ==== OUTPUT (overwrite)
-    Ycell_WARP{j} = yvals_new;
-    Ycontcell_WARP{j} = ycont_new;
-end
-
-% ---- dat
-Datstruct.(dattype).Ycell_WARP = Ycell_WARP;
-% -- template
-Datstruct.(stretchtempl).Ycontcell_WARP = Ycontcell_WARP;
-
-end
+% NOTE: moved to lt_neural_v2_CTXT_BranchToDatstruct.m
+% function Datstruct = warp_stretch(Datstruct, dattype)
+% %  WILL STRETCH RELATIVE TO ACTUAL DAT FOR THAT BRANCH
+% 
+% % -- MODIFY
+% Ycell = Datstruct.(dattype).Ycell; % will be stretched
+% Xcell = Datstruct.(dattype).Xcell;
+% 
+% % -------------- HARD PARAMS
+% stretchtempl = 'Dat';
+% Ycontcell = Datstruct.(stretchtempl).Ycontcell; % will determing how much to stretch
+% Xcontcell = Datstruct.(stretchtempl).Xcontcell;
+% 
+% pkwidthtarg = 100; % 120 ms
+% 
+% % ----- RUN
+% numsamps = length(Ycell);
+% Ycell_WARP = cell(size(Ycell));
+% Ycontcell_WARP = cell(size(Ycontcell));
+% 
+% for j=1:numsamps
+%     
+%     tmp = xcorr(Ycontcell{j}(~isnan(Ycontcell{j})));
+%     tmp = tmp(floor(end/2):end);
+%     [~, pklocs] = findpeaks(double(tmp), 'sortstr', 'descend', 'npeaks', 2, 'minpeakdistance', 20);
+%     pkwidth = pklocs(2)-pklocs(1);
+%     
+%     % ====== stretch based on pkwidth compared to target
+%     % --- performance
+%     xtimes = Xcell{j};
+%     yvals = Ycell{j};
+%     if length(xtimes)<3
+%         Ycell_WARP{j} = Ycell{j};
+%         Ycontcell_WARP{j} = Ycontcell{j};
+%         continue
+%     end
+%     xtimes_new = xtimes.*pkwidthtarg/pkwidth;
+%     % resample at the original xtimes
+%     yvals_new = interp1(xtimes_new, yvals, xtimes);
+%     
+%     % -- contour
+%     xtimes_cont = Xcontcell{j};
+%     ycont = Ycontcell{j};
+%     xtimes_cont_new = xtimes_cont.*pkwidthtarg/pkwidth;
+%     ycont_new = interp1(xtimes_cont_new, ycont, xtimes_cont);
+%     
+%     if (0)
+%         if rand<0.1
+%             lt_figure; hold on;
+%             
+%             subplot(311); hold on;
+%             title('class performance (bk = original)');
+%             plot(xtimes, yvals, '-ok');
+%             plot(xtimes_new, yvals, '-r');
+%             plot(xtimes, yvals_new, '-or');
+%             
+%             subplot(312); hold on;
+%             title('syl contours');
+%             plot(xtimes_cont, ycont, '-xk');
+%             plot(xtimes_cont_new, ycont, '-r');
+%             plot(xtimes_cont, ycont_new, '-xr');
+%             
+%             subplot(313);  hold on;
+%             title('autocor')
+%             plot(tmp);
+%             line([pkwidthtarg pkwidthtarg], ylim, 'Color','k');
+%             lt_plot_annotation(1, ['wdth:' num2str(pkwidth)], 'r')
+%             pause; close all;
+%         end
+%     end
+%     
+%     % ==== OUTPUT (overwrite)
+%     Ycell_WARP{j} = yvals_new;
+%     Ycontcell_WARP{j} = ycont_new;
+% end
+% 
+% % ---- dat
+% Datstruct.(dattype).Ycell_WARP = Ycell_WARP;
+% % -- template
+% Datstruct.(stretchtempl).Ycontcell_WARP = Ycontcell_WARP;
+% 
+% end
