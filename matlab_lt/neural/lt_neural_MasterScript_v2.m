@@ -3,11 +3,11 @@
 
 %% EXTRACT 
 clear all; close all;
-BirdsToKeep = {'bu77wh13', 'or74bk35'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 BrainArea = {};
 ExptToKeep = {};
 RecordingDepth = [];
-LearningOnly = 0;
+LearningOnly = 1;
 BatchesDesired = {};
 ChannelsDesired = [];
 % BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
@@ -610,6 +610,11 @@ for i=1:NumBirds
    end
 end
    
+
+%% ================================== PLOT LEARNING (ALL SYLS)
+close all
+MeanSubtract =1; % subtract baseline mean?
+lt_neural_v2_ANALY_LearnAllSylPlot(SummaryStruct, MOTIFSTATS_Compiled, MeanSubtract);
 
 %% ============ save learning expt struct
 

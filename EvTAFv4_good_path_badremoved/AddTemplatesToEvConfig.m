@@ -1,4 +1,4 @@
-function AddTemplatesToEvConfig(EvConfigFile,varargin);
+function config_fname = AddTemplatesToEvConfig(EvConfigFile,varargin);
 % AddTemplatesToEvConfig(EvConfigFile,TemplFile1,...,TemplFileN);
 %
 %  if a config file is missing the template data this will add it in
@@ -39,6 +39,12 @@ for ii=1:size(varargin,2)
         end
     end
 end
-disp(['Rewriting config file named : ',EvConfigFile]);
-WriteEvTAFv4ConfigFile(EvConfigFile,ND,OP);
+% OLD - OVERWRITES
+% disp(['Rewriting config file named : ',EvConfigFile]);
+% WriteEvTAFv4ConfigFile(EvConfigFile,ND,OP);
+
+% NEW - (LT) - appends "NewTempl"
+dotdot = strfind(EvConfigFile, '.ev');
+config_fname = [EvConfigFile(1:dotdot-1) '_NewTempl.evconfig2'];
+WriteEvTAFv4ConfigFile(config_fname,ND,OP);
 return;

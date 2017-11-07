@@ -1,4 +1,11 @@
-function [Params, RawDatStruct]=lt_seq_dep_pitch_DayRawDat(Params, plotON, saveON, phrase, plotLMANinact)
+function [Params, RawDatStruct]=lt_seq_dep_pitch_DayRawDat(Params, plotON, ...
+    saveON, phrase, plotLMANinact, MinutesLag)
+%% 10/17/17 - LT, made minutes lag a variable (for getting PC)
+
+if ~exist('MinutesLag', 'var')
+    MinutesLag=45; % minutes from onset of musc to start plotting pitch contrours.
+end
+
 %% 6/15/15 - added catch soing.
 %% LT 5/3/15 - added stuff to look at muscimol in LMAN data -
 % i.e. plotting raw data over time, variability, contours.
@@ -492,8 +499,8 @@ if plotLMANinact==1;
                         Tvals_MUSC=Tvals(ExptCondvals==ii);
                         
                         % which vals pass criterion?
-                        vals=vals(Tvals_MUSC>ontime.hours+45/60);
-                        vals_PC=vals_PC(Tvals_MUSC>ontime.hours+45/60,:);
+                        vals=vals(Tvals_MUSC>ontime.hours+MinutesLag/60);
+                        vals_PC=vals_PC(Tvals_MUSC>ontime.hours+MinutesLag/60,:);
                         
                         % notifier for plotting title
                         notifier=1;
@@ -518,7 +525,7 @@ if plotLMANinact==1;
                 % plot mean with sem
                 lt_subplot(2,3,1); hold on;
                 if notifier==1;
-                    title('Mean (SEM) (1st 45 minutes removed)');
+                    title(['Mean (SEM) (1st ' num2str(MinutesLag) ' minutes removed)']);
                 else
                     title('Mean (SEM)');
                 end
@@ -532,7 +539,8 @@ if plotLMANinact==1;
                 % plot CV
                 lt_subplot(2,3,2); hold on;
                 if notifier==1;
-                    title('CV (95%-ile) (1st 45 minutes removed)');
+                    title(['CV (95%-ile) (1st ' num2str(MinutesLag) ...
+                        ' 45 minutes removed)']);
                 else
                     title('CV (95%-ile)');
                 end

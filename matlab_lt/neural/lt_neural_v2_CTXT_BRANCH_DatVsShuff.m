@@ -126,7 +126,6 @@ for i=1:numbirds
                 end
                 
                 % ================= OUTPUT
-                
                 CLASSES.birds(i).neurons(ii).branchnum(iii).SHUFFDECODE.timebin(tt).window_relonset = prms.classtmp.frtimewindow;
                 CLASSES.birds(i).neurons(ii).branchnum(iii).SHUFFDECODE.timebin(tt).ConfMatAll_DAT = ConfMatAll;
                 CLASSES.birds(i).neurons(ii).branchnum(iii).SHUFFDECODE.timebin(tt).ConfMatAll_NEG = ConfMatAll_NEG;

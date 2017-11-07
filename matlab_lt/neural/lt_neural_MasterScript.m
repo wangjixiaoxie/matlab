@@ -24,27 +24,31 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='or74bk35_170607_104206.rhd';
+filename='pu69wh78_171101_100041.rhd';
 ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
 ChansToPlot.AmpChans_zero=[9 11 12 14 1 18];
 % ChansToPlot.AmpChans_zero=[8 9 11 16 17 20 21];
-ChansToPlot.AmpChans_zero=0:31;
+ChansToPlot.AmpChans_zero=[9 14 17 18 21];
 
 % neuralFiltLow=500;
 neuralFiltLow=300;
 
 PlotWhat.raw=0;
 PlotWhat.filt=1;
-PlotWhat.rect_sm=0;
+PlotWhat.rect_sm=1;
 PlotWhat.raster=0;
 PlotWhat.digital=0;
 
 Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
 Raster.ThrXNoise=4; % threshold for units, used for all channels, uses absolute data for peak detection
 Raster.PosOrNeg=-1; % -1 or +1, for crossings.
-lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster)
+
+        numsubplots = 5;
+
+lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster, ...
+            numsubplots)
 
 %% ======= clean song files
 
@@ -100,8 +104,10 @@ clear all; close all;
 % channel_board = [8 11 14 18 20]; % wh6
 % channel_board = [9 11 12 14 15 18]; % bu77
 % channel_board = [14];
+channel_board = [9 14 17 18 21];
 channel_board = 0:31;
-batchf = 'batchtmp';
+channel_board = 21;
+batchf = 'Batch1219to1304';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
@@ -146,7 +152,10 @@ if (0)
         Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
         Raster.ThrXNoise=3; % threshold for units, used for all channels, uses absolute data for peak detection
         Raster.PosOrNeg=-1; % -1 or +1, for crossings.
-        lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster)
+        
+        numsubplots = 5;
+        
+        lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster, numsubplots)
         
         disp([' ======== ' filename]);
         
@@ -154,6 +163,7 @@ if (0)
         filename = fgetl(fid);
     end
 end
+
 
 %% ==== concatenate multiple files for given channel, [and saves]
 % based on expectation of duration for single unit.
@@ -176,7 +186,7 @@ lt_neural_AutoMakeNotmat(batchf);
 % -- makes multiple plots if too much dat.
 close all;
 PlotSecondChan = 0;
-SecondChan = 19;
+SecondChan = 17;
 plotcols={'m', 'r','c', 'b', 'g'};
 
 % want to plot 2nd channel to compare noise?

@@ -7,7 +7,7 @@ lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
 
 analyfname = 'xaa_Algn2Ons1_27Oct2017_1156_RA25ms';
 Niter = 1000;
-TimeWindows = [-0.025 -0.025]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
+TimeWindows = [-0.020 -0.020]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
 lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
 
 

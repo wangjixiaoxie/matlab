@@ -2,7 +2,15 @@
 % Run from day folder. run after performing wave_clus and verifying
 % results.
 
-function [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, extractSound) 
+function [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, ...
+    extractSound, clustToKeep) 
+%% lt 11/4/17 - can ask to only keep one clust (default is to take all clusts)
+% do not define, or keep empty, to take all clusts.
+
+if ~exist('clustToKeep', 'var')
+    clustToKeep = [];
+end
+    
 %% making it optional to extract sound data
 
 if ~exist('extractSound', 'var')
@@ -105,6 +113,14 @@ for i=1:length(metaDat)
 end
 % toc
 
+   
+if extractSound==0
+    % --- remove sound from metaDat (if it is present)
+    if isfield(metaDat, 'songDat');
+        metaDat = rmfield(metaDat, 'songDat');
+    end
+end
+
 % =============== INLCUDE PREVIOUSLY EXTRACTED STATS (E.G. FF)
 cd(datdir)
 % ------ 1) FF
@@ -132,6 +148,26 @@ end
 if extractSound==1
 SongDat.AllSongs=single(AllSongs);
 end
+
+
+%% ============ keep only a single cluster?
+
+if ~isempty(clustToKeep)
+   
+    indstokeep = spikes_cat.cluster_class(:,1) == clustToKeep;
+    
+    assert(any(indstokeep)==1, 'problem - this clust does not exist. ..');
+    
+    spikes_cat.spikes = spikes_cat.spikes(indstokeep, :);
+    spikes_cat.cluster_class = spikes_cat.cluster_class(indstokeep,:);
+    spikes_cat.forced = spikes_cat.forced(indstokeep);
+    spikes_cat.inspk = spikes_cat.inspk(indstokeep, :);
+%     spikes_cat.ipermut = spikes_cat.ipermut(indstokeep);
+   
+end
+
+
+%% OUTPUT
 
 SongDat.AllLabels=AllLabels;
 SongDat.AllOnsets=AllOnsets;

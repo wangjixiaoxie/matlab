@@ -1,5 +1,6 @@
 %% LT 8/3/16 - single file, aligns raw signal for all channels desired by user
-function lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster)
+function lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, ...
+    Rect_sm, Raster, numsubplots)
 
 % TO DO:
 % fig numbers depending on num channels
@@ -166,7 +167,7 @@ if PlotWhat.raw==1
     
     % --- plot initiate
     figcount=1;
-    subplotrows=5;
+    subplotrows=numsubplots+2;
     subplotcols=1;
     fignums_alreadyused=[];
     hfigs=[];
@@ -248,7 +249,7 @@ if PlotWhat.filt==1;
     
     % --- plot initiate
     figcount=1;
-    subplotrows=5;
+    subplotrows=numsubplots+2;
     subplotcols=1;
     fignums_alreadyused=[];
     hfigs=[];
@@ -372,7 +373,7 @@ if PlotWhat.rect_sm==1;
     
     % --- plot initiate
     figcount=1;
-    subplotrows=5;
+    subplotrows=numsubplots+2;
     subplotcols=1;
     fignums_alreadyused=[];
     hfigs=[];
@@ -455,7 +456,7 @@ if PlotWhat.raster==1;
     
     % --- plot initiate
     figcount=1;
-    subplotrows=3;
+    subplotrows=numsubplots+2;
     subplotcols=1;
     fignums_alreadyused=[];
     hfigs=[];
