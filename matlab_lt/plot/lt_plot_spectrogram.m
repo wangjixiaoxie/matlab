@@ -1,4 +1,10 @@
-function lt_plot_spectrogram(songdat, fs, bk_red, plot_ms, XLIM, YLIM)
+function lt_plot_spectrogram(songdat, fs, bk_red, plot_ms, XLIM, YLIM, flipflip)
+%% lt 11/13/17 - flips upside down
+
+if ~exist('flipflip', 'var')
+    flipflip=0;
+end
+   
 %% lt 10/2017 - XLIM and YLIM, to scale spectrogram to plot in certain posiiton
 % note: x and y values will be innacurate
 
@@ -54,6 +60,10 @@ t=t.*1000;
 end
 sp=abs(sp);
 
+% if flipflip==1
+%     f = flipud(f);
+% end
+
 % ========= cut off lower higher frequencies
 maxfreq=7500;
 inds=f<maxfreq;
@@ -90,13 +100,21 @@ if bk_red==1
         t = linspace(XLIM(1), XLIM(2), length(t));
         f = linspace(YLIM(1), YLIM(2), length(f))';
     end
+    if flipflip==1
+    imagesc(t, f, flipud(sptemp), [Cmin+Cmin/10 Cmax]);      
+    else
     imagesc(t, f, sptemp, [Cmin+Cmin/10 Cmax]);
+    end
     
 else
     if ~isempty(XLIM)
         t = linspace(XLIM(1), XLIM(2), length(t));
         f = linspace(YLIM(1), YLIM(2), length(f))';
     end
-            imagesc(t, f, sptemp);
+                if flipflip==1
+    imagesc(t, f, flipud(sptemp));      
+                else
+                    imagesc(t, f, sptemp);
+                end
 end
             axis([t(1) t(end) f(1) f(end)]);

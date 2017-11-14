@@ -1112,8 +1112,9 @@ plotcol = 'b';
 X = DATSTRUCT.AllBaseFFvsNeurFRCorr(inds);
 Y = DATSTRUCT.AllBaseFFvsNeursimCorr(inds);
 
+if ~isempty(X)
 lt_plot_45degScatter(X, Y, plotcol);
-
+end
 
 % -- diff
 lt_subplot(1,3,3); hold on;

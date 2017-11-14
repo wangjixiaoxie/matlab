@@ -1,5 +1,6 @@
 function lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct, ...
-    birdname_get, exptname_get, switchnum_get, plotneurzscore)
+    birdname_get, exptname_get, switchnum_get, plotneurzscore, ...
+    onlyPlotTargNontarg)
 %%
 % plotneurzscore = 1; then zscore; otherwise plots difference from base
 
@@ -92,7 +93,15 @@ for i=1:Numbirds
             
             
             % ==== 1) for each motif, PLOT RASTER, SMTHED, AND NEURAL/FF
-            for j=1:nummotifs
+                        if onlyPlotTargNontarg==1
+                motifstoplot = [find(ismember(motiflist, MotifStats.params.TargSyls)) ...
+                    find(ismember(motiflist, MotifStats.params.SameTypeSyls))];
+            else
+                motifstoplot = 1:nummotifs;
+            end
+            
+
+            for j=motifstoplot
                 
                 for nn=goodneurons
                     

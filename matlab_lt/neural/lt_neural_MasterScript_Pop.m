@@ -240,14 +240,167 @@ plot(lags.*binsize, ccmean, 'Color', plotcol);
         line([0 0], ylim, 'LineStyle', '--');
 
 
-    
-    
-    
-
-
-
 linkaxes(hsplots, 'xy');
 
 
+%% ========= calculate coherency between channels
+
+chan1 = 9;
+
+% load file
+pj_readIntanNoGui('pu69wh78_171101_102913.rhd');
+
+%%
+
+indtmp = [amplifier_channels.chip_channel] == chan1;
+x1 = amplifier_data(indtmp, :)';
 
 
+params = struct;
+params.Fs = 30000;
+params.fpass = [0 1000];
+% params.err = [2 0.05];
+% [S, f, Serr] = mtspectrumc(x1, params);
+[S, f] = mtspectrumc(x1);
+
+lt_figure; hold on;
+plot(f, S, '-ok');
+% shadedErrorBar(f, S, Serr, {'Color', 'k'},1);
+
+
+%% ========================================== overnight analysis
+batchf = 'batchtmp';
+chantype = 'ana'; % dig or ana
+chan = 2; % 0, 1, ...
+threshold = 1; % voltage, or rise and fall detection.
+% --- 1) extract timestamps of digital signals indicating bos playback
+fid = fopen(batchf);
+
+fline = fgetl(fid);
+cumusamps = 0; 
+rtAll = [];
+ftAll = [];
+datAll = [];
+while ischar(fline)
+
+    % ==================== extract signal
+    [~,board_dig_in_data,frequency_parameters, ...
+        board_adc_data, board_adc_channels, amplifier_channels, ...
+        board_dig_in_channels] = pj_readIntanNoGui(fline);
+
+        
+    if strcmp(chantype, 'dig')
+        ind = [board_dig_in_channels.chip_channel]==chan;
+        dat = board_dig_in_data(ind, :);
+    elseif strcmp(chantype, 'ana')
+        ind = [board_adc_channels.chip_channel]==chan;
+        dat = board_adc_data(ind, :);
+    end
+    
+    
+    
+    % --- detect threshold crossings
+    rt = risetime(dat, 'StateLevels', [0 threshold]);
+    ft = falltime(dat, 'StateLevels', [0 threshold]);
+    
+    % --- rise and fall times as cumu time
+    rt = rt+cumusamps;
+    ft = ft+cumusamps;
+    
+    % -- collect across all files
+    rtAll = [rtAll rt];
+    ftAll = [ftAll ft];
+    
+    if (1)
+    datAll = [datAll dat];
+    end
+    
+    % --- cumulateive time up to now
+    cumusamps = cumusamps + length(dat);
+    
+    fline = fgetl(fid);
+end
+
+
+
+%% ############### plot batch songs, compare dig pulse with song
+close all;
+
+batchf = 'batchall';
+chantype = 'ana'; % dig or ana
+chan = 0; % 0, 1, ... % for pulse
+audchan = 1;
+threshold = 1.5; % voltage, or rise and fall detection.
+% --- 1) extract timestamps of digital signals indicating bos playback
+fid = fopen(batchf);
+
+fline = fgetl(fid);
+cumusamps = 0; 
+rtAll = [];
+ftAll = [];
+datAll = [];
+
+figcount=1;
+subplotrows=8;
+subplotcols=1;
+fignums_alreadyused=[];
+hfigs=[];
+
+
+hsplots = [];
+while ischar(fline)
+
+    % ==================== extract signal
+    [~,board_dig_in_data,frequency_parameters, ...
+        board_adc_data, board_adc_channels, amplifier_channels, ...
+        board_dig_in_channels] = pj_readIntanNoGui(fline);
+
+        fs = frequency_parameters.amplifier_sample_rate;
+    if strcmp(chantype, 'dig')
+        ind = [board_dig_in_channels.chip_channel]==chan;
+        dat = board_dig_in_data(ind, :);
+    elseif strcmp(chantype, 'ana')
+        ind = [board_adc_channels.chip_channel]==chan;
+        dat = board_adc_data(ind, :);
+    end
+
+    songdat = board_adc_data([board_adc_channels.chip_channel]==audchan, :);
+    
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+hold on;
+hsplots = [hsplots hsplot];
+title(fline);
+
+t= [1:length(songdat)]./fs;
+plot(t, songdat,'k');
+plot(t, dat, 'r');
+
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+hold on;
+hsplots = [hsplots hsplot];
+
+lt_plot_spectrogram(songdat, fs, 0, 0);
+
+%     % --- detect threshold crossings
+%     rt = risetime(dat, 'StateLevels', [0 threshold]);
+%     ft = falltime(dat, 'StateLevels', [0 threshold]);
+%     
+%     % --- rise and fall times as cumu time
+%     rt = rt+cumusamps;
+%     ft = ft+cumusamps;
+%     
+%     % -- collect across all files
+%     rtAll = [rtAll rt];
+%     ftAll = [ftAll ft];
+%     
+%     if (1)
+%     datAll = [datAll dat];
+%     end
+%     
+%     % --- cumulateive time up to now
+%     cumusamps = cumusamps + length(dat);
+%     
+linkaxes(hsplots, 'x');
+    fline = fgetl(fid);
+    hsplots = [];
+end

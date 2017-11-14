@@ -3,9 +3,9 @@
 
 %% EXTRACT 
 clear all; close all;
-BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BirdsToKeep = {'pu69wh78'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 BrainArea = {};
-ExptToKeep = {};
+ExptToKeep = {'RAlearn1'};
 RecordingDepth = [];
 LearningOnly = 1;
 BatchesDesired = {};
@@ -178,9 +178,9 @@ FRmat = FRmat(t1:t2, trials);
 
 %% ================================== PLOT RASTER AND SMOOTHED FR FOR ANY MOTIF
 close all
-BirdToPlot = 'bk7';
-NeurToPlot = 1; % 4
-motiflist = {'n(h)hh', 'g(h)'};
+BirdToPlot = 'pu69wh78';
+NeurToPlot = 2; % 4
+motiflist = {'a(b)', 'jbh(h)g'};
 plotbytime = 0; % links rasters for all motifs by time of song.
 lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
     motiflist, plotbytime)
@@ -675,6 +675,7 @@ end
 % === PULL OUT RAW FR FOR ALL NEURONS/TRIALS
 RemoveTrialsZeroFR = 1;
 premotorWind = [-0.07 0.01]; % [-a b] means "a" sec before onset and "b" sec after offset
+premotorWind = [-0.03 0.025]; % [-a b] means "a" sec before onset and "b" sec after offset
 % premotorWind = [-0.05 0]; % [-a b] means "a" sec before onset and "b" sec after offset
 [MOTIFSTATS_Compiled] = lt_neural_v2_ANALY_GetAllFR(MOTIFSTATS_Compiled, ...
     RemoveTrialsZeroFR, premotorWind);
@@ -730,23 +731,43 @@ lt_neural_v2_ANALY_LrnSwtchPLOT(MOTIFSTATS_Compiled, SwitchStruct);
 
 % ============ TIMECOURSES FOR NEURAL FOR SWITCHES
 close all;
-birdname_get = 'or74bk35'; % keep empty if want all.
-exptname_get = 'LMANneural2';
+birdname_get = 'pu69wh78'; % keep empty if want all.
+exptname_get = 'RALMANlearn1';
 switchnum_get = [1];
 plotneurzscore=0;
+onlyPlotTargNontarg=1;
 lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct, ...
-    birdname_get, exptname_get, switchnum_get, plotneurzscore)
+    birdname_get, exptname_get, switchnum_get, plotneurzscore, ...
+    onlyPlotTargNontarg)
 
+% ========================= TIMECOURSES, BINNING BY TIME, showing smoothed
+% FR and rasters
+close all;
+birdname_get = 'pu69wh78'; % keep empty if want all.
+exptname_get = 'RAlearn1';
+switchnum_get = [1];
+plotneurzscore=0;
+FFzscore =1;
+onlyPlotTargNontarg=1;
+lt_neural_v2_ANALY_Swtch_Tcourse2(MOTIFSTATS_Compiled, SwitchStruct, ...
+    birdname_get, exptname_get, switchnum_get, plotneurzscore, FFzscore, ...
+    onlyPlotTargNontarg)
+
+% ========================== SPIKE COUNT CORRELATIONS, CHANGE DURING
+% LEARNIG? Looks at a single switch.
+% NOTE: all neurons must have same batch file for this to work.
+lt_neural_v2_ANALY_Swtch_LearnNeurCorr(MOTIFSTATS_Compiled, SwitchStruct, ...
+    birdname_get, exptname_get, switchnum_get, plotneurzscore)
 
 
 % ============== SUMMARIZE FOR EACH EXPT (I.E. NEURAL AND FF CHANGE FOR
 % TARG AND OTHER SYLS)
 close all;
 RemoveLowNumtrials = 1; % min number for both base and train(double)
-MinTrials = 8; % for removing
+MinTrials = 5; % for removing
 skipMultiDir = 1;
 usePeakLearn = 0; % assumes that care about learning for targ 1. (median time of max learning)
-useTrialsRightAfterWNOn = 1; % note, if 1, then overrides usePeakLearn; if n is numtrials, takes the trials from n+1:2n from WN onset.
+useTrialsRightAfterWNOn = 0; % note, if 1, then overrides usePeakLearn; if n is numtrials, takes the trials from n+1:2n from WN onset.
 
 
 % ---- what metric to plot for main figs
@@ -763,14 +784,14 @@ fieldname_trainneur = 'AllNeurSplitCorrTrain';
 
 % -- following only matter if use fieldname_baseneur = 'AllNeurSimBase' & fieldname_trainneur = 'AllNeurSimTrain';
 UseZscoreNeural = 0;
-% neuralmetricname = 'NEURvsbase_FRcorr';
+neuralmetricname = 'NEURvsbase_FRcorr';
 % neuralmetricname = 'NEUR_meanFR';
 % neuralmetricname = 'NEUR_cvFR';
 
 % ---- filtering data by learning at target
 % note: if multiple targets then will filter on just first target...
 plotLearnStatsOn = 0; % 
-OnlyKeepSigLearn = 1; % either regression or end training has be significant.
+OnlyKeepSigLearn = 0; % either regression or end training has be significant.
 learnsigalpha = 0.01; % for deciding that an experiment showed "no learning"
 
 % ---- ONLY KEEP SWITCHES STARTING FROM WN OFF

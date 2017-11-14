@@ -40,7 +40,7 @@ if plotbysyl==0
             [SongDat] = lt_neural_ExtractDat(batchf, chan, 0);
             
             
-            tvals = Params.tfirstbin:Params.tbin:0.3; % make this long, then shorten
+            tvals = Params.tfirstbin:Params.tbin:0.7; % make this long, then shorten
             
             % --- for every syllable (ignore context) overlay all PCs + lines
             % for windows

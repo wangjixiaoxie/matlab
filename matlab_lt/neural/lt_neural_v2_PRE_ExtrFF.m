@@ -69,9 +69,17 @@ FFparamsAll.bird(5).FFparams.cell_of_FFtimebins={'a', [0.05 0.063], 'g', [0.1 0.
 FFparamsAll.bird(5).FFparams.cell_of_FFtimebins_DurLearn=FFparamsAll.bird(5).FFparams.cell_of_FFtimebins;
 
 
+FFparamsAll.bird(6).birdname = 'pu69wh78';
+FFparamsAll.bird(6).FFparams.cell_of_freqwinds={'a', [1000 2600], 'g', [2000 3400], ...
+    'h', [2900 3800], 'b', [2750 3900]};
+FFparamsAll.bird(6).FFparams.cell_of_FFtimebins={'a', [0.068 0.078], 'g', [0.037 0.062], ...
+    'h', [0.036 0.048], 'b', [0.033 0.041]};
+FFparamsAll.bird(6).FFparams.cell_of_FFtimebins_DurLearn=FFparamsAll.bird(6).FFparams.cell_of_FFtimebins;
+
+
 overWrite = 0; % note, will overwrite rgardless if detects chagnes (NOTE: always overwrites if detects changes)
 plotSpec = 0; % to plot raw spec overlayed with PC and windows.
-plotOnSong = 2; % will only start plotting spec once hit this song num.
+plotOnSong = 34; % will only start plotting spec once hit this song num.
 plotSyl = ''; % to focus on just one syl. NOT DONE YET
 equalizeParams = 1; % if 1, then makes sure t and f windows match. if 0 then only makes sure labels match.
 lt_neural_v2_EXTRACT_FF_tmp(SummaryStruct, FFparamsAll, overWrite, ...

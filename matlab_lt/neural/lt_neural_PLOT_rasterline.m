@@ -6,11 +6,11 @@ function     lt_neural_PLOT_rasterline(spktimes, yval, plotcol)
 
 
 
-if (1)
+if (0)
    plot(spktimes, -yval, '.k'); 
 else
     for ttt =1:length(spktimes)
-        line([spktimes(ttt) spktimes(ttt)], -[yval-0.4 yval+0.4], ...
+        line([spktimes(ttt) spktimes(ttt)], [yval-0.4 yval+0.4], ...
             'Color', plotcol, 'LineWidth', 1);
     end
 end

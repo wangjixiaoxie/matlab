@@ -43,7 +43,7 @@ if ~exist('collectWNhit', 'var')
 end
 
 if ~exist('collectWholeBoutPosition', 'var')
-%     collectWholeBoutPosition=0; % to get position of a given datapoint within its bout
+    %     collectWholeBoutPosition=0; % to get position of a given datapoint within its bout
     collectWholeBoutPosition=1; % to get position of a given datapoint within its bout
 end
 
@@ -255,8 +255,6 @@ else
     tokenExtents1=cellfun(functmp, tokenExtents1); % convert from cell to vector.
     
     % ------- method 2
-    
-    
     indstmp = regexp(regexpr_str, '[\(\)]'); % find left and right parantheses
     
     % confirm that there is exactly one token syl.
@@ -267,11 +265,11 @@ else
     tmptmp = [regexpr_str(1:indstmp(1)-1) ...
         regexpr_str(indstmp(1)+1) regexpr_str(indstmp(2)+1:end)];
     
-%     regexpr_str2 = [regexpr_str(1:indstmp(1)-1) '(?=' ...
-%         regexpr_str(indstmp(1)+1) regexpr_str(indstmp(2)+1:end) ')']; % for lookahead assertion
+    %     regexpr_str2 = [regexpr_str(1:indstmp(1)-1) '(?=' ...
+    %         regexpr_str(indstmp(1)+1) regexpr_str(indstmp(2)+1:end) ')']; % for lookahead assertion
     
     regexpr_str2 = [tmptmp(1) '(?=' tmptmp(2:end) ')']; % for lookahead assertion
-     
+    
     [startinds, ~, ~]=regexp(AllLabels, regexpr_str2, 'start', 'end', ...
         'match');
     
@@ -290,16 +288,16 @@ else
         indmat = [indmat startinds'+j-1];
     end
     
-%     if size(AllLabels,1)==1
-%     matchlabs = mat2cell(AllLabels(indmat)', ones(size(indmat,1),1))';
-%     else
-if size(indmat,2)==1
-    % then is one col (i.e. only one syl in motif) so need to make sure
-    % output is col
-      matchlabs = mat2cell(AllLabels(indmat)', ones(size(indmat,1),1))';
-else  
-    matchlabs = mat2cell(AllLabels(indmat), ones(size(indmat,1),1))';
-end
+    %     if size(AllLabels,1)==1
+    %     matchlabs = mat2cell(AllLabels(indmat)', ones(size(indmat,1),1))';
+    %     else
+    if size(indmat,2)==1
+        % then is one col (i.e. only one syl in motif) so need to make sure
+        % output is col
+        matchlabs = mat2cell(AllLabels(indmat)', ones(size(indmat,1),1))';
+    else
+        matchlabs = mat2cell(AllLabels(indmat), ones(size(indmat,1),1))';
+    end
     
     % ---- compare methods
     if length(startinds) == length(startinds1)
@@ -408,7 +406,7 @@ for i=1:length(tokenExtents)
     SegmentsExtract(i).Dur_gappre = gapdur_pre;
     SegmentsExtract(i).Dur_gappost = gapdur_post;
     
-
+    
     % on time
     ind=tokenExtents(i);
     if alignByOnset==1
@@ -438,11 +436,11 @@ for i=1:length(tokenExtents)
     %     spkinds=(NeurDat.spikes_cat.cluster_class(:,2) > ontime*1000) & ...
     %         (NeurDat.spikes_cat.cluster_class(:,2) < offtime*1000);
     if isfield(NeurDat, 'spikes_cat')
-    spk_ClustTimes = NeurDat.spikes_cat.cluster_class((NeurDat.spikes_cat.cluster_class(:,2) > ontime*1000) & ...
-        (NeurDat.spikes_cat.cluster_class(:,2) < offtime*1000), :); % in sec, relative to onset of the segment
+        spk_ClustTimes = NeurDat.spikes_cat.cluster_class((NeurDat.spikes_cat.cluster_class(:,2) > ontime*1000) & ...
+            (NeurDat.spikes_cat.cluster_class(:,2) < offtime*1000), :); % in sec, relative to onset of the segment
     else
         % then is RA data from Sober/Mel
-    spiketimes = NeurDat.spiketimes(NeurDat.spiketimes>ontime & NeurDat.spiketimes<offtime);
+        spiketimes = NeurDat.spiketimes(NeurDat.spiketimes>ontime & NeurDat.spiketimes<offtime);
     end
     
     if keepRawSongDat ==1
@@ -596,7 +594,7 @@ for i=1:length(tokenExtents)
     
     % =============== FIGURE OUT POSITION OF MOTIF WITHIN ITS BOUT
     if collectWholeBoutPosition==1
-       ind; % current syl posotion
+        ind; % current syl posotion
         
         boutnum = find(wholebout_firstsyls<=ind & wholebout_lastsyls>=ind);
         if length(boutnum)==0
@@ -622,40 +620,40 @@ for i=1:length(tokenExtents)
     
     % =================== GET ONSETS/OFFSETS OF ALL SYLS IN MOTIF, RELATIVE
     % TO TIMING OF EACH MOTIF.
-        
-        % get only those that are within bounds of this segment's data
-        inds = AllOnsets>ontime & AllOnsets<offtime;
-        ontimesWithinData = AllOnsets(inds);
-        ontimesRelStartDat = ontimesWithinData - ontime; % relative to start of segment
-        
-        inds = AllOffsets>ontime & AllOffsets<offtime;
-        offtimesWithinData = AllOffsets(inds);
-        offtimesWithinData = offtimesWithinData - ontime; % relative to start of segment
-        
-        % --- compare onsets to acoustic data
-        if (0)
-            lt_figure; hold on;
-            lt_plot(ontimesRelStartDat, 0, {'Color', 'g'});
-            lt_plot(offtimesWithinData, 0, {'Color', 'r'});
-            plot([1:length(songseg)]./fs, (songseg-mean(songseg)).^2, 'k');
-            line([predur predur], ylim, 'Color', 'b');
-        end
+    
+    % get only those that are within bounds of this segment's data
+    inds = AllOnsets>ontime & AllOnsets<offtime;
+    ontimesWithinData = AllOnsets(inds);
+    ontimesRelStartDat = ontimesWithinData - ontime; % relative to start of segment
+    
+    inds = AllOffsets>ontime & AllOffsets<offtime;
+    offtimesWithinData = AllOffsets(inds);
+    offtimesWithinData = offtimesWithinData - ontime; % relative to start of segment
+    
+    % --- compare onsets to acoustic data
+    if (0)
+        lt_figure; hold on;
+        lt_plot(ontimesRelStartDat, 0, {'Color', 'g'});
+        lt_plot(offtimesWithinData, 0, {'Color', 'r'});
+        plot([1:length(songseg)]./fs, (songseg-mean(songseg)).^2, 'k');
+        line([predur predur], ylim, 'Color', 'b');
+    end
     % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     % ========= TIME OF SONG FILE FOR THIS SEGMENT
     if isfield(NeurDat.metaDat, 'numSamps')
         % then is my data (i.e. not RA data from mel/sam)
-    globalOnsetTime=AllOnsets(tokenExtents(i)); % sec
-    globalOnsetSamp=globalOnsetTime*fs;
-    cumOnsSamps=cumsum([0 NeurDat.metaDat.numSamps]);
-    songind=find((globalOnsetSamp-cumOnsSamps)>0, 1, 'last');
-    %     disp(['songind = ' num2str(songind)]);
-    songfname=NeurDat.metaDat(songind).filename;
-    
-    SegmentsExtract(i).song_filename=songfname;
-    %     SegmentsExtract(i).song_datenum=lt_neural_fn2datenum(songfname);
-    SegmentsExtract(i).song_datenum=NeurDat.metaDat(songind).song_datenum;
-    SegmentsExtract(i).song_ind_in_batch=songind;
+        globalOnsetTime=AllOnsets(tokenExtents(i)); % sec
+        globalOnsetSamp=globalOnsetTime*fs;
+        cumOnsSamps=cumsum([0 NeurDat.metaDat.numSamps]);
+        songind=find((globalOnsetSamp-cumOnsSamps)>0, 1, 'last');
+        %     disp(['songind = ' num2str(songind)]);
+        songfname=NeurDat.metaDat(songind).filename;
+        
+        SegmentsExtract(i).song_filename=songfname;
+        %     SegmentsExtract(i).song_datenum=lt_neural_fn2datenum(songfname);
+        SegmentsExtract(i).song_datenum=NeurDat.metaDat(songind).song_datenum;
+        SegmentsExtract(i).song_ind_in_batch=songind;
     end
     
     

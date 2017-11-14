@@ -39,8 +39,9 @@ for i=1:numbirds
             collectWNhit = 0;
             preAndPostDurRelSameTimept = 1;
             RemoveIfTooLongGapDur = 1;
+            FFparams.collectFF=0;
             [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
-                motiftoplot, motifpredur, motifpostdur, 1, '', '', ...
+                motiftoplot, motifpredur, motifpostdur, 1, '', FFparams, ...
                 0, 1, collectWNhit, 0, 0, preAndPostDurRelSameTimept, RemoveIfTooLongGapDur);
             
             

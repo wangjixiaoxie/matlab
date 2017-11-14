@@ -8,13 +8,14 @@ function config_fname = AddTemplatesToEvConfig(EvConfigFile,varargin);
 %
 
 [ND,OP]=ReadEvTAFv4ConfigFile(EvConfigFile,0);
+alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
 if (length(ND)~=size(varargin,2))
     disp('You need to include 1 template file for each note template');
     disp(['There are ',num2str(length(ND)),' notes being targetting']);
     disp(['but you only listed ',num2str(size(varargin,2)),' template files']);
     disp('Cannot continue');
-    return;
+ddasdasdasdasd
 end
 
 for ii=1:size(varargin,2)
@@ -35,6 +36,7 @@ for ii=1:size(varargin,2)
             disp('Increasing CntRng to fit - will just copy last element');
             for kk=length(ND(ii).CntRng)+1:NTempl
                 ND(ii).CntRng(kk)=ND(ii).CntRng(kk-1);
+                ND(ii).CntRng(kk).VarName = alphabet(kk);
             end
         end
     end
@@ -47,4 +49,4 @@ end
 dotdot = strfind(EvConfigFile, '.ev');
 config_fname = [EvConfigFile(1:dotdot-1) '_NewTempl.evconfig2'];
 WriteEvTAFv4ConfigFile(config_fname,ND,OP);
-return;
+
