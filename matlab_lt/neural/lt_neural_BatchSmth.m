@@ -1,5 +1,8 @@
 function DATSTRUCT = lt_neural_BatchSmth(songdir, batchf, chanstoplot, Motifstoplot, ...
     Sylstoalign, pretime, posttime, plotRaw, plotSpecifics)
+
+clear Sylstoalign; % don't need this, using paranthese to define tokens now.
+
 %% lt 11/11/17
 
 % given batch, motif, and desired channels, pulls out aligned,
@@ -22,7 +25,7 @@ function DATSTRUCT = lt_neural_BatchSmth(songdir, batchf, chanstoplot, Motifstop
 fs = 30000; % code will makes sure is really 30k. is ok.
 
 % --------- gaussian for smothing
-windowsize=0.015; % from -2sd to +2sd
+windowsize=0.005; % from -2sd to +2sd
 sigma=(windowsize/4)*fs; %
 numsamps=4*sigma; % (get 2 std on each side)
 alpha= numsamps/(2*sigma); % N/2sigma
@@ -38,16 +41,24 @@ posttime = round(posttime*fs);
 %% RUN
 
 DATSTRUCT = struct;
+DATSTRUCT.params.batchf = batchf;
+DATSTRUCT.params.songdir = songdir;
+DATSTRUCT.params.Motifstoplot = Motifstoplot;
+DATSTRUCT.params.pretime = pretime;
+DATSTRUCT.params.posttime = posttime;
+% DATSTRUCT.params.Sylstoalign = Sylstoalign;
+DATSTRUCT.params.chanstoplot = chanstoplot;
 
 %% === ITERATE OVER MOTIFS
 for mm = 1:length(Motifstoplot)
     % === params
     motiftoplot = Motifstoplot{mm};
-    syltoalign = Sylstoalign(mm);
+%     syltoalign = Sylstoalign(mm);
     DatAll = cell(1,32); % one for each chan, each cell, OOUTPUT
     DatAllFilt = cell(1,32);
-    
+    FFall = [];
     % === run
+    
     figcount=1;
     subplotrows=5;
     subplotcols=2;
@@ -72,21 +83,44 @@ for mm = 1:length(Motifstoplot)
         end
         
         % --- find all instances of the motif
-        motifpos = strfind(notdat.labels, motiftoplot);
-        if isempty(motifpos)
+        [tokenExtents, startinds, endinds, matchlabs] = lt_batchsong_regexp(notdat.labels, motiftoplot);           %%
+        if isempty(tokenExtents)
+            fname = fgetl(fid);
+            continue
+        end
+        assert(size(tokenExtents,1)==1, 'needs to be horizontal');
+        
+        if isempty(tokenExtents)
             disp('continuing')
             fname = fgetl(fid);
             continue
         end
         
+        %             motifpos = strfind(notdat.labels, motiftoplot);
+        %         if isempty(motifpos)
+        %             disp('continuing')
+        %             fname = fgetl(fid);
+        %             continue
+        %         end
+        %
         % ------- 2) load neural data
         [amplifier_data,board_dig_in_data,frequency_parameters, ...
             board_adc_data, board_adc_channels, amplifier_channels, ...
             board_dig_in_channels, t_amplifier] = pj_readIntanNoGui(fname);
         assert(fs == frequency_parameters.amplifier_sample_rate, 'not 30k');
         disp('loaded');
-        for i=1:length(motifpos)
-            pos = motifpos(i)+syltoalign-1;
+        
+        for i=1:length(tokenExtents)
+            %             pos = motifpos(i)+syltoalign-1;
+            pos = tokenExtents(i);
+            % ======================= extract FF
+            if exist([fname '.calcff.mat'], 'file')
+                load([fname '.calcff.mat']);
+                ff = FFstruct.FFall(pos);
+            else
+                ff = nan;
+            end
+            FFall = [FFall; ff];
             
             % ---- extract neural data
             onset = notdat.onsets(pos);
@@ -139,8 +173,8 @@ for mm = 1:length(Motifstoplot)
                     
                 end
                 % =================== add to output
-                DatAll{chan} = [DatAll{chan}; dat];
-                DatAllFilt{chan} = [DatAllFilt{chan}; datfilt];
+                DatAll{chan} = [DatAll{chan}; single(dat)];
+                DatAllFilt{chan} = [DatAllFilt{chan}; single(datfilt)];
             end
             
             
@@ -174,11 +208,14 @@ for mm = 1:length(Motifstoplot)
     
     % ================ SAVE TO OUTPUT STRUCT
     DATSTRUCT.motifnum(mm).motifname = motiftoplot;
-    DATSTRUCT.motifnum(mm).syltoalign = syltoalign;
+%     DATSTRUCT.motifnum(mm).syltoalign = syltoalign;
     DATSTRUCT.motifnum(mm).DatAll = DatAll;
     DATSTRUCT.motifnum(mm).DatAllRaw = DatAllFilt;
-    DATSTRUCT.motifnum(mm).t = t;
-    
+    DATSTRUCT.motifnum(mm).t = single(t);
+    DATSTRUCT.motifnum(mm).FF = FFall;
+     DATSTRUCT.motifnum(mm).fs = fs;
+     DATSTRUCT.motifnum(mm).pretime = pretime;
+   
 end
 
 

@@ -1,4 +1,10 @@
-function lt_batchsong_calcFF(ListOfDirs, ListOfBatch, FFparams, plotAllPC, plotEachSyl);
+function lt_batchsong_calcFF(ListOfDirs, ListOfBatch, FFparams, plotAllPC, plotEachSyl, ...
+    overwrite)
+%% note: will skip any songs that already have analysis file saved
+
+if ~exist('overwrite', 'var')
+    overwrite=0;
+end
 
 %% lt 11/13/17 - given batch and labeled data, calculates FF for all syls.
 % saves in a mat file in same dir as song.
@@ -21,6 +27,8 @@ function lt_batchsong_calcFF(ListOfDirs, ListOfBatch, FFparams, plotAllPC, plotE
 %
 % plotAllPC =1;
 % plotEachSyl = 1;
+% overwrite = 1; % if 0, skips if previuos file found. if 1, then
+% overwrites.
 
 %% defaults
 
@@ -72,6 +80,14 @@ for i=1:length(ListOfDirs)
             continue
         end
         
+        if overwrite==0
+        if exist([fname '.calcff.mat'], 'file')
+            fname = fgetl(fid);
+            disp('==== SKIP - already done');
+            continue
+        end
+        end
+        
         tmp = load([fname '.not.mat']);
         inds = regexp(tmp.labels, ['[' sylstoget ']']);
         
@@ -102,7 +118,7 @@ for i=1:length(ListOfDirs)
             
             % =============== extract FF
             syl = tmp.labels(j);
-            disp(syl);
+%             disp(syl);
             
             % ---- EXTRACT SOUND SEGEMENT
             ons = tmp.onsets(j) - paddur*1000;

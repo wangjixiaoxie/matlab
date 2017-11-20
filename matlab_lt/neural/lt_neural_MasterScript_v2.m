@@ -3,11 +3,11 @@
 
 %% EXTRACT 
 clear all; close all;
-BirdsToKeep = {'pu69wh78'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 BrainArea = {};
-ExptToKeep = {'RAlearn1'};
+ExptToKeep = {};
 RecordingDepth = [];
-LearningOnly = 1;
+LearningOnly = 0;
 BatchesDesired = {};
 ChannelsDesired = [];
 % BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
@@ -709,10 +709,10 @@ onlyUseDatOnSwitchDays=1; % if 1, then restricts analyses to just dat on day of 
 
 % --------- 2) plot
 close all;
-expttypewanted = 'one targ context';
+% expttypewanted = 'one targ context';
 % expttypewanted = 'mult targ context - samedir';
 % expttypewanted = 'mult targ context - diff dir';
-% expttypewanted=''; COLLECT ALL
+expttypewanted=''; % COLLECT ALL
 lt_neural_v2_ANALY_Swtch_SepPlot(DatstructSep, MOTIFSTATS_Compiled, ...
     SwitchStruct, getdprime, expttypewanted);
 

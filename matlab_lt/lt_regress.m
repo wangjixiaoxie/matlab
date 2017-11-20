@@ -29,7 +29,7 @@ if ~exist('plotcol','var');
 end
 
 if ~exist('plotOnlyLineSummary', 'var')
-plotOnlyLineSummary=0;
+    plotOnlyLineSummary=0;
 end
 
 if ~exist('alpha', 'var');
@@ -99,15 +99,21 @@ if plotON==1;
     end
 end
 
-    if plotOnlyLineSummary==1
-        plot(xlim,b(1) + b(2).*xlim,'-','Color',plotcolsummary,'LineWidth',2);
-        
-Xlim=xlim;
-        Ylim=ylim;
-        
-        text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-(Ylim(2)-Ylim(1))/10,['p=' num2str(SummaryStats.p)],'FontSize',13,'FontWeight','bold','Color',plotcolsummary);
-        text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-2*(Ylim(2)-Ylim(1))/10,['R2=' num2str(SummaryStats.R2)],'FontSize',13,'FontWeight','bold','Color',plotcolsummary);
-        text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-3*(Ylim(2)-Ylim(1))/10,['slope=' num2str(SummaryStats.slope) '(' num2str(SummaryStats.slopeCI) ')'],'FontSize',13,'FontWeight','bold','Color',plotcolsummary);
-        text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-4*(Ylim(2)-Ylim(1))/10,['int=' num2str(SummaryStats.intercept) '(' num2str(SummaryStats.interceptCI) ')'],'FontSize',13,'FontWeight','bold','Color',plotcolsummary);
-end
+    plotcolsummary = 'r';
+    if plotcol =='r';
+        plotcolsummary = 'k';
+    end
+
     
+if plotOnlyLineSummary==1
+    plot(xlim,b(1) + b(2).*xlim,'-','Color',plotcolsummary,'LineWidth',2);
+    
+    Xlim=xlim;
+    Ylim=ylim;
+    
+    text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-(Ylim(2)-Ylim(1))/10,['p=' num2str(SummaryStats.p)],'FontSize',13,'FontWeight','bold','Color',plotcolsummary);
+    text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-2*(Ylim(2)-Ylim(1))/10,['R2=' num2str(SummaryStats.R2)],'FontSize',13,'FontWeight','bold','Color',plotcolsummary);
+    text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-3*(Ylim(2)-Ylim(1))/10,['slope=' num2str(SummaryStats.slope) '(' num2str(SummaryStats.slopeCI) ')'],'FontSize',13,'FontWeight','bold','Color',plotcolsummary);
+    text(Xlim(2)-(Xlim(2)-Xlim(1))/2,Ylim(2)-4*(Ylim(2)-Ylim(1))/10,['int=' num2str(SummaryStats.intercept) '(' num2str(SummaryStats.interceptCI) ')'],'FontSize',13,'FontWeight','bold','Color',plotcolsummary);
+end
+
