@@ -1,4 +1,9 @@
-function DATAllSwitches = lt_neural_BatchSmthCOMPILE(basedir, ListOfDatstructs);
+function DATAllSwitches = lt_neural_BatchSmthCOMPILE(basedir, ListOfDatstructs, ...
+    suffix)
+if ~exist('suffix','var')
+    suffix = '';
+end
+
 %% lt 11/17/17 - given multiple switches, compiles into one structure
 
 
@@ -78,5 +83,6 @@ end
 
 
 % ====================== SAVE
-fname = [basedir 'DATSTRUCT_BatchSmCombined.mat'];
+fname = [basedir 'DATSTRUCT_BatchSmCombined_' suffix '.mat'];
+DATAllSwitches.savename = fname;
 save(fname, 'DATAllSwitches', '-v7.3');
