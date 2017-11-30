@@ -683,11 +683,18 @@ lt_seq_dep_pitch_ACROSSBIRDS_MotifInputDays_v2(SeqDepPitch_AcrossBirds, PARAMS, 
 close all;
 
 % ============= 1) extract trial by trial data
-[TrialStruct, ParamsTrial] = lt_seq_dep_pitch_ACROSSBIRDS_ExtractTrialbyTrial(SeqDepPitch_AcrossBirds);
+OnlyExptsWithNoStartDelay= 1;
+DayWindow = [-2 4]; % [-2 4] mean 2 base days and 1st 4 learning days
+[TrialStruct, ParamsTrial] = ...
+    lt_seq_dep_pitch_ACROSSBIRDS_ExtractTrialbyTrial(SeqDepPitch_AcrossBirds, ...
+    OnlyExptsWithNoStartDelay, DayWindow);
 
 % ============= 2) CROSS CORRELATION analyses
-lt_seq_dep_pitch_ACROSSBIRDS_TrialbyTrialGen(TrialStruct, ParamsTrial, SeqDepPitch_AcrossBirds)
-
+close all;
+plotRaw =1; 
+plotSongBySong = 1; % for raw dat
+lt_seq_dep_pitch_ACROSSBIRDS_TrialbyTrialGen(TrialStruct, ParamsTrial, ...
+    SeqDepPitch_AcrossBirds, plotSongBySong, plotRaw);
 
 
 %% ==== TRIAL TO TRIAL LEARNING/ DAY VS. OVERNIGHT?

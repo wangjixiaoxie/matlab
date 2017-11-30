@@ -2,7 +2,7 @@ function [DATSTRUCT, Diagnostics] = lt_neural_v2_CTXT_BranchToDatstruct(ALLBRANC
     LMANorX, RemoveRepeats, durThreshOmega, dattoplot)
 %% lt 10/23/17 - converts branch struct to dat vectors (and stretches using autocorrelation function)
 
-% LMANorX = 0; % 0, both; 1, LMAN; 2, X
+% LMANorX = 0; % 0, both; 1, LMAN; 2, X; 3(RA)
 % birdstoexclude = {};
 % % birdstoexclude = {'bk7', 'bu77wh13', 'or74bk35', 'wh6pk36', 'br92br54'};
 %
@@ -73,15 +73,18 @@ for i=1:numalign
                 
                 
                 %% if care about location
-                if LMANorX==1
                     location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
+                if LMANorX==1
                     % LMAN
                     if ~strcmp(location, 'LMAN')
                         continue
                     end
                 elseif LMANorX==2
-                    location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
                     if ~strcmp(location, 'X')
+                        continue
+                    end
+                elseif LMANorX==3
+                    if ~strcmp(location, 'RA')
                         continue
                     end
                 end

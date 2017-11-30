@@ -29,4 +29,5 @@ else
     [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, extractSound);
     Params.birdname = SummaryStruct.birds(i).birdname;
     Params.exptname = SummaryStruct.birds(i).neurons(ii).exptID;
+    Params.neurnum = neurnum;
 end

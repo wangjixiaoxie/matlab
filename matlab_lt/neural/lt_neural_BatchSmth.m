@@ -25,7 +25,7 @@ clear Sylstoalign; % don't need this, using paranthese to define tokens now.
 fs = 30000; % code will makes sure is really 30k. is ok.
 
 % --------- gaussian for smothing
-windowsize=0.005; % from -2sd to +2sd
+windowsize=0.01; % from -2sd to +2sd
 sigma=(windowsize/4)*fs; %
 numsamps=4*sigma; % (get 2 std on each side)
 alpha= numsamps/(2*sigma); % N/2sigma
@@ -51,14 +51,21 @@ DATSTRUCT.params.chanstoplot = chanstoplot;
 
 %% === ITERATE OVER MOTIFS
 for mm = 1:length(Motifstoplot)
+    
     % === params
     motiftoplot = Motifstoplot{mm};
-%     syltoalign = Sylstoalign(mm);
+    %     syltoalign = Sylstoalign(mm);
+    
+    % =================== things to collect
     DatAll = cell(1,32); % one for each chan, each cell, OOUTPUT
     DatAllFilt = cell(1,32);
     FFall = [];
-    % === run
+    FnamesAll = {};
+    posTokenWithinSong = [];
+    NoiseTrials = cell(1,32);
     
+    
+    % === run
     figcount=1;
     subplotrows=5;
     subplotcols=2;
@@ -70,6 +77,7 @@ for mm = 1:length(Motifstoplot)
     % --- extract data for batch file
     fid = fopen(batchf);
     fname = fgetl(fid);
+    
     
     while ischar(fname)
         
@@ -110,6 +118,20 @@ for mm = 1:length(Motifstoplot)
         assert(fs == frequency_parameters.amplifier_sample_rate, 'not 30k');
         disp('loaded');
         
+        % ---------- 3) try to load file indicating what syl rends are
+        % noisy
+        if exist([fname '.noise.mat'], 'file')
+            trialsToRemove = load([fname '.noise.mat']);
+            % --- confirm that this matches current note dat
+            if ~all(trialsToRemove.trialsToRemove.notdat.labels ==  notdat.labels)
+                disp('PROBLEM - trialsToRemove does not match note dat..., not using ...');
+                trialsToRemove = [];
+            end
+        else
+        trialsToRemove = [];    
+        end
+        
+        
         for i=1:length(tokenExtents)
             %             pos = motifpos(i)+syltoalign-1;
             pos = tokenExtents(i);
@@ -134,6 +156,7 @@ for mm = 1:length(Motifstoplot)
             %         offsetextract = round(offsetextract*fs);
             %
             % ------- extract neural data
+            t= [];
             for cc = 1:length(chanstoplot)
                 disp(cc);
                 chan = chanstoplot(cc);
@@ -172,18 +195,25 @@ for mm = 1:length(Motifstoplot)
                     end
                     
                 end
+                
                 % =================== add to output
                 DatAll{chan} = [DatAll{chan}; single(dat)];
                 DatAllFilt{chan} = [DatAllFilt{chan}; single(datfilt)];
+                
+                % ================== note down whether this is a noise file
+                if any(ismember(trialsToRemove.trialsToRemove.chan{chan}, pos))
+                    % then this is noise trial
+                    NoiseTrials{chan} = [NoiseTrials{chan}; 1];
+                else
+                    % then is not noise
+                    NoiseTrials{chan} = [NoiseTrials{chan}; 0];
+                end
             end
             
             
-            % ===================== calculate correlation between channels
-            % -- window for data for correlation
-            
-            
-            
-            
+            % -- store filename, position in file
+            FnamesAll = [FnamesAll fname];
+            posTokenWithinSong = [posTokenWithinSong pos];
             
             if plotRaw==1
                 % debugging, make sure songs are aligned
@@ -207,15 +237,20 @@ for mm = 1:length(Motifstoplot)
     end
     
     % ================ SAVE TO OUTPUT STRUCT
+    
     DATSTRUCT.motifnum(mm).motifname = motiftoplot;
-%     DATSTRUCT.motifnum(mm).syltoalign = syltoalign;
+    %     DATSTRUCT.motifnum(mm).syltoalign = syltoalign;
     DATSTRUCT.motifnum(mm).DatAll = DatAll;
     DATSTRUCT.motifnum(mm).DatAllRaw = DatAllFilt;
     DATSTRUCT.motifnum(mm).t = single(t);
     DATSTRUCT.motifnum(mm).FF = FFall;
-     DATSTRUCT.motifnum(mm).fs = fs;
-     DATSTRUCT.motifnum(mm).pretime = pretime;
-   
+    DATSTRUCT.motifnum(mm).fs = fs;
+    DATSTRUCT.motifnum(mm).pretime = pretime;
+    
+    DATSTRUCT.motifnum(mm).SongnamesAll = FnamesAll;
+    DATSTRUCT.motifnum(mm).posTokenWithinSong = posTokenWithinSong;
+    DATSTRUCT.motifnum(mm).NoiseTrials = NoiseTrials;
+    
 end
 
 

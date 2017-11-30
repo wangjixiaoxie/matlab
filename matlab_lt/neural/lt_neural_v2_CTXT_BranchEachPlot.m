@@ -1,4 +1,5 @@
-function lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot, plotspec_num)
+function lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot, plotspec_num, ...
+    locationtoplot)
 
 %%
 
@@ -6,9 +7,9 @@ motifpredur = ALLBRANCH.alignpos(1).ParamsFirstIter.motifpredur;
 motifpostdur = ALLBRANCH.alignpos(1).ParamsFirstIter.motifpostdur;
 
 % --- defaults -- don't change
-                LearnKeepOnlyBase = 1;
+LearnKeepOnlyBase = 1;
 
-                
+FFparams.collectFF = 0;
 %% First get dprime for all branches
 
 % DPRIME STUFF
@@ -42,7 +43,7 @@ for i=1:numalignpos
         if plotspec_num>0
             subplotcols = 3;
         else
-        subplotcols=2;
+            subplotcols=2;
         end
         fignums_alreadyused=[];
         hfigs=[];
@@ -68,6 +69,16 @@ for i=1:numalignpos
                     continue
                 end
                 
+                location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
+                if ~isempty(locationtoplot)
+                    if ~strcmp(locationtoplot, location)
+                        disp(['skipped, since loc = ' location]);
+                        continue
+                    end
+                end
+                
+                numclasses = find(~cellfun('isempty', {dat.FR.classnum.regexpstr}));
+                plotcols = lt_make_plot_colors(numclasses(end), 0, 0);
                 
                 % ################################ Do you want to extact
                 % spectrogram?
@@ -82,48 +93,62 @@ for i=1:numalignpos
                     
                     
                     % ==== for each class, extract sound dat
-                numclasses = length(dat.FR.classnum);
-                plotcols = lt_make_plot_colors(numclasses, 0, 0);
+                    %                     numclasses = length(dat.FR.classnum);
                     SoundDatAllTrial = {};
                     FsAllTrial = {};
                     
-                    for cc = 1:numclasses
-                    
-                    mclass = dat.FR.classnum(cc).regexpstr;    
-                    [segextract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
-                    mclass, prms_tmp.motifpredur, prms_tmp.motifpostdur, ...
-                    prms_tmp.alignOnset, '', '', 1, 1, 0, ...
-                    0, LearnKeepOnlyBase, prms_tmp.preAndPostDurRelSameTimept);
-                
-                    % ================ 
-                    indtmp = randperm(length(segextract), plotspec_num);
-                    SoundDatAllTrial{cc} = {segextract(indtmp).songdat};
-                    FsAllTrial{cc} = [segextract(indtmp).fs];
-                    
+                    for cc = numclasses
+                        
+                        mclass = dat.FR.classnum(cc).regexpstr;
+                        if isempty(mclass)
+                            continue
+                        end
+                        
+                        [segextract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
+                            mclass, 0.2, 0.15, ...
+                            prms_tmp.alignOnset, '', FFparams, 1, 1, 0, ...
+                            0, LearnKeepOnlyBase, prms_tmp.preAndPostDurRelSameTimept);
+                        %                         [segextract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
+                        %                             mclass, prms_tmp.motifpredur, prms_tmp.motifpostdur, ...
+                        %                             prms_tmp.alignOnset, '', FFparams, 1, 1, 0, ...
+                        %                             0, LearnKeepOnlyBase, prms_tmp.preAndPostDurRelSameTimept);
+                        
+                        % ================
+                        indtmp = randperm(length(segextract), plotspec_num);
+                        SoundDatAllTrial{cc} = {segextract(indtmp).songdat};
+                        FsAllTrial{cc} = [segextract(indtmp).fs];
+                        
                     end
-                
+                    
                     % ===================================== PLOT
                     % SPECTROGRAMS
                     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-                    fs = FsAllTrial{1}(1);
-                    XMAX = min([1 numclasses*0.25]); % so image is not distorted for small numbesr
+                    try
+                        fs = FsAllTrial{1}(1);
+                    catch err
+                        fs = FsAllTrial{2}(1);
+                    end
+                    XMAX = min([1 numclasses(end)*0.25]); % so image is not distorted for small numbesr
                     YMAX = min([1 plotspec_num*0.25]);
-                    xlimvals = linspace(0,XMAX, numclasses+1);
+                    xlimvals = linspace(0,XMAX, numclasses(end)+1);
                     ylimvals = linspace(0,YMAX,plotspec_num+1);
                     
-                    for cc = 1:numclasses
+                    for cc = numclasses
+                        if isempty(dat.FR.classnum(cc).regexpstr)
+                            continue
+                        end
                         for ccc = 1:plotspec_num
                             songdat = SoundDatAllTrial{cc}{ccc};
                             
                             % -- to arrange as trial x class, get position
                             % of this figure
                             XLIM = xlimvals(cc:cc+1);
-                            YLIM = ylimvals(ccc:ccc+1);               
+                            YLIM = ylimvals(ccc:ccc+1);
                             lt_plot_spectrogram(double(songdat), fs, 1, 0, ...
                                 XLIM, YLIM);
                             
-%                             patch([XLIM(1) XLIM(1) XLIM(2) XLIM(2)], ...
-%                                 [YLIM(1) YLIM(2) YLIM(1) YLIM(2)], [1 1 1], 'MarkerFaceColor', 'none')
+                            %                             patch([XLIM(1) XLIM(1) XLIM(2) XLIM(2)], ...
+                            %                                 [YLIM(1) YLIM(2) YLIM(1) YLIM(2)], [1 1 1], 'MarkerFaceColor', 'none')
                             line([XLIM(1) XLIM(1)], [YLIM(1) YLIM(2)], 'LineWidth', 2, 'Color', plotcols{cc});
                             line([XLIM(2) XLIM(2)], [YLIM(1) YLIM(2)], 'LineWidth', 2, 'Color', plotcols{cc});
                             line([XLIM(1) XLIM(2)], [YLIM(1) YLIM(1)], 'LineWidth', 2, 'Color', plotcols{cc});
@@ -148,7 +173,7 @@ for i=1:numalignpos
                 
                 
                 % ============ 1) mean FR
-                for cc =1 :numclasses
+                for cc =numclasses
                     
                     frmat = [dat.FR.classnum(cc).FRsmooth_rate_CommonTrialDur];
                     frmean = mean(frmat,2);
@@ -161,22 +186,42 @@ for i=1:numalignpos
                 
                 
                 % ============ 2) Syl contours
-                for cc =1 :numclasses
+                if isfield(dat, 'SylContoursByClass_means')
                     
-                    sylmean = dat.SylContoursByClass_means(cc,:);
-                    sylstd = dat.SylContoursByClass_std(cc,:);
-                    x = (1:length(sylmean))./1000;
-                    x = x - motifpredur;
-                    
-                    shadedErrorBar(x, 20*sylmean-20, 20*sylstd, {'Color', plotcols{cc}}, 1);
-                    
+                    for cc =numclasses
+                        
+                        sylmean = dat.SylContoursByClass_means(cc,:);
+                        sylstd = dat.SylContoursByClass_std(cc,:);
+                        x = (1:length(sylmean))./1000;
+                        x = x - motifpredur;
+                        
+                        shadedErrorBar(x, 20*sylmean-20, 20*sylstd, {'Color', plotcols{cc}}, 1);
+                        
+                    end
+                else
+                    for cc = numclasses
+                         yloc = -20+18*(cc/numclasses(end));
+                       % --- offset of syl
+                        sylmean = mean(dat.SylGapDurs.classnum(cc).Dur_syl);
+                        sylstd = std(dat.SylGapDurs.classnum(cc).Dur_syl);
+                        plot(sylmean, yloc, '^', 'MarkerSize', 5, 'Color', plotcols{cc});
+                        line([sylmean-sylstd sylmean+sylstd], [yloc yloc], 'Color', plotcols{cc}, ...
+                            'LineWidth', 2);
+                        
+                        % --- offset of previous syl
+                        sylmean = mean(dat.SylGapDurs.classnum(cc).Dur_gappre);
+                        sylstd = std(dat.SylGapDurs.classnum(cc).Dur_gappre);
+                        plot(-sylmean, yloc, '^', 'MarkerSize', 5, 'Color', plotcols{cc});
+                        line([-sylmean-sylstd -sylmean+sylstd], [yloc yloc], 'Color', plotcols{cc}, ...
+                            'LineWidth', 2);
+                        
+                    end
                 end
-                
                 
                 % ---------------------------
                 lt_plot_zeroline;
                 lt_plot_zeroline_vert;
-                ylim([-30 200]);
+                ylim([-30 max(frmean)+20]);
                 xlim([-motifpredur motifpostdur]);
                 
                 % ############### fig 2 - classifier and dprime

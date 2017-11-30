@@ -1,6 +1,9 @@
 function ALLBRANCH = lt_neural_v2_CTXT_ClassSliding(CLASSES, SummaryStruct, prms, ...
     TimeWindowDur, TimeWindowSlide, FRbinsize, savenotes, CVmethod, plotstat, ...
-    saveON)
+    saveON, LinTimeWarp, regionstowarp)
+%% lt 11/29/17 - added linear time warp - TO DO, can enter which regions to use
+% LinTimeWarp = 1;
+%             regionstowarp = [3 4];
 
 %% lt 10/25/17 - for each branch point/neuron, performs context decoding sliding across time.
 % prms.ClassGeneral.
@@ -18,8 +21,8 @@ beta = 0.9;
 
 %%
 
-    savedir = '/bluejay5/lucas/analyses/neural/CTXT_ClassGeneral_M';
-    tstamp = lt_get_timestamp(0);
+savedir = '/bluejay5/lucas/analyses/neural/CTXT_ClassGeneral_M';
+tstamp = lt_get_timestamp(0);
 
 %%
 
@@ -84,6 +87,33 @@ for i=1:numbirds
             ConfMatAll_NEG = nan(numrows, numrows, size(ListOfTimeWindows,1));
             ConfMatAll_POS = nan(numrows, numrows, size(ListOfTimeWindows,1));
             
+            SEGEXTRACT_DAT = CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT;
+            
+            if LinTimeWarp ==1
+                % ==== 1) combine all classes into one segextract
+                segextractAll = SEGEXTRACT_DAT.classnum(1).SegmentsExtract;
+                originalinds = [length(SEGEXTRACT_DAT.classnum(1).SegmentsExtract)];
+                for j=2:length(SEGEXTRACT_DAT.classnum)
+                    segextractAll = [segextractAll ...
+                        SEGEXTRACT_DAT.classnum(j).SegmentsExtract];
+                    
+                    originalinds = [originalinds ...
+                        length(SEGEXTRACT_DAT.classnum(j).SegmentsExtract)];
+                end
+                
+                % ==== 2) linear time warp
+                segextractAll = lt_neural_LinTimeWarpSegmented(segextractAll, regionstowarp);
+                
+                % ===== put back into SEGEXTRACT
+                count=1;
+                for j=1:length(SEGEXTRACT_DAT.classnum)
+%                     disp(count:(count+originalinds(j)-1));
+%                     disp('--');
+                    SEGEXTRACT_DAT.classnum(j).SegmentsExtract = segextractAll(count:(count+originalinds(j)-1));
+                    count = (count+originalinds(j));
+                end
+            end
+            
             % ===================== go thru all time windows and run
             % classifier
             for j=1:size(ListOfTimeWindows,1)
@@ -91,12 +121,14 @@ for i=1:numbirds
                 prms.classtmp.frtimewindow = ListOfTimeWindows(j,:);
                 
                 % ############################# GET DATA IN FORMAT FOR CLASSIFICATION
-                SEGEXTRACT = CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT;
+                SEGEXTRACT = SEGEXTRACT_DAT;
                 if isfield(SummaryStruct.birds(i).neurons(ii), 'isRAsobermel')
                     clustnum = [];
                 else
                     clustnum = SummaryStruct.birds(i).neurons(ii).clustnum;
                 end
+                
+                
                 [Xall, xtimesall, Y, CtxtClasses] = fn_extractClassDat(SEGEXTRACT, prms, clustnum);
                 
                 
@@ -223,7 +255,7 @@ for i=1:numbirds
             
             
             
-          %% ############ save stats about this branch/neuron in old format
+            %% ############ save stats about this branch/neuron in old format
             
             % === xvals (ALL)
             ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).xtimes = mean(ListOfTimeWindows,2)';
@@ -268,8 +300,8 @@ for i=1:numbirds
             maxdur = prms.motifpredur+prms.motifpostdur-0.005;
             numtrials = 10;
             SylContours = [];
-%             Ctxtnum = [];
-%             Xtimes = [];
+            %             Ctxtnum = [];
+            %             Xtimes = [];
             SylContoursByClass_means = [];
             SylContoursByClass_std = [];
             SylContoursByClass_N = [];
@@ -318,9 +350,9 @@ for i=1:numbirds
                 
                 % --- 1) ALL COMBINED
                 SylContours = [SylContours; sylcon];
-%                 Ctxtnum = [Ctxtnum; j*ones(size(sylcon,1),1)];
-%                 Xtimes = [Xtimes; xtimes];
-
+                %                 Ctxtnum = [Ctxtnum; j*ones(size(sylcon,1),1)];
+                %                 Xtimes = [Xtimes; xtimes];
+                
                 % ---- 2) CLASS BY CLASS
                 SylContoursByClass_means = [SylContoursByClass_means; mean(sylcon,1)];
                 SylContoursByClass_std = [SylContoursByClass_std; std(sylcon, 0, 1)];
@@ -336,6 +368,10 @@ for i=1:numbirds
             ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).sylcontours_mean = sylcontours_mean;
             ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).sylcontours_x = sylcontours_x;
             
+            ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).SylContoursByClass_means = SylContoursByClass_means;
+            ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).SylContoursByClass_std = SylContoursByClass_std;
+            ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).SylContoursByClass_N = SylContoursByClass_N;
+            ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).SylContoursByClass_classnums = SylContoursByClass_classnums;
             
             
             
@@ -384,47 +420,47 @@ for i=1:numbirds
             
             % ################################################### OTHER
             % INFO
-             ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).prms_regexpstr ...
-                 = {CLASSES.birds(i).neurons(ii).branchnum(iii).regexprstr};
-             
-             ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).prms_regexpstrlist ...
-                 = {CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum.regexpstr};
-             
-             ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).prms_regexpstrlist_POSCONTR ...
-                 = {CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT_POSCONTR.classnum.regexpstr};
-             
+            ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).prms_regexpstr ...
+                = {CLASSES.birds(i).neurons(ii).branchnum(iii).regexprstr};
+            
+            ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).prms_regexpstrlist ...
+                = {CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum.regexpstr};
+            
+            ALLBRANCH.alignpos(1).bird(i).branch(iii).neuron(ii).prms_regexpstrlist_POSCONTR ...
+                = {CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT_POSCONTR.classnum.regexpstr};
+            
         end
     end
     
     %% save after each bird (overwrite)
     %% ========== save
-if saveON==1
-   
+    if saveON==1
+        
+        
+        % --- allbranch
+        fname = [savedir '/ALLBRANCHv2_' prms.Extract.strtype '_Algn' num2str(prms.alignWhichSyl) ...
+            'Ons' num2str(prms.alignOnset) '_' tstamp '_' savenotes '.mat'];
+        
+        save(fname, 'ALLBRANCH', '-v7.3');
+        
+        % --- classes
+        fname = [savedir '/CLASSESv2_' prms.Extract.strtype '_Algn' num2str(prms.alignWhichSyl) ...
+            'Ons' num2str(prms.alignOnset) '_' tstamp '_' savenotes '.mat'];
+        save(fname, 'CLASSES', '-v7.3')
+        
+        % --- summary struct
+        fname = [savedir '/SUMMARYv2_' prms.Extract.strtype '_Algn' num2str(prms.alignWhichSyl) ...
+            'Ons' num2str(prms.alignOnset) '_' tstamp '_' savenotes '.mat'];
+        save(fname, 'SummaryStruct')
+        
+        % -- params
+        fname = [savedir '/PARAMSv2_' prms.Extract.strtype '_Algn' num2str(prms.alignWhichSyl) ...
+            'Ons' num2str(prms.alignOnset) '_' tstamp '_' savenotes '.mat'];
+        save(fname, 'prms')
+        
+        
+    end
     
-    % --- allbranch
-    fname = [savedir '/ALLBRANCHv2_' prms.Extract.strtype '_Algn' num2str(prms.alignWhichSyl) ...
-        'Ons' num2str(prms.alignOnset) '_' tstamp '_' savenotes '.mat'];
-    
-    save(fname, 'ALLBRANCH', '-v7.3');
-    
-    % --- classes
-    fname = [savedir '/CLASSESv2_' prms.Extract.strtype '_Algn' num2str(prms.alignWhichSyl) ...
-        'Ons' num2str(prms.alignOnset) '_' tstamp '_' savenotes '.mat'];
-    save(fname, 'CLASSES', '-v7.3')
-    
-    % --- summary struct
-    fname = [savedir '/SUMMARYv2_' prms.Extract.strtype '_Algn' num2str(prms.alignWhichSyl) ...
-        'Ons' num2str(prms.alignOnset) '_' tstamp '_' savenotes '.mat'];
-    save(fname, 'SummaryStruct')
-    
-    % -- params
-    fname = [savedir '/PARAMSv2_' prms.Extract.strtype '_Algn' num2str(prms.alignWhichSyl) ...
-        'Ons' num2str(prms.alignOnset) '_' tstamp '_' savenotes '.mat'];
-    save(fname, 'prms')
-
-    
-end
-
     
 end
 
@@ -434,9 +470,9 @@ end
 ALLBRANCH = lt_neural_v2_CTXT_BranchGaps(ALLBRANCH);
 
 
-    %% ========== save
+%% ========== save
 if saveON==1
-   
+    
     
     % --- allbranch
     fname = [savedir '/ALLBRANCHv2_' prms.Extract.strtype '_Algn' num2str(prms.alignWhichSyl) ...

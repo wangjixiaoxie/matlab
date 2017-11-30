@@ -4,6 +4,7 @@ function [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ..
     regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
     keepRawSongDat, suppressout, collectWNhit, collectWholeBoutPosition, LearnKeepOnlyBase, ...
     preAndPostDurRelSameTimept, RemoveIfTooLongGapDur)
+%% lt 11/29/17 - made RemoveIfTooLongGapDur default to 1 [back to 0]
 %%  lt 8/15/17 - added default gap duration (between all syls in a given motif)
 
 if ~exist('RemoveIfTooLongGapDur', 'var')
@@ -248,11 +249,12 @@ else
     
     % --------- method 1
     
-    
+    if (0)
     [startinds1, endinds1, matchlabs1, tokenExtents1]=regexp(AllLabels, regexpr_str, 'start', 'end', ...
         'match', 'tokenExtents');
     functmp = @(X) X(1);
     tokenExtents1=cellfun(functmp, tokenExtents1); % convert from cell to vector.
+    end
     
     % ------- method 2
     indstmp = regexp(regexpr_str, '[\(\)]'); % find left and right parantheses
@@ -300,6 +302,7 @@ else
     end
     
     % ---- compare methods
+    if (0)
     if length(startinds) == length(startinds1)
         assert(isempty(setxor(endinds, endinds1)), 'asfasd');
         assert(isempty(setxor(startinds1, startinds)), 'asfasd');
@@ -308,6 +311,7 @@ else
         
     else
         assert(isempty(setdiff(startinds1, startinds)), 'asfasdf'); % i.e. old version is proper subset of new version
+    end
     end
 end
 
@@ -407,6 +411,7 @@ for i=1:length(tokenExtents)
     SegmentsExtract(i).Dur_gappost = gapdur_post;
     
     
+    
     % on time
     ind=tokenExtents(i);
     if alignByOnset==1
@@ -431,6 +436,14 @@ for i=1:length(tokenExtents)
     end
     offsamp=round(offtime*fs);
     
+    
+    % --------------------- EXTRACT ONTIMES AND OFFTIMES OF ALL SYLS IN
+    % MOTIF
+    sylpositions = startinds(i):endinds(i);
+    motifsylOnsets = AllOnsets(sylpositions) - ontime;
+    motifsylOffsets = AllOffsets(sylpositions) - ontime;
+    SegmentsExtract(i).motifsylOnsets = motifsylOnsets;
+    SegmentsExtract(i).motifsylOffsets = motifsylOffsets;
     
     
     %     spkinds=(NeurDat.spikes_cat.cluster_class(:,2) > ontime*1000) & ...

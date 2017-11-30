@@ -176,7 +176,7 @@ for i=1:numbirds
                     end
                     
                     %%
-                    
+
                     [start, match] = regexp(SongDat.AllLabels, regexprstr, 'start', 'match');
                     
                     [match, inds] = sort(match);

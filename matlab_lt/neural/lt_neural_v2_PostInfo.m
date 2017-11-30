@@ -1,4 +1,13 @@
-function SummaryStruct = lt_neural_v2_PostInfo(SummaryStruct)
+function SummaryStruct = lt_neural_v2_PostInfo(SummaryStruct, IgnoreWhetherLearn)
+%% lt 11/29/17 - added IgnoreWhetherLearn
+% IgnoreWhetherLearn = 1; % then uses same motifs for all experiments for
+% a given bird, regardless of whether is learning. default is 0, i.e. takes
+%  learning specific motifs
+
+if ~exist('IgnoreWhetherLearn', 'var')
+    IgnoreWhetherLearn=0;
+end
+
 
 %% lt modified on 6/26/17 to be accurate for elarning experiments
 % PRoblem - WN over motifs means can't have entire motif name for elaring
@@ -31,6 +40,10 @@ for j=1:NumBirds
         
         islearning = SummaryStruct.birds(j).neurons(jj).INFO_islearning;
         MotifsActual = {};
+        
+        if IgnoreWhetherLearn==1
+            islearning=0;
+        end
         
         if islearning ==1
             %% ##### USE LEARNING SPECIFIC MOTIFS (accounts for disruption by WN)
@@ -149,7 +162,7 @@ for j=1:NumBirds
                 if strcmp(exptname, 'RALMANlearn1')
                     MotifsActual = {...
                         'aab', ...
-                        'jjbhhg'};
+                        'jjbhh', 'jjbhh(g)'};
                 elseif strcmp(exptname, 'RAlearn1')
                     
                     MotifsActual = {...
@@ -224,7 +237,7 @@ for j=1:NumBirds
             elseif strcmp(birdname, 'pu69wh78')
                 MotifsActual = {...
                     'aabh', 'aabh(h)', 'aabhh(g)', ...
-                    'jjbhhg'};
+                    'jjbhh', 'jjbhh(g)'};
             else
                 disp('NO MOTIFS INPUTED!!');
                 failures = failures+1;

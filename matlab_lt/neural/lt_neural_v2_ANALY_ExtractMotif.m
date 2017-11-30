@@ -1,5 +1,5 @@
 function [MOTIFSTATS, SummaryStruct] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct, ...
-    collectWNhit, onlyCollectTargSyl, LearnKeepOnlyBase)
+    collectWNhit, onlyCollectTargSyl, LearnKeepOnlyBase, FFparams)
 %% ONLY WORKS FOR SINGLE BIRD!!! - extracts motif information into one structure
 % NOT LEARNING SPECIFIC, GENERAL USE
 
@@ -12,11 +12,19 @@ motif_postdur = 0.05;
 alignByOnset=1;
 WHOLEBOUTS_edgedur=''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
 % those motifs that have long enough pre and post - LEAVE EMPTY TO GET ALL BOUTS
+
+if ~exist('FFparams', 'var')
+    
 FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will
 FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
 % +1 is 1 after token
 FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
-
+elseif isempty(FFparams)
+FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will
+FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
+% +1 is 1 after token
+FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
+end
 
 
 if ~exist('collectWNhit', 'var')

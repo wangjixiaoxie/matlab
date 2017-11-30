@@ -63,7 +63,15 @@ for i=1:length(prmslist)
     end
 end
 
+%% if for learning only keeping base, then expand the motifs to include all
 
+if LearnKeepOnlyBase==1
+   IgnoreWhetherLearn=1;
+        SummaryStruct = lt_neural_v2_PostInfo(SummaryStruct, IgnoreWhetherLearn);
+end
+
+
+%%
 if loadedold==0
     %% lt 6/8/17 - multiple birds, extracts motifs/segments, etc
     
@@ -84,9 +92,11 @@ if loadedold==0
             SummaryStruct_tmp.birds(1).neurons = SummaryStruct.birds(i).neurons(inds);
             SummaryStruct_tmp.birds(1).birdname = SummaryStruct.birds(i).birdname;
             
+            FFparams.collectFF=0;
+
             % === extract for just this expt
             [MOTIFSTATS] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct_tmp, ...
-                collectWNhit, 0, LearnKeepOnlyBase);
+                collectWNhit, 0, LearnKeepOnlyBase, FFparams);
             
             % === OUTPUT
             MOTIFSTATS_Compiled.birds(i).exptnum(ll).MOTIFSTATS = MOTIFSTATS;

@@ -23,7 +23,7 @@ end
 %% extract params
 % --- defaults -- don't change
 LearnKeepOnlyBase = 1;
-FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will
+FFparams.collectFF=0; % note, will try to collect FF for each motif inputed in the cell array. will
 FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
 % +1 is 1 after token
 FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error

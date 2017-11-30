@@ -8,6 +8,20 @@ function lt_neural_v2_CTXT_BranchCompareTwo(branchfname1, branchfname2)
 % go with the combined model, plot the results from that. look more closely
 % at the cross validation stuff.
 
+%% params
+dattoplot = 'classperform';
+LMANorX = 0; % 0, both; 1, LMAN; 2, X
+birdstoexclude = {};
+
+durThreshOmega.syl = 0.15; % omega2 (will only keep if lower) [leave empty to ignore]
+% durThreshOmega.gappre= 0.5;
+% durThreshOmega.gappost= 0.2;
+% durThreshOmega.syl = []; % omega2 (will only keep if lower) [leave empty to ignore]
+durThreshOmega.gappre= [];
+durThreshOmega.gappost= [];
+
+RemoveRepeats = 0;
+
 
 %% load each of the structures\
 savedir = '/bluejay5/lucas/analyses/neural/CTXT_ClassGeneral_M';
@@ -32,18 +46,6 @@ indstmp = strfind(branchfname2, '_');
 BRANCHES(2).ID = branchfname2(indstmp(end)+1:end-4);
 
 %% convert to vectors
-dattoplot = 'classperform';
-LMANorX = 0; % 0, both; 1, LMAN; 2, X
-birdstoexclude = {};
-
-durThreshOmega.syl = 0.15; % omega2 (will only keep if lower) [leave empty to ignore]
-% durThreshOmega.gappre= 0.5;
-% durThreshOmega.gappost= 0.2;
-% durThreshOmega.syl = []; % omega2 (will only keep if lower) [leave empty to ignore]
-durThreshOmega.gappre= [];
-durThreshOmega.gappost= [];
-
-RemoveRepeats = 0;
 
 for i=1:length(BRANCHES)
     BRANCHES(i).DATSTRUCT = lt_neural_v2_CTXT_BranchToDatstruct(BRANCHES(i).dat.ALLBRANCH, birdstoexclude, ...

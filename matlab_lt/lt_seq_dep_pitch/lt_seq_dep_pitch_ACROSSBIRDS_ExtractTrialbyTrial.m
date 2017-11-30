@@ -1,9 +1,11 @@
-function [TrialStruct, Params] = lt_seq_dep_pitch_ACROSSBIRDS_ExtractTrialByTrial(SeqDepPitch_AcrossBirds)
+function [TrialStruct, Params] = lt_seq_dep_pitch_ACROSSBIRDS_ExtractTrialbyTrial(SeqDepPitch_AcrossBirds, ...
+    OnlyExptsWithNoStartDelay, DayWindow)
 
-OnlyExptsWithNoStartDelay= 0 ;
+% OnlyExptsWithNoStartDelay= 0 ;
+% TakeIntoAccountStartDelay = 1;
+% DayWindow = [-2 4]; % [-2 4] mean 2 base days and 1st 4 learning days
+
 TakeIntoAccountStartDelay = 1;
-DayWindow = [-2 4]; % [-2 4] mean 2 base days and 1st 4 learning days
-
 %%
 
 
@@ -33,6 +35,7 @@ for i=1:NumBirds;
         if OnlyExptsWithNoStartDelay==1
             if SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.NumEmptyDays_StartWN_FromZscoreCode>0
                 disp(['SKIPPED (delay after WN start): ' birdname '-' exptname]);
+                TrialStruct.birds(i).exptnum(ii).sylnum = [];
                 continue
             end
         end
@@ -71,6 +74,7 @@ for i=1:NumBirds;
         % -- baseline days
         base1=WNday1+DayWindow(1);
         baseEnd=WNday1-1;
+        
         % -- WN days
         if TakeIntoAccountStartDelay==1;
             daysDelay=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.NumEmptyDays_StartWN_FromZscoreCode;
@@ -93,6 +97,10 @@ for i=1:NumBirds;
         targsyl = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targsyl;
         
         % ================ COLLECT SOME GENERAL INFOR FOR THIS EXPT
+        if isempty(BaseDays)
+            keyboard
+        end
+           
         TrialStruct.birds(i).exptnum(ii).BaseDays = BaseDays;
         TrialStruct.birds(i).exptnum(ii).WNDays = WNDays;
         TrialStruct.birds(i).exptnum(ii).WNday1 = WNday1;
@@ -146,6 +154,7 @@ for i=1:NumBirds;
             end
             
             % ---- OUT
+            TrialStruct.birds(i).exptnum(ii).sylnum(j).syl = syl;
             TrialStruct.birds(i).exptnum(ii).sylnum(j).Tvals = Tvals;
             TrialStruct.birds(i).exptnum(ii).sylnum(j).Tvals_datenum = Tvals_datenum;
             TrialStruct.birds(i).exptnum(ii).sylnum(j).FFvals = FFvals;

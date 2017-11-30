@@ -1,4 +1,7 @@
 function lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows)
+%% lt 11/28/17 - output saved in a directory (as individual .mat files)
+% PREVIOUSLY saved as a field in the CLASSES structure, but it is too
+% large, so do this instead.
 
 %% lt 10/26/17 - for premotor window, calculates decoding accuracy.
 % TO implement: sliding time window, assuming a certain delay between LMAN
@@ -38,6 +41,17 @@ beta = 0.9;
 % Niter = 100; % num shuffles of neg control
 decodestat = 'F1';
 
+
+%% 
+
+currdir = pwd;
+try
+    cd([savedir '/' analyfname '/SHUFFDECODE/']);
+    cd(currdir)
+catch err
+    mkdir([savedir '/' analyfname '/SHUFFDECODE/']);
+end
+
 %% RUN
 
 numbirds = length(CLASSES.birds);
@@ -75,6 +89,14 @@ for i=1:numbirds
             
             % ################ go thru all time bins
             for tt = 1:numtimebins
+                
+                % ================ check if already done - if so, skip
+                savefname = [savedir '/' analyfname '/SHUFFDECODE/bird' num2str(i) '_neur' num2str(ii) ...
+                    '_branch' num2str(iii) '_tbin' num2str(tt) '.mat'];
+                if exist(savefname, 'file')
+                   disp(['SKIP - already exist: ' savefname]);
+                   continue
+                end
                 
                 % ------ SOME PARAMS
                 prms.classtmp.frtimewindow = TimeWindows_relonset(tt,:); % on and off, relative to syl onset
@@ -126,10 +148,14 @@ for i=1:numbirds
                 end
                 
                 % ================= OUTPUT
+                if (0)
+                    % old version 
                 CLASSES.birds(i).neurons(ii).branchnum(iii).SHUFFDECODE.timebin(tt).window_relonset = prms.classtmp.frtimewindow;
                 CLASSES.birds(i).neurons(ii).branchnum(iii).SHUFFDECODE.timebin(tt).ConfMatAll_DAT = ConfMatAll;
                 CLASSES.birds(i).neurons(ii).branchnum(iii).SHUFFDECODE.timebin(tt).ConfMatAll_NEG = ConfMatAll_NEG;
                 
+                
+                end
                 
                 %% =================== compare data to distribution
                 % -- get mean F1 for dat
@@ -161,7 +187,19 @@ for i=1:numbirds
                 
                 
                 % ==================== OUTPUT
-                CLASSES.birds(i).neurons(ii).branchnum(iii).SHUFFDECODE.timebin(tt).Pdat = Pdat;
+                if (0)
+                % -- old version
+                    CLASSES.birds(i).neurons(ii).branchnum(iii).SHUFFDECODE.timebin(tt).Pdat = Pdat;
+                end
+                
+                % ================= NEW VERSION - SAVES EACH OUTPUT
+                decodestruct = struct;
+                decodestruct.window_relonset = prms.classtmp.frtimewindow;
+                decodestruct.ConfMatAll_DAT = ConfMatAll;
+                decodestruct.ConfMatAll_NEG = ConfMatAll_NEG;
+                decodestruct.Pdat = Pdat;
+                
+                save(savefname, 'decodestruct');
                 
                 
             end
@@ -169,13 +207,21 @@ for i=1:numbirds
     end
 end
 
+%% ========== save params
+
+savename_par = [savedir '/' analyfname '/SHUFFDECODE/Params.mat'];
+save(savename_par, 'TimeWindows');
 
 %% ======= save classes (overwrite old struct)
-
+if (0)
 CLASSES.SHUFFDECODEpar.TimeWindows_relOnsetOffset =TimeWindows;
 save([savedir '/CLASSESv2_' analyfname '.mat'], 'CLASSES');
+end
 
-
+%% ================== debug, to convert from older bersion (saving in struct) to new version (saving .mat)
+if (0)
+    lt_neural_trash;
+end
 end
 
 

@@ -20,5 +20,5 @@ NeurDat.filenames = datstruct.fname_arr;
 
 Params.birdname = birdname;
 Params.exptname = '';
-
+Params.neurnum = neurnum;
 

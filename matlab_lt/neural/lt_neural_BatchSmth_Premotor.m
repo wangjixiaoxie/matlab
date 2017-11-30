@@ -1,4 +1,5 @@
-function lt_neural_BatchSmth_Premotor(DATAllSwitches, motifstoplot, premotor_wind, plotRaw)
+function lt_neural_BatchSmth_Premotor(DATAllSwitches, motifstoplot, premotor_wind, ...
+    plotRaw, removeNoiseTrials)
 
 %% lt 11/17/17 - plot premotor and change in premotor for all chans and blocks
 
@@ -7,6 +8,8 @@ function lt_neural_BatchSmth_Premotor(DATAllSwitches, motifstoplot, premotor_win
 % % ====== input params
 % motifstoplot = {'a(b)', 'j(b)', 'h(g)'}; % if empty, plots all
 % premotor_wind = [-0.03 0.02]; % for cross correlation
+% removeNoiseTrials = 1; if 1, then throws out all trials that are noise
+% (based on [fname].noise.mat).
 
 
 %%
@@ -53,32 +56,51 @@ for cc = chanstoplot
                 pretime = DATAllSwitches.switch(i).params.pretime;
                 pretime = pretime/fs;
                 
-                % ======== plot all dats, and overlay median
-                if plotRaw==1
-                    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-                    hsplots = [hsplots hsplot];
-                    title(['ch' num2str(cc) '-sw' num2str(i) '-' motif '[' cond ']']);
+                noisetrials = DATAllSwitches.switch(i).motif(mm).batchinorder(bb).NoiseTrials{cc};
+                noisetrials = logical(noisetrials);
+                
+                % ==================================
+                if removeNoiseTrials ==1
+                    datmat(noisetrials,:) = [];
+                    FF(noisetrials) = [];
+                end
+                
+                if isempty(datmat)
+                    datmedian = nan(size(t));
+                    datSEM =  nan(size(t));
                     
-                    plot(t, datmat, 'Color', [0.7 0.7 0.7]);
-                end
+                else
+                    % ======== plot all dats, and overlay median
+                    if plotRaw==1
+                        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+                        hsplots = [hsplots hsplot];
+                        title(['ch' num2str(cc) '-sw' num2str(i) '-' motif '[' cond ']']);
+                        
+                        plot(t, datmat, 'Color', [0.7 0.7 0.7]);
+                    end
+                    
+                    % -- overlay median, with 75th tiles
+                    datmedian = median(datmat,1);
+                    if size(datmat,1)>1
+                    datSEM = lt_sem(datmat);
+                    else
+                        datSEM = nan(size(t));
+                    end
+                    
+                    if plotRaw==1 & size(datmat,1)>1
+                        shadedErrorBar(t, datmedian, datSEM, {'Color','r'}, 1);
+                        line([pretime pretime],ylim);
+                        lt_plot_zeroline;
+                        axis tight;
+                    end
+                 end   
+                    % ============ save
+                    DatMeans = [DatMeans datmedian];
+                    DatSEMs = [DatSEMs datSEM];
+                    CondAll = [CondAll cond];
+                    
+                    DatMeansAllSwitches = [DatMeansAllSwitches; datmedian];
                 
-                % -- overlay median, with 75th tiles
-                datmedian = median(datmat,1);
-                datSEM = lt_sem(datmat);
-                
-                if plotRaw==1
-                    shadedErrorBar(t, datmedian, datSEM, {'Color','r'}, 1);
-                    line([pretime pretime],ylim);
-                    lt_plot_zeroline;
-                    axis tight;
-                end
-                
-                % ============ save
-                DatMeans = [DatMeans datmedian];
-                DatSEMs = [DatSEMs datSEM];
-                CondAll = [CondAll cond];
-                
-                DatMeansAllSwitches = [DatMeansAllSwitches; datmedian];
             end
             
             % ================= PLOT EACH BATCH'S MEAN, OVERLAYED

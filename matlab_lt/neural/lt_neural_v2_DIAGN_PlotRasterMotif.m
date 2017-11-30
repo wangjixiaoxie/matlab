@@ -1,10 +1,27 @@
 function lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
     motiflist, plotbytime)
 
-
-
+% 
+% BirdToPlot = 'pu69wh78';
+% % % ---- give it either 
+% % A) one neuron and a bunch of motifs or
+% % B) bunch of neurons and one motif
+% NeurToPlot = 1; % 4 % vector (e.g. [5 7]) - if [] then plots all;
+% motiflist = {'a(b)', 'jbh(h)g'};
+% plotbytime = 0; % links rasters for all motifs by time of song.
 
 %%
+            motifpredur = 0.15;
+motifpostdur = 0.15;
+
+%%
+
+AllRasters = {};
+AllSmoothFR = {};
+AllSmoothFR_sem = {};
+AllSmoothFR_x = {};
+AllNeurNum = [];
+AllMotif = {};
 
 numbirds = length(SummaryStruct.birds);
 
@@ -19,7 +36,7 @@ for i=1:numbirds
     
     for ii=1:numneurons
         
-        if ii~=NeurToPlot
+        if all(ii~=NeurToPlot)
             continue
         end
         
@@ -34,8 +51,6 @@ for i=1:numbirds
             [SongDat, NeurDat, Params] = lt_neural_ExtractDat2(SummaryStruct, i, ii);
             
             
-            motifpredur = 0.17;
-            motifpostdur = 0.22;
             collectWNhit = 0;
             preAndPostDurRelSameTimept = 1;
             RemoveIfTooLongGapDur = 1;
@@ -83,6 +98,10 @@ for i=1:numbirds
                 set(gca, 'Ytick', []);
             end
             
+            % ############################### COLLECT SPIKE TIMES
+            AllRasters = [AllRasters {{SegmentsExtract.spk_Times}}];
+            
+            
             % ------------- 2) PLOT SMOOTHED FR
             SegmentsExtract = lt_neural_SmoothFR(SegmentsExtract, '');
             FRmat = [SegmentsExtract.FRsmooth_rate_CommonTrialDur];
@@ -105,6 +124,11 @@ for i=1:numbirds
             end
             line([motifpredur motifpredur], ylim);
             
+            % ############################### COLLECT SMOOTHED FR
+            AllSmoothFR = [AllSmoothFR FRmean];
+            AllSmoothFR_sem = [AllSmoothFR_sem FRsem];
+            AllSmoothFR_x = [AllSmoothFR_x X];
+            
             
             % ------------- 3) PLOT syl onset/offsets
             hsplot = lt_subplot(6,1,1); hold on;
@@ -122,7 +146,54 @@ for i=1:numbirds
             
             % ---
             linkaxes(hsplots, 'x');
+            
+            
+            % ###################### collect stuff
+            AllMotif = [AllMotif motiftoplot];
+            AllNeurNum = [AllNeurNum ii];
         end
     end
 end
+
+
+%% ================= COMBINATION PLOT (RASTERS)
+lt_figure; hold on;
+numplots = length(AllRasters);
+plotcols = lt_make_plot_colors(numplots, 0, 0);
+yval = 1;
+for i=1:numplots
+   
+   % ======= plot raster
+   rasters = AllRasters{i};
+   for j=1:length(rasters)
+       spktimes = rasters{j};
+   lt_neural_PLOT_rasterline(spktimes, yval, plotcols{i});
+   yval = yval+1;
+   end
+   lt_plot_text(max(spktimes), yval, ['n' num2str(AllNeurNum(i)) '-' AllMotif{i}], plotcols{i});
+end
+axis tight
+ylabel('trial');
+xlabel('time (sec)');
+line([motifpredur motifpredur], ylim);
+
+%% ================== COMBINATION PLOT (SMOOTHED FR)
+
+lt_figure; hold on;
+numplots = length(AllRasters);
+plotcols = lt_make_plot_colors(numplots, 0, 0);
+for i=1:numplots
+   
+   % ======= plot raster
+   y = AllSmoothFR{i};
+   ysem = AllSmoothFR_sem{i};
+   x = AllSmoothFR_x{i};
+   shadedErrorBar(x, y, ysem, {'Color', plotcols{i}},1);
+   lt_plot_text(x(1), y(1), ['n' num2str(AllNeurNum(i)) '-' AllMotif{i}], plotcols{i});
+end
+axis tight
+xlabel('time (sec)');
+line([motifpredur motifpredur], ylim);
+
+
 

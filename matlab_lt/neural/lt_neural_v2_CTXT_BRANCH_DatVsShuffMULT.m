@@ -1,4 +1,4 @@
-function lt_neural_v2_CTXT_BRANCH_DatVsShuffMULT(allanalyfnames)
+function DATSTRUCT =lt_neural_v2_CTXT_BRANCH_DatVsShuffMULT(allanalyfnames)
 
 %% lt 10/27/17 - takes multiple analyses and plots
 % INPUT fnames
@@ -29,29 +29,29 @@ for i=1:length(allanalyfnames)
     
 end
 
-%% compare two analyses
-
-lt_figure; hold on;
-numanalyses = length(DATSTRUCT.analynum);
-
-Yvals ={};
-Fnames = {};
-for i=1:numanalyses
-    
-    yvals = DATSTRUCT.analynum(i).dat.AllDecode_z;
-    fname = DATSTRUCT.analynum(i).fname;
-    
-    Yvals = [Yvals yvals];
-    Fnames = [Fnames fname];
-    
-end
-
-lt_plot_MultDist(Yvals, 1:length(Yvals), 1, 'k', 0, 0);
-% set(gca, 'XTickLabel', Fnames);
-% rotateXLabels(gca, 45)
-ylabel('decode (z)');
-xlabel('analysis num');
-lt_plot_zeroline
-
+% %% compare two analyses
+% 
+% lt_figure; hold on;
+% numanalyses = length(DATSTRUCT.analynum);
+% 
+% Yvals ={};
+% Fnames = {};
+% for i=1:numanalyses
+%     
+%     yvals = DATSTRUCT.analynum(i).dat.AllDecode_z;
+%     fname = DATSTRUCT.analynum(i).fname;
+%     
+%     Yvals = [Yvals yvals];
+%     Fnames = [Fnames fname];
+%     
+% end
+% 
+% lt_plot_MultDist(Yvals, 1:length(Yvals), 1, 'k', 0, 0);
+% % set(gca, 'XTickLabel', Fnames);
+% % rotateXLabels(gca, 45)
+% ylabel('decode (z)');
+% xlabel('analysis num');
+% lt_plot_zeroline
+% 
 
 %% ============== 

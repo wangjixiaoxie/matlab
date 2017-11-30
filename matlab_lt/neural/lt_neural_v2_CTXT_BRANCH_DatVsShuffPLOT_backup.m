@@ -1,7 +1,4 @@
 function DATSTRUCT = lt_neural_v2_CTXT_BRANCH_DatVsShuffPLOT(analyfname)
-%% lt 11/29/17 - modified to not use CLASSES (Which takes up al lot of memory ...)
-
-
 %% lt 10/27/17 - plots CLASSES, after runninglt_neural_v2_CTXT_BRANCH_DatVsShuff
 % - plots decoding of dat vs. shuffled
 % - currently only works with one time bin (the first) - can easily modify
@@ -10,13 +7,12 @@ function DATSTRUCT = lt_neural_v2_CTXT_BRANCH_DatVsShuffPLOT(analyfname)
 %%
 
 decodestat = 'F1';
-plotdecodenegdistr = 0; % will plot each neuron/branch neg and actual dat (lots of plots!!!)
+plotdecodenegdistr = 0;
 
 %% load branch
 savedir = '/bluejay5/lucas/analyses/neural/CTXT_ClassGeneral_M';
 
-% load([savedir '/CLASSESv2_' analyfname '.mat']);
-load([savedir '/ALLBRANCHv2_' analyfname '.mat']);
+load([savedir '/CLASSESv2_' analyfname '.mat']);
 load([savedir '/SUMMARYv2_' analyfname '.mat']);
 try
     load([savedir '/PARAMSv2_' analyfname '.mat']);
@@ -27,9 +23,7 @@ end
 %% use first time bin only (can modify)
 
 tt = 1;
-apos = 1; % align pos = 1
 %% COLLECT
-
 
 % ---- to visualize decodeneg distributions
 figcount=1;
@@ -49,71 +43,65 @@ AllDecode_z = [];
 AllWindows_RelOnsActual = [];
 AllWindows_RelOnsOffDesired = [];
 
-numbirds = length(ALLBRANCH.alignpos(apos).bird);
-
-% ------------ load decode param
-timewindows = load([savedir '/' analyfname '/SHUFFDECODE/Params.mat']);
-
-            
+numbirds = length(CLASSES.birds);
 for i=1:numbirds
-  
-    numbranches = length(ALLBRANCH.alignpos(apos).bird(i).branch);
-    for bb = 1:numbranches
-       
-        numneurons = length(ALLBRANCH.alignpos(apos).bird(i).branch(bb).neuron);
+    numneurons = length(CLASSES.birds(i).neurons);
+    
+    for ii=1:numneurons
         
-        for nn=1:numneurons
-           
-            ALLBRANCH.alignpos(apos).bird(i).branch(bb).neuron(nn);
+        numbranch = length(CLASSES.birds(i).neurons(ii).branchnum);
+        
+        for iii=1:numbranch
             
-            % ------------ 
-            disp(['brd' num2str(i) '-br' num2str(bb) '-neur' num2str(nn)]);
-
-            % ------------ find shuffle decode data
-            fname = [savedir '/' analyfname '/SHUFFDECODE/' ...
-                'bird' num2str(i) '_neur' num2str(nn) '_branch' num2str(bb) ...
-                '_tbin' num2str(tt) '.mat'];
-            if ~exist(fname, 'file')
-            disp('skipping - no decode dat');
-            continue
-            else
-            decodestruct = load(fname);
+            disp(['brd' num2str(i) '-n' num2str(ii) '-br' num2str(iii)]);
+            
+            datstruct = CLASSES.birds(i).neurons(ii).branchnum(iii);
+            
+            if ~isfield(datstruct, 'SHUFFDECODE')
+                disp('asdfasd'); % then lacks data
+                keyboard
+                continue
+            end
+            if isempty(datstruct.SHUFFDECODE)
+                disp('asdfads');
+                continue
             end
             
             
             % === other features
             AllBirdNum = [AllBirdNum; i];
-            AllNeurNum = [AllNeurNum; nn];
-            AllBranchNum = [AllBranchNum; bb];
-
+            AllNeurNum = [AllNeurNum; ii];
+            AllBranchNum = [AllBranchNum; iii];
+            
+            
+            
             % === Pdats
-            AllPdat = [AllPdat; decodestruct.decodestruct.Pdat];
-
+            AllPdat = [AllPdat; datstruct.SHUFFDECODE.timebin(tt).Pdat];
+            
+            
             % === convert decode into z-score rel to null distribution
-            cmat = decodestruct.decodestruct.ConfMatAll_NEG ;
+            cmat = datstruct.SHUFFDECODE.timebin(tt).ConfMatAll_NEG ;
             decodeneg = [];
             for j=1:length(cmat)
                 sts = lt_neural_ConfMatStats(cmat{j});
                 decodeneg = [decodeneg sts.(decodestat)];
             end
             
-            % --- same, data
-            cmat = decodestruct.decodestruct.ConfMatAll_DAT;
+            cmat = datstruct.SHUFFDECODE.timebin(tt).ConfMatAll_DAT;
             decodedat = [];
             for j=1:length(cmat)
                 sts = lt_neural_ConfMatStats(cmat{j});
                 decodedat = [decodedat sts.(decodestat)];
             end
             decode = mean(decodedat);
-
             
-            % ################################# OUTPUT
+            % -- out
             AllDecode = [AllDecode decode];
             
             nullmean = mean(decodeneg);
             nullstd = std(decodeneg);
             AllDecode_z = [AllDecode_z (decode - nullmean)/nullstd];
-
+            
             
             % --------------------------- check neg decode distrubtions
             if plotdecodenegdistr ==1
@@ -122,12 +110,11 @@ for i=1:numbirds
                 line([decode decode], ylim, 'Color','r')
             end
             
-                        
             % ----------------- other params
-            windowrelonset = decodestruct.decodestruct.window_relonset;
+            windowrelonset = datstruct.SHUFFDECODE.timebin(tt).window_relonset;
             AllWindows_RelOnsActual = [AllWindows_RelOnsActual; windowrelonset];
             
-            windowrelOnsOff = timewindows.TimeWindows;
+            windowrelOnsOff = CLASSES.SHUFFDECODEpar.TimeWindows_relOnsetOffset;
             AllWindows_RelOnsOffDesired = [AllWindows_RelOnsOffDesired; windowrelOnsOff];
         end
     end
@@ -137,22 +124,12 @@ end
 %% plot grand histogram
 for i=1:size(AllPdat,2)
     lt_figure; hold on;
-    xlabel('log10(pval)');
-    title(['prob of dat rel shuff distribution, ' analyfname]);
-    lt_plot_histogram(log10(AllPdat(:,i)+0.0001));
-    line([log10(0.05) log10(0.05)], ylim);
-    
-    numSig = sum(AllPdat(:)<0.05);
-    numTot = length(AllPdat(:));
-    
-    lt_plot_annotation(1, [num2str(numSig) '/' num2str(numTot) ' (' num2str(numSig/numTot) ') sig (p<0.05)'])
+    title('prob of dat rel shuff distribution');
+    lt_plot_histogram(log10(AllPdat(:,i)+0.0001))
 end
 
 %% pval correlate with zscore
 lt_figure; hold on;
-    title([analyfname]);
-xlabel('zscore vs. null');
-ylabel('pval');
 plot(AllDecode_z, AllPdat, '.k');
 
 
@@ -173,7 +150,7 @@ for i=1:numbirds
     
     Yvals = {};
     XNeurs = [];
-    birdname = SummaryStruct.birds(i).birdname;
+    birdname = CLASSES.birds(i).birdname;
     for ii=1:numneur
         
         inds = AllBirdNum==i & AllNeurNum==ii;
@@ -197,30 +174,16 @@ for i=1:numbirds
     line(xlim, [log10(0.05) log10(0.05)], 'Color','r');
     ylim([-5 1]);
     
-    % -------- proportion of cases overall significant
-    yvalsall = cell2mat(Yvals');
-    
-    numSig = sum(yvalsall(:)<log10(0.05));
-    numTot = length(yvalsall(:));
-    
-    lt_plot_annotation(1, [num2str(numSig) '/' num2str(numTot) ' (' num2str(numSig/numTot) ') sig (p<0.05)'], 'r')
-
     
 end
 
 
 % ################### DECODE (zscore)
-figcount=1;
-subplotrows=4;
-subplotcols=2;
-fignums_alreadyused=[];
-hfigs=[];
-
 for i=1:numbirds
     
     Yvals = {};
     XNeurs = [];
-    birdname = SummaryStruct.birds(i).birdname;
+    birdname = CLASSES.birds(i).birdname;
     for ii=1:numneur
         
         inds = AllBirdNum==i & AllNeurNum==ii;
@@ -268,8 +231,7 @@ for i=1:numbirds
     
     Yvals = {};
     Xbranch = [];
-    Nnums = {}; % to collect neurons
-    birdname = SummaryStruct.birds(i).birdname;
+    birdname = CLASSES.birds(i).birdname;
     
     for ii=1:numbranch
         
@@ -286,32 +248,14 @@ for i=1:numbirds
         
         % --- what is the name of this branch?
         tmp = find(inds);
-%         branchname = CLASSES.birds(i).neurons(AllNeurNum(tmp(1))).branchnum(ii).regexprstr;
-        branchname = ALLBRANCH.alignpos(apos).bird(i).branch(ii).neuron(AllNeurNum(tmp(1))).prms_regexpstr;
+        branchname = CLASSES.birds(i).neurons(AllNeurNum(tmp(1))).branchnum(ii).regexprstr;
         BranchnameAll = [BranchnameAll branchname];
-        
-        
-        % ------------ plot text of neurons for each datapoint
-        Nnums = [Nnums AllNeurNum(inds)];
     end
     % =========== plot for this bird
     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
     title(birdname);
     xlabel('branch ID');
     ylabel('log10(prob)');
-    
-    % ------------- plot text of neuron num next to point
-    for j=1:length(Nnums)
-       for jj = 1:length(Nnums{j})
-           
-           neur = Nnums{j}(jj);
-           x = j;
-           y = Yvals{j}(jj);
-           lt_plot_text(x, y, [num2str(neur)], [0.6 0.6 0.9])
-        end
-    end
-    
-    % -------- plot data
     lt_plot_MultDist(Yvals, Xbranch, 1, 'k', 1, 0);
     line(xlim, [log10(0.05) log10(0.05)], 'Color','r');
     ylim([-5 1]);
@@ -319,33 +263,16 @@ for i=1:numbirds
     set(gca, 'XTickLabel', BranchnameAll);
     rotateXLabels(gca, 45);
     
-    
-    % -------- proportion of cases overall significant
-    yvalsall = cell2mat(Yvals');
-    
-    numSig = sum(yvalsall(:)<log10(0.05));
-    numTot = length(yvalsall(:));
-    
-    lt_plot_annotation(1, [num2str(numSig) '/' num2str(numTot) ' (' num2str(numSig/numTot) ') sig (p<0.05)'], 'r')
-
-    
 end
 
 
 % ############################# DECODE (ZSCORE)
-figcount=1;
-subplotrows=4;
-subplotcols=2;
-fignums_alreadyused=[];
-hfigs=[];
-
-
 BranchnameAll = {};
 for i=1:numbirds
     
     Yvals = {};
     Xbranch = [];
-    birdname = SummaryStruct.birds(i).birdname;
+    birdname = CLASSES.birds(i).birdname;
     
     for ii=1:numbranch
         
@@ -362,7 +289,7 @@ for i=1:numbirds
         
         % --- what is the name of this branch?
         tmp = find(inds);
-        branchname = ALLBRANCH.alignpos(apos).bird(i).branch(ii).neuron(AllNeurNum(tmp(1))).prms_regexpstr;
+        branchname = CLASSES.birds(i).neurons(AllNeurNum(tmp(1))).branchnum(ii).regexprstr;
         BranchnameAll = [BranchnameAll branchname];
     end
     % =========== plot for this bird

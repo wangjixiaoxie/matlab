@@ -1,5 +1,5 @@
 function lt_neural_v2_Finalize(DesiredClust, electrode_depth, Notes, LearningParams, deleteAudioFromMetadat)
-
+% e.g. lt_neural_v2_Finalize(2, 1825, {'SUnit_1', 'Location_LMAN', 'Celltype_IN'})
 % e.g. lt_neural_v2_Finalize(1, 1975, {'SUnit_0', 'Location_LMAN'}, {'29Apr2017-1200',{}})
 
 %% LT 3/7/17 - by default removes the concatenated audio file from metadat 
@@ -163,6 +163,14 @@ else
     IsSU = 'no';
 end
 
+% ========== IS PUTATIVE INTERNEURON?
+inds = regexp(Notes, 'Celltype');
+if any(~cellfun(@isempty, inds))
+celltypestr = Notes{~cellfun(@isempty, inds)};
+celltype = celltypestr(10:11);
+else
+    celltype = '';
+end
 
 % =========== LOCATION.
 inds = regexp(Notes, 'Location');
@@ -184,6 +192,7 @@ SummaryStruct.birds(BirdInd).neurons(NeuronInd).electrode_depth = electrode_dept
 SummaryStruct.birds(BirdInd).neurons(NeuronInd).Notes = Notes;
 SummaryStruct.birds(BirdInd).neurons(NeuronInd).NOTE_is_single_unit = IsSU;
 SummaryStruct.birds(BirdInd).neurons(NeuronInd).NOTE_Location = probeLocation;
+SummaryStruct.birds(BirdInd).neurons(NeuronInd).NOTE_PutativeCellType = celltype;
 
 SummaryStruct.birds(BirdInd).neurons(NeuronInd).Filedatestr_unsorted = DatestrAll;
 SummaryStruct.birds(BirdInd).neurons(NeuronInd).Filedatenum_unsorted = DatenumAll;

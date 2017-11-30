@@ -1,5 +1,5 @@
 function lt_neural_BatchSmth_CtxtSep(DATAllSwitches, MotifSets, premotor_wind, ...
-    useCorr, plotRaw)
+    useCorr, plotRaw, removeNoiseTrials)
 %% lt 11/17/17 - smoothed FR separation between contexts for the same sylabel.
 
 
@@ -67,6 +67,21 @@ for cc = chanstoplot
                     t = DATAllSwitches.switch(i).motif(ind).batchinorder(bb).t;
                     fs = DATAllSwitches.switch(i).motif(ind).batchinorder(bb).fs;
                     pretime = DATAllSwitches.switch(i).motif(ind).batchinorder(bb).pretime./fs;
+                    FF = DATAllSwitches.switch(i).motif(ind).batchinorder(bb).FF;
+                    
+                    noisetrials = DATAllSwitches.switch(i).motif(ind).batchinorder(bb).NoiseTrials{cc};
+                    noisetrials = logical(noisetrials);
+                    
+                if removeNoiseTrials ==1
+                    datmat(noisetrials,:) = [];
+                FF(noisetrials) = [];
+                end
+                    
+                    
+                if isempty(datmat)
+                    datmedian = nan(size(t));
+                    datSEM = nan(size(t));
+                else
                     % =========== plot median
                     datmedian = median(datmat,1);
                     datSEM = lt_sem(datmat);
@@ -76,15 +91,16 @@ for cc = chanstoplot
                         lt_plot_text(t(50), datmedian(50)+5*nn, motif, plotcols{nn});
                         line([pretime pretime], ylim, 'Color','b');
                     end
-                    
+                end
+                
                     % ============= collect
-                    FF = DATAllSwitches.switch(i).motif(ind).batchinorder(bb).FF;
                     FFvals{nn} = FF;
                     DatMedianAll{nn} = datmedian;
                 end
                 
                 % ========================== PLOT FF VALS DISTRIBUTION
-                if plotRaw==1
+                if plotRaw==1 & ~isempty(FF);
+                   
                     [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
                     hsplots2 = [hsplots2 hsplot];
                     title(['ch' num2str(cc) '-sw' num2str(i) '[' cond ']']);

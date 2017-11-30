@@ -37,6 +37,26 @@ DATSTRUCT = lt_neural_BatchSmthEXTRACT(basedir, subdirs, Batchfiles, chanstoplot
 
 
 
+%% ######################################## CLEAN ALL SONG FILES FOR BATCHES
+close all
+% basedir = '/bluejay5/lucas/birds/pu69wh78/NEURAL/110917_RALMANOvernightLearn1/111817_Afternoon_DirUndir/';
+% subdirs = {'DIR', 'UNDIR'}; % these must be dirs within basedir. they will be used as fieldnames in extracted structure
+% Batchfiles = {'batchall', 'batchall'}; % must be one for each subdir;
+
+basedir = '/bluejay5/lucas/birds/pu69wh78/NEURAL/110517_RALMANlearn2/';
+subdirs = {'', ''}; % these must be dirs within basedir. they will be used as fieldnames in extracted structure
+Batchfiles = {'BatchSw2Pre', 'BatchSw2Post'}; % must be one for each subdir;
+
+pretime = 0.1; % sec, from onset
+posttime = 0.1; % sec, from offset
+chanstoplot = [14 21]; % chip channels. leave empty to get all
+skipifdone =1; % if 1, then skips if already done and old notmat labels are identical to current and chans to plot identical. if 0, then always redos
+plotspecgram =1;
+freqrange = [1800 4000]; % plots mean power over this range. if 0, then doesn't plot
+
+lt_neural_CleanSylDat(basedir, subdirs, Batchfiles, pretime, posttime, ...
+    chanstoplot, skipifdone, plotspecgram, freqrange);
+
 %% ###################################### PLOTS [FOR INDIVIDUAL SWITCHES]
 
 % ======================== PLOT RAW
@@ -137,125 +157,47 @@ for cc = chanstoplot
 end
 
 %% ============================== NOTE DOWN WHICH ARE NOISY TRIALS
+% [NOTE: INSTEAD OF THIS CHECK NOISE ON ORIGINAL SONG FILES]
 % ---- will plot raw data for each channel/motif, all trials. type the
 % trials that are noise. will save a file noting down noise trials dor each
 % channel/motif.
+% ---- NOTE: the saved file will be over the original song files, so that this
+% code does not have to be rerun for every dat struct
 
-MotifsAll = {DATAllSwitches.switch(1).motif.motif};
-ChansAll = find(~cellfun('isempty', DATAllSwitches.switch(1).motif(1).batchinorder(1).DatAll));
-
-for cc = ChansAll
-    for mm = 1:length(MotifsAll)
-        
-        
-        numswitches = length(DATAllSwitches.switch);
-        for i=1:numswitches
-            numbatches = length(DATAllSwitches.switch(i).motif(mm).batchinorder);
-            
-            for bb=1:numbatches
-                
-                % ======= already have? if so then skip
-                if isfield(DATAllSwitches.switch(i).motif(mm).batchinorder(bb), ...
-                        'NoiseTrialsToIgnore')
-                    if ~isempty(DATAllSwitches.switch(i).motif(mm).batchinorder(bb).NoiseTrialsToIgnore)
-                        % if done, then will either have numbers or have
-                        % "all trials good" flag.
-                    disp('SKIPPING!! - already dione');
-                    end
-                end
-                    
-                
-                cond = DATAllSwitches.switch(i).motif(mm).batchinorder(bb).condition;
-                datraw = DATAllSwitches.switch(i).motif(mm).batchinorder(bb).DatAllRaw{cc};
-                t = DATAllSwitches.switch(i).motif(mm).batchinorder(bb).t;
-                % ================ plot each trial
-                numtrials = size(datraw,1);
-                
-                % ------ plot N songs at a time
-                Nsongs = 10;
-                
-                nextNsongs = 1:Nsongs;
-                trialsToRemove = [];
-                
-                while nextNsongs(end)<=numtrials
-                    % keep going until reach the end of list of songs
-                    
-                    
-                    % ------------------- plot the next N songs
-                    figcount=1;
-                    subplotrows=Nsongs;
-                    subplotcols=1;
-                    fignums_alreadyused=[];
-                    hfigs=[];
-                    
-                    for j=nextNsongs
-                                                
-                        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-                        title(['[ch' num2str(cc) ']-' MotifsAll{mm} ', trial num ' num2str(j)]);
-                        plot(t, datraw(j,:));
-                        axis tight;
-                        ylim([-200 200]);
-                    end
-                    
-                        tt = input('Which trials to remove (e.g. 1 2 3 or 5:10)? ', 's');
-                        tt = str2num(tt);          
-                        disp(['(to remove) added trials: ' num2str(tt)]);
-                        trialsToRemove = [trialsToRemove tt];
-                        
-                    
-                    % ------ get list of next N songs
-                    nextNsongs = nextNsongs+10;
-                    close all;
-                    
-                end
-                disp(['---- TRIALS TO REMOVE, for ch' num2str(cc) '-' MotifsAll{mm} ...
-                    '-sw' num2str(i) '-' cond ' = ' num2str(trialsToRemove)]);
-                
-                if isempty(trialsToRemove)
-                    trialsToRemove = 'all trials good';
-                end
-                DATAllSwitches.switch(i).motif(mm).batchinorder(bb).NoiseTrialsToIgnore = trialsToRemove;
-                
-                % ===== save DATAllSwitches again
-                disp(['SAVED to ' DATAllSwitches.savename]);
-                save(DATAllSwitches.savename, 'DATAllSwitches')
-            end
-            
-        end
-        
-    end
-end
-
-
-
+close all;
+lt_neural_BatchSmth_Clean(DATAllSwitches)
 
 %% ==== 1) PLOT, each channel, plot each trial + mean, comparing conditions
 close all;
 plotRaw = 1; % if 1, then plots all trials and blocks overlaied. if 0 then goes straight to cross corr summary.
 motifstoplot = {}; % if empty, plots all
 premotor_wind = [-0.03 0.02]; % for cross correlation (rel syl onset);
+removeNoiseTrials = 1;
 
-lt_neural_BatchSmth_Premotor(DATAllSwitches, motifstoplot, premotor_wind, plotRaw)
+lt_neural_BatchSmth_Premotor(DATAllSwitches, motifstoplot, premotor_wind, ...
+    plotRaw, removeNoiseTrials)
 
 
-        
-        
-%% ==== 1) [CONTEXTUAL SEPARATION] MEAN FR, COMPARING SYLS, PRE AND POST 
+
+
+%% ==== 1) [CONTEXTUAL SEPARATION] MEAN FR, COMPARING SYLS, PRE AND POST
 close all;
 
 clear MotifSets;
 MotifSets{1} = {'a(b)', 'j(b)'};
-MotifSets{2} = {'(a)ab', 'a(a)b'};
-MotifSets{3} = {'(j)jb', 'j(j)b'};
-MotifSets{4} = {'jb(h)', 'jbh(h)'};
+MotifSets{2} = {'ab(h)', 'jb(h)'};
+% MotifSets{2} = {'(a)ab', 'a(a)b'};
+% MotifSets{3} = {'(j)jb', 'j(j)b'};
+% MotifSets{4} = {'jb(h)', 'jbh(h)'};
 
-plotRaw =0; % if 1, then plots FR traces (USEFUL). if 0, then just plots summary of corelation coeff.
+plotRaw =1; % if 1, then plots FR traces (USEFUL). if 0, then just plots summary of corelation coeff.
 useCorr =1; % if 1, then cauclate pearson's corr, if 0, then euclid dist (5ms bins), to ask about similarity,
 
 premotor_wind = [-0.03 0.02]; % for cross correlation
+removeNoiseTrials = 1;
 
 lt_neural_BatchSmth_CtxtSep(DATAllSwitches, MotifSets, premotor_wind, ...
-    useCorr, plotRaw)
+    useCorr, plotRaw, removeNoiseTrials)
 
 
 %% ==== for each channel, PLOT get deviation for each switch, distribution across switches
@@ -375,7 +317,7 @@ end
 
 
 %% ====== INDIVIDUAL TRIALS
-close all; 
+close all;
 motifstoplot = {'a(b)', 'j(b)', '(a)ab', 'h(g)'}; % if empty, plots all
 fs = 30000;
 premotor_window = [-0.035 0.025]; % rel onset
@@ -507,249 +449,17 @@ end
 
 %% ======================== CALCULATE CROSS COV BETWEEN BRAIN REGIONS
 close all;
-motifstoplot = {'ab', 'jb', 'g'};
-motifstoplot = {'j(b)'};
+motifstoplot = {'a(b)', 'j(b)', 'ab(h)', 'jb(h)', 'jbh(h)', 'g(h)'};
 windowmax = 0.04;
 binsize = 0.002;
-premotorwind = [-0.035 0.025]; % use for ch14-21 on 11/12, morning.
+premotorwind = [-0.045 0.025]; % use for ch14-21 on 11/12, morning.
 fs = 30000;
 plotRawDatOnly = 0;
+chanstoplot = [14 21];
+removenoise = 1;
 
-numswitches = length(DATAllSwitches.switch);
-
-% --------- gaussian for smothing
-if (0)
-    windowsize=0.005; % from -2sd to +2sd
-    sigma=(windowsize/4)*fs; %
-    numsamps=4*sigma; % (get 2 std on each side)
-    if mod(numsamps,2)==1
-        numsamps = numsamps-1;
-    end
-    
-    alpha= numsamps/(2*sigma); % N/2sigma
-    gaussFilter = gausswin(numsamps, alpha);
-    gaussFilter = gaussFilter / sum(gaussFilter); % Normalize.
-end
-
-for k = 1:length(chanstoplot)
-    chan1 = chanstoplot(k);
-    
-    for kk=k+1:length(chanstoplot)
-        
-        chan2 = chanstoplot(kk);
-        
-        for mm = 1:nummotifs
-            
-            motif = DATAllSwitches.switch(1).motif(mm).batchinorder(1).motifname;
-            if ~isempty(motifstoplot)
-                if ~any(ismember(motifstoplot, motif))
-                    continue
-                end
-            end
-            
-            % ====================== on figure for each motif
-            figcount=1;
-            if plotRawDatOnly==1
-                subplotrows=5;
-                subplotcols=3;
-            else
-                subplotrows=3;
-                subplotcols=5;
-            end
-            fignums_alreadyused=[];
-            hfigs=[];
-            hsplots1 = [];
-            hsplots2 = [];
-            hsplots3 = [];
-            
-            for i=1:numswitches
-                
-                for bb = 1:length(DATAllSwitches.switch(i).motif(mm).batchinorder)
-                    
-                    % ================= for this channel pair, motif, and
-                    % switch, get xcov in block preceding and following
-                    % switch
-                    cond = DATAllSwitches.switch(i).motif(mm).batchinorder(bb).condition;
-%                     datmat1 = DATAllSwitches.switch(i).motif(mm).batchinorder(bb).DatAllRaw{chan1};
-%                     datmat2 = DATAllSwitches.switch(i).motif(mm).batchinorder(bb).DatAllRaw{chan2};
-                    datmat1 = DATAllSwitches.switch(i).motif(mm).batchinorder(bb).DatAll{chan1};
-                    datmat2 = DATAllSwitches.switch(i).motif(mm).batchinorder(bb).DatAll{chan2};
-                    t =  DATAllSwitches.switch(i).motif(mm).batchinorder(bb).t;
-                    
-                    
-                    
-                    % ================= PLOT RAW DAT TO DETERMINE
-                    % APPROPRIATE WINDOW TO TAKE TO AVOID NOISE
-                    if plotRawDatOnly ==1
-                        
-                        numtrials = size(datmat1,1);
-                        for tt=1:numtrials
-                            
-                            tTMP = (1/fs)*(1:size(datmat1,2));
-                            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-                            hsplots3 = [hsplots3 hsplot];
-                            title(['ch' num2str(chan1) '(k)vs' num2str(chan2) '(r), ' ...
-                                motif ',sw' num2str(i) '[' cond ']']);
-                            plot(tTMP, datmat1(tt,:), 'r');
-                            plot(tTMP, datmat2(tt,:)+200, 'k');
-                            axis tight
-                        end
-                        
-                    else
-                        
-                        % ========== smooth rectify with small window
-                        if (0)
-                            datmat1 = abs(datmat1);
-                            for nn =1:size(datmat1,1)
-                                tmp = conv(datmat1(nn,:), gaussFilter);
-                                tmp = tmp(:,numsamps/2:end-numsamps/2);
-                                datmat1(nn,:) = tmp;
-                                
-                            end
-                            %                         % -- clip off edges
-                            %                         datmat1 = datmat1(:,numsamps/2:end-numsamps/2);
-                            %
-                            datmat2 = abs(datmat2);
-                            for nn =1:size(datmat1,1)
-                                tmp = conv(datmat2(nn,:), gaussFilter);
-                                tmp = tmp(:,numsamps/2:end-numsamps/2);
-                                datmat2(nn,:) = tmp;
-                            end
-                            
-                        else
-                            datmat1 = abs(datmat1);
-                            datmat2 = abs(datmat2);
-                        end
-                        
-                        
-                        
-                        
-                        % =================== cut off to premotor window
-                        t = DATAllSwitches.switch(i).motif(mm).batchinorder(bb).t;
-                        try
-                            pretime = DATAllSwitches.switch(i).params.pretime;
-                            pretime = pretime/fs;
-                        catch err
-                            disp('NOTE!!! making pretime 0.1');
-                            pretime = 0.1;
-                        end
-                        
-                        % --------- 
-                        tmp = pretime+premotorwind;
-                        indstmp = t>=tmp(1) & t<=tmp(2);
-                        datmat1 = datmat1(:, indstmp);
-                        datmat2 = datmat2(:, indstmp);
-                        t = t(indstmp);
-                        assert(all(size(datmat1)==size(datmat2)), 'asdfasd');
-                        
-                        
-                        % ---------------- bin activity
-                        TrimDown = 1;
-                        
-                        [datmat1, xtimes] = lt_neural_v2_QUICK_binFR(datmat1, t, binsize, TrimDown);
-                        [datmat2, xtimes] = lt_neural_v2_QUICK_binFR(datmat2, t, binsize, TrimDown);
-                        
-                        
-                        % =================== calculate xcov
-                        CCall = [];
-                        numtrials = size(datmat2,1);
-                        for tt=1:numtrials
-                            [cc, lags] = xcov(datmat1(tt,:), datmat2(tt,:), ceil(windowmax/binsize), 'coeff');
-                            CCall = [CCall; cc];
-                        end
-                        
-                        % ================= calcualte xcov (shifted)
-                        CCallSHUFFLE = [];
-                        for tt=1:numtrials
-                            
-                            d1 = datmat1(tt,:);
-                            if tt==numtrials
-                                d2 = datmat2(1,:);
-                            else
-                                d2 = datmat2(tt+1,:);
-                            end
-                            
-                            [cc, lags] = xcov(d1, d2, ceil(windowmax/binsize), 'coeff');
-                            CCallSHUFFLE = [CCallSHUFFLE; cc];
-                        end
-                        
-                        
-                        % ===================== calculate noise correlation
-                        frate1 = mean(datmat1,2);
-                        frate2 = mean(datmat2,2);
-                        windfrate = 10; % num trials
-                        binfrate = 1; % trials shift
-                        
-                        [ccfrate, lagfrate] = xcov(frate1, frate2, ceil(windfrate/binfrate), 'coeff');
-                        
-                        
-                        
-                        % ========================= PLOT ALL TRIALS [activity
-                        % xcov]
-                        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-                        hsplots1 = [hsplots1 hsplot];
-                        title(['ch' num2str(chan1) 'vs' num2str(chan2) ', ' motif ',sw' num2str(i) '[' cond ']']);
-                        plot(lags*binsize, CCall, 'Color', [0.7 0.7 0.7]);
-                        lt_plot(lags*binsize, mean(CCall,1), {'Errors', lt_sem(CCall)});
-                        lt_plot_zeroline;
-                        
-                        % --- overlay shifted
-                        shadedErrorBar(lags*binsize, mean(CCallSHUFFLE,1), lt_sem(CCallSHUFFLE), ...
-                            {'Color', [0.9 0.6 0.6]},1);
-                        
-                        
-                        % ========================= PLOT ALL TRIALS [noise corr]
-                        [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-                        hsplots2 = [hsplots2 hsplot];
-                        title('FRATE OVER TRIALS');
-                        plot(lagfrate*binfrate, ccfrate, '-r');
-                        lt_plot_zeroline;
-                    end
-                end
-            end
-            if plotRawDatOnly==1
-                linkaxes(hsplots3, 'xy');
-            end
-            linkaxes(hsplots1, 'xy');
-            linkaxes(hsplots2, 'xy');
-            pause;
-            close all;
-        end
-        
-    end
-end
+lt_neural_BatchSmth_CrossRegion(DATAllSwitches, motifstoplot, chanstoplot, ...
+    windowmax, binsize, premotorwind, fs, plotRawDatOnly, removenoise);
 
 
-if (0)
-    % FOR PLOTTING DIAGNOSIS - comparing differeing smoothing and binning
-        lt_figure; hold on;
-    binsize = 0.001
-    windowsize=0.005; % from -2sd to +2sd
-    sigma=(windowsize/4)*fs; %
-    numsamps=4*sigma; % (get 2 std on each side)
-    if mod(numsamps,2)==1
-        numsamps = numsamps-1;
-    end
-    
-    alpha= numsamps/(2*sigma); % N/2sigma
-    gaussFilter = gausswin(numsamps, alpha);
-    gaussFilter = gaussFilter / sum(gaussFilter); % Normalize.
 
-DATMAT = datmat2;
-
-                            datmat1 = abs(DATMAT);
-                            for nn =1:size(datmat1,1)
-                                tmp = conv(datmat1(nn,:), gaussFilter);
-                                tmp = tmp(:,numsamps/2:end-numsamps/2);
-                                datmat1(nn,:) = tmp;
-                                
-                            end
-
-                          % ---------------- bin activity
-                        TrimDown = 1;
-                        [X, xtimes] = lt_neural_v2_QUICK_binFR(datmat1, t, binsize, TrimDown);
-                        
-plot(t, abs(DATMAT(1,:)));
-plot(t, datmat1(1,:), 'k', 'LineWidth', 2);
-plot(xtimes, X(1,:), 'o-r', 'LineWidth', 2);
-end

@@ -66,7 +66,6 @@ end
 
 % tmp = cvpartition(Yinput, 'kfold', numfold)
 
-kfoldinds = crossvalind('Kfold', Yinput, numfold);
 
 %%
 if (0) % OLD VERSION - doesn't work on matlab 2013, so changed to other version using cvpartition
@@ -74,6 +73,7 @@ if (0) % OLD VERSION - doesn't work on matlab 2013, so changed to other version 
     % if,else, based on var of predictors.
     % == performs leave one out cross validation in making prediction
     
+kfoldinds = crossvalind('Kfold', Yinput, numfold);
     
     Ypredicted = nan(length(Yinput),1);
     Pihat_all = nan(length(Yinput),length(unique(Yinput)));

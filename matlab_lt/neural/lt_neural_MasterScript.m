@@ -108,8 +108,8 @@ clear all; close all;
 % channel_board = [14];
 channel_board = [9 14 17 18 21];
 channel_board = 0:31;
-channel_board = [9];
-batchf = 'BATCHTMP';
+channel_board = [8];
+batchf = 'batchtmp';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
@@ -147,7 +147,7 @@ if (0)
         
         PlotWhat.raw=0;
         PlotWhat.filt=1;
-        PlotWhat.rect_sm=1;
+        PlotWhat.rect_sm=0;
         PlotWhat.raster=0;
         PlotWhat.digital=0;
         
@@ -187,8 +187,8 @@ lt_neural_AutoMakeNotmat(batchf);
 %% ==== [SANITY CHECK] plot song files in entirety, aligned to extracted spikes
 % -- makes multiple plots if too much dat.
 close all;
-PlotSecondChan = 0;
-SecondChan = 17;
+PlotSecondChan = 1;
+SecondChan = 14;
 plotcols={'m', 'r','c', 'b', 'g'};
 
 % want to plot 2nd channel to compare noise?
