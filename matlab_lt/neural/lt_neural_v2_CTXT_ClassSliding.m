@@ -1,6 +1,30 @@
 function ALLBRANCH = lt_neural_v2_CTXT_ClassSliding(CLASSES, SummaryStruct, prms, ...
     TimeWindowDur, TimeWindowSlide, FRbinsize, savenotes, CVmethod, plotstat, ...
-    saveON, LinTimeWarp, regionstowarp)
+    saveON, LinTimeWarp, regionstowarp, ALLBRANCH, tstampsave)
+%% time warp params
+
+prms.LinTimeWarp = LinTimeWarp;
+prms.regionstowarp = regionstowarp;
+
+
+%% 12/1/17 - lt modified to use 4-fold instead of 8 fold
+% reason: reduces computation time. also reduces size of X input, which if
+% too large sometimes causes crashes.
+
+%% 11/30/17 -allows for continuing (e.g. if crashes)
+
+if ~exist('ALLBRANCH', 'var')
+    docontinue = 0;
+elseif isempty(ALLBRANCH)
+    docontinue =0;
+else
+    docontinue=1;
+    disp('SURE WANT TO DO CONTINATION?')
+    pause(10);
+end
+
+
+
 %% lt 11/29/17 - added linear time warp - TO DO, can enter which regions to use
 % LinTimeWarp = 1;
 %             regionstowarp = [3 4];
@@ -14,7 +38,7 @@ prms.ClassSlide.frbinsize = FRbinsize;
 if ~exist('CVmethod', 'var')
     CVmethod = 'Kfold'; % could also be LOO
 end
-CVkfoldnum = min([prms.ClassSlide.Nmin, 8]); % seems comparable to LOO at 8fold.
+CVkfoldnum = min([prms.ClassSlide.Nmin, 4]); % seems comparable to LOO at 8fold.
 rebalance =1;
 imbalance_thr = 0.7;
 beta = 0.9;
@@ -22,7 +46,12 @@ beta = 0.9;
 %%
 
 savedir = '/bluejay5/lucas/analyses/neural/CTXT_ClassGeneral_M';
-tstamp = lt_get_timestamp(0);
+if docontinue==1
+    tstamp = tstampsave;
+else
+    tstamp = lt_get_timestamp(0);
+    prms.tstamp = tstamp;
+end
 
 %%
 
@@ -30,12 +59,13 @@ ListOfTimeWindows = [-prms.motifpredur:TimeWindowSlide:prms.motifpostdur-TimeWin
     -prms.motifpredur+TimeWindowDur:TimeWindowSlide:prms.motifpostdur]'; % N x 2 (pre and post onset)
 
 %% initiate output
-
-ALLBRANCH = struct;
-ALLBRANCH.alignpos(1).alignonset = prms.alignOnset;
-ALLBRANCH.alignpos(1).alignsyl = prms.alignWhichSyl;
-ALLBRANCH.SummaryStruct = SummaryStruct;
-ALLBRANCH.alignpos(1).ParamsFirstIter = prms;
+if docontinue == 0
+    ALLBRANCH = struct;
+    ALLBRANCH.alignpos(1).alignonset = prms.alignOnset;
+    ALLBRANCH.alignpos(1).alignsyl = prms.alignWhichSyl;
+    ALLBRANCH.SummaryStruct = SummaryStruct;
+    ALLBRANCH.alignpos(1).ParamsFirstIter = prms;
+end
 
 %% go thru all branches and perform sliding class
 
@@ -45,6 +75,16 @@ for i=1:numbirds
     
     numneur = length(CLASSES.birds(i).neurons);
     birdname = CLASSES.birds(i).birdname;
+    
+    % ====== if do continue, then skip this bird is already done
+    if docontinue==1
+        %  - determine if this bird already done
+        if length(ALLBRANCH.alignpos(1).bird)>=i
+            disp(['SKIPPING bird ' num2str(i) ' -- alraedy done !!!']);
+            continue
+        end
+    end
+    
     for ii=1:numneur
         
         numbranches = length(CLASSES.birds(i).neurons(ii).branchnum);
@@ -107,8 +147,8 @@ for i=1:numbirds
                 % ===== put back into SEGEXTRACT
                 count=1;
                 for j=1:length(SEGEXTRACT_DAT.classnum)
-%                     disp(count:(count+originalinds(j)-1));
-%                     disp('--');
+                    %                     disp(count:(count+originalinds(j)-1));
+                    %                     disp('--');
                     SEGEXTRACT_DAT.classnum(j).SegmentsExtract = segextractAll(count:(count+originalinds(j)-1));
                     count = (count+originalinds(j));
                 end
@@ -143,7 +183,7 @@ for i=1:numbirds
                     [Ypredicted, ConfMat, accuracy, sensitivity_mean, PiYActual] ...
                         = lt_neural_v2_QUICK_classify(Xall, Y, 'glmnet', ...
                         rebalance, imbalance_thr, beta, CVkfoldnum);
-                end
+                                   end
                 
                 if isempty(ConfMat)
                     % then means failed.. (not full rank?)

@@ -108,8 +108,8 @@ clear all; close all;
 % channel_board = [14];
 channel_board = [9 14 17 18 21];
 channel_board = 0:31;
-channel_board = [8];
-batchf = 'batchtmp';
+channel_board = 18;
+batchf = 'Batch1244to2119';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
@@ -188,7 +188,7 @@ lt_neural_AutoMakeNotmat(batchf);
 % -- makes multiple plots if too much dat.
 close all;
 PlotSecondChan = 1;
-SecondChan = 14;
+SecondChan = 17;
 plotcols={'m', 'r','c', 'b', 'g'};
 
 % want to plot 2nd channel to compare noise?

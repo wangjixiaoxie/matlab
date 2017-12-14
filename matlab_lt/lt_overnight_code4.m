@@ -1,14 +1,14 @@
-analyfname = 'xaa_Algn2Ons1_27Oct2017_1114_XLMAN25ms';
-Niter = 1000;
-TimeWindows = [-0.035 -0.035]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
-lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
-
-
-
-analyfname = 'xaa_Algn2Ons1_27Oct2017_1156_RA25ms';
-Niter = 1000;
-TimeWindows = [-0.020 -0.020]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
-lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
+% analyfname = 'xaa_Algn2Ons1_27Oct2017_1114_XLMAN25ms';
+% Niter = 1000;
+% TimeWindows = [-0.035 -0.035]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
+% lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
+% 
+% 
+% 
+% analyfname = 'xaa_Algn2Ons1_27Oct2017_1156_RA25ms';
+% Niter = 1000;
+% TimeWindows = [-0.020 -0.020]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
+% lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
 
 
 %%
@@ -76,7 +76,8 @@ lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
 %     TimeWindowDur, TimeWindowSlide, FRbinsize, savenotes, CVmethod, plotstat, ...
 %     saveON);
 
-%%
+%% xaaa
+
 clear all; close all;
 BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 BrainArea = {'LMAN', 'X'};
@@ -105,13 +106,13 @@ SummaryStruct =lt_neural_v2_DIAGN_RemoveOlap(SummaryStruct);
 
 
 % &&&&&&&&&&&&& 1) ARBITRARY CONTEXTS
-strtype = 'xaa'; % a is fixed, x variable, across contexts
+strtype = 'xaaa'; % a is fixed, x variable, across contexts
 [CLASSES, prms] = lt_neural_v2_CTXT_Extract(SummaryStruct, strtype);
 
 % &&&&&&&&&&&&& 2) EXTRACT REGEXP STRUCT 
-prms.alignWhichSyl = 2; % which syl (in order) to align to
+prms.alignWhichSyl = 3; % which syl (in order) to align to
 prms.alignOnset = 1; % if 1, then onset, if 0, then offset
-prms.motifpredur = 0.15;
+prms.motifpredur = 0.3;
 prms.motifpostdur = 0.15;
 prms.preAndPostDurRelSameTimept = 1; % 1, then pre and post both aligned at same time. if 0, then post is aligned to motif ofset.
 CLASSES = lt_neural_v2_CTXT_GetBrnchDat(CLASSES, SummaryStruct, prms);
@@ -126,7 +127,7 @@ CLASSES = lt_neural_v2_CTXT_GetBrnchPosControl(CLASSES, SummaryStruct, prms, str
 TimeWindowDur = 0.025;
 TimeWindowSlide = 0.005;
 FRbinsize = 0.005;
-savenotes = 'XLMAN25ms';
+savenotes = 'XLMAN25msLTW';
 
 prms.ClassSlide.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
 prms.ClassSlide.GetPosControl =1;
@@ -135,26 +136,50 @@ CVmethod = 'Kfold';
 plotstat = 'F1';
 
 saveON =1;
-
+LinTimeWarp = 1;
+regionstowarp = [3 4 5 6];
 ALLBRANCH = lt_neural_v2_CTXT_ClassSliding(CLASSES, SummaryStruct, prms, ...
     TimeWindowDur, TimeWindowSlide, FRbinsize, savenotes, CVmethod, plotstat, ...
-    saveON);
+    saveON, LinTimeWarp, regionstowarp);
 
 
+%% xaaa
 
-%% =================== EXTRACT SOBER/WOHL RA DATA
 clear all; close all;
-SummaryStruct = lt_neural_RASamMel_SummaryStruct;
+BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BrainArea = {'LMAN', 'X'};
+ExptToKeep = {};
+RecordingDepth = [];
+LearningOnly = 0;
+BatchesDesired = {};
+ChannelsDesired = [];
+% BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+% BrainArea = {'X'};
+% ExptToKeep = {};
+% RecordingDepth = [];
+% LearningOnly = 1;
+% BatchesDesired = {};
+% ChannelsDesired = [];
+[NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, ...
+    BrainArea, ExptToKeep, RecordingDepth, LearningOnly, BatchesDesired, ChannelsDesired);
+
+% --- load all neurons
+if (0)
+    [NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database;
+end
+
+% ============= CHECK WHETHER ANY UNITS HAVE OVERLAPPING DATA - IF SO, REMOVE ONE OF THEM
+SummaryStruct =lt_neural_v2_DIAGN_RemoveOlap(SummaryStruct);
 
 
 % &&&&&&&&&&&&& 1) ARBITRARY CONTEXTS
-strtype = 'xaa'; % a is fixed, x variable, across contexts
+strtype = 'xaaaa'; % a is fixed, x variable, across contexts
 [CLASSES, prms] = lt_neural_v2_CTXT_Extract(SummaryStruct, strtype);
 
 % &&&&&&&&&&&&& 2) EXTRACT REGEXP STRUCT 
-prms.alignWhichSyl = 2; % which syl (in order) to align to
+prms.alignWhichSyl = 4; % which syl (in order) to align to
 prms.alignOnset = 1; % if 1, then onset, if 0, then offset
-prms.motifpredur = 0.15;
+prms.motifpredur = 0.45;
 prms.motifpostdur = 0.15;
 prms.preAndPostDurRelSameTimept = 1; % 1, then pre and post both aligned at same time. if 0, then post is aligned to motif ofset.
 CLASSES = lt_neural_v2_CTXT_GetBrnchDat(CLASSES, SummaryStruct, prms);
@@ -169,7 +194,7 @@ CLASSES = lt_neural_v2_CTXT_GetBrnchPosControl(CLASSES, SummaryStruct, prms, str
 TimeWindowDur = 0.025;
 TimeWindowSlide = 0.005;
 FRbinsize = 0.005;
-savenotes = 'RA25ms';
+savenotes = 'XLMAN25msLTW';
 
 prms.ClassSlide.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
 prms.ClassSlide.GetPosControl =1;
@@ -178,12 +203,101 @@ CVmethod = 'Kfold';
 plotstat = 'F1';
 
 saveON =1;
-
+LinTimeWarp = 1;
+regionstowarp = [3 4 5 6 7 8];
 ALLBRANCH = lt_neural_v2_CTXT_ClassSliding(CLASSES, SummaryStruct, prms, ...
     TimeWindowDur, TimeWindowSlide, FRbinsize, savenotes, CVmethod, plotstat, ...
-    saveON);
+    saveON, LinTimeWarp, regionstowarp);
 
 
+%% =================== EXTRACT SOBER/WOHL RA DATA
+% clear all; close all;
+% BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+% BrainArea = {'RA'};
+% % ExptToKeep = {'RAlearn1', 'RALMANlearn1', 'LMANsearch'};
+% ExptToKeep = {};
+% RecordingDepth = [];
+% LearningOnly = 0;
+% BatchesDesired = {};
+% ChannelsDesired = [];
+% % BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+% % BrainArea = {'X'};
+% % ExptToKeep = {};
+% % RecordingDepth = [];
+% % LearningOnly = 1;
+% % BatchesDesired = {};
+% % ChannelsDesired = [];
+% [NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, ...
+%     BrainArea, ExptToKeep, RecordingDepth, LearningOnly, BatchesDesired, ChannelsDesired);
+% 
+% 
+% % &&&&&&&&&&&&& 1) ARBITRARY CONTEXTS
+% strtype = 'xaa'; % a is fixed, x variable, across contexts
+% [CLASSES, prms] = lt_neural_v2_CTXT_Extract(SummaryStruct, strtype);
+% 
+% 
+% % &&&&&&&&&&&&& 2) EXTRACT REGEXP STRUCT 
+% prms.alignWhichSyl = 2; % which syl (in order) to align to
+% prms.alignOnset = 1; % if 1, then onset, if 0, then offset
+% prms.motifpredur = 0.15;
+% prms.motifpostdur = 0.15;
+% prms.preAndPostDurRelSameTimept = 1; % 1, then pre and post both aligned at same time. if 0, then post is aligned to motif ofset.
+% CLASSES = lt_neural_v2_CTXT_GetBrnchDat(CLASSES, SummaryStruct, prms);
+% 
+% % &&&&&&&&&&&&&& OPTIONAL - COLLECT POSITIVE CONTROL DATA
+% CLASSES = lt_neural_v2_CTXT_GetBrnchPosControl(CLASSES, SummaryStruct, prms, strtype);
+% 
+% 
+% 
+% % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CLASSIFIER (V2) - picks a branch,
+% % does all time points, goes to next branch.
+% TimeWindowDur = 0.025;
+% TimeWindowSlide = 0.005;
+% FRbinsize = 0.005;
+% savenotes = 'RA25msLTW';
+% 
+% prms.ClassSlide.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
+% prms.ClassSlide.GetPosControl =1;
+% 
+% CVmethod = 'Kfold';
+% plotstat = 'F1';
+% 
+% saveON =1;
+% LinTimeWarp = 1;
+% regionstowarp = [3 4];
+% ALLBRANCH = lt_neural_v2_CTXT_ClassSliding(CLASSES, SummaryStruct, prms, ...
+%     TimeWindowDur, TimeWindowSlide, FRbinsize, savenotes, CVmethod, plotstat, ...
+%     saveON, LinTimeWarp, regionstowarp);
+% 
+% 
+% % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% continue where left off
+% clear all; close all;
+% load('SUMMARYv2_xaa_Algn2Ons1_01Dec2017_1653_RA25msLTW.mat');
+% load('PARAMSv2_xaa_Algn2Ons1_01Dec2017_1653_RA25msLTW.mat');
+% load('ALLBRANCHv2_xaa_Algn2Ons1_01Dec2017_1653_RA25msLTW.mat');
+% load('CLASSESv2_xaa_Algn2Ons1_01Dec2017_1653_RA25msLTW.mat');
+% tstampsave = '01Dec2017_1653';
+% 
+% TimeWindowDur = 0.025;
+% TimeWindowSlide = 0.005;
+% FRbinsize = 0.005;
+% savenotes = 'RA25msLTW';
+% 
+% prms.ClassSlide.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
+% prms.ClassSlide.GetPosControl =1;
+% 
+% CVmethod = 'Kfold';
+% plotstat = 'F1';
+% 
+% saveON =1;
+% LinTimeWarp = 1;
+% regionstowarp = [3 4];
+% ALLBRANCH = lt_neural_v2_CTXT_ClassSliding(CLASSES, SummaryStruct, prms, ...
+%     TimeWindowDur, TimeWindowSlide, FRbinsize, savenotes, CVmethod, plotstat, ...
+%     saveON, LinTimeWarp, regionstowarp, ALLBRANCH, tstampsave);
+% 
+% 
+% 
 
 %% #############################################################
 %% 9/28 -

@@ -10,7 +10,7 @@ function [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ..
 if ~exist('RemoveIfTooLongGapDur', 'var')
     RemoveIfTooLongGapDur=0;
 end
-maxgapdur = 0.15;
+maxgapdur = 1; % sec
 
 %% note on FF stuff
 % WNhit collection is only performed if FF collection is performed - can
@@ -48,7 +48,7 @@ if ~exist('collectWholeBoutPosition', 'var')
     collectWholeBoutPosition=1; % to get position of a given datapoint within its bout
 end
 
-if ~exist('LearnKeepOnlyBase', 'var');
+if ~exist('LearnKeepOnlyBase', 'var')
     LearnKeepOnlyBase=0;
 end
 

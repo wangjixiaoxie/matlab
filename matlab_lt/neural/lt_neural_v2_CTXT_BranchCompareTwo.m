@@ -13,10 +13,10 @@ dattoplot = 'classperform';
 LMANorX = 0; % 0, both; 1, LMAN; 2, X
 birdstoexclude = {};
 
-durThreshOmega.syl = 0.15; % omega2 (will only keep if lower) [leave empty to ignore]
-% durThreshOmega.gappre= 0.5;
-% durThreshOmega.gappost= 0.2;
-% durThreshOmega.syl = []; % omega2 (will only keep if lower) [leave empty to ignore]
+% durThreshOmega.syl = [0.15]; % omega2 (will only keep if lower) [leave empty to ignore]
+% durThreshOmega.gappre= [];
+% durThreshOmega.gappost= [0.15];
+durThreshOmega.syl = []; % omega2 (will only keep if lower) [leave empty to ignore]
 durThreshOmega.gappre= [];
 durThreshOmega.gappost= [];
 
@@ -44,6 +44,24 @@ BRANCHES(1).ID = branchfname1(indstmp(end)+1:end-4);
 
 indstmp = strfind(branchfname2, '_');
 BRANCHES(2).ID = branchfname2(indstmp(end)+1:end-4);
+
+%% clean up
+
+Params.LocationsToKeep = {};
+Params.birdstoexclude = {};
+Params.RemoveRepeats = 0; % Removes if, for any class in branch, presyl is same as token (e.g. a(a)a)
+Params.durThreshOmega.syl = []; % omega2 (will only keep if lower) [leave empty to ignore]
+Params.durThreshOmega.gappre= [];
+Params.durThreshOmega.gappost= [];
+Params.GapDurPreMax = 0.5; % then will throw out if median pregap dur (for any
+% class within branch) is longer than this (sec)
+Params.RemoveHandCoded =1 ; % see below
+
+for i=1:length(BRANCHES)
+    BRANCHES(i).dat.ALLBRANCH = lt_neural_v2_CTXT_BranchFilter(...
+        BRANCHES(i).dat.ALLBRANCH, Params);
+end
+
 
 %% convert to vectors
 
@@ -212,9 +230,11 @@ AllNeurnum = [];
 AllBranchID = [];
 AllDifferentials = [];
 BinMidList = [-0.0875:0.005:0.0625];
+% BinMidList = [-0.0925:0.005:0.0625];
 AllDecodeX = [];
 AllDecodeY = [];
-
+AllDecodeY_neg = [];
+AllDecodeX_neg = [];
 for i=1:length(BRANCHES)
     
     numalign = length(BRANCHES(i).DATSTRUCT.numalign);
@@ -231,6 +251,8 @@ for i=1:length(BRANCHES)
             neurnum = BRANCHES(i).DATSTRUCT.numalign(aa).Datstruct.Dat.NeuronnumAll(nn);
             branchnum = BRANCHES(i).DATSTRUCT.numalign(aa).Datstruct.Dat.BranchmumAll(nn);
             
+            yvals_neg = BRANCHES(i).DATSTRUCT.numalign(aa).Datstruct.NegContr.Ycell{nn};
+            xvals_neg = BRANCHES(i).DATSTRUCT.numalign(aa).Datstruct.NegContr.Xcell{nn};
             
             % =============== evaluate differential at each time bin
             Differentials =[];
@@ -264,11 +286,18 @@ for i=1:length(BRANCHES)
             
             % ============================= COLLECT DECODE
             indstokeep = xvals>BinMidList(1)-0.02 & xvals<BinMidList(end)+0.02;
+            
             xtokeep = xvals(indstokeep);
             ytokeep = yvals(indstokeep);
-            
+            xtokeep_neg = xvals_neg(indstokeep);
+            ytokeep_neg = yvals_neg(indstokeep);
+
             AllDecodeX = [AllDecodeX; xtokeep];
             AllDecodeY = [AllDecodeY; ytokeep];
+            
+            AllDecodeY_neg = [AllDecodeY_neg; ytokeep_neg];
+            AllDecodeX_neg = [AllDecodeX_neg; xtokeep_neg];
+
         end
     end
 end
@@ -277,10 +306,17 @@ end
 %% 
 assert(max(AllAlignNum)==1, 'some plots assumes only one align num .. to solve put into extra layer of iteration over alignnums');
 
+numbirds = max(AllBirdnum);
+numanalys = max(AllBRANCHSTRUCTnum);
+
 %% ============================ PLOTS (DECODING)
 lt_figure; hold on;
+hsplots = [];
+% ====================== Plot MEAN OVER EVERYTHING
+hsplot = lt_subplot(3,2,1); hold on;
+title('grand means')
 plotcols = lt_make_plot_colors(length(BRANCHES), 0,0);
-
+hsplots =[hsplots hsplot];
 for i=1:max(AllBRANCHSTRUCTnum)
     
     inds = AllBRANCHSTRUCTnum==i;
@@ -290,7 +326,53 @@ for i=1:max(AllBRANCHSTRUCTnum)
     ysem = lt_sem(AllDecodeY(inds, :));
     
     shadedErrorBar(x, y, ysem, {'Color',plotcols{i}},1);
+    
+    % ------------------ also plot negative control
+    x = mean(AllDecodeX_neg(inds,:),1);
+    y = mean(AllDecodeY_neg(inds,:), 1);
+    shadedErrorBar(x, y, ysem, {'Color','k'},1);
+    plot(x, y, '-k', 'LineWidth', 1, 'Color', plotcols{i});
 end
+line([0 0], ylim);
+
+
+% ================================== EACH BIRD ONE LINE
+for i=1:numanalys
+    hsplot = lt_subplot(3,2,2+i); hold on;
+    hsplots = [hsplots hsplot];
+    count = 1;
+    for j=1:numbirds
+        
+       inds = find(AllBRANCHSTRUCTnum==i & AllBirdnum==j);
+       if isempty(inds) 
+           continue
+       end
+       
+       % ===== plot this bird
+       ymean = mean(AllDecodeY(inds, :),1);
+       x = mean(AllDecodeX(inds, :),1);
+       ysem = lt_sem(AllDecodeY(inds,:));
+       
+       shadedErrorBar(x, ymean, ysem, {'Color', plotcols{i}},1);
+       
+        % ----- plot neg control
+       ymean = mean(AllDecodeY_neg(inds, :),1);
+       x = mean(AllDecodeX_neg(inds, :),1);
+%        ysem = lt_sem(AllDecodeY(inds,:));
+       
+%        shadedErrorBar(x, ymean, ysem, {'Color', plotcols{i}},1);
+       plot(x, ymean, '-k', 'LineWidth', 1, 'Color', 'k');
+         
+       % ========== count for display
+       disp(['bird' num2str(count)]);
+        count = count+1;
+    end
+    line([0 0], ylim);
+    lt_plot_annotation(1, ['n=' num2str(count-1) ' birds'], 'k')
+end
+
+linkaxes(hsplots, 'xy');
+axis tight
 
 
 %% ============================ PLOTS (DECODING, FITTING SIGMOID MODEL)
@@ -479,20 +561,25 @@ errorbar(1:length(A4fits), A4fits, A4fits-A4fitsCI(:,1), A4fits-A4fitsCI(:,2))
 %     
 %     beta0 = [0.5 0.1 50 0.01 0.01 0.01 10]';
 %     
-%     mdl = fitnlm(X, ymean, modelfun, beta0);
+    mdl = fitnlm(X, ymean, modelfun, beta0);
     
     
     % ===== PLOT
     % ----------- 1) plot actual DAT
     for j=1:max(X(:,2)+1)
-        lt_subplot(1,2,j); hold on;
+        lt_subplot(2,2,j); hold on;
         indstmp = X(:,2)+1==j;
-        plot(X(indstmp,1), ymean(indstmp), 'o', 'Color', plotcols{j})
+        plot(X(indstmp,1), ymean(indstmp), 'o', 'Color', plotcols{j});
+        
+        % ==== also plot mean
+        [ymeantmp, ystdtmp] = grpstats(ymean(indstmp), single(X(indstmp,1)), {'mean', 'std'});
+        xtmp = unique(single(X(indstmp,1)));
+        shadedErrorBar(xtmp, ymeantmp, ystdtmp, {'Color', 'k'},1);
     end
     
     % -------------- 2) plot fit
     for j=1:max(X(:,2)+1)
-        lt_subplot(1,2,j); hold on;
+        lt_subplot(2,2,j); hold on;
         xx = min(X(:,1)):0.005:max(X(:,1));
         
         Xtmp = [xx', (j-1)*ones(size(xx'))];
@@ -502,15 +589,33 @@ errorbar(1:length(A4fits), A4fits, A4fits-A4fitsCI(:,1), A4fits-A4fitsCI(:,2))
     
     % ------------
     disp(mdl)
+   
+    % ======================= OVERLAY ALL MODELS IN SAME PLOT
+    lt_subplot(2,2,max(X(:,2)+1)+1); hold on;
+    for j=1:max(X(:,2)+1)
+        
+        xx = min(X(:,1)):0.005:max(X(:,1));
+        
+        Xtmp = [xx', (j-1)*ones(size(xx'))];
+        
+        plot(xx, mdl.feval(Xtmp), 's-k');
+        
+        % ==== find midpoint of this model
+        A = mdl.Coefficients.Estimate;
+        xcenter = (A(4) + A(8)*(j-1));
+        line([xcenter xcenter], ylim, 'Color', plotcols{j});
+        disp(xcenter);
+    end
     
     
     
     
-    %% ====================== FITTING SIGMOID TO DECODE - fit both RA and LMAN at once
+%% ====================== FITTING SIGMOID TO DECODE - fit both RA and LMAN at once
 % ==================== WITH CROSS VALIDATED
 % -------------- compares full model (with lateral shift) to reduced model
 % (without shift) by comparing cross validation (10x fold) residuals. 
 % 
+    cvfold = 5;
 
 %  ------- full model (with lateral shift)
     modelfun1 = @(A, x) ((A(1)+A(5)*x(:,2)) + ...
@@ -541,7 +646,6 @@ for i=1:length(ModelList)
     beta0 = BetaList{i};
 
     lt_figure; hold on;
-    cvfold = 10;
     
     % ---- response var
     y = AllDecodeY;

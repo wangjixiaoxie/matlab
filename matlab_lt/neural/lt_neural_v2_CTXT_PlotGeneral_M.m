@@ -1,5 +1,23 @@
 function [CLASSEScompiled] = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, ...
     algnonset, suffix)
+%% to do multiple at once
+if (0)
+    listofresults = dir('Results_*');
+
+%%
+
+for i=1:length(listofresults)
+uscores = strfind(listofresults(i).name, '_');
+
+strtype = listofresults(i).name(uscores(1)+1:uscores(2)-1);
+algnsyl = listofresults(i).name(uscores(2)+8);
+algnonset = listofresults(i).name(uscores(3)-1);
+assert(uscores(3)-uscores(2) == 15, 'problem, mult digits')
+    
+CLASSEScompiled = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, algnonset);
+end
+end
+
 %% lt 8/15/17 -
 
 % strtype = 'xaaa' - i.e. what was used for lt_neural_v2_CTXT_Extract. Will

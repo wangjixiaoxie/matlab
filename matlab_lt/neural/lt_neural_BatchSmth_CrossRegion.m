@@ -137,7 +137,7 @@ for k = 1:length(chanstoplot)
                             datmat2 = abs(datmat2);
                         end
                         
-                        if isempty(datmat1)
+                        if isempty(datmat1) | size(datmat1,1)<2
                             disp([motif '- SKIPPING! not enough tyrials'])
                             continue
                         end

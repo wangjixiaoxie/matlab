@@ -17,6 +17,22 @@ CompareDprimeWohl = 1; % if 1, then overlays Sober and Wohl values
 % stdbinsize = diff(ALLBRANCH.alignpos(1).ParamsFirstIter.ClassGeneral.frtimewindow(1:2))/2; % divide 2 since can be smaller
 % stdbinsize = diff(ALLBRANCH.alignpos(1).ParamsFirstIter.alignOnset frtimewindow(1:2))/2; % divide 2 since can be smaller
 
+
+%% ======= Filter data (e.g. remove noise, poor labels, etc)
+
+Params.LocationsToKeep = {};
+Params.birdstoexclude = {};
+Params.RemoveRepeats = 0; % Removes if, for any class in branch, presyl is same as token (e.g. a(a)a)
+Params.durThreshOmega.syl = []; % omega2 (will only keep if lower) [leave empty to ignore]
+Params.durThreshOmega.gappre= [];
+Params.durThreshOmega.gappost= [];
+Params.GapDurPreMax = 0.5; % then will throw out if median pregap dur (for any
+% class within branch) is longer than this (sec)
+Params.RemoveHandCoded =1 ; % see below
+
+ALLBRANCH = lt_neural_v2_CTXT_BranchFilter(ALLBRANCH, Params);
+
+
 %%  get max neurons, and branches
 
 Maxneurons = [];

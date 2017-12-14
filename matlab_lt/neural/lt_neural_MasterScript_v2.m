@@ -183,12 +183,18 @@ BirdToPlot = 'pu69wh78';
 % % ---- give it either 
 % A) one neuron and a bunch of motifs or
 % B) bunch of neurons and one motif
-NeurToPlot = [4]; % 4 % vector (e.g. [5 7]) - if [] then plots all;
+NeurToPlot = [2]; % 4 % vector (e.g. [5 7]) - if [] then plots all;
 % motiflist = {'a(b)', 'jbh(h)g'};
-motiflist = {'g(a)a', 'h(a)a'};
+motiflist = {'ab(h)hg', 'jb(h)hg'};
 plotbytime = 0; % links rasters for all motifs by time of song.
+
+% motifpredur = 0.15;
+% motifpostdur = 0.15;
+motifpredur = 0.2;
+motifpostdur = 0.3;
+
 lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
-    motiflist, plotbytime)
+    motiflist, plotbytime, motifpredur, motifpostdur)
 
 
 %% ==================================== 
@@ -225,255 +231,8 @@ lt_neural_v2_ANALY_BoutPositionJC(SummaryStruct,PlotRaw);
 
 
 %% &&&&&&&&&&&&&&&&&&&&&& CONTEXT &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-clear CLASSES
 
-% ###########################################################################
-% ############################################## DATA PREPROCESSING
-% &&&&&&&&&&&&& 1) ARBITRARY CONTEXTS
-strtype = 'xaaa'; % a is fixed, x variable, across contexts
-[CLASSES, prms] = lt_neural_v2_CTXT_Extract(SummaryStruct, strtype);
-
-% &&&&&&&&&&&&& 2) EXTRACT REGEXP STRUCT 
-prms.alignWhichSyl = 2; % which syl (in order) to align to
-prms.alignOnset = 1; % if 1, then onset, if 0, then offset
-prms.motifpredur = 0.15;
-prms.motifpostdur = 0.1;
-prms.preAndPostDurRelSameTimept = 1; % 1, then pre and post both aligned at same time. if 0, then post is aligned to motif ofset.
-CLASSES = lt_neural_v2_CTXT_GetBrnchDat(CLASSES, SummaryStruct, prms);
-
-% &&&&&&&&&&&&&& OPTIONAL - COLLECT POSITIVE CONTROL DATA
-CLASSES = lt_neural_v2_CTXT_GetBrnchPosControl(CLASSES, SummaryStruct, prms, strtype);
-
-
-% &&&&&&&&&&&&& 2) PLOT MEAN FR ACROSS CONTEXTS FOR EACH BRANCH 
-close all;
-plotPosControl = 0; % will do if exists.
-LMANorX = 0; % 0 for all; 1 for LMAN; 2 for X
-closeAfterEachBird = 1; % closes figss
-lt_neural_v2_CTXT_FRanyclass(CLASSES, SummaryStruct, prms, plotPosControl, ...
-    LMANorX, closeAfterEachBird);
-
-
-
-% ###########################################################################
-% ######################################## CLASSIFICATION (SINGLE TIME WINDOW)
-
-% ========================= CLASSIFIER( SINGLE ITERATION)
-prms.ClassGeneral.frtimewindow =[-0.075 0.025]; % on and off, relative to syl onset
-prms.ClassGeneral.frbinsize = 0.01; % in s.
-prms.ClassGeneral.Nmin = 7; % in s.
-
-prms.ClassGeneral.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
-prms.ClassGeneral.GetNegControl_N = 20; % number iterations for each case
-
-prms.ClassGeneral.GetPosControl =1;
-CLASSES = lt_neural_v2_CTXT_ClassGeneral(CLASSES, SummaryStruct, prms);
-
-
-% ===================== PLOTS SINGLE ITERATION
-close all;
-lt_neural_v2_CTXT_PlotGeneral(CLASSES, SummaryStruct, prms);
-
-
-
-% ###########################################################################
-% ######################################## CLASSIFICATION (SLIDING TIME WINDOW)
-
-
-% ============================ CLASSIFIER (SLIDING WINDOW MULT ITERATIONS)
-TimeWindowDur = 0.04;
-TimeWindowSlide = 0.01;
-ListOfTimeWindows = [-prms.motifpredur:TimeWindowSlide:prms.motifpostdur-TimeWindowDur; ...
-    -prms.motifpredur+TimeWindowDur:TimeWindowSlide:prms.motifpostdur]'; % N x 2 (pre and post onset)
-ListOfFrBinSizes = [0.005 0.01 0.02];
-savenotes = 'allXLman';
-
-prms.ClassGeneral.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
-prms.ClassGeneral.GetNegControl_N = 20; % number iterations for each case
-prms.ClassGeneral.GetPosControl =1;
-
-[savedir] = lt_neural_v2_CTXT_ClassGeneral_M(CLASSES, SummaryStruct, prms, ListOfTimeWindows, ...
-    ListOfFrBinSizes, savenotes);
-
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CLASSIFIER (V2) - picks a branch,
-% does all time points, goes to next branch.
-TimeWindowDur = 0.025;
-TimeWindowSlide = 0.005;
-FRbinsize = 0.005;
-savenotes = 'pu69wh78RALMAN';
-
-prms.ClassSlide.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
-prms.ClassSlide.GetPosControl =1;
-
-CVmethod = 'Kfold';
-plotstat = 'F1';
-
-saveON =1;
-LinTimeWarp = 1;
-regionstowarp = [3 4];
-ALLBRANCH = lt_neural_v2_CTXT_ClassSliding(CLASSES, SummaryStruct, prms, ...
-    TimeWindowDur, TimeWindowSlide, FRbinsize, savenotes, CVmethod, plotstat, ...
-    saveON, LinTimeWarp, regionstowarp);
-
-
-% ------------ debugging: to systematically change names of classes...
-lt_neural_v2_CTXT_Debug;
-
-
-
-% ======================================== PLOT RESULTS FOR SINGLE ANALYSIS
-% 1) COLLECT DATA
-strtype = 'xaa';
-algnsyl = 2;
-algnonset = 1;
-suffix = 'RAallbirds20ms'; % leave blank to get any
-CLASSEScompiled = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, ...
-    algnonset, suffix);
-
-% 2) PLOT
-close all; 
-plotstat = 'F1';
-lt_neural_v2_CTXT_PlotGeneral_M2(CLASSEScompiled, plotstat);
-
-
-
-% ===================================== COMBINE ALL PLOTS FOR A GIVEN MOTIF 
-% NOTE!!: NEED TO FIRST RUN lt_neural_v2_CTXT_PlotGeneral_M to get compiled
-% stats
-% combine across 1) syl aligned to 2) aligned to onset or offset, 3) fr
-% window size 4) fr bin size
-close all; 
-strtype = 'xaa';
-plotstat = 'F1';
-suffix = 'RAallbirds20ms'; % leave blank to get all
-ALLBRANCH = lt_neural_v2_CTXT_PlotAll(strtype, plotstat, suffix);
-
-
-
-% ============================== PLOTTING ALLBRANCH ======================
-% ======= EXTRACT GAP/SYL DURS
-close all;
-ALLBRANCH = lt_neural_v2_CTXT_BranchGaps(ALLBRANCH);
-
-% ==== 1)  REMOVE ANY REDUNDANT NEURONS FROM ALLBRANCH
-ALLBRANCH = lt_neural_v2_CTXT_BranchRemvOlap(ALLBRANCH);
-
-
-% ==== 2)  PLOT EACH BRANCH/BIRD/NEURON
-close all;
-birdtoplot = 'pu69wh78'; % leave blank to plot all;
-plotspec_num = 0; % how many spectrograms to plot for each class in each branch point? if 0 then none.
-locationtoplot = 'LMAN';
-lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot, plotspec_num, ...
-    locationtoplot)
-
-
-% ==== 3)  SUMMARIZE PLOT ACROSS BRANCHES 
-close all; 
-dattoplot = 'classperform';
-% dattoplot = 'frmean';
-% dattoplot = 'dprime';
-LMANorX = 3; % 0, both; 1, LMAN; 2, X, 3(RA)
-birdstoexclude = {};
-% birdstoexclude = {'bk7', 'bu77wh13', 'or74bk35', 'wh6pk36', 'br92br54'};
-
-% durThreshOmega.syl = 0.15; % omega2 (will only keep if lower) [leave empty to ignore]
-% durThreshOmega.gappre= 0.5;
-% durThreshOmega.gappost= 0.2;
-durThreshOmega.syl = []; % omega2 (will only keep if lower) [leave empty to ignore]
-durThreshOmega.gappre= [];
-durThreshOmega.gappost= [];
-
-RemoveRepeats=0; % if 1, then removes any branch with a class with token preceded by same syl (e.g. a(a)bc or a(a)ab);
-RemovePrecededByIntro=0; % if 1, then removes any token preceded by "i" (e.g. i(a)bc) [REQUIRES REMOVE REPEATS =1, since in progress]
-
-lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoexclude, ...
-    durThreshOmega, RemoveRepeats, RemovePrecededByIntro)
-
-
-% ################################## FURTHER ANALYSES ON BRANCH (AUTO SAVE)
-
-% ============= 1) IN PREMOTOR WINDOW, COMPARE DECODING VS. SHUFFLED.
-close all;
-analyfname = 'xaa_Algn2Ons1_29Nov2017_1838_pu69wh78RALMAN';
-Niter = 1000;
-TimeWindows = [-0.025 -0.025]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
-% TimeWindows = [-0.035 -0.035]; % LMAN
-% TimeWindows = [-0.02 -0.02]; % RA
-lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
-
-% ------- to plot results from above (can do multiple)
-close all;
-allanalyfnames = {...
-    'xaa_Algn2Ons1_27Oct2017_1114_XLMAN25ms', ...
-    'xaa_Algn2Ons1_27Oct2017_1156_RA25ms', ...
-    };
-DecodeStruct = lt_neural_v2_CTXT_BRANCH_DatVsShuffMULT(allanalyfnames);
-
-
-%% compare two analyses
-
-lt_figure; hold on;
-numanalyses = length(DATSTRUCT.analynum);
-
-Yvals ={};
-Fnames = {};
-for i=1:numanalyses
-    
-    yvals = DATSTRUCT.analynum(i).dat.AllDecode_z;
-    fname = DATSTRUCT.analynum(i).fname;
-    
-    Yvals = [Yvals yvals];
-    Fnames = [Fnames fname];
-    
-end
-
-lt_plot_MultDist(Yvals, 1:length(Yvals), 1, 'k', 0, 0);
-% set(gca, 'XTickLabel', Fnames);
-% rotateXLabels(gca, 45)
-ylabel('decode (z)');
-xlabel('analysis num');
-lt_plot_zeroline
-
-
-%%
-
-% ################################### SAME BIRD ANALYSIS - COMPARE DIFF
-% BRAIN REGIONS FOR SAME BRANCH POINT
-close all;
-lt_neural_v2_CTXT_BRANCH_PlotByBranchID(ALLBRANCH)
-
-
-% ################################## COMPARE TIMING OF TWO COMPILED BRANCHES
-close all;
-% branchfname1 = 'ALLBRANCH_xaa_03Oct2017_2149_RAallbirds20ms.mat';
-% branchfname2 = 'ALLBRANCH_xaa_18Oct2017_2355_LMANXallbirds20ms.mat';
-branchfname1 = 'ALLBRANCHv2_xaa_Algn2Ons1_27Oct2017_1114_XLMAN25ms.mat';
-branchfname2 = 'ALLBRANCHv2_Algn2Ons1_27Oct2017_1156_RA25ms.mat';
-% branchfname2 = 'ALLBRANCHv2_xaa_Algn2Ons1_29Nov2017_1838_pu69wh78RALMAN';
-lt_neural_v2_CTXT_BranchCompareTwo(branchfname1, branchfname2);
-
-
-
-% ====== TEMP, MOVE TO FUNCTION - SAVES COMPILED FOR ALL
-if (0)
-    listofresults = dir('Results_*');
-
-%%
-
-for i=1:length(listofresults)
-uscores = strfind(listofresults(i).name, '_');
-
-strtype = listofresults(i).name(uscores(1)+1:uscores(2)-1);
-algnsyl = listofresults(i).name(uscores(2)+8);
-algnonset = listofresults(i).name(uscores(3)-1);
-assert(uscores(3)-uscores(2) == 15, 'problem, mult digits')
-    
-CLASSEScompiled = lt_neural_v2_CTXT_PlotGeneral_M(strtype, algnsyl, algnonset);
-end
-end
-
+lt_neural_v2_CTXT_MASTER;
 
 %% ============ 1) CLASSIFY CONTEXT USING NEURAL
 close all; 

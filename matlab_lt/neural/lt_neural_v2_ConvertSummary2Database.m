@@ -1,6 +1,7 @@
 function [NeuronDatabase, SummaryStruct_filtered] = ...
     lt_neural_v2_ConvertSummary2Database(BirdsToKeep, BrainArea, ExptToKeep, ...
     RecordingDepth, LearningOnly, BatchesDesired, ChannelsDesired)
+%% lt 12/1/17 - for RA, added this, so extracts both SAm/Mel and my RA dat
 
 %% TO DO:
 % 1) Extract "notes" from summary struct
@@ -17,7 +18,6 @@ function [NeuronDatabase, SummaryStruct_filtered] = ...
 % LearningOnly = 1; % then only if expt is in LearningMetastruct; 2: then
 % excludes elarning expts [previous - only if summarysturct has WN on
 % date][
-
 
 %%
 SummaryStruct =  lt_neural_v2_LoadSummary;
@@ -56,6 +56,14 @@ end
 if ~exist('ChannelsDesired', 'var')
     ChannelsDesired = [];
 end
+
+%% ======= first, extract sam/mel
+if any(strcmp(BrainArea, 'RA'))
+    SummaryStruct_SamMel = lt_neural_RASamMel_SummaryStruct;
+end
+
+% === then extract mine, below
+
 
 %% =====
 
@@ -243,6 +251,20 @@ SummaryStruct_filtered.loadparams.ChannelsDesired = ChannelsDesired;
 
 tstamp = lt_get_timestamp(0);
 SummaryStruct_filtered.loadparams.extractiontime = tstamp;
+
+
+%% ========== if RA, then append sam/mel
+if any(strcmp(BrainArea, 'RA'))
+    
+    
+    % ==== append
+    birdcount = length(SummaryStruct_filtered.birds)+1;
+    for i=1:length(SummaryStruct_SamMel.birds)
+       SummaryStruct_filtered.birds(birdcount) = SummaryStruct_SamMel.birds(i);
+       birdcount= birdcount+1;
+    end
+    
+end
 
 
 

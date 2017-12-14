@@ -1,5 +1,5 @@
 function lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
-    motiflist, plotbytime)
+    motiflist, plotbytime, motifpredur, motifpostdur)
 
 % 
 % BirdToPlot = 'pu69wh78';
@@ -11,8 +11,8 @@ function lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlo
 % plotbytime = 0; % links rasters for all motifs by time of song.
 
 %%
-            motifpredur = 0.15;
-motifpostdur = 0.15;
+% motifpredur = 0.15;
+% motifpostdur = 0.15;
 
 %%
 

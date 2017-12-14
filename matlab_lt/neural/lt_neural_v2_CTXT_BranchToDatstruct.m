@@ -73,7 +73,15 @@ for i=1:numalign
                 
                 
                 %% if care about location
+                if isfield(ALLBRANCH.SummaryStruct.birds(ii).neurons(nn),'isRAsobermel')
+                    if ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).isRAsobermel==1
+                        location = 'RA';
+                    else
+                        location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
+                    end
+                else
                     location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
+                end
                 if LMANorX==1
                     % LMAN
                     if ~strcmp(location, 'LMAN')
@@ -124,8 +132,8 @@ for i=1:numalign
                 
                 %% ===== if want to filter by syl/gap duration differences across classes (within context)
                 if datneur.DurAnovas.syl_omega>durThreshOmega.syl | ...
-                        datneur.DurAnovas.gappre_omega > durThreshOmega.gappre | ...
-                        datneur.DurAnovas.gappost_omega > durThreshOmega.gappost
+                     datneur.DurAnovas.gappre_omega > durThreshOmega.gappre | ...
+                     datneur.DurAnovas.gappost_omega > durThreshOmega.gappost
                     NumRemovedDueToThresh = NumRemovedDueToThresh+1;
                     continue
                 else
@@ -364,8 +372,13 @@ for j=1:numsamps
     tmp = xcorr(Ycontcell{j}(~isnan(Ycontcell{j})));
     tmp = tmp(floor(end/2):end);
     [~, pklocs] = findpeaks(double(tmp), 'sortstr', 'descend', 'npeaks', 2, 'minpeakdistance', 20);
+    if length(pklocs)<2
+        disp('not stretching - only one peak of autocorr!!');
+        pkwidth = pkwidthtarg;
+    else
+        
     pkwidth = pklocs(2)-pklocs(1);
-    
+    end
     % ====== stretch based on pkwidth compared to target
     % --- performance
     xtimes = Xcell{j};

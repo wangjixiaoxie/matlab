@@ -103,7 +103,7 @@ DATAllSwitches = lt_neural_BatchSmthCOMPILE(basedir, ListOfDatstructs);
 %% ################################# PLOTS [COMBINED MULT SWITCHES]
 %% ====================== PLOT RAW FOR EACH CHANNEL
 close all;
-motiftoplot = 'jb(h)';
+motiftoplot = 'j(b)';
 chanstoplot = find(~cellfun('isempty', DATAllSwitches.switch(1).motif(1).batchinorder(1).DatAll));
 
 for cc = chanstoplot
@@ -172,7 +172,7 @@ close all;
 plotRaw = 1; % if 1, then plots all trials and blocks overlaied. if 0 then goes straight to cross corr summary.
 motifstoplot = {}; % if empty, plots all
 premotor_wind = [-0.03 0.02]; % for cross correlation (rel syl onset);
-removeNoiseTrials = 1;
+removeNoiseTrials = 0;
 
 lt_neural_BatchSmth_Premotor(DATAllSwitches, motifstoplot, premotor_wind, ...
     plotRaw, removeNoiseTrials)
@@ -184,8 +184,9 @@ lt_neural_BatchSmth_Premotor(DATAllSwitches, motifstoplot, premotor_wind, ...
 close all;
 
 clear MotifSets;
-MotifSets{1} = {'a(b)', 'j(b)'};
-MotifSets{2} = {'ab(h)', 'jb(h)'};
+% MotifSets{1} = {'a(b)', 'j(b)'};
+% MotifSets{2} = {'ab(h)', 'jb(h)'};
+MotifSets{1} = {'a(b)', 'j(b)', 'ab(h)', 'jb(h)'};
 % MotifSets{2} = {'(a)ab', 'a(a)b'};
 % MotifSets{3} = {'(j)jb', 'j(j)b'};
 % MotifSets{4} = {'jb(h)', 'jbh(h)'};
@@ -194,7 +195,7 @@ plotRaw =1; % if 1, then plots FR traces (USEFUL). if 0, then just plots summary
 useCorr =1; % if 1, then cauclate pearson's corr, if 0, then euclid dist (5ms bins), to ask about similarity,
 
 premotor_wind = [-0.03 0.02]; % for cross correlation
-removeNoiseTrials = 1;
+removeNoiseTrials = 0;
 
 lt_neural_BatchSmth_CtxtSep(DATAllSwitches, MotifSets, premotor_wind, ...
     useCorr, plotRaw, removeNoiseTrials)

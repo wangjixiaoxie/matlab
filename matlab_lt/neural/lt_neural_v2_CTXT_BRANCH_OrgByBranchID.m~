@@ -52,9 +52,16 @@ for i=1:numbirds
             sylcontour_mean = ALLBRANCH.alignpos(apos).bird(i).branch(bb).neuron(nn).sylcontours_mean;
             sylcontour_x = ALLBRANCH.alignpos(apos).bird(i).branch(bb).neuron(nn).sylcontours_x;
             
+            % ------------------- premotor window shuffles
+            
+            
+            
+            
             if isempty(x_decode)
                 continue
             end
+            
+            
             
             % ============== save
             ind = strcmp(ListOfBranches, thisbranch);

@@ -71,8 +71,8 @@ if (isempty(INPUTFILES))
 end
 handles.filter_type=FilterType;
 handles.INPUTFILES=INPUTFILES;
-% handles.ChanSpec=ChanSpec;
-handles.ChanSpec='0r';
+handles.ChanSpec=ChanSpec;
+% handles.ChanSpec='0r';
 handles.NFILE=1;
 handles.SPECTH=0.01;
 handles.SEGTH=10000;

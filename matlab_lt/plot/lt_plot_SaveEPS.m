@@ -1,5 +1,6 @@
-SaveDir='/bluejay4/lucas/Dropbox/SCIENCE/BRAINARD_LAB/PROJECTS/MATLAB';
-SaveDir = '/bluejay5/egret_data/lucas/Transferfiles';
+% SaveDir='/bluejay4/lucas/Dropbox/SCIENCE/BRAINARD_LAB/PROJECTS/MATLAB';
+% SaveDir = '/bluejay5/egret_data/lucas/Transferfiles';
+SaveDir = '/home/lucast4/Dropbox/SCIENCE/BRAINARD_LAB/FIGURES/MATLAB';
 timestamp=lt_get_timestamp(0);
 randnum=randi(10000, 1);
 SavePath=[SaveDir '/' timestamp '_rand' num2str(randnum) '.eps'];

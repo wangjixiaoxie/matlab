@@ -190,7 +190,7 @@ for i=1:NumBirds;
                 postsyl_similar_to_targ_postsyl=nan;
                 distance_from_targ=nan;
                 two_syl_back=nan;
-                
+                three_syl_back = nan;
             else
                 % then this syllable has a defined motif
                 is_in_defined_motif=1;
@@ -267,6 +267,34 @@ for i=1:NumBirds;
                 end
                 two_syl_back=lower(two_syl_back);
                 
+                
+                % -------------------------------
+                three_syl_back=nan;
+                % first choice
+                indCaps=regexp(syl, '[A-Z]');
+                if indCaps>3;
+                    three_syl_back=lower(syl(indCaps-3));
+                else
+                    if syl_pos_in_motif>3;
+                        % --- else try to use motif
+                        three_syl_back=syls_in_motif{syl_pos_in_motif-3};
+                    else
+                        three_syl_back=nan;
+                    end
+                end
+                
+                
+                if length(three_syl_back)>1;
+                    tmp=regexp(three_syl_back,'[A-Z]');
+                    three_syl_back=three_syl_back(tmp);
+                else
+                    three_syl_back=three_syl_back;
+                end
+                three_syl_back=lower(three_syl_back);
+
+                
+                
+                % ----------------------------------- 
                 
                 % ============ is the preceding syl similar to preceding syl of target?
                 if length(pre_syl)>1;
@@ -543,6 +571,7 @@ for i=1:NumBirds;
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).motif_num=motif_num;
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).preceding_syl=pre_syl;
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).two_syl_back=two_syl_back;
+            SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).three_syl_back=three_syl_back;
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).post_syl=post_syl;
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).distance_from_targ=distance_from_targ;
             SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).presyl_similar_to_targ_presyl=presyl_similar_to_targ_presyl;

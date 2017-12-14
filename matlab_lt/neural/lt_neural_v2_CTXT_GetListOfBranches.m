@@ -16,7 +16,10 @@ for i=1:numbirds
     AllBranches = {};
     numbranches = length(ALLBRANCH.alignpos(apos).bird(i).branch);
     for j=1:numbranches 
-       
+        if isempty(ALLBRANCH.alignpos(apos).bird(i).branch(j).neuron)
+            continue
+        end
+      
         branches = [ALLBRANCH.alignpos(apos).bird(i).branch(j).neuron.prms_regexpstr];
         AllBranches = [AllBranches branches];
     end

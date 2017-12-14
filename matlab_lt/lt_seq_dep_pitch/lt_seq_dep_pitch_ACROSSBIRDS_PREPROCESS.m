@@ -1,4 +1,4 @@
-function [SeqDepPitch_AcrossBirds, PARAMS] = lt_seq_dep_pitch_ACROSSBIRDS_PREPROCESS(ExperimentList, PARAMS);
+function [SeqDepPitch_AcrossBirds, PARAMS] = lt_seq_dep_pitch_ACROSSBIRDS_PREPROCESS(ExperimentList, PARAMS)
 
 %% LT 8/13/15 - Preprocessing for across birds analysis
 
@@ -288,6 +288,7 @@ load_old_vector_space=PARAMS.preprocess.load_old_vector_space; % default, 0, rec
 close all;
 DayBinSize=PARAMS.global.ConsolBinDaySize;
 [SeqDepPitch_AcrossBirds]=lt_seq_dep_pitch_ACROSSBIRDS_SummaryPlot(SeqDepPitch_AcrossBirds, PARAMS, DayBinSize);
+
 
 %% MAKE SURE ALL LMAN EXPERIMENTS HAVE LMAN RAW DATA (e.g. regexpr) - IF NOT, RUN ANALYSES
 

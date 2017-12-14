@@ -34,7 +34,7 @@ end
 %     adasyn_beta = 0.6; % fraction to reduce gap between minor and major calsses (if doing rebalancing)
 
 
-Xinput = double(Xinput);
+Xinput = double(Xinput); % THIS HAS TO BE, OR ELSE GLMNET gives out random results.
 %% change, so that categories ordered 1,2, ... (will convert back at end)
 
 [Yinput_G, GN, GL] = grp2idx(Yinput);

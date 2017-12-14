@@ -69,10 +69,10 @@ for cc = chanstoplot
                     pretime = DATAllSwitches.switch(i).motif(ind).batchinorder(bb).pretime./fs;
                     FF = DATAllSwitches.switch(i).motif(ind).batchinorder(bb).FF;
                     
-                    noisetrials = DATAllSwitches.switch(i).motif(ind).batchinorder(bb).NoiseTrials{cc};
-                    noisetrials = logical(noisetrials);
                     
                 if removeNoiseTrials ==1
+                    noisetrials = DATAllSwitches.switch(i).motif(ind).batchinorder(bb).NoiseTrials{cc};
+                    noisetrials = logical(noisetrials);
                     datmat(noisetrials,:) = [];
                 FF(noisetrials) = [];
                 end

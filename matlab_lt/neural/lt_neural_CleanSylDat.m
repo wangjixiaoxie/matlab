@@ -47,6 +47,11 @@ for i=1:length(subdirs)
     while ischar(fline)
         
         % --- load stuff for this song
+        if ~exist([fline '.not.mat'])
+                        fline = fgetl(fid);
+    continue
+        end
+        
         notdat = load([fline '.not.mat']);
         
         % -------------- check if already done

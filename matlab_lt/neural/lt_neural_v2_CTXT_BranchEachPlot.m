@@ -69,9 +69,13 @@ for i=1:numalignpos
                     continue
                 end
                 
+                if isfield(ALLBRANCH.SummaryStruct.birds(ii).neurons(nn), 'isRAsobermel')
+                    location = 'RA';
+                else
                 location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
+                end
                 if ~isempty(locationtoplot)
-                    if ~strcmp(locationtoplot, location)
+                    if ~any(strcmp(locationtoplot, location))
                         disp(['skipped, since loc = ' location]);
                         continue
                     end
@@ -168,7 +172,7 @@ for i=1:numalignpos
                 % ################################ fig 1 - raw hz
                 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
                 hsplots = [hsplots hsplot];
-                title([birdname '-' sylregexp '-n' num2str(nn)]);
+                title([birdname '-' sylregexp{1} '-n' num2str(nn)]);
                 ylabel('fr(hz) OR classperformance/dprime*100');
                 
                 
@@ -188,14 +192,15 @@ for i=1:numalignpos
                 % ============ 2) Syl contours
                 if isfield(dat, 'SylContoursByClass_means')
                     
-                    for cc =numclasses
+                    for cc =1:length(numclasses)
                         
                         sylmean = dat.SylContoursByClass_means(cc,:);
                         sylstd = dat.SylContoursByClass_std(cc,:);
                         x = (1:length(sylmean))./1000;
                         x = x - motifpredur;
                         
-                        shadedErrorBar(x, 20*sylmean-20, 20*sylstd, {'Color', plotcols{cc}}, 1);
+                        shadedErrorBar(x, 20*sylmean-20, 20*sylstd, {'Color', ...
+                            plotcols{numclasses(cc)}}, 1);
                         
                     end
                 else
@@ -218,6 +223,11 @@ for i=1:numalignpos
                     end
                 end
                 
+                % ========== overlay DurAnovas
+                lt_plot_annotation(1, {['pre:' num2str(dat.DurAnovas.gappre_omega)], ...
+                    ['syl:' num2str(dat.DurAnovas.syl_omega)], ['post:' ...
+                    num2str(dat.DurAnovas.gappost_omega)]}, 'b')
+                
                 % ---------------------------
                 lt_plot_zeroline;
                 lt_plot_zeroline_vert;
@@ -227,7 +237,7 @@ for i=1:numalignpos
                 % ############### fig 2 - classifier and dprime
                 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
                 hsplots = [hsplots hsplot];
-                title([birdname '-' sylregexp '-n' num2str(nn)]);
+                title([birdname '-' sylregexp{1} '-n' num2str(nn)]);
                 ylabel('classperformance (thick), dprime (thin)');
                 
                 % ============ 3) dprime

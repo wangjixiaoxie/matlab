@@ -1,4 +1,10 @@
 function segextract = lt_neural_LinTimeWarpSegmented(segextract, regionstowarp)
+%% defualt behavior is to overwrite originanl spktimes and syl ons/off, 
+% -- will save old (not warped) into another field.
+
+
+%% lt 11/30/17 - imrpoved, now works even if there exist spikes outside of syl boundaries.
+
 %% NOTE!!
 % this assumes data aligned to syl onset - not sure if will work if aligned
 % to offset - best to empirically test.
@@ -28,8 +34,8 @@ end
 % ================== get global medians for all REgions (see below for
 % definition of regions
 RegiondurationAll = nan(length(segextract), 2*length(segextract(1).motifsylOnsets)-1);
-SpkRegionsAll = {};
-SpkTimeWithinRegAll = {};
+SpkRegionsAll = cell(1, length(segextract));
+SpkTimeWithinRegAll = cell(1,length(segextract));
 
 for i=1:length(segextract)
     
@@ -57,16 +63,30 @@ for i=1:length(segextract)
     spk_regions = [];
     spk_timeWithinReg = [];
     for j=1:length(spktimes)
-        thisregion = find(spktimes(j)>regiononsets_relmotif, 1, 'last');
+        % ---- if spike time is before onset of first syl or after offset
+        % of last syl, note that down
+        if spktimes(j)<regiononsets_relmotif(1)
+            % -- then starts before
+            thisregion = -1;            
+            thisTimeWithinRegion = spktimes(j)-regiononsets_relmotif(1);
+             % save as negetive time from syl onset
+        elseif spktimes(j)>(regiononsets_relmotif(end)+regionduration(end))
+            % then is after
+            thisregion = 999;
+            thisTimeWithinRegion = spktimes(j)-(regiononsets_relmotif(end)+regionduration(end));
+            % save time after offset of last syl
+        else
+            % then is within a region        
+        thisregion = find(spktimes(j)>=regiononsets_relmotif, 1, 'last');
         thisTimeWithinRegion = spktimes(j)-regiononsets_relmotif(thisregion);
-        
-        assert(thisTimeWithinRegion<regionduration(thisregion), 'problem: if duration greater, then shoud actually be in next region');
+        assert(thisTimeWithinRegion<=regionduration(thisregion), 'problem: if duration greater, then shoud actually be in next region');
+        end
         
         spk_regions = [spk_regions thisregion];
         spk_timeWithinReg = [spk_timeWithinReg thisTimeWithinRegion];
     end
-    SpkRegionsAll = [SpkRegionsAll spk_regions];
-    SpkTimeWithinRegAll = [SpkTimeWithinRegAll spk_timeWithinReg];
+    SpkRegionsAll{i} =  spk_regions;
+    SpkTimeWithinRegAll{i} = spk_timeWithinReg;
     
     % % ------ onset times of all regions
     % RegionOnsets = [0 cumsum(regionduration)];
@@ -126,7 +146,15 @@ for i=1:length(segextract)
         thisregion = spk_regions(j);
         thistime = spktimes_withinregion(j);
                 
+        % ---- if this spike before first onset of after last onset, do
+        % follopwing
+        if thisregion==-1
+            thistime_global = regiononsets(1)+thistime; % time relative to onset of first syl (negative)
+        elseif thisregion == 999
+           thistime_global = regiononsets(end)+regiondurations(end)+thistime; % time rlativ eto offset of last syl
+        else
         thistime_global = regiononsets(thisregion)+thistime;
+        end
         
         spktimes_motif = [spktimes_motif thistime_global];        
     end
@@ -149,15 +177,22 @@ for i=1:length(segextract)
 %     assert(all(diff(sylonsets_new)>0), 'asfasd');
 
     % ################################### OUTPUT TO segextract
-    segextract(i).LinTWSeg_spkTimes = spktimes_reltokenminuspredur;
-    segextract(i).LinTWSeg_sylonsets= sylonsets_new;
-    segextract(i).LinTWSeg_syloffsets = syloffsets_new;
+    % OVERWRITE OLD, and move old to new fields
+    % -- copy old
+    segextract(i).LinTWSeg_OriginalSpkTimes = segextract(i).spk_Times;
+    segextract(i).LinTWSeg_OriginalMotifsylOnsets = segextract(i).motifsylOnsets;
+    segextract(i).LinTWSeg_OriginalMotifsylOffsets = segextract(i).motifsylOffsets;
+    
+    % -- save new
+    segextract(i).spk_Times = spktimes_reltokenminuspredur;
+    segextract(i).motifsylOnsets = sylonsets_new;
+    segextract(i).motifsylOffsets = syloffsets_new;
             
 end
 
 %% ============== plot, compare pre warp to post warp
 
-if(1)
+if(0)
     lt_figure; hold on;
     hsplots =[];
     
