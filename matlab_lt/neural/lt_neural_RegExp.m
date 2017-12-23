@@ -4,6 +4,15 @@ function [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ..
     regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
     keepRawSongDat, suppressout, collectWNhit, collectWholeBoutPosition, LearnKeepOnlyBase, ...
     preAndPostDurRelSameTimept, RemoveIfTooLongGapDur)
+%% lt 12/20/17 - NOTE, made WN detect independent of FFparams ... (i.e. moved "end")
+
+%% lt 12/20/17 - outputs smoothed rectified amplitude
+
+if ~exist('keepSmAmpl', 'var')
+    keepSmAmpl = 0;
+end
+
+
 %% lt 11/29/17 - made RemoveIfTooLongGapDur default to 1 [back to 0]
 %%  lt 8/15/17 - added default gap duration (between all syls in a given motif)
 
@@ -66,6 +75,14 @@ if isempty(FFparams)
     FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
 end
 
+
+%%
+
+if collectWNhit==1
+    keepSmAmpl=1; % if collecting WN, then not much extra work to keep smoothe dampltide.
+end
+
+
 %% --
 % FFparams.collectFF=1;
 % FFparams.cell_of_FFtimebins={'h', [0.042 0.058], 'b', [0.053 0.07], ...
@@ -116,7 +133,6 @@ UseLastSylAsToken=0;
 
 %% === extract stuff from inputs
 
-
 AllLabels=SongDat.AllLabels;
 AllOnsets=SongDat.AllOnsets;
 AllOffsets=SongDat.AllOffsets;
@@ -146,6 +162,13 @@ end
 
 TotalDurSec = TotalSamps/fs;
 
+%% params for smoothing ampl
+
+if keepSmAmpl==1
+        sm_win = 0.005; % 
+        len = round(fs*sm_win);
+        h_smooth   = ones(1,len)/len;
+end
 
 
 %% ------ find motifs
@@ -250,10 +273,10 @@ else
     % --------- method 1
     
     if (0)
-    [startinds1, endinds1, matchlabs1, tokenExtents1]=regexp(AllLabels, regexpr_str, 'start', 'end', ...
-        'match', 'tokenExtents');
-    functmp = @(X) X(1);
-    tokenExtents1=cellfun(functmp, tokenExtents1); % convert from cell to vector.
+        [startinds1, endinds1, matchlabs1, tokenExtents1]=regexp(AllLabels, regexpr_str, 'start', 'end', ...
+            'match', 'tokenExtents');
+        functmp = @(X) X(1);
+        tokenExtents1=cellfun(functmp, tokenExtents1); % convert from cell to vector.
     end
     
     % ------- method 2
@@ -303,15 +326,15 @@ else
     
     % ---- compare methods
     if (0)
-    if length(startinds) == length(startinds1)
-        assert(isempty(setxor(endinds, endinds1)), 'asfasd');
-        assert(isempty(setxor(startinds1, startinds)), 'asfasd');
-        assert(isempty(setxor(matchlabs1, matchlabs)), 'asdfsd');
-        assert(all(tokenExtents1 == tokenExtents), 'asdfsd');
-        
-    else
-        assert(isempty(setdiff(startinds1, startinds)), 'asfasdf'); % i.e. old version is proper subset of new version
-    end
+        if length(startinds) == length(startinds1)
+            assert(isempty(setxor(endinds, endinds1)), 'asfasd');
+            assert(isempty(setxor(startinds1, startinds)), 'asfasd');
+            assert(isempty(setxor(matchlabs1, matchlabs)), 'asdfsd');
+            assert(all(tokenExtents1 == tokenExtents), 'asdfsd');
+            
+        else
+            assert(isempty(setdiff(startinds1, startinds)), 'asfasdf'); % i.e. old version is proper subset of new version
+        end
     end
 end
 
@@ -549,63 +572,113 @@ for i=1:length(tokenExtents)
                 [FF, PC, T]= lt_calc_FF(songseg_forFF, fs, [F_low F_high], [mintime maxtime]);
             end
         end
-        
-        SegmentsExtract(i).FF_val=FF;
-        %% ===================================================
-        % FIGURE OUT IF WN HIT ON THIS TRIAL (based on clipping of sound)
-        % - collect
-        if collectWNhit==1
-            %             AllSongs=SongDat.AllSongs;
-            songseg=SongDat.AllSongs(onsamp:offsamp);
-            
-            FF_PosRelToken=FFparams.FF_PosRelToken;
-            prepad_forFF=0.015; postpad_forFF=0.015; % don't change, as this affects temporal window for FF
-            
-            indForFF=tokenExtents(i)+FF_PosRelToken; % can use this to look for WN in flanking syls.
-            
-            ontime_forFF=AllOnsets(indForFF);
-            ontime_forFF=ontime_forFF-prepad_forFF;
-            onsamp_forFF=round(ontime_forFF*fs);
-            
-            offtime_forFF=AllOffsets(indForFF);
-            offtime_forFF=offtime_forFF+postpad_forFF;
-            offsamp_forFF=round(offtime_forFF*fs);
-            
-            songseg_forFF=SongDat.AllSongs(onsamp_forFF:offsamp_forFF);
-            
-            
-            wasTrialHit=[];
-            WNonset=[];
-            WNoffset=[];
-            if max(songseg_forFF)>3.2
-                % --- debug, plot spectrogram and sound file for all hits
-                %             figure; hold on;
-                %             lt_subplot(1,2,1); hold on; plot(songseg_forFF);
-                %             lt_subplot(1,2,2); hold on; lt_plot_spectrogram(songseg_forFF, fs, 1, 0);
-                %             pause
-                %             close all;
-                % ----
-                wasTrialHit=1;
-                WNonset=find(songseg>3.2, 1, 'first'); % timepoint of hit (for entire segment)
-                WNoffset=find(songseg>3.2, 1, 'last');
-                
-                HitSyls_TEMP=[HitSyls_TEMP songseg_forFF];
-            else
-                wasTrialHit=0;
-                MisSyls_TEMP=[MisSyls_TEMP songseg_forFF];
-            end
-            
-            SegmentsExtract(i).hit_WN=wasTrialHit;
-            SegmentsExtract(i).WNonset_sec=WNonset/fs;
-            SegmentsExtract(i).WNoffset_sec=WNoffset/fs;
-            
-            
-            %         SegmentsExtract(i).FF_pitchcontour=PC;
-            %         SegmentsExtract(i).FF_timebase=T;
+    
+    SegmentsExtract(i).FF_val=FF;
+    
+    end
+    %% ===================================================
+    % FIGURE OUT IF WN HIT ON THIS TRIAL (based on clipping of sound)
+    % - collect
+    if collectWNhit==1
+
+        if (0)
+            % -- OLD, used FF posotion to determine where to check for WN
+        FF_PosRelToken=FFparams.FF_PosRelToken;
+        indForFF=tokenExtents(i)+FF_PosRelToken; % can use this to look for WN in flanking syls.
+        else
+            % -- NEW - look for WN overlayed on token syl.
+        indForFF=tokenExtents(i); % can use this to look for WN in flanking syls.
         end
+        prepad_forFF=0.015; postpad_forFF=0.015; % don't change, as this affects temporal window for FF
+        
+        ontime_forFF=AllOnsets(indForFF);
+        ontime_forFF=ontime_forFF-prepad_forFF;
+        onsamp_forFF=round(ontime_forFF*fs);
+        
+        offtime_forFF=AllOffsets(indForFF);
+        offtime_forFF=offtime_forFF+postpad_forFF;
+        offsamp_forFF=round(offtime_forFF*fs);
+        
+        songseg_forFF=SongDat.AllSongs(onsamp_forFF:offsamp_forFF);
+        
+        
+        wasTrialHit=[];
+        WNonset=[];
+        WNoffset=[];
+        if max(songseg_forFF)>3.2
+            % --- debug, plot spectrogram and sound file for all hits
+            %             figure; hold on;
+            %             lt_subplot(1,2,1); hold on; plot(songseg_forFF);
+            %             lt_subplot(1,2,2); hold on; lt_plot_spectrogram(songseg_forFF, fs, 1, 0);
+            %             pause
+            %             close all;
+            % ----
+            wasTrialHit=1;
+            
+%             WNonset=find(songseg>3.2, 1, 'first'); % timepoint of hit (for entire segment)
+%             WNoffset=find(songseg>3.2, 1, 'last');
+            
+            % --- convert to start of syl (adding motifpredur)
+            WNonset=find(songseg_forFF>3.2, 1, 'first'); % timepoint of hit (for entire segment)
+            WNoffset=find(songseg_forFF>3.2, 1, 'last');
+            
+            WNonset = WNonset-(prepad_forFF*fs)+predur*fs;
+            WNoffset = WNoffset-(prepad_forFF*fs)+predur*fs;
+            
+            HitSyls_TEMP=[HitSyls_TEMP songseg_forFF];
+        else
+            wasTrialHit=0;
+            MisSyls_TEMP=[MisSyls_TEMP songseg_forFF];
+        end
+        
+        SegmentsExtract(i).hit_WN=wasTrialHit;
+        SegmentsExtract(i).WNonset_sec=WNonset/fs;
+        SegmentsExtract(i).WNoffset_sec=WNoffset/fs;
+        
     end
     
-    % =============== FIGURE OUT POSITION OF MOTIF WITHIN ITS BOUT
+    %% get smoothed amplitude
+    if keepSmAmpl==1
+
+        songseg=SongDat.AllSongs(onsamp:offsamp);
+        
+        % ------- smooth and rectify...
+        % 1) FILTER
+        if (1)
+        filter_type='hanningfirff';
+        F_low  = 500;
+        F_high = 8000;
+        songseg_sm=bandpass(double(songseg),fs,F_low,F_high,filter_type);
+        else
+        songseg_sm = songseg - mean(songseg);
+        end
+        
+        % 2) SQUARE
+        songseg_sm = songseg_sm.^2; % -- square
+        
+        % 3) SMOOTH
+        songseg_sm = conv(h_smooth, songseg_sm);
+        offsetTMP = round((length(songseg_sm)-length(songseg))/2);
+        songseg_sm=songseg_sm(1+offsetTMP:length(songseg)+offsetTMP);
+% 
+%         figure; hold on; plot(songseg_sm,'k')
+    
+% ---- convert to single and downsample
+% songseg_smD = downsample(songseg_sm, fs/1000, round(fs/2000));
+songseg_sm = downsample(songseg_sm, fs/1000);
+t_songseg = 0:0.001:0.001*(length(songseg_sm)-1);
+% figure; hold on; plot(xsm, songseg_smD, 'k');
+% plot(1/fs:1/fs:(1/fs)*length(songseg_sm), songseg_sm, 'r');
+
+SegmentsExtract(i).songseg_sm = single(songseg_sm);
+SegmentsExtract(i).songseg_tOnOff = [t_songseg(1) t_songseg(end)];
+
+
+    end
+    
+    
+    
+    %% =============== FIGURE OUT POSITION OF MOTIF WITHIN ITS BOUT
     if collectWholeBoutPosition==1
         ind; % current syl posotion
         

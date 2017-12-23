@@ -1,6 +1,8 @@
 function [SongDat, NeurDat, Params] = lt_neural_ExtractDat2(SummaryStruct, birdnum, ...
     neurnum, extractSound)
+%% note: autmoatically only keeps spikes of this cluster
 
+%%
 if ~exist('extractSound', 'var')
     extractSound = 0;
 end
@@ -26,7 +28,9 @@ else
     cd ..
     batchf=SummaryStruct.birds(i).neurons(ii).batchfilename;
     channel_board=SummaryStruct.birds(i).neurons(ii).channel;
-    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, extractSound);
+    clustToKeep =SummaryStruct.birds(i).neurons(ii).clustnum;
+    [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, ...
+        extractSound, clustToKeep);
     Params.birdname = SummaryStruct.birds(i).birdname;
     Params.exptname = SummaryStruct.birds(i).neurons(ii).exptID;
     Params.neurnum = neurnum;

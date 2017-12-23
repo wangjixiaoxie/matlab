@@ -1,11 +1,11 @@
 function OUTSTRUCT=lt_seq_dep_pitch_ACROSSBIRDS_LMANbaseExtrct(SeqDepPitch_AcrossBirds, ...
     PARAMS, same_type_thr, NullControl_splitday, useHandLabForSametype, ...
-    onlyUseFirstExpt, recalcValues, reCalcOldMethodKeepingNanSongs)
+    onlyUseFirstExpt, recalcValues, reCalcOldMethodKeepingNanSongs, UseMotifByMotifCorr)
 %%
 
 % ========= for recalculating song corr using regexp data (as origianlly
 % done)
-OnlyKeepDaysWithMUSC = 1; % default = 0 (i.e. use more PBS days)
+OnlyKeepDaysWithMUSC = 1; % default = 1 (i.e. matched days)
 % reCalcOldMethodKeepingNanSongs = 1;
 CorrSubtractDayMean=1; % default = 1; i.e. subtract day mean for all corr analyses.
 
@@ -54,6 +54,12 @@ PitchTvalsMUSC = {};
 PitchFFvalsPBS = {};
 PitchFFvalsMUSC = {};
 
+LearnHzAll = [];
+LearnHzTargAll = [];
+IsTargAll = [];
+TargLearnDir = [];
+DistFromTarg = [];
+
 % === pairs that cannot be obtained in next section( i.e. must be gotten
 % from raw data);
 CorrSong_PBS_pairs=[];
@@ -61,6 +67,8 @@ CorrSong_MUSC_pairs=[];
 
 CorrSong_PBS_pairs_OldVer = [];
 CorrSong_MUSC_pairs_OldVer = [];
+                    CorrMotif_PBS_pairs_OldVer = [];
+                    CorrMotif_MUSC_pairs_OldVer = [];
 
 CorrMotif_PBS_pairs=[];
 CorrMotif_MUSC_pairs=[];
@@ -167,6 +175,25 @@ if NullControl_splitday==0
                 syl1_single = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).single_syl;
                 SingleSylAll = [SingleSylAll syl1_single];
                 
+                
+                % ======================= LEARNING RELATED STUFF
+                learnhz = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).LEARNING.learning_metric.mean;
+                
+                targsyl = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targsyl;
+                learnhz_targ = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(targsyl).LEARNING.learning_metric.mean;
+                
+                LearnHzAll = [LearnHzAll learnhz];
+                LearnHzTargAll = [LearnHzTargAll learnhz_targ];
+
+                istarg = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).is_target;
+                IsTargAll = [IsTargAll istarg];
+                
+                targlearndir = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.INFORMATION.targ_learn_dir;
+                TargLearnDir = [TargLearnDir targlearndir];
+
+                distfromtarg = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).distance_from_targ;
+                DistFromTarg = [DistFromTarg distfromtarg];
+                
                 % ---- extract paired stuff
                 for jj=j+1:length(SylsUnique)
                     syl2=SylsUnique{jj};
@@ -188,14 +215,14 @@ if NullControl_splitday==0
                     corrsongPBS=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.song_by_song.corrcoeff_vs.(syl2);
                     corrsongMUSC=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions_LMAN.(syl).CORRELATIONS.song_by_song.corrcoeff_vs.(syl2);
                     
-                    corrmotifPBS=nan;
-                    corrmotifMUSC=nan;
-                    
                     
                     CorrSong_PBS_pairs_OldVer = [CorrSong_PBS_pairs_OldVer corrsongPBS];
                     CorrSong_MUSC_pairs_OldVer = [CorrSong_MUSC_pairs_OldVer corrsongMUSC];
                     
                     
+                    % ******** MOTIF BY MOTIF CORRELATION
+                    corrmotifPBS=nan;
+                    corrmotifMUSC=nan;
                     
                     if isfield (SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS, 'motif_by_motif');
                         if isfield(SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).CORRELATIONS.motif_by_motif.corrcoeff_vs, syl2);
@@ -204,6 +231,10 @@ if NullControl_splitday==0
                             corrmotifMUSC=SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions_LMAN.(syl).CORRELATIONS.motif_by_motif.corrcoeff_vs.(syl2);
                         end
                     end
+                    
+                    CorrMotif_PBS_pairs_OldVer = [CorrMotif_PBS_pairs_OldVer corrmotifPBS];
+                    CorrMotif_MUSC_pairs_OldVer = [CorrMotif_MUSC_pairs_OldVer corrmotifMUSC];
+                    
                     %% sanity check of corr === REXTRACT ORIGINAL DATA USED TO CALCULATE CORR
                     
                     %===================== 1) PBS
@@ -228,6 +259,35 @@ if NullControl_splitday==0
                         
                         assert(abs(corr(ffvals1_nonanORIG, ffvals2_nonanORIG) - corrsongPBS) < 0.01);
                         
+                        % *************** MOTIF BY MOTIF
+                        motifnum1 = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).regexp_motifnum;
+                        sylpos1 = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl).regexp_PosInMotif_thissyl;
+                        
+                        motifnum2 = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl2).regexp_motifnum;
+                        sylpos2 = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Syl_ID_Dimensions.(syl2).regexp_PosInMotif_thissyl;
+                        
+                        if motifnum1~=motifnum2;
+                            % then not on same motif, can't calc motif corr
+                            doMotifCorr=0;
+                        else
+                            doMotifCorr=1;
+                        end
+                            
+                        if doMotifCorr==1
+                        % =========== PBS
+                        ffvalsMOTIF = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{motifnum1}.sub_class{1}.FFvals(:,[sylpos1 sylpos2]);
+                        tvalsMOTIF = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline.data_ParsedIntoSubclasses{motifnum1}.sub_class{1}.Tvals;
+                        
+                        % ========= MUSC
+                        ffvalsMOTIF_MUSC = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline_MUSC.data_ParsedIntoSubclasses{motifnum1}.sub_class{1}.FFvals(:,[sylpos1 sylpos2]);
+                        tvalsMOTIF_MUSC = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.baseline_MUSC.data_ParsedIntoSubclasses{motifnum1}.sub_class{1}.Tvals;
+                        
+                        % --- sanity check
+%                         ffvals1MOTIF = SeqDepPitch_AcrossBirds.birds{i}.experiment{ii}.Data_RegExpr.AllDays_RegExpr.day_data{1}.data_WithOutlier{1};
+                        else
+                            
+                        end
+                        
                         
                         %===================== 1) musc
                         % ----- confirm that this correaltion value is taken
@@ -250,20 +310,26 @@ if NullControl_splitday==0
                         assert(abs(corr(ffvals1_nonanORIG_MUSC, ffvals2_nonanORIG_MUSC) -corrsongMUSC) < 0.01);
                         
                         
+                        
+                        
                         % ===================== ONLY KEEP DAYS WITH BOTH
                         % PBS AND MUSC
                         if OnlyKeepDaysWithMUSC ==1
                             
+                            % =========== SONG BY SONG
                             dayswithmusc = unique(floor(tvalsORIG_MUSC));
-                            
                             indstokeepPBS = ismember(floor(tvalsORIG), dayswithmusc);
-                            
                             
                             ffvals1ORIG = ffvals1ORIG(indstokeepPBS);
                             ffvals2ORIG = ffvals2ORIG(indstokeepPBS);
                             tvalsORIG = tvalsORIG(indstokeepPBS);
                             
+                            % =========== MOTIF BY MOTIF
+                            dayswithmusc = unique(floor(tvalsMOTIF_MUSC));
+                            indstokeepPBS = ismember(floor(tvalsMOTIF), dayswithmusc);
                             
+                            ffvalsMOTIF = ffvalsMOTIF(indstokeepPBS, :);
+                            tvalsMOTIF = tvalsMOTIF(indstokeepPBS);
                         end
                         
                         % ################################## SUBTRACT DAY MEANS
@@ -323,16 +389,60 @@ if NullControl_splitday==0
                             
                             ffvals1ORIG_MUSC = ff1_minusday;
                             ffvals2ORIG_MUSC = ff2_minusday;
+                            
+                            % ********************** MOTIF BY MOTIF
+                            % ================================== PBS
+                            tdays = floor(tvalsMOTIF);
+                            ff1 = ffvalsMOTIF;
+                            
+                            % -- get mean across days
+                            ff1_daymeans = grpstats(ff1, tdays, {'mean'});
+                            
+                            % -- subtract daymean from each value
+                            ff1_daymeans_trials = ones(size(ff1));
+                            eachday = unique(tdays);
+                            for day = eachday'
+                                ff1_daymeans_trials(tdays==day,:) = repmat(ff1_daymeans(eachday==day,:), sum(tdays==day), 1);
+                            end
+                            ffvalsMOTIF = ff1 - ff1_daymeans_trials;
+                            
+                            % ================================== PBS
+                            tdays = floor(tvalsMOTIF_MUSC);
+                            ff1 = ffvalsMOTIF_MUSC;
+                            
+                            % -- get mean across days
+                            ff1_daymeans = grpstats(ff1, tdays, {'mean'});
+                            
+                            % -- subtract daymean from each value
+                            ff1_daymeans_trials = ones(size(ff1));
+                            eachday = unique(tdays);
+                            for day = eachday'
+                                ff1_daymeans_trials(tdays==day,:) = repmat(ff1_daymeans(eachday==day,:), sum(tdays==day), 1);
+                            end
+                            ffvalsMOTIF_MUSC = ff1 - ff1_daymeans_trials;
+
                         end
                         
                         % ================== RECALC
                         if reCalcOldMethodKeepingNanSongs ==1
                             % =========== then recalculate ...
+                            % ======================= SONG BY SONG
                             indtmp = ~isnan(ffvals1ORIG) & ~isnan(ffvals2ORIG);
                             corrsongPBS = corr(ffvals1ORIG(indtmp), ffvals2ORIG(indtmp));
                             
                             indtmp = ~isnan(ffvals1ORIG_MUSC) & ~isnan(ffvals2ORIG_MUSC);
                             corrsongMUSC = corr(ffvals1ORIG_MUSC(indtmp), ffvals2ORIG_MUSC(indtmp));
+                            
+                            % ======================== MOTIF
+                            % ------ PBS
+                            indtmp = ~isnan(ffvalsMOTIF(:,1)) & ~isnan(ffvalsMOTIF(:,2));
+                            corrmotifPBS = corr(ffvalsMOTIF(indtmp,1), ffvalsMOTIF(indtmp,2));
+                            
+                            % ------ MUSC
+                            indtmp = ~isnan(ffvalsMOTIF_MUSC(:,1)) & ~isnan(ffvalsMOTIF_MUSC(:,2));
+                            corrmotifMUSC = corr(ffvalsMOTIF_MUSC(indtmp,1), ffvalsMOTIF_MUSC(indtmp,2));
+                            
+                            
                         end
                         
                         
@@ -641,7 +751,6 @@ if NullControl_splitday==0
                     % ======= if same syl, how many syls shared in
                     % context?
                     sylsshared = nan;
-                    if samepair==1
                         if strcmp(SylID1.preceding_syl, SylID2.preceding_syl)==0
                             % -- no syls shared
                             sylsshared=0;
@@ -653,12 +762,20 @@ if NullControl_splitday==0
                                 & strcmp(SylID1.two_syl_back, SylID2.two_syl_back)==1
                             % then two syls shared
                             sylsshared=2;
+                        elseif strcmp(SylID1.preceding_syl, SylID2.preceding_syl)==1 ...
+                                & strcmp(SylID1.two_syl_back, SylID2.two_syl_back)==1 ...
+                                & strcmp(SylID1.three_syl_back, SylID2.three_syl_back)==1
+                            sylsshared=3;
                             
                             % === figure out if actually 3 syls shared
                             %                            SylID1
                         end
-                    end
                     
+                    if doMotifCorr==0
+                        corrmotifPBS = nan;
+                        corrmotifMUSC = nan;
+                    end
+                       
                     % ======= are they on same motif? if so how far apart?
                     issamemotif = nan;
                     numsylsbetween = nan;
@@ -675,6 +792,10 @@ if NullControl_splitday==0
                     end
                     
                     % ===== OUTPUT
+                    if UseMotifByMotifCorr ==1
+                        corrsongPBS = corrmotifPBS;
+                        corrsongMUSC = corrmotifMUSC;
+                    end
                     CorrMotif_PBS_pairs=[CorrMotif_PBS_pairs corrmotifPBS];
                     CorrMotif_MUSC_pairs=[CorrMotif_MUSC_pairs corrmotifMUSC];
                     CorrSong_PBS_pairs=[CorrSong_PBS_pairs corrsongPBS];
@@ -864,8 +985,13 @@ OUTSTRUCT.singlesyls.PitchTvalsPBS = PitchTvalsPBS;
 OUTSTRUCT.singlesyls.PitchTvalsMUSC = PitchTvalsMUSC;
 OUTSTRUCT.singlesyls.PitchFFvalsPBS = PitchFFvalsPBS;
 OUTSTRUCT.singlesyls.PitchFFvalsMUSC = PitchFFvalsMUSC;
-
-
+                OUTSTRUCT.singlesyls.LearnHzAll = LearnHzAll;
+                OUTSTRUCT.singlesyls.LearnHzTargAll = LearnHzTargAll;
+                OUTSTRUCT.singlesyls.IsTargAll = IsTargAll;
+OUTSTRUCT.singlesyls.TargLearnDir = TargLearnDir;
+             OUTSTRUCT.singlesyls.DistFromTarg = DistFromTarg;
+             
+             
 OUTSTRUCT.pairedsyls.CorrSong_PBS_pairs=CorrSong_PBS_pairs;
 OUTSTRUCT.pairedsyls.CorrSong_MUSC_pairs=CorrSong_MUSC_pairs;
 OUTSTRUCT.pairedsyls.CorrSong_PBS_pairs_OldVer =CorrSong_PBS_pairs_OldVer;
@@ -881,23 +1007,32 @@ OUTSTRUCT.pairedsyls.NumSylsSharedInContext = NumSylsSharedInContext;
 
 
 %% ###### compare new vs. old method correlations
-if recalcValues==1
-    lt_figure; hold on
+    if reCalcOldMethodKeepingNanSongs ==1
+        lt_figure; hold on
     
     % ==== pbs
-    lt_subplot(2,1,1); hold on;
-    title('pbs');
+    lt_subplot(4,1,1); hold on;
+    title('pbs (song)');
     xlabel('using regexp')
     ylabel('using new ver')
     plot(CorrSong_PBS_pairs_OldVer, CorrSong_PBS_pairs, 'ok');
     
     
     % ==== musc
-    lt_subplot(2,1,2); hold on;
-    title('musc');
+    lt_subplot(4,1,2); hold on;
+    title('musc (song)');
     plot(CorrSong_MUSC_pairs_OldVer, CorrSong_MUSC_pairs, 'ok');
-end
+    
+    
+    lt_subplot(4,1,3); hold on;
+    title('PBS (motif)');
+    plot(CorrMotif_PBS_pairs_OldVer, CorrMotif_PBS_pairs, 'ok');
 
+    lt_subplot(4,1,4); hold on;
+    title('musc (motif)');
+    plot(CorrMotif_MUSC_pairs_OldVer, CorrMotif_MUSC_pairs, 'ok');
+    
+    end
 
 %% =============== FIRST, collect data (for all pairs)
 %                 AcousVec_PBS=[AcousVec_PBS acoustic_vec_PBS'];

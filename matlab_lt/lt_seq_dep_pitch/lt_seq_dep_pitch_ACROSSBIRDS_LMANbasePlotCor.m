@@ -280,6 +280,440 @@ line([ptiles2(2) ptiles2(2)], ylim, 'Color', color);
 BaseCorrThreshold = [max([ptiles1(1) ptiles2(1)]) min([ptiles1(2) ptiles2(2)])];
 
 
+
+%% [HAMISH] FOR THOSE ON SAME MOTIF, CORR REFLECT RELATIVE DIRECTIONS OF AFP BIAS?
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SAME
+% ######################### CORR VS.DIFF IN AFP BIAS
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME [SAME MOTIF]');
+xlabel('diff in AFP bias');
+ylabel('corr (motif), PBS');
+inds = IsSameSyl==1 & IsSameMotif==1;
+
+% -- difference in AFP bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = x(:,2) - x(:,1);
+x = abs(x);
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrMotif_PBS_pairs(inds);
+
+lt_regress(y, x, 1);
+lt_plot_zeroline;
+ylim([-0.5 0.8]);
+
+% ######################### GROUP BY SAME DIR OR DIFF DIR
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME');
+xlabel('same dir AFP bias?');
+ylabel('corr (motif), PBS');
+
+% -- same dir or diff dir bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = sign(x(:,2)) == sign(x(:,1));
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrMotif_PBS_pairs(inds);
+
+% ----
+Y = {};
+Y{1} = y(x==0);
+Y{2} = y(x==1);
+lt_plot_MultDist(Y, [0 1],1);
+xlim([-1 2]);
+lt_plot_zeroline;
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% diff
+% ######################### CORR VS.DIFF IN AFP BIAS
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME');
+xlabel('diff in AFP bias');
+ylabel('corr (motif), PBS');
+inds = IsSameSyl==0 & IsSameMotif==1;
+
+% -- difference in AFP bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = x(:,2) - x(:,1);
+x = abs(x);
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrMotif_PBS_pairs(inds);
+
+lt_regress(y, x, 1);
+lt_plot_zeroline;
+ylim([-0.5 0.8]);
+
+
+% ######################### GROUP BY SAME DIR OR DIFF DIR
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME');
+xlabel('same dir AFP bias?');
+ylabel('corr (motif), PBS');
+
+% -- same dir or diff dir bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = sign(x(:,2)) == sign(x(:,1));
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrMotif_PBS_pairs(inds);
+
+% ----
+Y = {};
+Y{1} = y(x==0);
+Y{2} = y(x==1);
+lt_plot_MultDist(Y, [0 1],1);
+xlim([-1 2]);
+lt_plot_zeroline;
+
+%% [HAMISH] FOR THOSE ON [ADJACENT], CORR REFLECT RELATIVE DIRECTIONS OF AFP BIAS?
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SAME
+% ######################### CORR VS.DIFF IN AFP BIAS
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME [ADJACENT]');
+xlabel('diff in AFP bias');
+ylabel('corr (motif), PBS');
+inds = IsSameSyl==1 & IsSameMotif==1 & DATSTRUCT.pairedsyls.NumSylsInBetween==0;
+
+% -- difference in AFP bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = x(:,2) - x(:,1);
+x = abs(x);
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrMotif_PBS_pairs(inds);
+
+lt_regress(y, x, 1);
+lt_plot_zeroline;
+ylim([-0.5 0.8]);
+
+% ######################### GROUP BY SAME DIR OR DIFF DIR
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME');
+xlabel('same dir AFP bias?');
+ylabel('corr (motif), PBS');
+
+% -- same dir or diff dir bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = sign(x(:,2)) == sign(x(:,1));
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrMotif_PBS_pairs(inds);
+
+% ----
+Y = {};
+Y{1} = y(x==0);
+Y{2} = y(x==1);
+lt_plot_MultDist(Y, [0 1],1);
+xlim([-1 2]);
+lt_plot_zeroline;
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% diff
+% ######################### CORR VS.DIFF IN AFP BIAS
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+% title('SAME(bu), DIFF(rd)');
+xlabel('diff in AFP bias');
+ylabel('corr (motif), PBS');
+inds = IsSameSyl==0 & IsSameMotif==1 & DATSTRUCT.pairedsyls.NumSylsInBetween==0;
+
+% -- difference in AFP bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = x(:,2) - x(:,1);
+x = abs(x);
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrMotif_PBS_pairs(inds);
+
+lt_regress(y, x, 1);
+lt_plot_zeroline;
+ylim([-0.5 0.8]);
+
+
+% ######################### GROUP BY SAME DIR OR DIFF DIR
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('DIFF');
+xlabel('same dir AFP bias?');
+ylabel('corr (motif), PBS');
+
+% -- same dir or diff dir bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = sign(x(:,2)) == sign(x(:,1));
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrMotif_PBS_pairs(inds);
+
+% ----
+Y = {};
+Y{1} = y(x==0);
+Y{2} = y(x==1);
+lt_plot_MultDist(Y, [0 1],1);
+xlim([-1 2]);
+lt_plot_zeroline;
+
+
+%% [HAMISH] FOR THOSE ON [NOT ADJACENT], CORR REFLECT RELATIVE DIRECTIONS OF AFP BIAS?
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SAME
+% ######################### CORR VS.DIFF IN AFP BIAS
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME [NOT ADJACENT]');
+xlabel('diff in AFP bias');
+ylabel('corr (motif), PBS');
+inds = IsSameSyl==1 & IsSameMotif==1 & DATSTRUCT.pairedsyls.NumSylsInBetween>0;
+
+% -- difference in AFP bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = x(:,2) - x(:,1);
+x = abs(x);
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrMotif_PBS_pairs(inds);
+
+lt_regress(y, x, 1);
+lt_plot_zeroline;
+ylim([-0.5 0.8]);
+
+% ######################### GROUP BY SAME DIR OR DIFF DIR
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+% title('SAME(bu), DIFF(rd)');
+xlabel('same dir AFP bias?');
+ylabel('corr (motif), PBS');
+
+% -- same dir or diff dir bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = sign(x(:,2)) == sign(x(:,1));
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrMotif_PBS_pairs(inds);
+
+% ----
+Y = {};
+Y{1} = y(x==0);
+Y{2} = y(x==1);
+lt_plot_MultDist(Y, [0 1],1);
+xlim([-1 2]);
+lt_plot_zeroline;
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% diff
+% ######################### CORR VS.DIFF IN AFP BIAS
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('DIFF');
+xlabel('diff in AFP bias');
+ylabel('corr (motif), PBS');
+inds = IsSameSyl==0 & IsSameMotif==1 & DATSTRUCT.pairedsyls.NumSylsInBetween>0;
+
+% -- difference in AFP bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = x(:,2) - x(:,1);
+x = abs(x);
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrMotif_PBS_pairs(inds);
+
+lt_regress(y, x, 1);
+lt_plot_zeroline;
+ylim([-0.5 0.8]);
+
+
+% ######################### GROUP BY SAME DIR OR DIFF DIR
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+% title('SAME(bu), DIFF(rd)');
+xlabel('same dir AFP bias?');
+ylabel('corr (motif), PBS');
+
+% -- same dir or diff dir bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = sign(x(:,2)) == sign(x(:,1));
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrMotif_PBS_pairs(inds);
+
+% ----
+Y = {};
+Y{1} = y(x==0);
+Y{2} = y(x==1);
+lt_plot_MultDist(Y, [0 1],1);
+xlim([-1 2]);
+lt_plot_zeroline;
+
+%% [HAMISH] [SONG CORR] FOR THOSE ON SAME MOTIF, CORR REFLECT RELATIVE DIRECTIONS OF AFP BIAS?
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SAME
+% ######################### CORR VS.DIFF IN AFP BIAS
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME [SAME MOTIF]');
+xlabel('diff in AFP bias');
+ylabel('corr (SONG), PBS');
+inds = IsSameSyl==1 & IsSameMotif==1;
+
+% -- difference in AFP bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = x(:,2) - x(:,1);
+x = abs(x);
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrSong_PBS_pairs(inds);
+
+lt_regress(y, x, 1);
+lt_plot_zeroline;
+ylim([-0.5 0.8]);
+
+% ######################### GROUP BY SAME DIR OR DIFF DIR
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME');
+xlabel('same dir AFP bias?');
+ylabel('corr (SONG), PBS');
+
+% -- same dir or diff dir bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = sign(x(:,2)) == sign(x(:,1));
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrSong_PBS_pairs(inds);
+
+% ----
+Y = {};
+Y{1} = y(x==0);
+Y{2} = y(x==1);
+lt_plot_MultDist(Y, [0 1],1);
+xlim([-1 2]);
+lt_plot_zeroline;
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% diff
+% ######################### CORR VS.DIFF IN AFP BIAS
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME');
+xlabel('diff in AFP bias');
+ylabel('corr (SONG), PBS');
+inds = IsSameSyl==0 & IsSameMotif==1;
+
+% -- difference in AFP bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = x(:,2) - x(:,1);
+x = abs(x);
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrSong_PBS_pairs(inds);
+
+lt_regress(y, x, 1);
+lt_plot_zeroline;
+ylim([-0.5 0.8]);
+
+
+% ######################### GROUP BY SAME DIR OR DIFF DIR
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME');
+xlabel('same dir AFP bias?');
+ylabel('corr (SONG), PBS');
+
+% -- same dir or diff dir bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = sign(x(:,2)) == sign(x(:,1));
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrSong_PBS_pairs(inds);
+
+% ----
+Y = {};
+Y{1} = y(x==0);
+Y{2} = y(x==1);
+lt_plot_MultDist(Y, [0 1],1);
+xlim([-1 2]);
+lt_plot_zeroline;
+
+
+%% [HAMISH] [SONG CORR] [diff motif], CORR REFLECT RELATIVE DIRECTIONS OF AFP BIAS?
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SAME
+% ######################### CORR VS.DIFF IN AFP BIAS
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME [DIFF MOTIF]');
+xlabel('diff in AFP bias');
+ylabel('corr (SONG), PBS');
+inds = IsSameSyl==1 & IsSameMotif==0;
+
+% -- difference in AFP bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = x(:,2) - x(:,1);
+x = abs(x);
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrSong_PBS_pairs(inds);
+
+lt_regress(y, x, 1);
+lt_plot_zeroline;
+ylim([-0.5 0.8]);
+
+% ######################### GROUP BY SAME DIR OR DIFF DIR
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME');
+xlabel('same dir AFP bias?');
+ylabel('corr (SONG), PBS');
+
+% -- same dir or diff dir bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = sign(x(:,2)) == sign(x(:,1));
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrSong_PBS_pairs(inds);
+
+% ----
+Y = {};
+Y{1} = y(x==0);
+Y{2} = y(x==1);
+lt_plot_MultDist(Y, [0 1],1);
+xlim([-1 2]);
+lt_plot_zeroline;
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% diff
+% ######################### CORR VS.DIFF IN AFP BIAS
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME');
+xlabel('diff in AFP bias');
+ylabel('corr (SONG), PBS');
+inds = IsSameSyl==0 & IsSameMotif==0;
+
+% -- difference in AFP bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = x(:,2) - x(:,1);
+x = abs(x);
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrSong_PBS_pairs(inds);
+
+lt_regress(y, x, 1);
+lt_plot_zeroline;
+ylim([-0.5 0.8]);
+
+
+% ######################### GROUP BY SAME DIR OR DIFF DIR
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME');
+xlabel('same dir AFP bias?');
+ylabel('corr (SONG), PBS');
+
+% -- same dir or diff dir bias
+x = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+x = sign(x(:,2)) == sign(x(:,1));
+
+% -- correlation (baseline)
+y = DATSTRUCT.pairedsyls.CorrSong_PBS_pairs(inds);
+
+% ----
+Y = {};
+Y{1} = y(x==0);
+Y{2} = y(x==1);
+lt_plot_MultDist(Y, [0 1],1);
+xlim([-1 2]);
+lt_plot_zeroline;
+
+
 %% ############################# difference distyributions [within overlapping domain]
 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
 xlabel('corr(MUSC)-corr(PBS)');
@@ -493,7 +927,7 @@ fignums_alreadyused=[];
 hfigs=[];
 
 
-ChangeInCorr = CorrSong_MUSC_pairs - CorrSong_PBS_pairs;
+ChangeInCorr = CorrMotif_MUSC_pairs - CorrMotif_PBS_pairs;
 
 inds = IsSameMotif==1 & ~isnan(NumSylsInBetween);
 
@@ -504,7 +938,7 @@ Ycorrchange = ChangeInCorr(inds);
 % ========================== SAME TYPE
 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
 title('same type');
-ylabel('corr (MUSC minus PBS');
+ylabel('corr [motif] (MUSC minus PBS');
 xlabel('num syls in between');
 x = nsyls(syltype==1);
 y = Ycorrchange(syltype==1);
@@ -550,6 +984,233 @@ fitlme(tblinput, 'y ~ x')
 lt_plot_zeroline;
 xlim([-1 max(x)+1]);
 ylim([-1 1]);
+
+%% ================ PLOT PRE AND POST IN SAME PLOT [MOTIF POS]
+
+% ############################# SAME TYPE
+inds = IsSameSyl==1 & IsSameMotif==1 & ~isnan(NumSylsInBetween);
+
+corrPBS = CorrMotif_PBS_pairs(inds);
+corrMUSC = CorrMotif_MUSC_pairs(inds);
+nsyls = NumSylsInBetween(inds);
+
+% ========================== SAME TYPE
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('same type');
+ylabel('corr (motif)');
+xlabel('num syls in between');
+
+x = [nsyls'-0.2 nsyls'+0.2] ;
+y = [corrPBS' corrMUSC'];
+
+plot(x', y', 'o-k');
+plot(x(:,2), y(:,2), 'or');
+lt_plot_zeroline;
+
+% -------- MEAN [PBS]
+plotcol = 'k';
+[ymean, ysem] = grpstats(corrPBS, nsyls, {'mean', 'sem'});
+lt_plot(unique(nsyls)-0.3, ymean, {'Errors', ysem, 'Color', plotcol, ...
+    'LineStyle', '-'});
+
+% -------- MEAN [MUSC]
+plotcol = 'r';
+[ymean, ysem] = grpstats(corrMUSC, nsyls, {'mean', 'sem'});
+lt_plot(unique(nsyls)-0.3, ymean, {'Errors', ysem, 'Color', plotcol, ...
+    'LineStyle', '-'});
+ylim([-0.5 1]);
+xlim([-1 7]);
+
+% -- plot significance (sign rank test, PBS vs. MUSC)
+for j=unique(nsyls)
+   p = signrank(y(nsyls==j,1), y(nsyls==j,2));
+   lt_plot_text(j-0.2, 0.8+0.02*j, ['p=' num2str(p)], 'b');
+end
+
+% ############################# DIFF TYPE
+inds = IsSameSyl==0 & IsSameMotif==1 & ~isnan(NumSylsInBetween);
+
+corrPBS = CorrMotif_PBS_pairs(inds);
+corrMUSC = CorrMotif_MUSC_pairs(inds);
+nsyls = NumSylsInBetween(inds);
+
+% ========================== SAME TYPE
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('diff type');
+ylabel('corr (motif)');
+xlabel('num syls in between');
+
+x = [nsyls'-0.2 nsyls'+0.2] ;
+y = [corrPBS' corrMUSC'];
+
+plot(x', y', 'o-k');
+plot(x(:,2), y(:,2), 'or');
+lt_plot_zeroline;
+
+% -------- MEAN [PBS]
+plotcol = 'k';
+[ymean, ysem] = grpstats(corrPBS, nsyls, {'mean', 'sem'});
+lt_plot(unique(nsyls)-0.3, ymean, {'Errors', ysem, 'Color', plotcol, ...
+    'LineStyle', '-'});
+
+% -------- MEAN [MUSC]
+plotcol = 'r';
+[ymean, ysem] = grpstats(corrMUSC, nsyls, {'mean', 'sem'});
+lt_plot(unique(nsyls)-0.3, ymean, {'Errors', ysem, 'Color', plotcol, ...
+    'LineStyle', '-'});
+
+% -- plot significance (sign rank test, PBS vs. MUSC)
+for j=unique(nsyls)
+   p = signrank(y(nsyls==j,1), y(nsyls==j,2));
+   lt_plot_text(j-0.2, 0.8+0.02*j, ['p=' num2str(p)], 'b');
+end
+
+ylim([-0.5 1]);
+xlim([-1 7]);
+
+
+%% CORR DEPEND ON CONTEXTUAL SIMILARITY?
+
+% ############################################ same type
+if (1)
+    inds = IsSameSyl==1;
+    nsyls = DATSTRUCT.pairedsyls.NumSylsSharedInContext(inds);
+    corrPBS = CorrSong_PBS_pairs(inds);
+    corrMUSC = CorrSong_MUSC_pairs(inds);
+    
+else
+    inds = IsSameSyl==1  & ~isnan(CorrMotif_PBS_pairs);
+    nsyls = DATSTRUCT.pairedsyls.NumSylsSharedInContext(inds);
+    corrPBS = CorrMotif_PBS_pairs(inds);
+    corrMUSC = CorrMotif_MUSC_pairs(inds);
+    
+end
+
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('same type');
+ylabel('corr');
+xlabel('num syls shared [cont. sim]');
+
+x = [nsyls'-0.2 nsyls'+0.2] ;
+y = [corrPBS' corrMUSC'];
+plot(x', y', 'o-k');
+plot(x(:,2), y(:,2), 'or');
+
+lt_plot_zeroline;
+
+% -------- MEAN [PBS]
+plotcol = 'k';
+[ymean, ysem] = grpstats(corrPBS, nsyls, {'mean', 'sem'});
+lt_plot(unique(nsyls)-0.3, ymean, {'Errors', ysem, 'Color', plotcol, ...
+    'LineStyle', '-'});
+
+% -------- MEAN [MUSC]
+plotcol = 'r';
+[ymean, ysem] = grpstats(corrMUSC, nsyls, {'mean', 'sem'});
+lt_plot(unique(nsyls)-0.3, ymean, {'Errors', ysem, 'Color', plotcol, ...
+    'LineStyle', '-'});
+
+% -- plot significance (sign rank test, PBS vs. MUSC)
+for j=unique(nsyls)
+    p = signrank(y(nsyls==j,1), y(nsyls==j,2));
+    lt_plot_text(j-0.2, 0.8+0.02*j, ['p=' num2str(p)], 'b');
+end
+
+
+% ######################################### CORR CHANGE VS. NUM SHARED
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('same type');
+ylabel('corr (MUSC - PBS)');
+xlabel('num syls shared [cont. sim]');
+
+plot(nsyls, corrMUSC-corrPBS, 'ob');
+lt_regress(corrMUSC-corrPBS, nsyls, 1, 0, 1, 1)
+
+xlim([-1 5]);
+
+
+% ######################################### NO SHARED VS. WITH SHARED
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('same type');
+xlabel('NO SHARED -- >0 SHARED');
+x = [1 2];
+corrdiff = corrMUSC-corrPBS;
+Y = {};
+Y{1} = corrdiff(nsyls==0);
+Y{2} = corrdiff(nsyls>0);
+lt_plot_MultDist(Y, x, 1);
+
+
+
+% ############################################ DIFF type
+if (1)
+    inds = IsSameSyl==0;
+    nsyls = DATSTRUCT.pairedsyls.NumSylsSharedInContext(inds);
+    corrPBS = CorrSong_PBS_pairs(inds);
+    corrMUSC = CorrSong_MUSC_pairs(inds);
+    
+else
+    inds = IsSameSyl==0 & ~isnan(CorrMotif_PBS_pairs);
+    nsyls = DATSTRUCT.pairedsyls.NumSylsSharedInContext(inds);
+    corrPBS = CorrMotif_PBS_pairs(inds);
+    corrMUSC = CorrMotif_MUSC_pairs(inds);
+    
+end
+
+
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('diff type');
+ylabel('corr');
+xlabel('num syls shared [cont. sim]');
+
+x = [nsyls'-0.2 nsyls'+0.2] ;
+y = [corrPBS' corrMUSC'];
+plot(x', y', 'o-k');
+plot(x(:,2), y(:,2), 'or');
+
+lt_plot_zeroline;
+
+% -------- MEAN [PBS]
+plotcol = 'k';
+[ymean, ysem] = grpstats(corrPBS, nsyls, {'mean', 'sem'});
+lt_plot(unique(nsyls)-0.3, ymean, {'Errors', ysem, 'Color', plotcol, ...
+    'LineStyle', '-'});
+
+% -------- MEAN [MUSC]
+plotcol = 'r';
+[ymean, ysem] = grpstats(corrMUSC, nsyls, {'mean', 'sem'});
+lt_plot(unique(nsyls)-0.3, ymean, {'Errors', ysem, 'Color', plotcol, ...
+    'LineStyle', '-'});
+
+% -- plot significance (sign rank test, PBS vs. MUSC)
+for j=unique(nsyls)
+    p = signrank(y(nsyls==j,1), y(nsyls==j,2));
+    lt_plot_text(j-0.2, 0.8+0.02*j, ['p=' num2str(p)], 'b');
+end
+
+
+% ######################################### CORR CHANGE VS. NUM SHARED
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('diff type');
+ylabel('corr (MUSC - PBS)');
+xlabel('num syls shared [cont. sim]');
+
+plot(nsyls, corrMUSC-corrPBS, 'ob');
+lt_regress(corrMUSC-corrPBS, nsyls, 1, 0, 1, 1)
+
+xlim([-1 5]);
+
+
+% ######################################### NO SHARED VS. WITH SHARED
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('diff type');
+xlabel('NO SHARED -- >0 SHARED');
+x = [1 2];
+corrdiff = corrMUSC-corrPBS;
+Y = {};
+Y{1} = corrdiff(nsyls==0);
+Y{2} = corrdiff(nsyls>0);
+lt_plot_MultDist(Y, x, 1);
 
 %% ===== MUSC drive same-type to be more correlated? [motif corr]
 if (0) % REASON: focus on song corr above - can have more datapoints

@@ -15,15 +15,15 @@ WHOLEBOUTS_edgedur=''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only 
 
 if ~exist('FFparams', 'var')
     
-FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will
-FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
-% +1 is 1 after token
-FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
+    FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will
+    FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
+    % +1 is 1 after token
+    FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
 elseif isempty(FFparams)
-FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will
-FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
-% +1 is 1 after token
-FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
+    FFparams.collectFF=1; % note, will try to collect FF for each motif inputed in the cell array. will
+    FFparams.FF_PosRelToken=0; % syl to get FF of, relative to token (i.e. -1 is 1 before token;
+    % +1 is 1 after token
+    FFparams.FF_sylName=''; % Optional: what syl do you expect this to be? if incompatible will raise error
 end
 
 
@@ -48,59 +48,62 @@ motif_regexpr_str = SummaryStruct.birds(1).neurons(1).POSTINFO.MotifsActual_rege
 singlesyls = SummaryStruct.birds(1).neurons(1).POSTINFO.SingleSyls_unique;
 
 
-% === GIVEN ACTUAL MOTIFS FOR THIS BIRD, DETERMINE WHICH SYLS TO LOOK AT
-if strcmp(SummaryStruct.birds(1).birdname, 'wh6pk36')
-    %     MotifsActual = {'nlcchb', 'jklcchb', 'ga', 'mksd' ,'vb'};
-    TargSyls = {'nlcch(b)', 'jklcch(b)'};
-elseif strcmp(SummaryStruct.birds(1).birdname, 'bk7')
-    %     MotifsActual = {'nnhh', 'gh', 'vbbb', 'gb', 'jkk', 'kl', 'gv', 'yoo', 'rs'}; % COULD IMPROVE
-    TargSyls = {'g(h)'};
-elseif strcmp(SummaryStruct.birds(1).birdname, 'bu77wh13')
-    %     MotifsActual = {'kspj', 'ab', 'bh', 'jb', 'nkrs'}; % COULD IMPROVE
-    %       MotifsActual = {'kspj', 'ab', 'bh', 'ijbh', 'nkrs'}; % COULD IMPROVE
-    TargSyls = {'a(b)'};
-elseif strcmp(SummaryStruct.birds(1).birdname, 'br92br54')
-    %     MotifsActual = {'nkh', 'ddd', 'dh', 'agc', 'cc'}; % COULD IMPROVE
-    %       MotifsActual = {'kspj', 'ab', 'bh', 'ijbh', 'nkrs'}; % COULD IMPROVE
-    if strcmp(SummaryStruct.birds(1).neurons(1).exptID, 'LMANlearn2')
-        TargSyls = {'nk(h)'};
-    elseif strcmp(SummaryStruct.birds(1).neurons(1).exptID, 'LMANlearn3')
-        TargSyls = {'ag(c)'};
-    elseif strcmp(SummaryStruct.birds(1).neurons(1).exptID, 'LMANlearn4')
-        TargSyls = {'nk(h)'};
-    elseif strcmp(SummaryStruct.birds(1).neurons(1).exptID, 'LMANlearn5')
-        TargSyls = {'nk(h)', 'd(h)'};
+%% OLD VERSION, now defined in learning struct
+if (0)
+    % === GIVEN ACTUAL MOTIFS FOR THIS BIRD, DETERMINE WHICH SYLS TO LOOK AT
+    if strcmp(SummaryStruct.birds(1).birdname, 'wh6pk36')
+        %     MotifsActual = {'nlcchb', 'jklcchb', 'ga', 'mksd' ,'vb'};
+        TargSyls = {'nlcch(b)', 'jklcch(b)'};
+    elseif strcmp(SummaryStruct.birds(1).birdname, 'bk7')
+        %     MotifsActual = {'nnhh', 'gh', 'vbbb', 'gb', 'jkk', 'kl', 'gv', 'yoo', 'rs'}; % COULD IMPROVE
+        TargSyls = {'g(h)'};
+    elseif strcmp(SummaryStruct.birds(1).birdname, 'bu77wh13')
+        %     MotifsActual = {'kspj', 'ab', 'bh', 'jb', 'nkrs'}; % COULD IMPROVE
+        %       MotifsActual = {'kspj', 'ab', 'bh', 'ijbh', 'nkrs'}; % COULD IMPROVE
+        TargSyls = {'a(b)'};
+    elseif strcmp(SummaryStruct.birds(1).birdname, 'br92br54')
+        %     MotifsActual = {'nkh', 'ddd', 'dh', 'agc', 'cc'}; % COULD IMPROVE
+        %       MotifsActual = {'kspj', 'ab', 'bh', 'ijbh', 'nkrs'}; % COULD IMPROVE
+        if strcmp(SummaryStruct.birds(1).neurons(1).exptID, 'LMANlearn2')
+            TargSyls = {'nk(h)'};
+        elseif strcmp(SummaryStruct.birds(1).neurons(1).exptID, 'LMANlearn3')
+            TargSyls = {'ag(c)'};
+        elseif strcmp(SummaryStruct.birds(1).neurons(1).exptID, 'LMANlearn4')
+            TargSyls = {'nk(h)'};
+        elseif strcmp(SummaryStruct.birds(1).neurons(1).exptID, 'LMANlearn5')
+            TargSyls = {'nk(h)', 'd(h)'};
+        end
+    elseif strcmp(SummaryStruct.birds(1).birdname, 'or74bk35')
+        TargSyls = {'an(b)'};
     end
-elseif strcmp(SummaryStruct.birds(1).birdname, 'or74bk35')
-    TargSyls = {'an(b)'};
+    
+    
+    % motif_regexpr_str = {}; % will put motifs for extraction here
+    %
+    % for i=1:length(MotifsActual)
+    %     motif_actual = MotifsActual{i};
+    %
+    %     % for each vocalization in the motif, extract one segment
+    %     numvocals = length(motif_actual);
+    %
+    %     for ii=1:numvocals
+    %         if ii==1
+    %             segmentmotif = ['(' motif_actual(ii) ')' motif_actual(ii+1:end)];
+    %
+    %         elseif ii == numvocals
+    %             segmentmotif = [motif_actual(1:ii-1) '(' motif_actual(ii) ')'];
+    %
+    %         else
+    %
+    %             segmentmotif = [motif_actual(1:ii-1) '(' motif_actual(ii) ')' motif_actual(ii+1:end)];
+    %
+    %         end
+    %
+    %         %        disp(segmentmotif);
+    %         motif_regexpr_str = [motif_regexpr_str segmentmotif];
+    %     end
+    % end
 end
-
-
-% motif_regexpr_str = {}; % will put motifs for extraction here
-%
-% for i=1:length(MotifsActual)
-%     motif_actual = MotifsActual{i};
-%
-%     % for each vocalization in the motif, extract one segment
-%     numvocals = length(motif_actual);
-%
-%     for ii=1:numvocals
-%         if ii==1
-%             segmentmotif = ['(' motif_actual(ii) ')' motif_actual(ii+1:end)];
-%
-%         elseif ii == numvocals
-%             segmentmotif = [motif_actual(1:ii-1) '(' motif_actual(ii) ')'];
-%
-%         else
-%
-%             segmentmotif = [motif_actual(1:ii-1) '(' motif_actual(ii) ')' motif_actual(ii+1:end)];
-%
-%         end
-%
-%         %        disp(segmentmotif);
-%         motif_regexpr_str = [motif_regexpr_str segmentmotif];
-%     end
-% end
 
 %% extract data
 
@@ -124,13 +127,12 @@ for i=1:NumNeurons
     end
     cd ..
     [SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, extractSound);
-            Params.birdname = SummaryStruct.birds(1).birdname;
-        Params.exptname = SummaryStruct.birds(1).neurons(i).exptID;
-
+    Params.birdname = SummaryStruct.birds(1).birdname;
+    Params.exptname = SummaryStruct.birds(1).neurons(i).exptID;
+    
     % === if only extract targ syl, find what targ syl is
     
     if onlyCollectTargSyl==1
-        
         tmp = lt_neural_v2_LoadLearnMetadat;
         indbird = strcmp({tmp.bird.birdname}, birdname);
         indexpt = strcmp(tmp.bird(indbird).info(1,:), exptname);
@@ -149,7 +151,6 @@ for i=1:NumNeurons
                 [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
                     regexpr_str, motif_predur, motif_postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
                     0, 1, collectWNhit, 1, LearnKeepOnlyBase);
-                
             else
                 SegmentsExtract=struct;
                 Params=struct;
@@ -168,29 +169,29 @@ for i=1:NumNeurons
         
         
         %%  -- throw out all data post switchtime [obsolete - doing in regexp code now]
-%     [islearning, LearnSummary, switchtime] = lt_neural_v2_QUICK_islearning(birdname, exptname, 1);
-%         if isfield(SegmentsExtract, 'song_datenum')
-%             % i.e., has data
-%             
-%         if LearnKeepOnlyBase ==1
-%             if islearning==1
-%                 assert(~isempty(switchtime), 'asdfasdf')
-%                 
-%                 tvals = [SegmentsExtract.song_datenum];
-%                 indstoremove = tvals > switchtime;
-%                 
-%                 SegmentsExtract(indstoremove) = [];
-%                 
-%                 disp([' === removed WN files from (learning) : ' birdname '-' exptname '-neur' num2str(i) '-' regexpr_str ' - ' num2str(sum(indstoremove)) '/' num2str(length(indstoremove))]);
-%                 
-%                 
-%                 % --- if all data removed, make it an empty structure
-%                 if all(indstoremove)
-%                     SegmentsExtract = struct;
-%                 end
-%             end
-%         end
-%         end
+        %     [islearning, LearnSummary, switchtime] = lt_neural_v2_QUICK_islearning(birdname, exptname, 1);
+        %         if isfield(SegmentsExtract, 'song_datenum')
+        %             % i.e., has data
+        %
+        %         if LearnKeepOnlyBase ==1
+        %             if islearning==1
+        %                 assert(~isempty(switchtime), 'asdfasdf')
+        %
+        %                 tvals = [SegmentsExtract.song_datenum];
+        %                 indstoremove = tvals > switchtime;
+        %
+        %                 SegmentsExtract(indstoremove) = [];
+        %
+        %                 disp([' === removed WN files from (learning) : ' birdname '-' exptname '-neur' num2str(i) '-' regexpr_str ' - ' num2str(sum(indstoremove)) '/' num2str(length(indstoremove))]);
+        %
+        %
+        %                 % --- if all data removed, make it an empty structure
+        %                 if all(indstoremove)
+        %                     SegmentsExtract = struct;
+        %                 end
+        %             end
+        %         end
+        %         end
         
         
         

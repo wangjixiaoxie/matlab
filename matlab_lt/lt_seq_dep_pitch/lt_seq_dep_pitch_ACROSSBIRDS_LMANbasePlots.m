@@ -340,6 +340,34 @@ plot(XY(:,1), Ysep, 'ok');
 % ----------------------------
 linkaxes(hsplots, 'x');
 
+
+%% ##### MORE LIKELY FOR AFP BIAS TO BE IN OPPOSITE DIRECTIONS IF START CLOSER?
+
+% =========================== SAME
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME');
+xlabel('starting sepration (abs, hz)')
+ylabel('diff in AFP bias (abs, hz)')
+
+inds = IsSameSyl==1;
+
+x = abs(separationPBS_paired(inds));
+XY = cell2mat(PitchShiftBothSyls_paired(inds)');
+DiffInAFPbias = abs(XY(:,2)-XY(:,1));
+
+plot(x, DiffInAFPbias, 'ok');
+lt_regress(DiffInAFPbias, x, 1)
+% 
+% y = abs(separationMUSC_paired(inds));
+% plot(x, y, 'or');
+% 
+% 
+
+%% ######## MORE OVERLAP IN PITCH DISTRIBUTION DURING MUSC?
+
+
+
+
 %% ####################### compare distributions to shuffle distributions
 % to shuffle: 1) null hypothesis is that AFP bias is independent of pair
 % (i.e. each syl in a pair gets random draw from entire distribution of
@@ -1183,7 +1211,6 @@ hfigs=[];
 [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
 title('same SYL');
 xlabel('same motif -- diff motif');
-ylabel('change (ff');
 Yall ={};
 
 % ----- same motif
@@ -1197,6 +1224,7 @@ y = abs(separationMUSC_paired(inds)) - abs(separationPBS_paired(inds));
 Yall{2} = y;
 
 lt_plot_MultDist(Yall, [1 2])
+ylabel('change in sep (musc - pbs)');
 
 ylim([-120 120]);
 lt_plot_zeroline;
@@ -1246,7 +1274,158 @@ p = ranksum(Yall{1}, Yall{2});
 lt_plot_text(1.5, 0.8, ['(vs)p=' num2str(p)], 'b')
 
 
+%% ####################### AFP BIAS MORE SIMILAR IF ON SAME MOTIF?
 
+% ======================== SAME SYL, SAME MOTIF
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME SYL, SAME MOTIF (bk = adjacent)');
+inds = IsSameMotif==1 & IsSameSyl==1;
+plotcol = 'b';
+
+y = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+
+% -- plot syls in random order
+indtmp = rand(size(y,1),1)>0.5;
+y(indtmp,:) = fliplr(y(indtmp,:));
+
+% % -- flip so that syl starting wtih higher pitch is on first column
+% ffraw = DATSTRUCT.singlesyls.Pitch_PBSraw(DATSTRUCT.pairedsyls.Pairs_OriginalInds(inds,:));
+% indtmp = ffraw(:,2)>ffraw(:,1);
+% y(indtmp,:) = fliplr(y(indtmp,:));
+
+lt_regress(y(:,2), y(:,1), 1, 0, 1, 1, plotcol);
+% plot(y(:,1), y(:,2), 'o', 'Color', plotcol);
+
+% -- note down those that are adjacent
+nsyls = DATSTRUCT.pairedsyls.NumSylsInBetween(inds);
+plot(y(nsyls==0,1), y(nsyls==0,2), 'ok');
+
+AdjacentBiasSAME = [y(nsyls==0,1), y(nsyls==0,2)];
+NonAdjacentBiasSAME = [y(nsyls>0,1), y(nsyls>0,2)];
+
+xlim([-60 60]);
+ylim([-60 60]);
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+
+% ======================== SAME SYL, DIFF MOTIF
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('SAME SYL, DIFF MOTIF');
+inds = IsSameMotif==0 & IsSameSyl==1;
+plotcol = 'b';
+
+y = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+% -- plot syls in random order
+indtmp = rand(size(y,1),1)>0.5;
+y(indtmp,:) = fliplr(y(indtmp,:));
+
+lt_regress(y(:,2), y(:,1), 1, 0, 1, 1, plotcol);
+
+NonAdjacentBiasSAME = [NonAdjacentBiasSAME; [y(:,1), y(:,2)]];
+
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+xlim([-60 60]);
+ylim([-60 60]);
+
+
+% ################## quick binomial test for whether ajacent are more
+% likely to have similar direction bias than chance
+% [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+% title('adjacent syls');
+% lt_regress(AdjacentBiasSAME(:,2), AdjacentBiasSAME(:,1), 1);
+% 
+% lt_plot_zeroline;
+% lt_plot_zeroline_vert;
+% xlim([-60 60]);
+% ylim([-60 60]);
+% 
+% [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+% title('non-adjacent syls');
+% lt_regress(NonAdjacentBiasSAME(:,2), NonAdjacentBiasSAME(:,1), 1);
+% 
+% lt_plot_zeroline;
+% lt_plot_zeroline_vert;
+% xlim([-60 60]);
+% ylim([-60 60]);
+
+
+% -------------- directly compare slopes
+X = [AdjacentBiasSAME(:,1); NonAdjacentBiasSAME(:,1)];
+Y = [AdjacentBiasSAME(:,2); NonAdjacentBiasSAME(:,2)];
+Grp = [0*ones(size(AdjacentBiasSAME,1),1); 1*ones(size(NonAdjacentBiasSAME,1),1)];
+aoctool(X, Y, Grp)
+
+
+% ======================== DIFF SYL, SAME MOTIF
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('DIFF SYL, SAME MOTIF');
+inds = IsSameMotif==1 & IsSameSyl==0;
+plotcol = 'r';
+
+y = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+% -- plot syls in random order
+indtmp = rand(size(y,1),1)>0.5;
+y(indtmp,:) = fliplr(y(indtmp,:));
+
+lt_regress(y(:,2), y(:,1), 1, 0, 1, 1, plotcol);
+% -- note down those that are adjacent
+nsyls = DATSTRUCT.pairedsyls.NumSylsInBetween(inds);
+plot(y(nsyls==0,1), y(nsyls==0,2), 'ok');
+
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+xlim([-60 60]);
+ylim([-60 60]);
+
+AdjacentBiasSAME = [y(nsyls==0,1), y(nsyls==0,2)];
+NonAdjacentBiasSAME = [y(nsyls>0,1), y(nsyls>0,2)];
+
+% ======================== DIFF SYL, DIFF MOTIF
+[fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+title('DIFF SYL, DIFF MOTIF');
+inds = IsSameMotif==0 & IsSameSyl==0;
+plotcol = 'r';
+
+y = cell2mat(DATSTRUCT.pairedsyls.PitchShiftBothSyls_paired(inds)');
+% -- plot syls in random order
+indtmp = rand(size(y,1),1)>0.5;
+y(indtmp,:) = fliplr(y(indtmp,:));
+
+lt_regress(y(:,2), y(:,1), 1, 0, 1, 1, plotcol);
+NonAdjacentBiasSAME = [NonAdjacentBiasSAME; [y(:,1), y(:,2)]];
+
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
+xlim([-60 60]);
+ylim([-60 60]);
+
+% ################## quick binomial test for whether ajacent are more
+% likely to have similar direction bias than chance
+% [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+% title('adjacent syls');
+% lt_regress(AdjacentBiasSAME(:,2), AdjacentBiasSAME(:,1), 1);
+% 
+% lt_plot_zeroline;
+% lt_plot_zeroline_vert;
+% xlim([-60 60]);
+% ylim([-60 60]);
+% 
+% [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+% title('non-adjacent syls');
+% lt_regress(NonAdjacentBiasSAME(:,2), NonAdjacentBiasSAME(:,1), 1);
+% 
+% lt_plot_zeroline;
+% lt_plot_zeroline_vert;
+% xlim([-60 60]);
+% ylim([-60 60]);
+
+
+% -------------- directly compare slopes
+X = [AdjacentBiasSAME(:,1); NonAdjacentBiasSAME(:,1)];
+Y = [AdjacentBiasSAME(:,2); NonAdjacentBiasSAME(:,2)];
+Grp = [0*ones(size(AdjacentBiasSAME,1),1); 1*ones(size(NonAdjacentBiasSAME,1),1)];
+aoctool(X, Y, Grp)
 
 %% ####################################### SCATTER PLOT [SEPARATION]
 ChangeInSep = abs(separationMUSC_paired) - abs(separationPBS_paired);

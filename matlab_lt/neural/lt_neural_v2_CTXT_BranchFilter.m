@@ -8,7 +8,8 @@ function ALLBRANCH = lt_neural_v2_CTXT_BranchFilter(ALLBRANCH, Params)
 
 % Params.LocationsToKeep = {};
 % % Params.birdstoexclude = {'bk7', 'bu77wh13', 'or74bk35', 'wh6pk36', 'br92br54'};
-% Params.birdstoexclude = {};
+% Params.birdstoexclude = {}; % performs 1st
+% Params.birdstokeep = {}; % performs 2nd
 % Params.RemoveRepeats = 0; % Removes if, for any class in branch, presyl is same as token (e.g. a(a)a)
 % Params.durThreshOmega.syl = 0.2; % omega2 (will only keep if lower) [leave empty to ignore]
 % Params.durThreshOmega.gappre= [];
@@ -25,6 +26,12 @@ RemoveRepeats = Params.RemoveRepeats;
 durThreshOmega = Params.durThreshOmega;
 GapDurPreMax = Params.GapDurPreMax;
 RemoveHandCoded = Params.RemoveHandCoded;
+
+if ~isfield(Params, 'birdstokeep')
+    birdstokeep = {};
+else
+    birdstokeep = Params.birdstokeep;
+end
 
 %%
 
@@ -60,6 +67,18 @@ for ii=1:numbirds
         Birdstoremove = [Birdstoremove ii];
         continue
     end
+    
+    if ~isempty(birdstokeep)
+       % --- then only continue if this bird is wanted
+       if ~any(strcmp(birdstokeep, birdname))
+                   disp(['REMOVING ' birdname]);
+        Birdstoremove = [Birdstoremove ii];
+
+       continue
+    end
+       
+    end
+    
     
     numbranch = length(ALLBRANCH.alignpos(apos).bird(ii).branch);
     for j=1:numbranch

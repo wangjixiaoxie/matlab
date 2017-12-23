@@ -1,0 +1,590 @@
+
+onlySetsWithRALMANpaired=1;
+
+%%
+NumBirds = length(MOTIFSTATS_pop.birds);
+
+% =============== SINGLE NEURON VS. FF
+All_NeurFF_Rho = [];
+All_NeurFF_P = [];
+All_NeurFF_Brain = {};
+
+% =============== NEURON PAIRS VS. FF
+All_NeurPairFF_beta = []; % trials x 3(2 regions + interactio)
+All_NeurPairFF_pval = [];
+All_NeurPairFF_Brain = {}; 
+All_NeurPairFF_NeurID = [];
+All_NeurPairFF_BirdID = [];
+All_NeurPairFF_ExptID = [];
+All_NeurPairFF_Ntrials = [];
+All_NeurPairFF_motifnum = [];
+
+% =============== BETWEEN NEURONS
+All_NeurNeur_Rho = [];
+All_NeurNeur_P = [];
+All_NeurNeur_Brain = {};
+
+for i=1:NumBirds
+    
+    numexpts = length(MOTIFSTATS_pop.birds(i).exptnum);
+    params = MOTIFSTATS_pop.birds(i).params;
+    
+    for ii=1:numexpts
+        
+        numsets = length(MOTIFSTATS_pop.birds(i).exptnum(ii).Sets_neurons);
+        for iii=1:numsets
+            disp(['bird' num2str(i) '-expt' num2str(ii) '-set' num2str(iii)])
+            
+            neurons_thisset = MOTIFSTATS_pop.birds(i).exptnum(ii).Sets_neurons{iii};
+            nummotifs = length(MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif);
+            %             DAT = MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii);
+            nneur = length(neurons_thisset);
+            
+            % =========== WHAT BRAIN REGIONS ARE THESE?
+            brainRegions = {SummaryStruct.birds(i).neurons(neurons_thisset).NOTE_Location};
+            
+            %% ######################### LMAN/RA PAIRS [MODIFY TO BE GENERAL]
+            indsLMAN = strcmp(brainRegions, 'LMAN');
+            indsRA = strcmp(brainRegions, 'RA');
+            indsX = strcmp(brainRegions, 'X');
+            
+            if onlySetsWithRALMANpaired==1
+                if ~any(indsLMAN) & ~any(indsRA)
+                    continue
+                end
+            end
+            
+            %%
+            for mm = 1:nummotifs
+                if ~isfield(MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm), 'POST')
+                    continue
+                end
+                if isempty(MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).POST)
+                    % then no FF dat, skip
+                    continue
+                end
+                
+                
+                
+                % ============================= COLLECT DATA
+                FF = MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).POST.FF;
+                NspksAll = MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).POST.Nspks_allneur;
+                
+                
+                %% 1) PERFORM MULTILINEAR REGRESSION [ALL PAIRS]
+                for nn=1:nneur
+                    for nnn=nn+1:nneur
+                        
+                        X = NspksAll(:, [nn nnn]);
+                        Y = FF;
+                        % --- subtract mean
+                        X = X - repmat(mean(X,1), size(X,1), 1);
+                        Y = FF - mean(FF);
+                        
+                        modelspec = 'interactions';
+                        mdl = fitlm(X, Y, modelspec);
+                        
+                        % ==== extract coeff, se, and p, from mdl
+                        betas = mdl.Coefficients.Estimate(2:end);
+                        pvals = mdl.Coefficients.pValue(2:end);
+                        betasSE = mdl.Coefficients.SE(2:end);
+                       
+                        % --- brain regions
+                        bregtmp = {brainRegions{nn}, brainRegions{nnn}};
+                        
+                        % ========= collect
+                        All_NeurPairFF_beta = [All_NeurPairFF_beta; betas']; % trials x 3(2 regions + interactio)
+                        All_NeurPairFF_pval = [All_NeurPairFF_pval; pvals'];
+                        All_NeurPairFF_Brain = [All_NeurPairFF_Brain; bregtmp]; 
+                        All_NeurPairFF_NeurID = [All_NeurPairFF_NeurID; ...
+                            [neurons_thisset(nn) neurons_thisset(nnn)]];
+                        All_NeurPairFF_BirdID = [All_NeurPairFF_BirdID; ...
+                            i];
+                        All_NeurPairFF_ExptID = [All_NeurPairFF_ExptID; ...
+                            ii];
+                        All_NeurPairFF_Ntrials = [All_NeurPairFF_Ntrials; ...
+                            length(FF)];
+                        All_NeurPairFF_motifnum = [All_NeurPairFF_motifnum; ...
+                            mm];
+                    end
+                end
+                
+                %% 2) EACH NEURON REGRESS WITH FF
+                
+                [rho, p] = corr([NspksAll FF]);
+                neurFF_rho = rho(1:end-1,end); % corr between individual neurons and FF (in order)
+                neurFF_p = p(1:end-1, end);
+                neurFF_brain = brainRegions;
+                
+                All_NeurFF_Rho = [All_NeurFF_Rho neurFF_rho'];
+                All_NeurFF_P = [All_NeurFF_P neurFF_p'];
+                All_NeurFF_Brain = [All_NeurFF_Brain neurFF_brain];
+                
+                %% 3) CORRELATION BETWEEN NEURONS
+                for nn=1:nneur
+                    for nnn=nn+1:nneur
+                        rtmp = rho(nn, nnn);
+                        ptmp = p(nn, nnn);
+                        bregtmp = {brainRegions{nn}, brainRegions{nnn}};
+                        
+                        % ----- OUTPUT
+                        All_NeurNeur_Rho = [All_NeurNeur_Rho; rtmp'];
+                        All_NeurNeur_P = [All_NeurNeur_P; ptmp'];
+                        All_NeurNeur_Brain = [All_NeurNeur_Brain; bregtmp];
+                        
+                        
+                    end
+                end
+                
+                
+                
+                if (0)
+                    
+                    lt_figure; hold on;
+                    plot(NspksAll(:,1).*NspksAll(:,2), FF, 'ok');
+                    
+                end
+            end
+        end
+    end
+end
+
+%%
+inds = All_NeurPairFF_BirdID==1 & All_NeurPairFF_motifnum==1;
+All_NeurPairFF_NeurID(inds, :)
+
+%% ############################## make brain regions alphabetical order
+% reason: so region 1 is always same actual region, for a given pair
+
+for j=1:size(All_NeurPairFF_Brain, 1)
+   
+    [~, indtmp] = sort(All_NeurPairFF_Brain(j,:));
+    
+    % -- output
+    All_NeurPairFF_Brain(j,:) = All_NeurPairFF_Brain(j, indtmp);
+    All_NeurPairFF_beta(j, [1 2]) = All_NeurPairFF_beta(j, indtmp);
+    All_NeurPairFF_pval(j, [1 2]) = All_NeurPairFF_pval(j, indtmp);
+    
+end
+
+%% ############################## PLOTS
+Brainregions = unique(All_NeurFF_Brain);
+
+%% ============== SINGLE NEURON VS. FF [DISTRIBUTION PER REGION]
+
+for i=1:length(Brainregions)
+lt_figure; hold on;
+ct = 1;
+    bregion = Brainregions{i};
+    
+    inds = strcmp(All_NeurFF_Brain, bregion);
+    
+    % -------------- 1) histogram of rho
+    lt_subplot(3,2,ct); hold on;
+    ct = ct+1;
+    title(bregion);
+    xlabel('rho (all neurons)');
+    
+    rho = All_NeurFF_Rho(inds);
+    p = All_NeurFF_P(inds);
+    
+    lt_plot_histogram(rho);
+    xlim([-1 1]);
+    
+    % --------------- 2) rho vs. p value
+    lt_subplot(3,2,ct); ct= ct+1; hold on;
+    ylabel('log10(p)');
+    xlabel('rho');
+    
+    plot(rho, log10(p), 'or');
+    line(xlim, [log10(0.05) log10(0.05)]);
+    
+    % -------------- 3) count of significant negative and positive)
+    lt_subplot(3,2,ct); ct= ct+1; hold on;
+    xlabel('p threshold');
+    ylabel('% pass');
+    title(bregion);
+    
+    propsig_pos = [];
+    propsig_neg = [];
+    threshlist = [0.05 0.01 0.001];
+    for thresh =threshlist;
+        % -- positive
+        propsig_pos = [propsig_pos sum(p<thresh & rho>0)/length(p)];
+        % -- neg
+        propsig_neg = [propsig_neg sum(p<thresh & rho<0)/length(p)];
+        
+    end
+    % -- pos
+    lt_plot_bar([1:length(threshlist)]-0.2, propsig_pos, {'BarWidth', 0.2, 'Color', 'b'});
+    % -- neg
+    lt_plot_bar([1:length(threshlist)]+0.2, propsig_neg, {'BarWidth', 0.2, 'Color', 'r'});
+    
+    xlabel(num2str(threshlist));
+    lt_plot_annotation(1, ['N=' num2str(length(p))], 'r');
+    ylim([0 1]);
+end
+
+%% ============= NEURON PAIRS VS. FF
+numrows = 3; numcols = 2;
+
+for i = 1:length(Brainregions)
+    bregion1 = Brainregions{i};
+    
+    % ##################################### THIS REGION PAIRED WITH ITSELF
+    lt_figure; hold on;
+    ct = 1;
+    
+    inds = strcmp(All_NeurPairFF_Brain(:,1), bregion1) ...
+        & strcmp(All_NeurPairFF_Brain(:,2), bregion1);
+    
+    % ================================= 1) histogram of beta
+    lt_subplot(numrows,numcols,ct); hold on;
+    ct = ct+1;
+    title([bregion1 '-' bregion1]);
+    xlabel('betas');
+    
+    % --- first region
+    beta = All_NeurPairFF_beta(inds, 1);
+    plotcol = 'r';
+    lt_plot_histogram(beta, '', 1, 0, '', 1, plotcol);
+    lt_plot_text(max(beta), 2, 'region1', plotcol);
+    
+    % --- second region
+    beta = All_NeurPairFF_beta(inds, 2);
+    plotcol = 'b';
+    lt_plot_histogram(beta, '', 1, 0, '', 1, plotcol);
+    lt_plot_text(max(beta), 4, 'region2', plotcol);
+    
+    % --- interaction
+    beta = All_NeurPairFF_beta(inds, 3);
+    plotcol = 'k';
+    lt_plot_histogram(beta, '', 1, 0, '', 1, plotcol);
+    lt_plot_text(max(beta), 6, 'interaction', plotcol);
+    
+    
+    % ================================ 3D scatter plot
+    lt_subplot(numrows,numcols,ct); hold on;
+    ct = ct+1;
+    xlabel('region1', 'Color', 'r');
+    ylabel('region2', 'Color', 'b');
+    zlabel('interaction', 'Color', 'k');
+    
+    % -- all
+    beta1 = All_NeurPairFF_beta(inds, 1);
+    beta2 = All_NeurPairFF_beta(inds, 2);
+    beta3 = All_NeurPairFF_beta(inds, 3);
+    plot3(beta1, beta2, beta3, 'ok');
+    
+        
+    % ================================ 2) beta vs. p value
+    lt_subplot(numrows,numcols,ct); hold on;
+    ct = ct+1;
+    ylabel('log10(p)');
+    xlabel('beta');
+    
+    
+    % --- first region
+    beta = All_NeurPairFF_beta(inds, 1);
+    p = All_NeurPairFF_pval(inds, 1);
+    plotcol = 'r';
+
+    plot(beta, log10(p), 'o', 'Color', plotcol);
+    
+    % --- second region
+    beta = All_NeurPairFF_beta(inds, 2);
+    p = All_NeurPairFF_pval(inds, 2);
+    plotcol = 'b';
+
+    plot(beta, log10(p), '^', 'Color', plotcol);
+    
+    % --- third region
+    beta = All_NeurPairFF_beta(inds, 3);
+    p = All_NeurPairFF_pval(inds, 3);
+    plotcol = 'k';
+
+    plot(beta, log10(p), 's', 'Color', plotcol);
+    
+    
+    line(xlim, [log10(0.05) log10(0.05)]);
+    lt_plot_zeroline_vert;
+    
+    % ======================== 3) count of significant negative and positive)
+    % ------ iterate over region 1, region 2, interaction
+    for j=1:3;
+    lt_subplot(numrows,numcols,ct); hold on; ct = ct+1;
+    xlabel('p threshold');
+    ylabel('% pass');
+    if j==3
+        title('interaction');
+    else
+    title(['region' num2str(j)])
+    end
+    
+    p = All_NeurPairFF_pval(inds, j);
+    beta = All_NeurPairFF_beta(inds, j);
+    
+    propsig_pos = [];
+    propsig_neg = [];
+    threshlist = [0.05 0.01 0.001];
+    for thresh =threshlist;
+        % -- positive
+        propsig_pos = [propsig_pos sum(p<thresh & beta>0)/length(p)];
+        % -- neg
+        propsig_neg = [propsig_neg sum(p<thresh & beta<0)/length(p)];
+    end
+    
+    % -- pos
+    lt_plot_bar([1:length(threshlist)]-0.2, propsig_pos, {'BarWidth', 0.2, 'Color', 'b'});
+    % -- neg
+    lt_plot_bar([1:length(threshlist)]+0.2, propsig_neg, {'BarWidth', 0.2, 'Color', 'r'});
+    
+    xlabel(num2str(threshlist));
+    lt_plot_annotation(1, ['N=' num2str(length(p))], 'r');
+    ylim([0 1]);
+    end
+    
+     
+    % ############################################### BETWEEN BRAIN REGIONS
+    for ii=i+1:length(Brainregions)
+        bregion2 = Brainregions{ii};
+        lt_figure; hold on;
+        ct = 1;
+        
+        inds = (strcmp(All_NeurPairFF_Brain(:,1), bregion1) ...
+            & strcmp(All_NeurPairFF_Brain(:,2), bregion2)) ...
+            | ...
+            (strcmp(All_NeurPairFF_Brain(:,1), bregion2) ...
+            & strcmp(All_NeurPairFF_Brain(:,2), bregion1)); % since bould be 1-2 or 2-1 (diff order)
+        
+        
+        
+        % ================================= 1) histogram of beta
+        lt_subplot(numrows,numcols,ct); hold on;
+        ct = ct+1;
+        title([bregion1 '-' bregion2]);
+        xlabel('betas');
+        
+        % --- first region
+        beta = All_NeurPairFF_beta(inds, 1);
+        plotcol = 'r';
+        lt_plot_histogram(beta, '', 1, 0, '', 1, plotcol);
+        lt_plot_text(max(beta), 2, 'region1', plotcol);
+        
+        % --- second region
+        beta = All_NeurPairFF_beta(inds, 2);
+        plotcol = 'b';
+        lt_plot_histogram(beta, '', 1, 0, '', 1, plotcol);
+        lt_plot_text(max(beta), 4, 'region2', plotcol);
+        
+        % --- interaction
+        beta = All_NeurPairFF_beta(inds, 3);
+        plotcol = 'k';
+        lt_plot_histogram(beta, '', 1, 0, '', 1, plotcol);
+        lt_plot_text(max(beta), 6, 'interaction', plotcol);
+        
+        
+            % ================================ 3D scatter plot
+        lt_subplot(numrows,numcols,ct); hold on;
+        ct = ct+1;
+        xlabel('region1', 'Color', 'r');
+        ylabel('region2', 'Color', 'b');
+        zlabel('interaction', 'Color', 'k');
+
+        % -- all
+        beta1 = All_NeurPairFF_beta(inds, 1);
+        beta2 = All_NeurPairFF_beta(inds, 2);
+        beta3 = All_NeurPairFF_beta(inds, 3);
+        plot3(beta1, beta2, beta3, 'ok');
+        
+    
+        % ================================ 2) beta vs. p value
+        lt_subplot(numrows,numcols,ct); hold on;
+        ct = ct+1;
+        ylabel('log10(p)');
+        xlabel('beta');
+        
+        
+        % --- first region
+        beta = All_NeurPairFF_beta(inds, 1);
+        p = All_NeurPairFF_pval(inds, 1);
+        plotcol = 'r';
+        
+        plot(beta, log10(p), 'o', 'Color', plotcol);
+        
+        % --- second region
+        beta = All_NeurPairFF_beta(inds, 2);
+        p = All_NeurPairFF_pval(inds, 2);
+        plotcol = 'b';
+        
+        plot(beta, log10(p), '^', 'Color', plotcol);
+        
+        % --- third region
+        beta = All_NeurPairFF_beta(inds, 3);
+        p = All_NeurPairFF_pval(inds, 3);
+        plotcol = 'k';
+        
+        plot(beta, log10(p), 's', 'Color', plotcol);
+        
+        
+        line(xlim, [log10(0.05) log10(0.05)]);
+        lt_plot_zeroline_vert;
+        
+        % ======================== 3) count of significant negative and positive)
+        % ------ iterate over region 1, region 2, interaction
+        for j=1:3;
+            lt_subplot(numrows,numcols,ct); hold on; ct = ct+1;
+            xlabel('p threshold');
+            ylabel('% pass');
+            if j==3
+                title('interaction');
+            else
+                title(['region' num2str(j)])
+            end
+            
+            p = All_NeurPairFF_pval(inds, j);
+            beta = All_NeurPairFF_beta(inds, j);
+            
+            propsig_pos = [];
+            propsig_neg = [];
+            threshlist = [0.05 0.01 0.001];
+            for thresh =threshlist;
+                % -- positive
+                propsig_pos = [propsig_pos sum(p<thresh & beta>0)/length(p)];
+                % -- neg
+                propsig_neg = [propsig_neg sum(p<thresh & beta<0)/length(p)];
+            end
+            
+            % -- pos
+            lt_plot_bar([1:length(threshlist)]-0.2, propsig_pos, {'BarWidth', 0.2, 'Color', 'b'});
+            % -- neg
+            lt_plot_bar([1:length(threshlist)]+0.2, propsig_neg, {'BarWidth', 0.2, 'Color', 'r'});
+            
+            xlabel(num2str(threshlist));
+            lt_plot_annotation(1, ['N=' num2str(length(p))], 'r');
+            ylim([0 1]);
+        end
+        
+        
+    end
+end
+
+%% ============= NEURON-NEURON PAIRS
+
+for i = 1:length(Brainregions)
+    bregion1 = Brainregions{i};
+    % ============= THIS REGION PAIRED WITH ITSELF
+    lt_figure; hold on;
+    ct = 1;
+    
+    inds = strcmp(All_NeurNeur_Brain(:,1), bregion1) ...
+        & strcmp(All_NeurNeur_Brain(:,2), bregion1);
+    
+    % ------------------------------------------------ PLOTS
+    % -------------- 1) histogram of rho
+    lt_subplot(2,2,ct); hold on;
+    ct = ct+1;
+    title([bregion1 '-' bregion1]);
+    xlabel('rho (all neurons)');
+    
+    rho = All_NeurNeur_Rho(inds);
+    p = All_NeurNeur_P(inds);
+    
+    lt_plot_histogram(rho);
+    xlim([-1 1]);
+    
+    % --------------- 2) rho vs. p value
+    lt_subplot(2,2,ct); ct= ct+1; hold on;
+    ylabel('log10(p)');
+    xlabel('rho');
+    
+    plot(rho, log10(p), 'or');
+    line(xlim, [log10(0.05) log10(0.05)]);
+    
+    
+    % -------------- 3) count of significant negative and positive)
+    lt_subplot(2,2,ct); ct= ct+1; hold on;
+    xlabel('p threshold');
+    ylabel('% pass');
+    
+    propsig_pos = [];
+    propsig_neg = [];
+    threshlist = [0.05 0.01 0.001];
+    for thresh =threshlist;
+        % -- positive
+        propsig_pos = [propsig_pos sum(p<thresh & rho>0)/length(p)];
+        % -- neg
+        propsig_neg = [propsig_neg sum(p<thresh & rho<0)/length(p)];
+    end
+    
+    % -- pos
+    lt_plot_bar([1:length(threshlist)]-0.2, propsig_pos, {'BarWidth', 0.2, 'Color', 'b'});
+    % -- neg
+    lt_plot_bar([1:length(threshlist)]+0.2, propsig_neg, {'BarWidth', 0.2, 'Color', 'r'});
+    
+    xlabel(num2str(threshlist));
+    lt_plot_annotation(1, ['N=' num2str(length(p))], 'r');
+    ylim([0 1]);
+    
+    % ========================= THIS REGION PAIRED WITH OTHERS
+    for ii=i+1:length(Brainregions)
+            lt_figure; hold on;
+            ct = 1;
+
+    bregion2 = Brainregions{ii};
+        
+        inds = (strcmp(All_NeurNeur_Brain(:,1), bregion1) ...
+            & strcmp(All_NeurNeur_Brain(:,2), bregion2)) ...
+            | ...
+            (strcmp(All_NeurNeur_Brain(:,1), bregion2) ...
+            & strcmp(All_NeurNeur_Brain(:,2), bregion1)); % since bould be 1-2 or 2-1 (diff order)
+        
+        % ------------------------------------------------ PLOTS
+        % -------------- 1) histogram of rho
+        lt_subplot(2,2,ct); hold on;
+        ct = ct+1;
+        title([bregion1 '-' bregion2]);
+        xlabel('rho (all neurons)');
+        
+        rho = All_NeurNeur_Rho(inds);
+        p = All_NeurNeur_P(inds);
+        
+        lt_plot_histogram(rho);
+        xlim([-1 1]);
+        
+        % --------------- 2) rho vs. p value
+        lt_subplot(2,2,ct); ct= ct+1; hold on;
+        ylabel('log10(p)');
+        xlabel('rho');
+        
+        plot(rho, log10(p), 'or');
+        line(xlim, [log10(0.05) log10(0.05)]);
+        
+        
+        % -------------- 3) count of significant negative and positive)
+        lt_subplot(2,2,ct); ct= ct+1; hold on;
+        xlabel('p threshold');
+        ylabel('% pass');
+        
+        propsig_pos = [];
+        propsig_neg = [];
+        threshlist = [0.05 0.01 0.001];
+        for thresh =threshlist;
+            % -- positive
+            propsig_pos = [propsig_pos sum(p<thresh & rho>0)/length(p)];
+            % -- neg
+            propsig_neg = [propsig_neg sum(p<thresh & rho<0)/length(p)];
+        end
+        
+        % -- pos
+        lt_plot_bar([1:length(threshlist)]-0.2, propsig_pos, {'BarWidth', 0.2, 'Color', 'b'});
+        % -- neg
+        lt_plot_bar([1:length(threshlist)]+0.2, propsig_neg, {'BarWidth', 0.2, 'Color', 'r'});
+        
+        xlabel(num2str(threshlist));
+        lt_plot_annotation(1, ['N=' num2str(length(p))], 'r');
+        ylim([0 1]);
+        
+        
+    end
+end

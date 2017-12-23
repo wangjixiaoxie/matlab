@@ -1,5 +1,11 @@
 function lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot, plotspec_num, ...
-    locationtoplot)
+    locationtoplot, BranchToPlot, plotrasters)
+%%
+
+if ~exist('BranchToPlot', 'var')
+    BranchToPlot = {};
+end
+
 
 %%
 
@@ -45,6 +51,10 @@ for i=1:numalignpos
         else
             subplotcols=2;
         end
+        
+        if plotrasters==1
+            subplotcols = subplotcols+1;
+        end
         fignums_alreadyused=[];
         hfigs=[];
         
@@ -60,6 +70,8 @@ for i=1:numalignpos
             
             for nn=1:numneurons
                 
+                % ---- correct branch?
+                
                 hsplots = [];
                 sylregexp = ALLBRANCH.alignpos(i).bird(ii).branch(iii).neuron(nn).prms_regexpstr;
                 syllist = ALLBRANCH.alignpos(i).bird(ii).branch(iii).neuron(nn).prms_regexpstrlist;
@@ -69,10 +81,23 @@ for i=1:numalignpos
                     continue
                 end
                 
+                branchstr = ALLBRANCH.alignpos(i).bird(ii).branch(iii).neuron(nn).prms_regexpstr{1};
+                if ~isempty(BranchToPlot)
+                    if ~any(strcmp(BranchToPlot, branchstr))
+                        disp('asdas')
+                        disp(branchstr)
+                        disp(birdname)
+                        continue
+                    else
+                        disp('GOOD');
+                    end
+                end
+                
+                
                 if isfield(ALLBRANCH.SummaryStruct.birds(ii).neurons(nn), 'isRAsobermel')
                     location = 'RA';
                 else
-                location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
+                    location = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).NOTE_Location;
                 end
                 if ~isempty(locationtoplot)
                     if ~any(strcmp(locationtoplot, location))
@@ -205,8 +230,8 @@ for i=1:numalignpos
                     end
                 else
                     for cc = numclasses
-                         yloc = -20+18*(cc/numclasses(end));
-                       % --- offset of syl
+                        yloc = -20+18*(cc/numclasses(end));
+                        % --- offset of syl
                         sylmean = mean(dat.SylGapDurs.classnum(cc).Dur_syl);
                         sylstd = std(dat.SylGapDurs.classnum(cc).Dur_syl);
                         plot(sylmean, yloc, '^', 'MarkerSize', 5, 'Color', plotcols{cc});
@@ -231,7 +256,7 @@ for i=1:numalignpos
                 % ---------------------------
                 lt_plot_zeroline;
                 lt_plot_zeroline_vert;
-                ylim([-30 max(frmean)+20]);
+                ylim([-30 max(frmean)+50]);
                 xlim([-motifpredur motifpostdur]);
                 
                 % ############### fig 2 - classifier and dprime
@@ -268,6 +293,56 @@ for i=1:numalignpos
                 xlim([-motifpredur motifpostdur]);
                 
                 linkaxes(hsplots, 'x');
+                
+                
+                
+                % ######################### FIG 3 (rasters)
+                if plotrasters==1
+                    [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+                    hsplots = [hsplots hsplot];
+                    
+                    % ------------------- EXTRACT RASTERS
+                    sumstruct = ALLBRANCH.SummaryStruct;
+                    [SongDat, NeurDat, Params] = lt_neural_ExtractDat2(sumstruct, ii, nn);
+                    
+                    
+                    % ---- COLLECT REGEXP FOR EACH CLASS
+                    numclasses = find(~cellfun('isempty', {dat.FR.classnum.regexpstr}));
+                    trialnum = 0;
+                    for cc = numclasses
+                        motifstr = dat.FR.classnum(cc).regexpstr;
+                        collectWNhit = 0;
+                        preAndPostDurRelSameTimept = 1;
+                        RemoveIfTooLongGapDur = 1;
+                        FFparams.collectFF=0;
+                        [segextract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
+                            motifstr, motifpredur, motifpostdur, 1, '', FFparams, ...
+                            0, 1, collectWNhit, 0, 0, preAndPostDurRelSameTimept, RemoveIfTooLongGapDur);
+                        
+                        % ------------- 1) PLOT RASTER
+                        ylabel('trial, up is later');
+                        for tt = 1:length(segextract)
+                            spktimes = segextract(tt).spk_Times;
+                            for ttt =1:length(spktimes)
+                                line([spktimes(ttt) spktimes(ttt)], [trialnum-0.45 trialnum+0.45], ...
+                                    'Color', plotcols{cc}, 'LineWidth', 1.5);
+                            end
+                            trialnum = trialnum+1;
+                        end
+                        
+                        
+                    end
+                    
+                    
+                    axis tight
+                    line([motifpredur motifpredur], ylim);
+                    set(gca, 'Ytick', []);
+                    
+                    %                     % ---- collect all rasters
+                    %                     AllRasters = [AllRasters {{SegmentsExtract.spk_Times}}];
+                    %
+                    %
+                end
                 
                 
             end

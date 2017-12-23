@@ -1,10 +1,17 @@
 %% LT 4/13/15 - Compiles data and plots across experiments/birds.  Need to specific dir of saved structures
+%% SET PARAMS BEFORE RUNNING
+clear all; close all;
+
+baselineLMANanalysis=1; % if 1, then gets all syllables from baseline. if 0, then 
+% removes syls that will be avoided for learning analysis (i.e. WN overlap,
+% etc)
+
+
 %% TO DO:
 % 1) remove repeat experiments - i.e. average over them.
 
 
 %% INPUT PARAMS
-clear all; close all;
 
 PARAMS.global.use_zscore_learning=1; % not important. keep as 1.
 PARAMS.global.ConsolBinDaySize=2;  % days at start and end of consolid
@@ -13,6 +20,8 @@ PARAMS.global.learning_metric='zscore';
 % below)
 %               'ff_consolstart' (mean ff, at consol start, defined in cell)
 PARAMS.global.remove_bad_syls=1; % e.g. those hard to quantify
+
+if baselineLMANanalysis==0
 PARAMS.global.SylsToRemove=...
     {'gr41gr90','SeqDepPitchShift',{'d', 'Jbba','g'}, ...
     'gr41gr90','SeqDepPitchShift2',{'d', 'Jbba','g'}, ...
@@ -47,8 +56,42 @@ PARAMS.global.SylsToRemove=...
     'bk34bk68', 'SeqDepPitchLMAN', {'n', 'nJ', 'njJ', 'njjJ', 'jjbbG', 'k','l','lJ','ljbbG'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
     'bk34bk68', 'SeqDepPitchLMAN3', {'n', 'nJ', 'njJ', 'njjJ', 'jjbbG', 'k','l','lJ','ljbbG'}}; % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
 %     'pu53wh88','SeqDepPitchLMAN', {'abbB'}, ...
-
-
+else
+PARAMS.global.SylsToRemove=...
+    {'gr41gr90','SeqDepPitchShift',{'d', 'Jbba','g'}, ...
+    'gr41gr90','SeqDepPitchShift2',{'d', 'Jbba','g'}, ...
+    'gr41gr90','SeqDepPitchLMAN',{'Jbba','d', 'g'}, ...
+    'gr41gr90','SeqDepPitchLMAN2',{'d','Dbba','dBba','dbBa','dbbA', 'dbbaC','dbbacB','dbbacbB', 'Jbba', 'g'}, ...
+    'rd12pu6','SeqDepPitch',{'Jjb','jJb','Ja','h'}, ...
+    'rd12pu6','SeqDepPitch2',{'Jjb','jJb','Ja','h'}, ...
+    'rd12pu6','SeqDepPitch3',{'Jjb','jJb','Ja','h'}, ...
+    'pu35wh17','SeqDepPitch',{'Jb'}, ...
+    'pu35wh17','SeqDepPitch2',{'Jb'}, ...
+    'pu37wh20', 'SeqDepPitchShift2', {'Qc', 'qC', 'qcC', 'qccB', 'qccbB', 'qccbbG'}, ...
+    'rd23gr89','SeqDepPitch',{'k'},...
+    'rd23gr89','SeqDepPitchLMAN',{'k','g'}, ...
+    'rd23gr89','SeqDepPitchLMAN2',{'Nah', 'Nak', 'Nd', 'h', 'hJ', 'kJ'}, ...
+    'pu64bk13','SeqDepPitchShift', {'d'}, ...
+    'rd28pu64', 'SeqDepPitch', {'Jjb', 'jJb', 'Ja', 'kJ', 'jjbB','dG', 'kjbB'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'rd28pu64', 'SeqDepPitchLMAN', {'Jjb', 'jJb', 'Ja', 'kJ', 'dG'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'rd28pu64', 'SeqDepPitchLMAN2', {'Jjb', 'jJb', 'Ja', 'kJ','dG'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'bu11or68', 'RepDepPitchShift', {'g'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'or100pu10', 'SeqDepPitch', {'acbbbbB'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'or100pu10', 'SeqDepPitch2', {'acbbbbB'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'or100pu10', 'SeqDepPitch3', {'acbbbbB'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'or100pu10', 'SeqDepPitchLMAN', {'acbbbbB', 'acbbbbbB', 'acbbbbbbB'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'or100pu10', 'SeqDepPitchLMAN2', {'g'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'or73pu40', 'SeqDepPitch', {'acbbbbbbbbbB'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'or73pu40', 'SeqDepPitch2', {'acbbbbbbbbbB', 'acbbbbbbbbbbB'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'gr87bu18', 'SeqDepPitch2', {'k', 'hbbbbbB', 'abbbbbB'}, ... % NOTE: k contour should be altered, potentailyl could be fine.
+    'wh4wh77', 'SeqDepPitchLMAN', {'dbbG', 'cbbG', 'dbbgH', 'cbbgH'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'wh25pk77', 'SeqDepPitchLMAN', {'Jk', 'jK','aJ', 'n'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'bk34bk68', 'SeqDepPitchLMAN', {'n', 'nJ', 'njJ', 'njjJ', 'jjbbG', 'k','l','lJ','ljbbG'}, ... % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+    'bk34bk68', 'SeqDepPitchLMAN3', {'n', 'nJ', 'njJ', 'njjJ', 'jjbbG', 'k','l','lJ','ljbbG'}}; % triplets {'birdname','exptname',syls(cell)}, eg. {'pu11wh87','SeqDepPitchShift',{'dccB','aB'});
+%     'pu53wh88','SeqDepPitchLMAN', {'abbB'}, ...
+%     'pu11wh87','SeqDepPitchLMAN',{'bccbB'}, ...
+%     'pu11wh87','SeqDepPitchLMAN2', {'bC', 'bcC'}, ...
+end
 
 % GR41...
 % PARAMS.global.SylsToRemove=...
@@ -1148,15 +1191,17 @@ close all;
 NullControl_splitday=0;
 same_type_thr=1.43;
 useHandLabForSametype = 1;
-onlyUseFirstExpt = 1; % if 1, then uses first expt for birds with mult expts [NOTE: does not apply for SplitDay analysis yet]
+onlyUseFirstExpt = 0; % if 1, then uses first expt for birds with mult expts [NOTE: does not apply for SplitDay analysis yet]
 recalcValues = 0; % then rextracts raw ff and recalculates (difference: only looks at 
 % days in which inactivation occured ...) [keep at 0]
 reCalcOldMethodKeepingNanSongs = 1; % then recalculates corr, but using old regexp method [default]
 % only one of these 2 recalc things will be performed. if recalcValues==1,
-% then will overwrite other.
+% then will overwrite other. [default = 1]
+UseMotifByMotifCorr = 0; % if 1, then uses motif corr (does this by overwriting song by song...)
 DATSTRUCT=lt_seq_dep_pitch_ACROSSBIRDS_LMANbaseExtrct(SeqDepPitch_AcrossBirds_LMAN, ...
     PARAMS, same_type_thr, NullControl_splitday, useHandLabForSametype, ...
-    onlyUseFirstExpt, recalcValues, reCalcOldMethodKeepingNanSongs);
+    onlyUseFirstExpt, recalcValues, reCalcOldMethodKeepingNanSongs, ...
+    UseMotifByMotifCorr);
 
 
 % ####################################### PLOT TIMECOURSES
@@ -1176,11 +1221,11 @@ lt_seq_dep_pitch_ACROSSBIRDS_LMANbasePlotCor(DATSTRUCT, SeqDepPitch_AcrossBirds_
     PARAMS, same_type_thr, NullControl_splitday, useHandLabForSametype, ...
     onlyUseFirstExpt, recalcValues)
 
-
-
-% [~, PARAMS]=lt_seq_dep_pitch_ACROSSBIRDS_LMANbase(SeqDepPitch_AcrossBirds_LMAN, ...
-%     PARAMS, same_type_thr, NullControl_splitday, useHandLabForSametype, ...
-%     onlyUseFirstExpt, recalcValues);
+% ####################################### BASE AFP EFFECT VS. INITIAL
+% LEARNING
+close all; 
+lt_seq_dep_pitch_ACROSSBIRDS_LMANbasePlotLrn(DATSTRUCT, ...
+    SeqDepPitch_AcrossBirds_LMAN, PARAMS);
 
 
 

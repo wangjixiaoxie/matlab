@@ -59,6 +59,10 @@ for i=1:numbirds
                 motiftoplot, motifpredur, motifpostdur, 1, '', FFparams, ...
                 0, 1, collectWNhit, 0, 0, preAndPostDurRelSameTimept, RemoveIfTooLongGapDur);
             
+            if isempty(SegmentsExtract)
+                continue
+            end
+               
             
             % ------------- 1) PLOT RASTER
             if plotbytime==1
@@ -121,13 +125,13 @@ for i=1:numbirds
                 FRmean = mean(FRmat,2);
                 FRsem = lt_sem(FRmat');
                 shadedErrorBar(X, FRmean, FRsem, {'Color','r'},1);
-            end
-            line([motifpredur motifpredur], ylim);
             
             % ############################### COLLECT SMOOTHED FR
             AllSmoothFR = [AllSmoothFR FRmean];
             AllSmoothFR_sem = [AllSmoothFR_sem FRsem];
             AllSmoothFR_x = [AllSmoothFR_x X];
+            end
+            line([motifpredur motifpredur], ylim);
             
             
             % ------------- 3) PLOT syl onset/offsets

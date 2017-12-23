@@ -21,7 +21,7 @@ CLASSES = lt_neural_v2_CTXT_GetBrnchPosControl(CLASSES, SummaryStruct, prms, str
 % &&&&&&&&&&&&& 2) PLOT MEAN FR ACROSS CONTEXTS FOR EACH BRANCH 
 close all;
 plotPosControl = 0; % will do if exists.
-LMANorX = 0; % 0 for all; 1 for LMAN; 2 for X
+LMANorX = 1; % 0 for all; 1 for LMAN; 2 for X
 closeAfterEachBird = 1; % closes figss
 lt_neural_v2_CTXT_FRanyclass(CLASSES, SummaryStruct, prms, plotPosControl, ...
     LMANorX, closeAfterEachBird);
@@ -142,11 +142,13 @@ ALLBRANCH = lt_neural_v2_CTXT_BranchRemvOlap(ALLBRANCH);
 
 % ==== 2)  PLOT EACH BRANCH/BIRD/NEURON
 close all;
-birdtoplot = 'pu69wh78'; % leave blank to plot all;
-plotspec_num = 3; % how many spectrograms to plot for each class in each branch point? if 0 then none.
-locationtoplot = {'RA'};
+birdtoplot = 'or74bk35'; % leave blank to plot all;
+plotspec_num = 0; % how many spectrograms to plot for each class in each branch point? if 0 then none.
+locationtoplot = {};
+BranchToPlot = {'[a-z]aa'}; % type regexp strings
+plotrasters = 1;
 lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot, plotspec_num, ...
-    locationtoplot)
+    locationtoplot, BranchToPlot, plotrasters)
 
 
 % ==== 3)  SUMMARIZE PLOT ACROSS BRANCHES 
@@ -155,7 +157,7 @@ dattoplot = 'classperform';
 % dattoplot = 'frmean';
 % dattoplot = 'dprime';
 LMANorX = 2; % 0, both; 1, LMAN; 2, X, 3(RA)
-birdstoexclude = {};
+birdstoexclude = {'or74bk35'};
 % birdstoexclude = {'bk7', 'bu77wh13', 'or74bk35', 'wh6pk36', 'br92br54'};
 
 % durThreshOmega.syl = 0.15; % omega2 (will only keep if lower) [leave empty to ignore]
@@ -174,10 +176,12 @@ lt_neural_v2_CTXT_PlotAllBranch(ALLBRANCH, LMANorX, dattoplot, birdstoexclude, .
 
 % ################### [IMPORTANT] SORT BY BRANCH ID, BRAIN REGION, ETC
 close all;
-BrainRegions = {'LMAN', 'X', 'RA'};
+% BrainRegions = {'LMAN', 'X', 'RA'};
 BrainRegions = {'LMAN', 'RA'};
-BrainRegions = {'LMAN','X'};
-lt_neural_v2_CTXT_BRANCH_PlotByBranchID(ALLBRANCH, BrainRegions)
+% BrainRegions = {'LMAN','X'};
+BirdToPlot = {};
+lt_neural_v2_CTXT_BRANCH_PlotByBranchID(ALLBRANCH, BrainRegions, ...
+    BirdToPlot)
 
 
 % ###################### PLOT EXAMPLES FOR EACH BIRD/BRANCH POINT
@@ -203,15 +207,19 @@ lt_neural_v2_CTXT_BranchCompareTwo(branchfname1, branchfname2);
 %% #################### [PREMOTOR WINDOW, DECODING] 
 % ============= 1) IN PREMOTOR WINDOW, COMPARE DECODING VS. SHUFFLED.
 close all;
-analyfname = 'xaa_Algn2Ons1_30Nov2017_1911_XLMAN25msLTW';
+analyfname = 'xaaa_Algn2Ons1_19Dec2017_1219_XLMAN25msLTW';
 Niter = 1000;
 TimeWindows = [-0.035 -0.035]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
+% TimeWindows = [0 0 ]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
 % TimeWindows = [-0.035 -0.035]; % LMAN
 % TimeWindows = [-0.02 -0.02]; % RA
 lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
 
 % ------- to plot results from above (can do multiple)
 close all;
+% allanalyfnames = {...
+%     'xaa_Algn2Ons1_30Nov2017_1911_XLMAN25msLTW', ...
+%     };
 allanalyfnames = {...
     'xaa_Algn2Ons1_30Nov2017_1911_XLMAN25msLTW', ...
     };

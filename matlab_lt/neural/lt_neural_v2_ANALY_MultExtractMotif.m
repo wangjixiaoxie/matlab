@@ -1,5 +1,28 @@
 function MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
-    collectWNhit, LearnKeepOnlyBase, saveOn)
+    collectWNhit, LearnKeepOnlyBase, saveOn, onlyCollectTargSyl, OrganizeByExpt, ...
+    collectFF)
+
+%%
+
+if ~exist('collectFF', 'var')
+    collectFF = 1;
+end
+if isempty(collectFF)
+    collectFF=1;
+end
+
+    
+%% lt 12/20/17 - allows you to organize by neurons, instead of by expt.
+
+if ~exist('OrganizeByExpt', 'var')
+    OrganizeByExpt =1;
+end
+if isempty(OrganizeByExpt)
+    OrganizeByExpt=1;
+end
+   
+
+
 %% modified 10/16/17 by LT to save output struct. also asks before running
 % if want to load old struct - finds structs that have same params as
 % current params
@@ -8,6 +31,12 @@ if ~exist('saveOn', 'var')
     saveOn = 1;
 end
 
+if ~exist('onlyCollectTargSyl', 'var')
+    onlyCollectTargSyl = 0;
+end
+if isempty(onlyCollectTargSyl)
+    onlyCollectTargSyl=0;
+end
 
 %%
 % LearnKeepOnlyBase for learning, if 1, then keeps only baseline periods (i.e. before WN)
@@ -58,6 +87,8 @@ for i=1:length(prmslist)
             loadedold = 1;
             disp('--- LOADED OLD MOTIFSTATS_Compiled !!');
             break
+        elseif strcmp(input(['DELETE? (y or n) '], 's'), 'y')
+            
         end
         
     end
@@ -80,30 +111,50 @@ if loadedold==0
     
     for i=1:NumBirds
         
-        ListOfExpts = unique({SummaryStruct.birds(i).neurons.exptID});
         birdname = SummaryStruct.birds(i).birdname;
         
-        for ll=1:length(ListOfExpts)
-            exptname = ListOfExpts{ll};
+        if OrganizeByExpt==1
+            ListOfExpts = unique({SummaryStruct.birds(i).neurons.exptID});
             
-            inds = strcmp({SummaryStruct.birds(i).neurons.exptID}, exptname);
+            for ll=1:length(ListOfExpts)
+                exptname = ListOfExpts{ll};
+                
+                inds = strcmp({SummaryStruct.birds(i).neurons.exptID}, exptname);
+                
+                SummaryStruct_tmp = struct;
+                SummaryStruct_tmp.birds(1).neurons = SummaryStruct.birds(i).neurons(inds);
+                SummaryStruct_tmp.birds(1).birdname = SummaryStruct.birds(i).birdname;
+                
+                FFparams.collectFF=collectFF;
+                
+                % === extract for just this expt
+                [MOTIFSTATS] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct_tmp, ...
+                    collectWNhit, onlyCollectTargSyl, LearnKeepOnlyBase, FFparams);
+                
+                % === OUTPUT
+                MOTIFSTATS_Compiled.birds(i).exptnum(ll).MOTIFSTATS = MOTIFSTATS;
+                MOTIFSTATS_Compiled.birds(i).exptnum(ll).neurIDOriginal_inorder = inds;
+                MOTIFSTATS_Compiled.birds(i).exptnum(ll).SummaryStruct = SummaryStruct_tmp;
+                MOTIFSTATS_Compiled.birds(i).exptnum(ll).exptname = exptname;
+                MOTIFSTATS_Compiled.birds(i).birdname = birdname;
+                
+            end
+        else
             
-            SummaryStruct_tmp = struct;
-            SummaryStruct_tmp.birds(1).neurons = SummaryStruct.birds(i).neurons(inds);
-            SummaryStruct_tmp.birds(1).birdname = SummaryStruct.birds(i).birdname;
-            
-            FFparams.collectFF=0;
+                SummaryStruct_tmp = struct;
+                SummaryStruct_tmp.birds(1) = SummaryStruct.birds(i);
+                
+                FFparams.collectFF=collectFF;
+                
+                % === extract for just this expt
+                [MOTIFSTATS] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct_tmp, ...
+                    collectWNhit, onlyCollectTargSyl, LearnKeepOnlyBase, FFparams);
+                
+                % === OUTPUT
+                MOTIFSTATS_Compiled.birds(i).MOTIFSTATS = MOTIFSTATS;
+                MOTIFSTATS_Compiled.birds(i).SummaryStruct = SummaryStruct_tmp;
+                MOTIFSTATS_Compiled.birds(i).birdname = birdname;
 
-            % === extract for just this expt
-            [MOTIFSTATS] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct_tmp, ...
-                collectWNhit, 0, LearnKeepOnlyBase, FFparams);
-            
-            % === OUTPUT
-            MOTIFSTATS_Compiled.birds(i).exptnum(ll).MOTIFSTATS = MOTIFSTATS;
-            MOTIFSTATS_Compiled.birds(i).exptnum(ll).SummaryStruct = SummaryStruct_tmp;
-            MOTIFSTATS_Compiled.birds(i).exptnum(ll).exptname = exptname;
-            MOTIFSTATS_Compiled.birds(i).birdname = birdname;
-            
         end
     end
     

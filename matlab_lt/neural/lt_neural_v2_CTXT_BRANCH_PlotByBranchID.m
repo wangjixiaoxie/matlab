@@ -1,10 +1,12 @@
-function lt_neural_v2_CTXT_BRANCH_PlotByBranchID(ALLBRANCH, BrainRegions)
+function lt_neural_v2_CTXT_BRANCH_PlotByBranchID(ALLBRANCH, BrainRegions, ...
+    BirdToPlot)
 %% lt 11/29/17 - plots, sepaated by unique branch points (i.e. regexpstr)
 
 %% ======= Filter data (e.g. remove noise, poor labels, etc)
 
 Params.LocationsToKeep = BrainRegions;
-Params.birdstoexclude = {};
+Params.birdstoexclude = {}; % performs 1st
+Params.birdstokeep = BirdToPlot; % performs 2nd
 Params.RemoveRepeats = 0; % Removes if, for any class in branch, presyl is same as token (e.g. a(a)a)
 Params.durThreshOmega.syl = []; % omega2 (will only keep if lower) [leave empty to ignore]
 Params.durThreshOmega.gappre= [];
