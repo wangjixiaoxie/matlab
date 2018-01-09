@@ -1,5 +1,5 @@
 function lt_neural_v2_CTXT_BRANCH_PlotByBranchID(ALLBRANCH, BrainRegions, ...
-    BirdToPlot)
+    BirdToPlot, useDprime)
 %% lt 11/29/17 - plots, sepaated by unique branch points (i.e. regexpstr)
 
 %% ======= Filter data (e.g. remove noise, poor labels, etc)
@@ -17,9 +17,24 @@ Params.RemoveHandCoded =1 ; % see below
 
 ALLBRANCH = lt_neural_v2_CTXT_BranchFilter(ALLBRANCH, Params);
 
+%%
+if useDprime==1
+% DPRIME STUFF
+Niter = 3; % shuffles
+Nmin = 3; % min sample size;
+% Nmin = ALLBRANCH.alignpos(1).ParamsFirstIter.minN; % min sample size;
+
+% DprimeNegVersion = 'Wohl'; % DONT USE THIS - is biased to be large,  because of lower sample size (this splits data in half)
+DprimeNegVersion = 'shuff'; % correct version, shuffles and resplits, maintaining sampel size.
+
+ALLBRANCH = lt_neural_v2_CTXT_AllBranchDprime(ALLBRANCH, Nmin, Niter, ...
+    DprimeNegVersion);
+end
+
 %% ===== organize data by unique branches
 apos =1;
-DATSTRUCT_BYBRANCH = lt_neural_v2_CTXT_BRANCH_OrgByBranchID(ALLBRANCH);
+DATSTRUCT_BYBRANCH = lt_neural_v2_CTXT_BRANCH_OrgByBranchID(ALLBRANCH, '', '', ...
+    useDprime);
 
 %% ===== FOR EACH BIRD PLOT EACH BRANCH, SEPARATING BY BRAIN REGION
 numbirds = length(DATSTRUCT_BYBRANCH.bird);
@@ -329,4 +344,62 @@ end
     
     linkaxes(hsplots, 'xy');
 
+    
+    
+    %% ==== cross correlation between each pair of brain regions
+    windowmax = 0.1; % in sec
+    Ytmp = [];
+    figure; hold on;
+    for i=1:numbirds
+        numbranches = length(DATSTRUCT_BYBRANCH.bird(i).branchID);
+        
+        for bb=1:numbranches
+            
+            thisbranch = DATSTRUCT_BYBRANCH.bird(i).branchID(bb).regexpstr;
+            Yall = cell(1, length(locationstoplot));
+            
+            for k = 1:length(locationstoplot);
+                loc = locationstoplot{k};
+               
+                %  ================ GET brain region
+                inds = strcmp(DATSTRUCT_BYBRANCH.bird(i).branchID(bb).DAT.brainregion, loc); % neurons
+                if ~any(inds)
+                    continue
+                end
+                % -------------- GET DAT
+                xdecode = DATSTRUCT_BYBRANCH.bird(i).branchID(bb).DAT.xdecode(1,:);
+                binsize = xdecode(2)-xdecode(1);
+                ydecode = DATSTRUCT_BYBRANCH.bird(i).branchID(bb).DAT.ydecode(inds,:);
+                ydecode_neg = DATSTRUCT_BYBRANCH.bird(i).branchID(bb).DAT.ydecode_neg(inds,:);
+                
+                % ==================== COLLECT
+                Yall{k} = [Yall{k} ydecode];
 
+            end
+            
+            % ==== CALCULATE ALL CROSS CORRELATIONS (between all pairs of
+            % neurons)
+            nneur1 = size(Yall{1},1);
+            nneur2 = size(Yall{2},1);
+            for k = 1:nneur1
+                for kk = 1:nneur2
+                    
+                    dat1 = Yall{1}(k,:);
+                    dat2 = Yall{2}(k,:);
+                    
+                    [cc, lags] = xcov(dat1, dat2, ceil(windowmax/binsize), 'coeff');
+                    plot(lags*binsize, cc);
+                    Ytmp = [Ytmp; cc];
+                end
+            end
+            
+            
+        end
+    end
+    
+    plot(lags*binsize, mean(Ytmp, 1), 'k');
+    xlabel([locationstoplot{1} ' leads <---> ' locationstoplot{2} ' leads']);
+    
+    
+    
+    

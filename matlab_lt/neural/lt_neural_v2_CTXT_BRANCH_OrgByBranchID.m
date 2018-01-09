@@ -1,5 +1,5 @@
 function DatStructByBranch = lt_neural_v2_CTXT_BRANCH_OrgByBranchID(ALLBRANCH, ...
-    analyfname, tbin)
+    analyfname, tbin, useDprime)
 %%  lt 11/14/17 - if also want to extract premotor window decoding (shuffle), then need:
 
 
@@ -10,6 +10,15 @@ function DatStructByBranch = lt_neural_v2_CTXT_BRANCH_OrgByBranchID(ALLBRANCH, .
 
 %%
 apos = 1; % assume is new analysis version, this always 1.
+
+if ~exist('analyfname', 'var')
+    analyfname = '';
+end
+
+if ~exist('tbin', 'var');
+    tbin = [];
+end
+   
 
 %% extract all branches first
 
@@ -33,6 +42,10 @@ for i=1:numbirds
         DatStructByBranch.bird(i).branchID(kk).DAT.ydecode = [];
         DatStructByBranch.bird(i).branchID(kk).DAT.ydecode_neg = [];
         DatStructByBranch.bird(i).branchID(kk).DAT.ydecode_pos = [];
+% 
+%         DatStructByBranch.bird(i).branchID(kk).DAT.dprime = [];
+%         DatStructByBranch.bird(i).branchID(kk).DAT.dprime_neg = [];
+% 
         DatStructByBranch.bird(i).branchID(kk).DAT.sylcontour_mean = [];
         DatStructByBranch.bird(i).branchID(kk).DAT.sylcontour_x = [];
         DatStructByBranch.bird(i).branchID(kk).DAT.brainregion = {};
@@ -65,8 +78,32 @@ for i=1:numbirds
             sylcontour_mean = ALLBRANCH.alignpos(apos).bird(i).branch(bb).neuron(nn).sylcontours_mean;
             sylcontour_x = ALLBRANCH.alignpos(apos).bird(i).branch(bb).neuron(nn).sylcontours_x;
             
+            try
+                        
+            catch err
+                disp('NO dprime');
+            end
+            
+            % ============= USE DPRIME? --- THEN REPLACE DATA
+            if useDprime==1
+                
+                disp(size(y_decode));
+                
+            dprime = mean(ALLBRANCH.alignpos(apos).bird(i).branch(bb).neuron(nn).DprimeAllPairwise,2); % mean dprime across branches
+            dprime_neg = mean(ALLBRANCH.alignpos(apos).bird(i).branch(bb).neuron(nn).DprimeAllPairwise_Neg, 2);
+            dprime_pos = mean(ALLBRANCH.alignpos(apos).bird(i).branch(bb).neuron(nn).DprimeAllPairwise_Pos, 2);
+
+            disp(size(ALLBRANCH.alignpos(apos).bird(i).branch(bb).neuron(nn).DprimeAllPairwise));
+            
+                x_decode = sylcontour_x;
+                y_decode = dprime';
+                y_decode_neg = dprime_neg';
+                y_decode_pos = dprime_pos';
+                
+            end
+            
             % ------------------- premotor window shuffles
-            if exist('analyfname', 'var')
+            if isempty(analyfname)
             decodestruct = lt_neural_v2_CTXT_BRANCH_GetPremotor(analyfname, i, nn, bb, tbin);
             else
             decodestruct = [];    
@@ -103,6 +140,17 @@ for i=1:numbirds
             DatStructByBranch.bird(i).branchID(ind).DAT.ydecode_pos= ...
                 [DatStructByBranch.bird(i).branchID(ind).DAT.ydecode_pos; ...
                 y_decode_pos];
+            
+%             try
+%             DatStructByBranch.bird(i).branchID(ind).DAT.dprime= ...
+%                 [DatStructByBranch.bird(i).branchID(ind).DAT.dprime; ...
+%                 dprime];
+%             DatStructByBranch.bird(i).branchID(ind).DAT.dprime_neg= ...
+%                 [DatStructByBranch.bird(i).branchID(ind).DAT.dprime_neg; ...
+%                 dprime_neg];
+%             catch err
+%             end
+%             
             
             DatStructByBranch.bird(i).branchID(ind).DAT.sylcontour_mean= ...
                 [DatStructByBranch.bird(i).branchID(ind).DAT.sylcontour_mean; ...
