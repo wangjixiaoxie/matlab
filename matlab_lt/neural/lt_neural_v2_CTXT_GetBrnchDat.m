@@ -22,7 +22,7 @@ for i=1:numbirds
         disp(['bird' num2str(i) ', neur' num2str(ii)]);
         numbranches = length(CLASSES.birds(i).neurons(ii).branchnum);
         
-        if isfield(SummaryStruct.birds(i).neurons(ii), 'isRAsobermel');
+        if isfield(SummaryStruct.birds(i).neurons(ii), 'isRAsobermel')
             % sam/mel data
         [SongDat, NeurDat, Params] = lt_neural_RASamMel_ExtractDat(SummaryStruct, i, ii);
         LearnKeepOnlyBase=0;

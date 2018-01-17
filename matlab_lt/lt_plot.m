@@ -3,6 +3,12 @@ function hfig=lt_plot(X,Y,Modifiers)
 % X, Y normal
 % Modifiers = {'Color','k','LineWidth',2,'Errors',Yerr}; (enter as cell array, has to be even number)
 
+%%
+if isempty(X)
+    disp(' - no plot, dat is empty');
+    return
+end
+
 %% Default params
 plot_errors=0;
 

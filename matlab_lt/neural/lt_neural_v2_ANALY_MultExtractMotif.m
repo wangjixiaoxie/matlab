@@ -11,8 +11,11 @@ if isempty(collectFF)
     collectFF=1;
 end
 
-    
+
+
 %% lt 12/20/17 - allows you to organize by neurons, instead of by expt.
+% NOTE: default (by expt) makes neuron numbers innacurate (i.e. they become
+% numbered 1...N where N is number of neurons in this expt
 
 if ~exist('OrganizeByExpt', 'var')
     OrganizeByExpt =1;
@@ -160,13 +163,13 @@ if loadedold==0
     
     %% --- save
     
-    if saveOn == 1;
+    if saveOn == 1
         
         % ==== make a params structure
         Params = SummaryStruct.loadparams;
         Params.collectWNhit = collectWNhit;
         Params.LearnKeepOnlyBase = LearnKeepOnlyBase;
-        
+       Params.OrganizeByExpt = OrganizeByExpt;
         
         % ==== save
         cd(savedir)

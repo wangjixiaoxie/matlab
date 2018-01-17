@@ -112,8 +112,7 @@ end
 
 tstamp=lt_get_timestamp(0);
 fnames{1}=['syllwv_' NT '_' tstamp '.wav'];
-% fnames{2}=['syllwv_' NT '_' tstamp 'B.wav'];
-wavwrite(syllwv1,fs,fnames{1});
-% wavwrite(syllwv2, fs,fnames{2});
+% wavwrite(syllwv1,fs,fnames{1});
+audiowrite(fnames{1}, syllwv1, fs);
 
 

@@ -103,7 +103,8 @@ while (1)
         end
         sm=mquicksmooth(dat,fs);
     elseif(strcmp(ext,'.wav'))
-        [dat,fs]=wavread(fn);
+%         [dat,fs]=wavread(fn);
+        [dat, fs] = audioread(fn);
         sm=mquicksmooth(dat,fs);
                 elseif(strcmp(ext, '.rhd'))
             [frequency_parameters, board_adc_data] = pj_readIntanNoGui_AudioOnly(fn);

@@ -100,7 +100,7 @@ for i=1:Numbirds
             brainregion = DATSTRUCT_BYBRANCH.bird(i).branchID(bb).DAT.brainregion{nn};
             
             neurnum = DATSTRUCT_BYBRANCH.bird(i).branchID(bb).DAT.IndsOriginal_neuron(nn);
-                
+            
             % === other features
             AllBirdNum = [AllBirdNum; i];
             AllNeurNum = [AllNeurNum; neurnum];
@@ -134,7 +134,7 @@ for i=1:Numbirds
             singleunitLogical = ...
                 strcmp({SummaryStruct.birds(i).neurons(neurnum).NOTE_is_single_unit}, 'yes');
             AllSingleUnit = [AllSingleUnit singleunitLogical];
-
+            
             
             % ################################# OUTPUT
             AllDecode = [AllDecode decode];
@@ -244,6 +244,22 @@ for bregion = BrainRegions
         numTot = length(yvalsall(:));
         
         lt_plot_annotation(1, [num2str(numSig) '/' num2str(numTot) ' (' num2str(numSig/numTot) ') sig (p<0.05)'], 'r')
+        
+        % ========== binomial test for significance of fraction
+        X = 0:numTot; 
+        P = 0.05; 
+        y = binopdf(X, numTot, P); 
+
+        pval = sum(y(X>=numSig));     
+        lt_plot_pvalue(pval, 'binomial test',1);
+
+        if (0)
+        lt_figure; hold on;
+        plot(X, y, 'ok-');
+
+        lt_plot_pvalue(pval, '',1);
+        line([actualN actualN], ylim);
+        end
     end
 end
 linkaxes(hsplots, 'xy');
@@ -422,19 +438,19 @@ for bregion = BrainRegions
         
         % ------------- plot text of neuron num next to point
         if plottext==1
-        for j=1:length(Nnums)
-            for jj = 1:length(Nnums{j})
-                suthis = IsSU{j}(jj);
-                neur = Nnums{j}(jj);
-                x = Xbranch(j);
-                y = Yvals{j}(jj);
-                if suthis==1
-                    lt_plot_text(x, y, [num2str(neur)], 'b')
-                else
-                lt_plot_text(x, y, [num2str(neur)], [0.6 0.6 0.9])
+            for j=1:length(Nnums)
+                for jj = 1:length(Nnums{j})
+                    suthis = IsSU{j}(jj);
+                    neur = Nnums{j}(jj);
+                    x = Xbranch(j);
+                    y = Yvals{j}(jj);
+                    if suthis==1
+                        lt_plot_text(x, y, [num2str(neur)], 'b')
+                    else
+                        lt_plot_text(x, y, [num2str(neur)], [0.6 0.6 0.9])
+                    end
                 end
             end
-        end
         end
         
         % -------- plot data
@@ -478,9 +494,9 @@ for bregion = BrainRegions
         Xbranch = [];
         Nnums = {}; % to collect neurons
         birdname = SummaryStruct.birds(i).birdname;
-    BranchnameAll = {};
-                IsSU = {};
-
+        BranchnameAll = {};
+        IsSU = {};
+        
         for ii=1:Numbranch
             
             inds = AllBirdNum==i & AllBranchNum==ii & strcmp(AllBrainRegion, bregion);
@@ -501,8 +517,8 @@ for bregion = BrainRegions
             BranchnameAll = [BranchnameAll branchname];
             
             % -- is SU?
-                        IsSU = [IsSU AllSingleUnit(inds)];
-
+            IsSU = [IsSU AllSingleUnit(inds)];
+            
             % ------------ plot text of neurons for each datapoint
             Nnums = [Nnums AllNeurNum(inds)];
         end
@@ -521,23 +537,23 @@ for bregion = BrainRegions
         
         
         % ------------- plot text of neuron num next to point
-if plottext==1
-    for j=1:length(Nnums)
-            for jj = 1:length(Nnums{j})
-                                suthis = IsSU{j}(jj);
-
-                neur = Nnums{j}(jj);
-                x = Xbranch(j);
-                y = Yvals{j}(jj);
-                if suthis==1
-                    lt_plot_text(x, y, [num2str(neur)], 'b')
-                else
-                lt_plot_text(x, y, [num2str(neur)], [0.6 0.6 0.9])
+        if plottext==1
+            for j=1:length(Nnums)
+                for jj = 1:length(Nnums{j})
+                    suthis = IsSU{j}(jj);
+                    
+                    neur = Nnums{j}(jj);
+                    x = Xbranch(j);
+                    y = Yvals{j}(jj);
+                    if suthis==1
+                        lt_plot_text(x, y, [num2str(neur)], 'b')
+                    else
+                        lt_plot_text(x, y, [num2str(neur)], [0.6 0.6 0.9])
+                    end
                 end
             end
         end
-end
-
+        
         % -------- plot data
         lt_plot_MultDist(Yvals, Xbranch, 1, plotcol, 1, 0);
         lt_plot_zeroline;

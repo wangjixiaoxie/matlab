@@ -142,11 +142,11 @@ ALLBRANCH = lt_neural_v2_CTXT_BranchRemvOlap(ALLBRANCH);
 
 % ==== 2)  PLOT EACH BRANCH/BIRD/NEURON
 close all;
-birdtoplot = 'or74bk35'; % leave blank to plot all;
+birdtoplot = 'pu69wh78'; % leave blank to plot all;
 plotspec_num = 0; % how many spectrograms to plot for each class in each branch point? if 0 then none.
 locationtoplot = {};
-BranchToPlot = {'[a-z]aa'}; % type regexp strings
-plotrasters = 1;
+BranchToPlot = {'[a-z]bh'}; % type regexp strings
+plotrasters = 0;
 lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot, plotspec_num, ...
     locationtoplot, BranchToPlot, plotrasters)
 
@@ -157,7 +157,7 @@ dattoplot = 'classperform';
 % dattoplot = 'frmean';
 % dattoplot = 'dprime';
 LMANorX = 2; % 0, both; 1, LMAN; 2, X, 3(RA)
-birdstoexclude = {'or74bk35'};
+birdstoexclude = {};
 % birdstoexclude = {'bk7', 'bu77wh13', 'or74bk35', 'wh6pk36', 'br92br54'};
 
 % durThreshOmega.syl = 0.15; % omega2 (will only keep if lower) [leave empty to ignore]
@@ -180,7 +180,7 @@ close all;
 BrainRegions = {'LMAN', 'RA'};
 % BrainRegions = {'LMAN','X'};
 BirdToPlot = {};
-useDprime=1;
+useDprime=0;
 lt_neural_v2_CTXT_BRANCH_PlotByBranchID(ALLBRANCH, BrainRegions, ...
     BirdToPlot, useDprime)
 
@@ -222,8 +222,11 @@ close all;
 %     'xaa_Algn2Ons1_30Nov2017_1911_XLMAN25msLTW', ...
 %     };
 allanalyfnames = {...
-    'xaa_Algn2Ons1_30Nov2017_1911_XLMAN25msLTW', ...
-    };
+    'xaaa_Algn3Ons1_15Dec2017_0110_XLMAN25msLTW'};
+allanalyfnames = {...
+    'xaaa_Algn2Ons1_19Dec2017_1219_XLMAN25msLTW', ...
+    'xaaa_Algn3Ons1_15Dec2017_0110_XLMAN25msLTW', ...
+    'xaaa_Algn4Ons1_15Dec2017_1100_XLMAN25msLTW'};
 DecodeStruct = lt_neural_v2_CTXT_BRANCH_DatVsShuffMULT(allanalyfnames);
 
 
@@ -318,6 +321,27 @@ end
 
 
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DEBUGGING
+
+%% changing something in ALLBRANCH (e.g. location fo neurosn)
+clear all; close all;
+strname = 'xaa_Algn2Ons1_27Oct2017_1114_XLMAN25ms';
+
+% =====================================================
+load(['ALLBRANCHv2_' strname]);
+
+bname = ALLBRANCH.SummaryStruct.birds(5).birdname;
+assert(strcmp(bname, 'or74bk35'), 'asdfasd');
+
+% --------- replace location
+nneurons = length(ALLBRANCH.SummaryStruct.birds(5).neurons);
+for i=1:nneurons
+    
+    ALLBRANCH.SummaryStruct.birds(5).neurons(i).NOTE_Location = 'LMAN';
+end
+
+% ------- SAVE
+save(['ALLBRANCHv2_' strname], 'ALLBRANCH', '-v7.3');
 
 
 

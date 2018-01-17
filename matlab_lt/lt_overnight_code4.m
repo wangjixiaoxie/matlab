@@ -1,7 +1,29 @@
-%% divergent
+close all; clear all; fclose all;
+analyfname = 'xaaa_Algn2Ons1_19Dec2017_1219_XLMAN25msLTW';
+Niter = 1000;
+TimeWindows = [-0.035 -0.035]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
+% TimeWindows = [0 0 ]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
+% TimeWindows = [-0.035 -0.035]; % LMAN
+% TimeWindows = [-0.02 -0.02]; % RA
+lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
 
+close all; clear all; fclose all;
+analyfname = 'xaaa_Algn3Ons1_15Dec2017_0110_XLMAN25msLTW';
+Niter = 1000;
+TimeWindows = [-0.035 -0.035]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
+% TimeWindows = [0 0 ]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
+% TimeWindows = [-0.035 -0.035]; % LMAN
+% TimeWindows = [-0.02 -0.02]; % RA
+lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
 
-
+close all; clear all; fclose all;
+analyfname = 'xaaa_Algn4Ons1_15Dec2017_1100_XLMAN25msLTW';
+Niter = 1000;
+TimeWindows = [-0.035 -0.035]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
+% TimeWindows = [0 0 ]; % [-0.05 -0.05] means window from 50ms pre onset to 50ms pre offset (each row is separate analysis)
+% TimeWindows = [-0.035 -0.035]; % LMAN
+% TimeWindows = [-0.02 -0.02]; % RA
+lt_neural_v2_CTXT_BRANCH_DatVsShuff(analyfname, Niter, TimeWindows);
 
 %%
 %%
@@ -80,8 +102,8 @@ ALLBRANCH = lt_neural_v2_CTXT_ClassSliding(CLASSES, SummaryStruct, prms, ...
 %%
 
 clear all; close all;
-BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
-BrainArea = {'LMAN', 'X'};
+BirdsToKeep = {'pu69wh78'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BrainArea = {};
 ExptToKeep = {};
 RecordingDepth = [];
 LearningOnly = 0;
@@ -123,7 +145,7 @@ CLASSES = lt_neural_v2_CTXT_GetBrnchPosControl(CLASSES, SummaryStruct, prms, str
 TimeWindowDur = 0.025;
 TimeWindowSlide = 0.005;
 FRbinsize = 0.005;
-savenotes = 'XLMAN25msLTW';
+savenotes = 'pu69wh78RALMANLTW';
 
 prms.ClassSlide.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
 prms.ClassSlide.GetPosControl =1;

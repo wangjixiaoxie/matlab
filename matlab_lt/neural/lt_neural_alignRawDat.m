@@ -287,10 +287,13 @@ if PlotWhat.filt==1;
             % 2) spectrogram
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
             title(['analog chan: ' num2str(i)]);
-            [t, f, spec]=fn_extract_sound_spec(frequency_parameters, board_adc_data(i, :));
-            t=t./1000;
-            imagesc(t, f, spec);
-            axis([t(1) t(end) f(1) f(end)]);
+            
+            lt_plot_spectrogram(board_adc_data(i, :), frequency_parameters.amplifier_sample_rate, 1, 0)
+            
+%             [t, f, spec]=fn_extract_sound_spec(frequency_parameters, board_adc_data(i, :));
+%             t=t./1000;
+%             imagesc(t, f, spec);
+%             axis([t(1) t(end) f(1) f(end)]);
             hsplots=[hsplots hsplot];
         end
         

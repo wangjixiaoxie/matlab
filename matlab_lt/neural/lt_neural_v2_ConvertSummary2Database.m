@@ -146,8 +146,13 @@ for i=1:numbirds
         else
             % ==== is this learning expt/
                 exptname = SummaryStruct.birds(i).neurons(ii).exptID;
-                islearning = lt_neural_v2_QUICK_islearning(birdname, exptname);
-
+                [islearning, LearnSummary, switchtime] = lt_neural_v2_QUICK_islearning(birdname, exptname, 1);
+                    
+%                 if max(SummaryStruct.birds(i).neurons(ii).Filedatenum_unsorted) < switchtime
+%                     % then latest song is before onset of WN
+%                     
+%                 end
+                
 %                 birdindtmp = strcmp({LearnStruct.bird.birdname}, birdname);
 %                 if any(strcmp([LearnStruct.bird(birdindtmp).info(1,:)], exptname))
 %                     % then is learning
@@ -265,6 +270,10 @@ if any(strcmp(BrainArea, 'RA'))
     end
     
 end
+
+%% ========== find simulataneous neurons
+
+SummaryStruct_filtered = lt_neural_PRE_GetSimultNeur(SummaryStruct_filtered);
 
 
 

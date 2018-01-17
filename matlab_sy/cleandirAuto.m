@@ -68,7 +68,7 @@ while (1)
         [dat,fs]=readevtaf(fn,'0r');
         sm=evsmooth(dat,fs,0.01);
     elseif(strcmp(ext,'.cbin'))
-        [dat,fs]=ReadCbinFile(fn);
+        [dat,fs]=ReadCbinFile(fn, '0');
         sm=mquicksmooth(dat,fs);
     elseif(strcmp(ext,'.wav'))
         [dat,fs]=wavread(fn);

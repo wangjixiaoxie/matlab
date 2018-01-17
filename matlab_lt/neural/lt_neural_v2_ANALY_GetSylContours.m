@@ -61,6 +61,10 @@ for kk=1:length(TrialInds)
     if isempty(segextract(trialindtmp).sylOffTimes_RelDataOnset)
         % then must start during off
         tmpons(1:ceil(segextract(trialindtmp).sylOnTimes_RelDataOnset(1)*1000))=0;
+    elseif isempty(segextract(trialindtmp).sylOnTimes_RelDataOnset)
+        %  then must start during on
+        tmpons(1:ceil(segextract(trialindtmp).sylOffTimes_RelDataOnset(1)*1000)-1) = 1;
+        figure; plot(tmpons);
     elseif segextract(trialindtmp).sylOnTimes_RelDataOnset(1)<segextract(trialindtmp).sylOffTimes_RelDataOnset(1)
         % then starts during off
         tmpons(1:ceil(segextract(trialindtmp).sylOnTimes_RelDataOnset(1)*1000))=0;

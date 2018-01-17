@@ -3,7 +3,15 @@
 function [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
     regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
     keepRawSongDat, suppressout, collectWNhit, collectWholeBoutPosition, LearnKeepOnlyBase, ...
-    preAndPostDurRelSameTimept, RemoveIfTooLongGapDur)
+    preAndPostDurRelSameTimept, RemoveIfTooLongGapDur, clustnum)
+%% lt 1/14/18 - throwing out all spikes with clustnum=0 (is noise)
+% ALSO - if specify clustnum then will only keep spikes that are that
+% number
+
+if ~exist('clustnum', 'var')
+    clustnum = [];
+end
+
 %% lt 12/20/17 - NOTE, made WN detect independent of FFparams ... (i.e. moved "end")
 
 %% lt 12/20/17 - outputs smoothed rectified amplitude
@@ -474,6 +482,15 @@ for i=1:length(tokenExtents)
     if isfield(NeurDat, 'spikes_cat')
         spk_ClustTimes = NeurDat.spikes_cat.cluster_class((NeurDat.spikes_cat.cluster_class(:,2) > ontime*1000) & ...
             (NeurDat.spikes_cat.cluster_class(:,2) < offtime*1000), :); % in sec, relative to onset of the segment
+        
+        % -------- throw out anything wtih clust num 0 (is noise)
+        spk_ClustTimes(spk_ClustTimes(:,1) == 0, :) = [];
+        
+        % -------- if desired, then only keep correct cluster
+        if ~isempty(clustnum)
+            spk_ClustTimes(spk_ClustTimes(:,1) ~= clustnum, :) = [];
+        end
+        
     else
         % then is RA data from Sober/Mel
         spiketimes = NeurDat.spiketimes(NeurDat.spiketimes>ontime & NeurDat.spiketimes<offtime);

@@ -19,6 +19,9 @@ if ~exist('tbin', 'var');
     tbin = [];
 end
    
+if ~exist('useDprime', 'var')
+    useDprime=0;
+end
 
 %% extract all branches first
 
@@ -103,7 +106,7 @@ for i=1:numbirds
             end
             
             % ------------------- premotor window shuffles
-            if isempty(analyfname)
+            if ~isempty(analyfname)
             decodestruct = lt_neural_v2_CTXT_BRANCH_GetPremotor(analyfname, i, nn, bb, tbin);
             else
             decodestruct = [];    

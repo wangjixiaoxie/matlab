@@ -1191,13 +1191,13 @@ close all;
 NullControl_splitday=0;
 same_type_thr=1.43;
 useHandLabForSametype = 1;
-onlyUseFirstExpt = 0; % if 1, then uses first expt for birds with mult expts [NOTE: does not apply for SplitDay analysis yet]
+onlyUseFirstExpt = 1; % if 1, then uses first expt for birds with mult expts [NOTE: does not apply for SplitDay analysis yet]
 recalcValues = 0; % then rextracts raw ff and recalculates (difference: only looks at 
 % days in which inactivation occured ...) [keep at 0]
 reCalcOldMethodKeepingNanSongs = 1; % then recalculates corr, but using old regexp method [default]
 % only one of these 2 recalc things will be performed. if recalcValues==1,
 % then will overwrite other. [default = 1]
-UseMotifByMotifCorr = 0; % if 1, then uses motif corr (does this by overwriting song by song...)
+UseMotifByMotifCorr = 1; % if 1, then uses motif corr (does this by overwriting song by song...)
 DATSTRUCT=lt_seq_dep_pitch_ACROSSBIRDS_LMANbaseExtrct(SeqDepPitch_AcrossBirds_LMAN, ...
     PARAMS, same_type_thr, NullControl_splitday, useHandLabForSametype, ...
     onlyUseFirstExpt, recalcValues, reCalcOldMethodKeepingNanSongs, ...

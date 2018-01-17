@@ -48,7 +48,7 @@ end
 ext = lower(ext);
 
 if (strcmp(ext,'.wav'))
-    [dat,fs]=wavread(fullfname);
+    [dat,fs]=audioread(fullfname);
     ISR=0;chan=0;
 elseif (strcmp(ext,'.ebin'))
     [dat,fs]=ReadEbinFile(fullfname);

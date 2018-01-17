@@ -4,7 +4,7 @@ function MOTIFSTATS_pop = lt_neural_v2_POP_ExtractMotifs(MOTIFSTATS_Compiled, Su
 %% params
 
 MOTIFSTATS_pop = struct;
-
+MOTIFSTATS_pop.SummaryStruct = SummaryStruct;
 %% run
 Numbirds = length(MOTIFSTATS_Compiled.birds);
 for i=1:Numbirds
@@ -162,7 +162,7 @@ for i=1:Numbirds
                     segextract = struct;
                     segextract(Ntrials).spk_Times = [];
                     segextract(Ntrials).spk_Clust = [];
-                    if nn ==NeurThisSet(1);
+                    if nn ==NeurThisSet(1)
                         % if first neuron, keep all info
                         segextract = DATTMP.motif(mm).neur(nn).SegmentsExtract;
                     else

@@ -8,7 +8,7 @@ BrainArea = {};
 % ExptToKeep = {'RAlearn1', 'RALMANlearn1', 'LMANsearch'};
 ExptToKeep = {};
 RecordingDepth = [];
-LearningOnly = 0;
+LearningOnly = 1;
 BatchesDesired = {};
 ChannelsDesired = [];
 % BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
@@ -183,15 +183,15 @@ BirdToPlot = 'pu69wh78';
 % % ---- give it either
 % A) one neuron and a bunch of motifs or
 % B) bunch of neurons and one motif
-NeurToPlot = [1]; % 4 % vector (e.g. [5 7]) - if [] then plots all;
+NeurToPlot = [12]; % 4 % vector (e.g. [5 7]) - if [] then plots all;
 % motiflist = {'a(b)', 'jbh(h)g'};
-motiflist = {'a(b)hg', 'a(b)hh', 'j(b)hh'};
+motiflist = {'j(j)j', 'g(j)j'};
 plotbytime = 0; % links rasters for all motifs by time of song.
 
 % motifpredur = 0.15;
 % motifpostdur = 0.15;
 motifpredur = 0.15;
-motifpostdur = 0.2;
+motifpostdur = 0.15;
 
 lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
     motiflist, plotbytime, motifpredur, motifpostdur)
@@ -363,6 +363,46 @@ lt_neural_v2_ANALY_VocModel_glm(VOCALSTRUCTall)
 
 
 
+%% &&&&&&&&&&&&&&&&&&&&&& POPULATION LEARNING &&&&&&&&&&&&&&&&&&&
+
+%% ==== 1) EXTRACT MOTIFSTATS POP
+
+% ======================== EXTRACT SEGMENTS FOR POPULATIONS
+
+close all; clear MOTIFSTATS_Compiled;
+collectWNhit=0;
+onlyCollectTargSyl=0;
+LearnKeepOnlyBase = 0;
+saveOn = 1;
+OrganizeByExpt =0;
+collectFF=1;
+MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
+    collectWNhit, LearnKeepOnlyBase, saveOn, onlyCollectTargSyl, OrganizeByExpt,...
+    collectFF);
+
+
+
+%% ================ extraction continued
+close all;
+MOTIFSTATS_pop = lt_neural_v2_POP_ExtractMotifs(MOTIFSTATS_Compiled, SummaryStruct);
+clear MOTIFSTATS_Compiled;
+
+
+%% ================ PLOT [CORRELATION WITH FF]
+
+MOTIFSTATS_pop = lt_neural_POP_ExtractXCov(MOTIFSTATS_pop, SummaryStruct);
+
+%% ==== 2) EXTRACT LEARNING SWITCH STRUCT
+
+SwitchStruct = lt_neural_LEARN_getswitch(SummaryStruct);
+
+%% ================ PLOT CROSS CORR WRT TO LEARNING
+
+
+
+
+
+
 %% &&&&&&&&&&&&&&&&&&&&& [LEARNING] SINGLE EXPERIMENTS &&&&&&&&&&&&&&&&&&&&&&&&&
 %% ============== FOR EACH LEARNING EXPERIMENT, PLOT ALL NEURONS AND ALL MOTIFS
 % ONE BIRD/LEARNING EXPT AT A TIME [BUT CAN COMBINE NEURONS]
@@ -371,6 +411,7 @@ lt_neural_v2_ANALY_VocModel_glm(VOCALSTRUCTall)
 [MOTIFSTATS, SummaryStruct_filt] = lt_neural_v2_ANALY_LearningExtractMotif(SummaryStruct);
 exptname = SummaryStruct_filt.birds(1).neurons(1).exptID;
 birdname = SummaryStruct_filt.birds(1).birdname;
+
 % ---- EXTRACT TARG SYL
 tmp = lt_neural_v2_LoadLearnMetadat;
 indbird = strcmp({tmp.bird.birdname}, birdname);
@@ -699,131 +740,7 @@ MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
 
 
 %% ###############################################################
-%% ################################ POPULATION
-
-% -- for each "experiment" get all sets of simultaneous neurons (i.e. those
-% with some temporal overlap. for each set record the song files with
-% overlap.
-
-numbirds = length(SummaryStruct.birds);
-for i=1:numbirds
-    
-    ListOfExpt = unique({SummaryStruct.birds(i).neurons.exptID});
-    
-    exptcounter = 1;
-    for exptthis = ListOfExpt
-        
-        % ==== which neurons are in this expt?
-        NeurInThisExpt = find(strcmp({SummaryStruct.birds(i).neurons.exptID}, exptthis));
-        
-        % ==== FIND "SETS" OF NEURONS.
-        
-        % ----------- METHOD 1: same batch name
-        
-        
-        % ---------------- METHOD 2: overlapping song files
-        SongFilenamesByNeur = {SummaryStruct.birds(i).neurons(NeurInThisExpt).Filedatestr_unsorted};
-        
-        % ------ go thru each song file. for that song file get set of neurons.
-        % finally get all unique sets of neurons and their corresponding
-        % song files
-        % keep the sets that have at least 2 neurons
-        
-        % ------------------ 1) get list of unique filenames
-        SongFilenamesByNeur_ALL = {};
-        for j=1:length(SongFilenamesByNeur)
-            sfiles = SongFilenamesByNeur{j};
-            
-            SongFilenamesByNeur_ALL = [SongFilenamesByNeur_ALL sfiles];
-        end
-        SongFilenamesUnique = unique(SongFilenamesByNeur_ALL);
-        
-        % ----------------- 2)  go thru each song, get neurons that active
-        NeuronsInEachSong = {};
-        NeuronsInEachSongStr = {};
-        for sfile = SongFilenamesUnique
-            
-            func = @(X) any(strcmp(X, sfile)); % for each neur, asks whether it ahs this file.
-            goodneur = cellfun(func, SongFilenamesByNeur);
-            
-            NeuronsInEachSong = [NeuronsInEachSong goodneur];
-            NeuronsInEachSongStr = [NeuronsInEachSongStr num2str(goodneur)];
-        end
-        
-        % ------------------- 3)  get all sets
-        [~, inds1, inds2] = unique(NeuronsInEachSongStr); % unique id
-        
-        % -- neurons for each set
-        Sets_neurons = NeuronsInEachSong(inds1);
-        % -- convert back to original neuron ID
-        for setnum=1:length(Sets_neurons)
-            Sets_neurons{setnum} = NeurInThisExpt(Sets_neurons{setnum});
-        end
-        
-        
-        % -- songfiles for each set
-        Sets_songfiles = {};
-        for setnum = 1:length(Sets_neurons)
-            % -- for each set, find out corrresponding inds in original
-            % file
-            
-            songsinset = SongFilenamesUnique(inds2==setnum);
-            Sets_songfiles =[Sets_songfiles {songsinset}];
-        end
-        
-        % -- REMOVE SETS WITH <2 NEURONS
-        setToRemove = [];
-        for setnum = 1:length(Sets_neurons)
-            if length(Sets_neurons{setnum})<2
-                
-                setToRemove = [setToRemove setnum];
-            end
-        end
-        Sets_neurons(setToRemove) = [];
-        Sets_songfiles(setToRemove) = [];
-        
-        
-        % ============================= SAVE INFORMATION
-        SummaryStruct.birds(i).exptnum_pop(exptcounter).Sets_neurons = Sets_neurons;
-        SummaryStruct.birds(i).exptnum_pop(exptcounter).Sets_songfiles = Sets_songfiles;
-        SummaryStruct.birds(i).exptnum_pop(exptcounter).exptname = exptthis{1};
-        exptcounter = exptcounter+1;
-        
-        
-        % =========================== sanity check
-        if (0)
-            lt_figure; hold on;
-            % -- for each neuron plot dots for times of songs
-            for neurnum = NeurInThisExpt
-                x = SummaryStruct.birds(i).neurons(neurnum).Filedatenum_unsorted;
-                y = neurnum;
-                
-                plot(x, y, 'ok');
-                lt_plot_text(x(end), max(y), ['neur' num2str(y)]);
-            end
-            
-            
-            for ss = 1:length(Sets_neurons)
-                disp(['=== Set num ' num2str(ss)]);
-                disp(['Neurons: ' num2str(Sets_neurons{ss})]);
-                disp(['First file: ' Sets_songfiles{ss}{1}]);
-                disp(['Last file: ' Sets_songfiles{ss}{end}]);
-                line([datenum(Sets_songfiles{ss}{1}, 'yymmdd_HHMMSS') ...
-                    datenum(Sets_songfiles{ss}{1}, 'yymmdd_HHMMSS')], ylim);
-                line([datenum(Sets_songfiles{ss}{end}, 'yymmdd_HHMMSS') ...
-                    datenum(Sets_songfiles{ss}{end}, 'yymmdd_HHMMSS')], ylim);
-                lt_plot_text(datenum(Sets_songfiles{ss}{1}, 'yymmdd_HHMMSS'), ...
-                    Sets_neurons{ss}(end), ['set ' num2str(ss)], 'b')
-                lt_plot_text(datenum(Sets_songfiles{ss}{end}, 'yymmdd_HHMMSS'), ...
-                    Sets_neurons{ss}(end), ['set ' num2str(ss)], 'b')
-            end
-            pause;
-            close all
-        end
-    end
-end
-
-
+%% ##################################################### POPULATION
 %% ======================== EXTRACT SEGMENTS FOR POPULATIONS
 % ========== KEY DIFFERENCES,
 % 1) MIGHT HAVE TO SKIP SONGS TO MAKE SURE ALL
@@ -856,9 +773,14 @@ tstamp = lt_get_timestamp(0);
 sdir = '';
 
 
-%% ================ PLOT
+%% ================ PLOT [CORRELATION WITH FF]
 close all;
 MOTIFSTATS_pop = lt_neural_POP_FFcorr(MOTIFSTATS_pop, SummaryStruct);
 
 close all;
 lt_neural_POP_FFcorrPlot
+
+%% ================ 
+
+lt_neural_POP_PlotRast
+

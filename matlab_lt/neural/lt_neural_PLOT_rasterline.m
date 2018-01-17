@@ -1,4 +1,8 @@
-function     lt_neural_PLOT_rasterline(spktimes, yval, plotcol)
+function     lt_neural_PLOT_rasterline(spktimes, yval, plotcol, plotdot)
+
+if ~exist('plotdot', 'var')
+    plotdot = [];
+end
 
 %% plots a single line of raster (lt, 11/4/17)
 % spktimes; array, in sec
@@ -6,10 +10,11 @@ function     lt_neural_PLOT_rasterline(spktimes, yval, plotcol)
 
 
 
-if (0)
-   plot(spktimes, -yval, '.k'); 
+if plotdot==1
+   plot(spktimes, yval, '.', 'Color', plotcol); 
 else
     for ttt =1:length(spktimes)
+        
         line([spktimes(ttt) spktimes(ttt)], [yval-0.4 yval+0.4], ...
             'Color', plotcol, 'LineWidth', 1);
     end

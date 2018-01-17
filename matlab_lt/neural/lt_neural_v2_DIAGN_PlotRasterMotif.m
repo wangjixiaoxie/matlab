@@ -55,9 +55,11 @@ for i=1:numbirds
             preAndPostDurRelSameTimept = 1;
             RemoveIfTooLongGapDur = 1;
             FFparams.collectFF=0;
+            clustnum = SummaryStruct.birds(i).neurons(ii).clustnum;
             [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
                 motiftoplot, motifpredur, motifpostdur, 1, '', FFparams, ...
-                0, 1, collectWNhit, 0, 0, preAndPostDurRelSameTimept, RemoveIfTooLongGapDur);
+                0, 1, collectWNhit, 0, 0, preAndPostDurRelSameTimept, RemoveIfTooLongGapDur, ...
+                clustnum);
             
             if isempty(SegmentsExtract)
                 continue
@@ -65,6 +67,7 @@ for i=1:numbirds
                
             
             % ------------- 1) PLOT RASTER
+            
             if plotbytime==1
                 hsplot = lt_subplot(6,1,2:4); hold on;
                 hsplots = [hsplots hsplot];
@@ -89,6 +92,7 @@ for i=1:numbirds
                 ylabel('trial, down is later');
                 for tt = 1:length(SegmentsExtract)
                     spktimes = SegmentsExtract(tt).spk_Times;
+                    
                     %             spktimes = spktimes(spktimes > WindowToPlot2(1) & ...
                     %                 spktimes < WindowToPlot2(2));
                     for ttt =1:length(spktimes)
