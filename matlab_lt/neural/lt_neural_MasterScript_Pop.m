@@ -100,7 +100,7 @@ lt_neural_PLOT_RawMultChan(NeurDat.dirname, Batchname, ChansToGet);
 
 % ============= 1) CROSS-CORRELATION OF BINNED SPIKES
 binsize = 0.005; % in sec. shift will be identical
-windowmax = 1; % in sec, extent of cross-corr (+/- windowmax)
+windowmax = 0.5; % in sec, extent of cross-corr (+/- windowmax)
 
 % ----- 1) bin all spike trains
 fs = NeurDat.metaDat(1).fs;
@@ -118,9 +118,8 @@ end
 
 % ----- 2) calcualte all cross-corrs
 lt_figure; hold on;
-% [CCall, lags] = xcorr(FRmat, ceil(windowmax/binsize), 'coeff');
-% [CCall, lags] = xcorr(FRmat, ceil(windowmax/binsize), 'unbiased');
-[CCall, lags] = xcov(FRmat, ceil(windowmax/binsize), 'coeff');
+% [CCall, lags] = xcov(FRmat, ceil(windowmax/binsize), 'coeff');
+[CCall, lags] = xcorr(FRmat, ceil(windowmax/binsize));
 
 NeurID1 = [];
 NeurID2 = [];
@@ -128,7 +127,8 @@ CCall = [];
 for i=1:length(NeurDat.unit)
     for ii=i:length(NeurDat.unit)
    
-        [cc, lags] = xcov(FRmat(:,i), FRmat(:,ii), ceil(windowmax/binsize), 'coeff');
+%         [cc, lags] = xcov(FRmat(:,i), FRmat(:,ii), ceil(windowmax/binsize), 'coeff');
+        [cc, lags] = xcorr(FRmat(:,i), FRmat(:,ii), ceil(windowmax/binsize));
 
         CCall = [CCall cc];
         NeurID1 = [NeurID1 i];
@@ -166,7 +166,7 @@ for indtmp=inds
 %     lt_plot_text(lags(end-1).*binsize, CCall(end-1, indtmp), label, 'r');
     
     xlim([-windowmax windowmax]);
-    ylim([-0.3 0.8]);
+%     ylim([-0.3 0.8]);
     xlabel([BrainRegion{neur1} '<---->' BrainRegion{neur2}])
     line([0 0], ylim, 'LineStyle', '--');
 end
@@ -193,7 +193,7 @@ for indtmp=inds
 %     lt_plot_text(lags(end-1).*binsize, CCall(end-1, indtmp), label, 'r');
     
     xlim([-windowmax windowmax]);
-    ylim([-0.3 0.8]);
+%     ylim([-0.3 0.8]);
     xlabel([BrainRegion{neur1} '<---->' BrainRegion{neur2}])
     line([0 0], ylim, 'LineStyle', '--');
 end
@@ -221,7 +221,7 @@ for indtmp=inds
 %     lt_plot_text(lags(end-1).*binsize, CCall(end-1, indtmp), label, 'r');
     
     xlim([-windowmax windowmax]);
-    ylim([-0.3 0.8]);
+%     ylim([-0.3 0.8]);
     xlabel([BrainRegion{neur1} '<---->' BrainRegion{neur2}])
     
     % --- collect
@@ -236,11 +236,11 @@ hsplots = [hsplots hsplot];
 
 plot(lags.*binsize, ccmean, 'Color', plotcol);
     xlim([-windowmax windowmax]);
-    ylim([-0.3 0.8]);
+%     ylim([-0.3 0.8]);
         line([0 0], ylim, 'LineStyle', '--');
 
 
-linkaxes(hsplots, 'xy');
+linkaxes(hsplots, 'x');
 
 
 %% ========= calculate coherency between channels

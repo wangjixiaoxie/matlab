@@ -1,6 +1,18 @@
 function MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
     collectWNhit, LearnKeepOnlyBase, saveOn, onlyCollectTargSyl, OrganizeByExpt, ...
-    collectFF)
+    collectFF, MotifsToCollect, Params_regexp)
+%% 1/17/18 - added ability to manually enter motifs you'd liek to collect
+% ALSO ADDED ENTRY FOR REGEXP PARAMS (if no exist then uses defaults)
+
+
+if ~exist('Params_regexp', 'var')
+    Params_regexp = [];
+end
+
+
+if ~exist('MotifsToCollect', 'var')
+    MotifsToCollect = [];
+end
 
 %%
 
@@ -50,7 +62,7 @@ if ~exist('collectWNhit', 'var')
     collectWNhit = 1;
 end
 
-if ~exist('LearnKeepOnlyBase', 'var');
+if ~exist('LearnKeepOnlyBase', 'var')
     LearnKeepOnlyBase =0;
 end
 
@@ -91,18 +103,23 @@ for i=1:length(prmslist)
             disp('--- LOADED OLD MOTIFSTATS_Compiled !!');
             break
         elseif strcmp(input(['DELETE? (y or n) '], 's'), 'y')
-            
+                    indtmp = strfind(prmslist(i).name, '_');
+            structname = ['MOTIFSTATS_Compiled_' prmslist(i).name(indtmp+1:end)];
+    eval(['!rm ' structname]);
         end
         
     end
 end
 
-%% if for learning only keeping base, then expand the motifs to include all
 
-if LearnKeepOnlyBase==1
-   IgnoreWhetherLearn=1;
-        SummaryStruct = lt_neural_v2_PostInfo(SummaryStruct, IgnoreWhetherLearn);
+
+%% if for learning only keeping base, then expand the motifs to include all
+% also get motifs if manually get motifs.
+
+if ~isempty(MotifsToCollect) | LearnKeepOnlyBase==1
+            SummaryStruct = lt_neural_v2_PostInfo(SummaryStruct, LearnKeepOnlyBase, MotifsToCollect);
 end
+
 
 
 %%
@@ -111,6 +128,8 @@ if loadedold==0
     
     NumBirds = length(SummaryStruct.birds);
     MOTIFSTATS_Compiled = struct; % heirarchy: birds --> expt --> neurons
+    
+    % 
     
     for i=1:NumBirds
         
@@ -132,7 +151,7 @@ if loadedold==0
                 
                 % === extract for just this expt
                 [MOTIFSTATS] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct_tmp, ...
-                    collectWNhit, onlyCollectTargSyl, LearnKeepOnlyBase, FFparams);
+                    collectWNhit, onlyCollectTargSyl, LearnKeepOnlyBase, FFparams, Params_regexp);
                 
                 % === OUTPUT
                 MOTIFSTATS_Compiled.birds(i).exptnum(ll).MOTIFSTATS = MOTIFSTATS;
@@ -149,14 +168,15 @@ if loadedold==0
                 
                 FFparams.collectFF=collectFF;
                 
-                % === extract for just this expt
+                % === extract
                 [MOTIFSTATS] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct_tmp, ...
-                    collectWNhit, onlyCollectTargSyl, LearnKeepOnlyBase, FFparams);
+                    collectWNhit, onlyCollectTargSyl, LearnKeepOnlyBase, FFparams, Params_regexp);
                 
                 % === OUTPUT
                 MOTIFSTATS_Compiled.birds(i).MOTIFSTATS = MOTIFSTATS;
                 MOTIFSTATS_Compiled.birds(i).SummaryStruct = SummaryStruct_tmp;
                 MOTIFSTATS_Compiled.birds(i).birdname = birdname;
+                MOTIFSTATS_Compiled.birds(i).Params_regexp = Params_regexp;
 
         end
     end

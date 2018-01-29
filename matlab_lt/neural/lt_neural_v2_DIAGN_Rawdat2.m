@@ -1,4 +1,6 @@
 function lt_neural_v2_DIAGN_Rawdat(SummaryStruct, displaymode, skipnum)
+%% lt 1/24/18 - 
+
 %% lt 9/24/17 - for checking clustering. overlays spks with raw filtered dat.
 
 % displaymode

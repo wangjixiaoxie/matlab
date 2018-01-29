@@ -1,4 +1,11 @@
-function segextract = lt_neural_LinTimeWarpSegmented(segextract, regionstowarp)
+function segextract = lt_neural_LinTimeWarpSegmented(segextract, regionstowarp, expectedsegs)
+%% 
+% expectedsegs = 11; if motif is abcdef; for sanity check (leave blacnk if ignore)
+
+if ~exist('expectedsegs','var')
+    expectedsegs = [];
+end
+
 %% defualt behavior is to overwrite originanl spktimes and syl ons/off, 
 % -- will save old (not warped) into another field.
 
@@ -56,6 +63,7 @@ for i=1:length(segextract)
     regiononsets_relmotif(2:2:end) = segextract(i).motifsylOffsets(1:end-1);
     
     
+    
     % ================== for each spike, determine the Region it is in, and the
     % position (i.e. time from onset) within the Region
 %     assert(length(unique(segextract(i).spk_Clust))==1, 'mult clusters...');
@@ -94,13 +102,18 @@ for i=1:length(segextract)
     
 end
 
+    % ================ sanity check
+    if ~isempty(expectedsegs)
+    assert(size(RegiondurationAll,2) == expectedsegs, 'problem, not syl-gap-syl ... structure ...');
+    end
+    
 assert(~any(isnan(RegiondurationAll(:))), 'asfasd');
 
 % ==== get global median region durations
 RegiondurationMedian = median(RegiondurationAll,1);
 
 
-% ============================== for each trial, warp to global median
+%% ============================== for each trial, warp to global median
 SpkTimeWithinRegAll_scaled = SpkTimeWithinRegAll;
 RegiondurationAll_scaled = RegiondurationAll;
 
@@ -121,7 +134,7 @@ for rr = regionstowarp
 end
 
 
-% ============================== reconstruct spike times and put back into
+%% ============================== reconstruct spike times and put back into
 % segextract
 for i=1:length(segextract)
    
@@ -201,9 +214,9 @@ if(0)
     title('prewarp');
     hsplots = [hsplots hsplot];
     for i=1:length(segextract)
-        plot(segextract(i).motifsylOnsets, i,'ok');
-        plot(segextract(i).motifsylOffsets, i, 'or');
-        plot(segextract(i).spk_Times, i, 'xb');
+        plot(segextract(i).LinTWSeg_OriginalMotifsylOnsets, i,'ok');
+        plot(segextract(i).LinTWSeg_OriginalMotifsylOffsets, i, 'or');
+        plot(segextract(i).LinTWSeg_OriginalSpkTimes, i, '.', 'Color',[0.7 0.7 0.7]);
     end
     
     % --- post warp
@@ -211,9 +224,9 @@ if(0)
     title('post warp');
     hsplots = [hsplots hsplot];
     for i=1:length(segextract)
-        plot(segextract(i).LinTWSeg_sylonsets, i,'ok');
-        plot(segextract(i).LinTWSeg_syloffsets, i, 'or');
-        plot(segextract(i).LinTWSeg_spkTimes, i, 'xb');
+        plot(segextract(i).motifsylOnsets, i,'ok');
+        plot(segextract(i).motifsylOffsets, i, 'or');
+        plot(segextract(i).spk_Times, i, '.', 'Color',[0.7 0.7 0.7]);
     end
     
     linkaxes(hsplots, 'xy');

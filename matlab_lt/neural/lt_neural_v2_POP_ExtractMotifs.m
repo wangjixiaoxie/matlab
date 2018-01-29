@@ -1,4 +1,6 @@
 function MOTIFSTATS_pop = lt_neural_v2_POP_ExtractMotifs(MOTIFSTATS_Compiled, SummaryStruct)
+%% note, made sure to work after lin time warp (
+
 %% lt 12/20/17 - outputs population neurons. makes sure are aligned by trials
 
 %% params
@@ -10,7 +12,7 @@ Numbirds = length(MOTIFSTATS_Compiled.birds);
 for i=1:Numbirds
     
     numexpts = length(SummaryStruct.birds(i).exptnum_pop);
-    motiflist = MOTIFSTATS_Compiled.birds(1).MOTIFSTATS.params.motif_regexpr_str;
+
     MOTIFSTATS_pop.birds(i).birdname = SummaryStruct.birds(i).birdname;
     MOTIFSTATS_pop.birds(i).params = MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.params;
     for ii=1:numexpts
@@ -32,6 +34,12 @@ for i=1:Numbirds
             NeurThisSet = SummaryStruct.birds(i).exptnum_pop(ii).Sets_neurons{iii};
             SongsThisSet = SummaryStruct.birds(i).exptnum_pop(ii).Sets_songfiles{iii};
             
+            motiflist = MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons(NeurThisSet(1)).motif_regexpr_str;
+            % sanity checyk
+            for mm = 2:length(NeurThisSet)
+                assert(all(strcmp(motiflist, MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons(NeurThisSet(mm)).motif_regexpr_str)));
+            end
+            
             % ========================= COLLECT POP DATA FOR ALL MOTIFS
             % go thru each motif. then for each motif go thru each neuron and collect all data that
             % fall within these songfiles
@@ -42,11 +50,11 @@ for i=1:Numbirds
                 
                 for nn=NeurThisSet
                     
-                % -- skip if no data for this motif
-                if length(MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons(nn).motif)<mm
-                     DATTMP.motif(mm).neur = [];
-                     continue
-                end
+                    % -- skip if no data for this motif
+                    if length(MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons(nn).motif)<mm
+                        DATTMP.motif(mm).neur = [];
+                        continue
+                    end
                     % ---- if this neuron doesn't have data, then skip this
                     % motif
                     if isempty(MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons(nn).motif(mm).SegmentsExtract)
@@ -85,9 +93,9 @@ for i=1:Numbirds
                 if isempty(DATTMP.motif(mm).neur)
                     % then this motif has no data .... SKIP
                     MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).SegExtr_neurfakeID = [];
-                   continue
+                    continue
                 end
-                    
+                
                 % ---- 1) determine sample size (trials)
                 sampsizeall = [];
                 for nn=NeurThisSet
@@ -98,9 +106,9 @@ for i=1:Numbirds
                 Ntrials = unique(sampsizeall);
                 
                 if Ntrials==0
-                   % --- then skip this motif
-                   MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).SegExtr_neurfakeID = [];
-                   continue
+                    % --- then skip this motif
+                    MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).SegExtr_neurfakeID = [];
+                    continue
                 end
                 
                 % ------- 2) Check that each trial aligned across
@@ -112,9 +120,17 @@ for i=1:Numbirds
                     allfs = [];
                     allsylontimes = [];
                     alldatdur = [];
+                    allmsylon = [];
+                    allmsyloff = [];
                     for nn=NeurThisSet
                         
-                        motifdur = DATTMP.motif(mm).neur(nn).SegmentsExtract(t).global_offtime_motifInclFlank ... 
+                        motifsylonset = DATTMP.motif(mm).neur(nn).SegmentsExtract(t).motifsylOnsets;
+                        allmsylon = [allmsylon; motifsylonset];
+                        
+                        motifsyloffset = DATTMP.motif(mm).neur(nn).SegmentsExtract(t).motifsylOffsets;
+                        allmsyloff = [allmsyloff; motifsyloffset];
+                        
+                        motifdur = DATTMP.motif(mm).neur(nn).SegmentsExtract(t).global_offtime_motifInclFlank ...
                             - DATTMP.motif(mm).neur(nn).SegmentsExtract(t).global_ontime_motifInclFlank;
                         
                         alldatdur = [alldatdur; ...
@@ -140,23 +156,28 @@ for i=1:Numbirds
                     assert(length(unique(allfs))==1, 'sdasf');
                     tmp = diff(allsylontimes,1,1);
                     assert(all(tmp(:)<0.00001), 'sdasf');
+                    tmp = diff(allmsylon, 1, 1);
+                    assert(all(tmp(:)<0.00001), 'asdfs');
+                    tmp = diff(allmsyloff, 1, 1);
+                    assert(all(tmp(:)<0.00001), 'asdfs');
+                    
                 end
                 
                 % -------------- Take segextract for first neuron (all
                 % are identical). Take neural data for all neurons
-%                 segextract_Common = DATTMP.motif(mm).neur(NeurThisSet(1)).SegmentsExtract;
-%                 % --- slide spktimes for all units into this 
-%                 
-%                 
-%                 for nn=NeurThisSet
-%                         for ttt = 1:Ntrials
-%                             segextract_Common(ttt).spk_Timesnn(nn) = ...
-%                                 DATTMP.motif(mm).neur(nn).SegmentsExtract(ttt).spk_Times;
-%                             segextract(ttt).spk_Clust = ...
-%                                 DATTMP.motif(mm).neur(nn).SegmentsExtract(ttt).spk_Clust;
-%                         end
-%                 end
-
+                %                 segextract_Common = DATTMP.motif(mm).neur(NeurThisSet(1)).SegmentsExtract;
+                %                 % --- slide spktimes for all units into this
+                %
+                %
+                %                 for nn=NeurThisSet
+                %                         for ttt = 1:Ntrials
+                %                             segextract_Common(ttt).spk_Timesnn(nn) = ...
+                %                                 DATTMP.motif(mm).neur(nn).SegmentsExtract(ttt).spk_Times;
+                %                             segextract(ttt).spk_Clust = ...
+                %                                 DATTMP.motif(mm).neur(nn).SegmentsExtract(ttt).spk_Clust;
+                %                         end
+                %                 end
+                
                 
                 for nn=NeurThisSet
                     segextract = struct;
@@ -168,10 +189,10 @@ for i=1:Numbirds
                     else
                         
                         for ttt = 1:Ntrials
-                              segextract(ttt).spk_Times = ...
-                                  DATTMP.motif(mm).neur(nn).SegmentsExtract(ttt).spk_Times;
-                              segextract(ttt).spk_Clust = ...
-                                  DATTMP.motif(mm).neur(nn).SegmentsExtract(ttt).spk_Clust;
+                            segextract(ttt).spk_Times = ...
+                                DATTMP.motif(mm).neur(nn).SegmentsExtract(ttt).spk_Times;
+                            segextract(ttt).spk_Clust = ...
+                                DATTMP.motif(mm).neur(nn).SegmentsExtract(ttt).spk_Clust;
                         end
                         
                     end

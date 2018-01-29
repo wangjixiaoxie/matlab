@@ -4,9 +4,9 @@ function lt_neural_PLOT_RawMultChan(dirname, batchf, chanstoplot);
 % can overlay multiple channels
 % can plot individual songs or entire thing
 
-dirname = '/bluejay5/lucas/birds/pu69wh78/NEURAL/110117_RALMANlearn1/NOTSINGING';
-batchf = 'BatchTest';
-chanstoplot = [9 14 17 18 21];
+% dirname = '/bluejay5/lucas/birds/pu69wh78/NEURAL/110117_RALMANlearn1/NOTSINGING';
+% batchf = 'BatchTest';
+% chanstoplot = [9 14 17 18 21];
 
 %%
 cd(dirname);

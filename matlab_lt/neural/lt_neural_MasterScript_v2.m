@@ -6,7 +6,7 @@ clear all; close all; fclose all;
 BirdsToKeep = {'pu69wh78'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 BrainArea = {};
 % ExptToKeep = {'RAlearn1', 'RALMANlearn1', 'LMANsearch'};
-ExptToKeep = {};
+ExptToKeep = {'RALMANlearn2'};
 RecordingDepth = [];
 LearningOnly = 1;
 BatchesDesired = {};
@@ -26,7 +26,14 @@ if (0)
     [NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database;
 end
 
+%% ############################################### DISP (stuff)
+%% ############################################################
 
+%% ========== plot all units info
+
+lt_neural_DISP_AllUnits(SummaryStruct);
+
+lt_neural_DISP_AllPopUnits(SummaryStruct);
 
 %% check fs for all
 
@@ -127,7 +134,7 @@ lt_neural_v2_DIAGN_DispLabels(SummaryStruct, stoponbird);
 % also plot other channels if want to compare
 close all;
 displaymode = 'rand';
-skipnum = 5;
+skipnum = 5; % only matters if is skip mode
 lt_neural_v2_DIAGN_Rawdat(SummaryStruct, displaymode, skipnum)
 
 %% ======= SONG MOD METRIC - FOR EACH NEURON
@@ -183,9 +190,9 @@ BirdToPlot = 'pu69wh78';
 % % ---- give it either
 % A) one neuron and a bunch of motifs or
 % B) bunch of neurons and one motif
-NeurToPlot = [12]; % 4 % vector (e.g. [5 7]) - if [] then plots all;
+NeurToPlot = [1:3]; % 4 % vector (e.g. [5 7]) - if [] then plots all;
 % motiflist = {'a(b)', 'jbh(h)g'};
-motiflist = {'j(j)j', 'g(j)j'};
+motiflist = {'aa(b)hhg'};
 plotbytime = 0; % links rasters for all motifs by time of song.
 
 % motifpredur = 0.15;
@@ -373,7 +380,7 @@ close all; clear MOTIFSTATS_Compiled;
 collectWNhit=0;
 onlyCollectTargSyl=0;
 LearnKeepOnlyBase = 0;
-saveOn = 1;
+saveOn = 0;
 OrganizeByExpt =0;
 collectFF=1;
 MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
@@ -385,21 +392,30 @@ MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
 %% ================ extraction continued
 close all;
 MOTIFSTATS_pop = lt_neural_v2_POP_ExtractMotifs(MOTIFSTATS_Compiled, SummaryStruct);
-clear MOTIFSTATS_Compiled;
+% clear MOTIFSTATS_Compiled;
 
 
 %% ================ PLOT [CORRELATION WITH FF]
+close all;
+xcov_dattotake = [-0.1 0.05];
+% xcov_dattotake = [-0.01 0.05];
+xcovwindmax = 0.05;
+binsize_spk = 0.005;
 
-MOTIFSTATS_pop = lt_neural_POP_ExtractXCov(MOTIFSTATS_pop, SummaryStruct);
+MOTIFSTATS_pop = lt_neural_POP_ExtractXCov(MOTIFSTATS_pop, SummaryStruct, ...
+    xcov_dattotake, xcovwindmax, binsize_spk);
 
 %% ==== 2) EXTRACT LEARNING SWITCH STRUCT
 
 SwitchStruct = lt_neural_LEARN_getswitch(SummaryStruct);
 
 %% ================ PLOT CROSS CORR WRT TO LEARNING
-
-
-
+close all; 
+% BirdExptPairsToPlot = {'pu69wh78', 'RALMANlearn1'};
+BirdExptPairsToPlot = {};
+SwitchToPlot = 1;
+lt_neural_POPLEARN_Plot(MOTIFSTATS_pop, SwitchStruct, BirdExptPairsToPlot, ...
+    SwitchToPlot);
 
 
 
@@ -445,9 +461,15 @@ lt_neural_v2_LEARNING_MetaSummary
 %% =================== LEARNING
 % CAN DO MULTIPLE BIRDS
 collectWNhit=0; % NOTE!!! temporary - need to change so don't need to extract audio each time (i.e. do and save)
-MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
-    collectWNhit);
+% MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
+%     collectWNhit);
+    Params_regexp.motif_predur = [];
+    Params_regexp.motif_postdur = [];
+    Params_regexp.preAndPostDurRelSameTimept = 1;
+    Params_regexp.RemoveIfTooLongGapDur = [];
 
+MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
+    collectWNhit, 0, 1, 0, 1, 1, [], Params_regexp);
 
 % =========== PICK OUT SAME TYPE/DIFF [LEANRING SPECIFIC]
 numbirds = length(MOTIFSTATS_Compiled.birds);
@@ -575,8 +597,8 @@ end
 
 % === PULL OUT RAW FR FOR ALL NEURONS/TRIALS
 RemoveTrialsZeroFR = 1;
-premotorWind = [-0.07 0.01]; % [-a b] means "a" sec before onset and "b" sec after offset
-premotorWind = [-0.03 0.025]; % [-a b] means "a" sec before onset and "b" sec after offset
+premotorWind = [-0.06 0.02]; % [-a b] means "a" sec before onset and "b" sec after offset
+% premotorWind = [-0.03 0.025]; % [-a b] means "a" sec before onset and "b" sec after offset
 % premotorWind = [-0.05 0]; % [-a b] means "a" sec before onset and "b" sec after offset
 [MOTIFSTATS_Compiled] = lt_neural_v2_ANALY_GetAllFR(MOTIFSTATS_Compiled, ...
     RemoveTrialsZeroFR, premotorWind);
@@ -633,7 +655,7 @@ lt_neural_v2_ANALY_LrnSwtchPLOT(MOTIFSTATS_Compiled, SwitchStruct);
 % ============ TIMECOURSES FOR NEURAL FOR SWITCHES
 close all;
 birdname_get = 'pu69wh78'; % keep empty if want all.
-exptname_get = 'RALMANlearn1';
+exptname_get = 'RALMANlearn2';
 switchnum_get = [1];
 plotneurzscore=0;
 onlyPlotTargNontarg=1;
@@ -644,16 +666,86 @@ lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct, ...
 % ========================= TIMECOURSES, BINNING BY TIME, showing smoothed
 % FR and rasters
 close all;
-birdname_get = 'pu69wh78'; % keep empty if want all.
-exptname_get = 'RAlearn1';
+birdname_get = 'br92br54'; % keep empty if want all.
+exptname_get = 'LMANlearn3';
 switchnum_get = [1];
 plotneurzscore=0;
 FFzscore =1;
-onlyPlotTargNontarg=1;
+onlyPlotTargNontarg=2;
+saveFigs =0;
 lt_neural_v2_ANALY_Swtch_Tcourse2(MOTIFSTATS_Compiled, SwitchStruct, ...
     birdname_get, exptname_get, switchnum_get, plotneurzscore, FFzscore, ...
-    onlyPlotTargNontarg)
+    onlyPlotTargNontarg, saveFigs)
 
+
+%% ==== BINNED LEARNING
+ 
+close all;
+birdname_get = 'bu77wh13'; % keep empty if want all.
+exptname_get = 'LMANlearn1';
+switchnum_get = [1];
+Bregion = {'LMAN', 'X'};
+plotneurzscore=0;
+FFzscore =1;
+onlyPlotTargNontarg=1;
+saveFigs =0;
+onlySingleDir =1; % if 1, then only does cases where all targs same dir
+lt_neural_v2_ANALY_Swtch_Binned(MOTIFSTATS_Compiled, SwitchStruct, ...
+    birdname_get, exptname_get, switchnum_get, plotneurzscore, FFzscore, ...
+    onlyPlotTargNontarg, saveFigs, onlySingleDir, Bregion);
+
+
+%% ======= BINNED LEARNING V2 (SONG BY SONG)
+close all;
+birdname_get = 'bu77wh13'; % JUST FOR PLOTTING
+exptname_get = 'LMANlearn1'; 
+switchnum_get = [1];
+Bregion = {'LMAN', 'X'};
+plotneurzscore=0;
+FFzscore =1;
+onlyPlotTargNontarg=1;
+saveFigs =0;
+onlySingleDir =1; % if 1, then only does cases where all targs same dir
+lt_neural_v2_ANALY_Swtch_Binned2(MOTIFSTATS_Compiled, SwitchStruct, ...
+    birdname_get, exptname_get, switchnum_get, plotneurzscore, FFzscore, ...
+    onlyPlotTargNontarg, saveFigs, onlySingleDir, Bregion);
+
+
+%%
+
+numbirds = length(SwitchStruct.bird);
+for i=1:numbirds
+   birdname = SwitchStruct.bird(i).birdname;
+    numexpts = length(SwitchStruct.bird(i).exptnum);
+    
+    for ii=1:numexpts
+       numswitch = length(SwitchStruct.bird(i).exptnum(ii).switchlist);
+       exptname = SwitchStruct.bird(i).exptnum(ii).exptname;
+       
+       for iii=1:numswitch
+          
+           close all;
+        birdname_get = birdname; % keep empty if want all.
+        exptname_get = exptname;
+        switchnum_get = [iii];
+        plotneurzscore=0;
+        FFzscore =1;
+        onlyPlotTargNontarg=1;
+        saveFigs =1;
+        lt_neural_v2_ANALY_Swtch_Tcourse2(MOTIFSTATS_Compiled, SwitchStruct, ...
+            birdname_get, exptname_get, switchnum_get, plotneurzscore, FFzscore, ...
+            onlyPlotTargNontarg, saveFigs)
+
+           
+       end
+       
+       
+    end
+end
+
+
+
+%%
 % ========================== SPIKE COUNT CORRELATIONS, CHANGE DURING
 % LEARNIG? Looks at a single switch.
 % NOTE: all neurons must have same batch file for this to work.
@@ -766,12 +858,6 @@ close all;
 MOTIFSTATS_pop = lt_neural_v2_POP_ExtractMotifs(MOTIFSTATS_Compiled, SummaryStruct);
 clear MOTIFSTATS_Compiled;
 
-%% === to save
-
-suffix = 'allBirds';
-tstamp = lt_get_timestamp(0);
-sdir = '';
-
 
 %% ================ PLOT [CORRELATION WITH FF]
 close all;
@@ -783,4 +869,95 @@ lt_neural_POP_FFcorrPlot
 %% ================ 
 
 lt_neural_POP_PlotRast
+
+%% #############################################################
+%% ######################## POPULATION - TAKE ENTIRE MOTIF
+
+
+close all; clear MOTIFSTATS_Compiled;
+collectWNhit=0; % NOTE!!! temporary - need to change so don't need to extract audio each time (i.e. do and save)
+onlyCollectTargSyl=0;
+LearnKeepOnlyBase = 1;
+saveOn = 1;
+OrganizeByExpt =0;
+collectFF=1;
+
+% --- to make sure extracts motifs
+MotifsToCollect = {'pu69wh78', {'(j)jjbhhg', '(a)abhhg'}};
+    Params_regexp.motif_predur = 0.05;
+    Params_regexp.motif_postdur = 0.05;
+    Params_regexp.preAndPostDurRelSameTimept = 0;
+    Params_regexp.RemoveIfTooLongGapDur = 1;
+
+MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
+    collectWNhit, LearnKeepOnlyBase, saveOn, onlyCollectTargSyl, OrganizeByExpt,...
+    collectFF, MotifsToCollect, Params_regexp);
+
+
+%% ======================= LINEAR TIME WARP
+TimeWarpParams = {'pu69wh78', '(j)jjbhhg', [1:13], ...
+    'pu69wh78', '(a)abhhg', [1:11]};
+NumBirds = length(MOTIFSTATS_Compiled.birds);
+
+MOTIFSTATS_Compiled.TimeWarpParams = TimeWarpParams;
+for i=1:NumBirds
+  
+    motiflist = MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.params.motif_regexpr_str;
+    
+    nneur = length(MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons);
+    for ii=1:nneur
+        nummotifs = length(MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons(ii).motif);
+        for iii=1:nummotifs
+           
+            motifthis = motiflist{iii};
+            birdthis = MOTIFSTATS_Compiled.birds(i).birdname;
+            
+            ind1 = find(strcmp(TimeWarpParams, birdthis));
+            ind2 = find(strcmp(TimeWarpParams, motifthis));
+            
+            ind3 = ind1(ind1 == ind2-1)+2; % actual ind of params
+            
+            if isempty(ind3)
+                % then this bird or motif is not specificed in params
+                disp(['PROBLEM - b ' birdname '- motif ' num2str(motifthis) ' NOT SPECIFIED (WILL NOT TIME WARP)']);
+                continue
+            end
+            
+            disp([birdthis '-n' num2str(ii) '-' motifthis]);
+            
+            % ================= DO TIME WARP
+            regionstowarp = TimeWarpParams{ind3};
+            segextract = MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons(ii).motif(iii).SegmentsExtract;
+            
+            expectedsegs = 2*length(segextract(1).matchlabel) - 1;
+            segextract = lt_neural_LinTimeWarpSegmented(segextract, ...
+                regionstowarp, expectedsegs);
+            
+            MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons(ii).motif(iii).SegmentsExtract = ...
+                segextract;
+        end
+    end
+    
+end
+
+%% ======================== EXTRACT POPULATION
+close all;
+MOTIFSTATS_pop = lt_neural_v2_POP_ExtractMotifs(MOTIFSTATS_Compiled, SummaryStruct);
+clear MOTIFSTATS_Compiled;
+
+
+%% ================ PLOT [CORRELATION WITH FF]
+close all;
+xcov_dattotake = [];
+xcovwindmax = 0.2;
+binsize_spk = 0.005;
+MOTIFSTATS_pop = lt_neural_POP_ExtractXCov(MOTIFSTATS_pop, SummaryStruct, ...
+    xcov_dattotake, xcovwindmax, binsize_spk);
+
+
+%% =============== SUMMARY PLOT OF ALL CROSS-CORRELATIONS
+close all;
+OUTSTRUCT = lt_neural_POP_PlotSummary(MOTIFSTATS_pop, SummaryStruct);
+
+lt_neural_POP_PlotSummary2(MOTIFSTATS_pop, SummaryStruct, OUTSTRUCT);
 

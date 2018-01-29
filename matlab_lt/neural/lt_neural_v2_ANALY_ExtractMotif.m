@@ -1,13 +1,48 @@
 function [MOTIFSTATS, SummaryStruct] = lt_neural_v2_ANALY_ExtractMotif(SummaryStruct, ...
-    collectWNhit, onlyCollectTargSyl, LearnKeepOnlyBase, FFparams)
+    collectWNhit, onlyCollectTargSyl, LearnKeepOnlyBase, FFparams, Params_regexp)
 %% ONLY WORKS FOR SINGLE BIRD!!! - extracts motif information into one structure
 % NOT LEARNING SPECIFIC, GENERAL USE
 
+%% 1/17/18 - can enter params for regexp - only can enter the follwiong. if leave empty then uses defaults
+
+if ~exist('Params_regexp', 'var')
+    Params_regexp = [];
+end
+
+if isempty(Params_regexp)
+    Params_regexp.motif_predur = [];
+    Params_regexp.motif_postdur = [];
+    Params_regexp.preAndPostDurRelSameTimept = [];
+    Params_regexp.RemoveIfTooLongGapDur = [];
+end
+
 %% PARAMS
 
-motif_predur = 0.15;
-motif_postdur = 0.05;
+if ~isempty(Params_regexp.motif_predur)
+     motif_predur = Params_regexp.motif_predur;
+else
+     motif_predur = 0.15;
+end
 
+if ~isempty(Params_regexp.motif_postdur)
+     motif_postdur = Params_regexp.motif_postdur;
+else
+    motif_postdur = 0.05;
+end
+
+if ~isempty(Params_regexp.preAndPostDurRelSameTimept)
+    preAndPostDurRelSameTimept = Params_regexp.preAndPostDurRelSameTimept;
+else
+preAndPostDurRelSameTimept = 0;
+end
+
+if ~isempty(Params_regexp.RemoveIfTooLongGapDur)
+    RemoveIfTooLongGapDur = Params_regexp.RemoveIfTooLongGapDur;
+else
+    RemoveIfTooLongGapDur = 1;
+end
+
+%%
 % for segments extract:
 alignByOnset=1;
 WHOLEBOUTS_edgedur=''; % OPTIONAL (only works if regexpr_str='WHOLEBOUTS', only keeps
@@ -35,7 +70,7 @@ if ~exist('onlyCollectTargSyl', 'var')
     onlyCollectTargSyl=0; % if 1, then has to be learning experiment and so has targ syl defined.
 end
 
-if ~exist('LearnKeepOnlyBase', 'var');
+if ~exist('LearnKeepOnlyBase', 'var')
     LearnKeepOnlyBase=0; % if 1, then keeps only baseline if you're a learning expt
 end
 
@@ -111,7 +146,8 @@ end
 MOTIFSTATS = struct;
 
 NumNeurons = length(SummaryStruct.birds(1).neurons);
-NumSyls = length(motif_regexpr_str);
+anyMotifDiff = 0; % to check - if any turn up 1, then will not save global motif.
+
 for i=1:NumNeurons
     cd(SummaryStruct.birds(1).neurons(i).dirname);
     
@@ -120,6 +156,8 @@ for i=1:NumNeurons
     % -- load data for this neuron
     batchf=SummaryStruct.birds(1).neurons(i).batchfilename;
     channel_board=SummaryStruct.birds(1).neurons(i).channel;
+    clustnum = SummaryStruct.birds(1).neurons(i).clustnum;
+    
     if collectWNhit==0
         extractSound = 0;
     else
@@ -140,7 +178,25 @@ for i=1:NumNeurons
         assert(~isempty(TargSyls), 'PROBELM< DEFINE TARG SYLS FIRST'); % must not be empty
     end
     
+    if length(motif_regexpr_str) ~= length(SummaryStruct.birds(1).neurons(i).POSTINFO.MotifsActual_regexpStr)
+        anyMotifDiff=1;
+    elseif ~all(strcmp(motif_regexpr_str, SummaryStruct.birds(1).neurons(i).POSTINFO.MotifsActual_regexpStr))
+        anyMotifDiff=1;
+    end
     
+    % -- update motifs
+    motif_regexpr_str = SummaryStruct.birds(1).neurons(i).POSTINFO.MotifsActual_regexpStr;
+    MotifsActual = SummaryStruct.birds(1).neurons(i).POSTINFO.MotifsActual;
+    singlesyls = SummaryStruct.birds(1).neurons(i).POSTINFO.SingleSyls_unique;
+
+    NumSyls = length(motif_regexpr_str);
+    
+    % -------- savbe motif information
+    MOTIFSTATS.neurons(i).motif_regexpr_str = motif_regexpr_str;
+    MOTIFSTATS.neurons(i).singlesyls_unique = singlesyls;
+    MOTIFSTATS.neurons(i).MotifsActual = MotifsActual;
+    
+
     % --- extract data, once for each motif
     for j=1:NumSyls
         regexpr_str=motif_regexpr_str{j};
@@ -150,7 +206,8 @@ for i=1:NumNeurons
             if any(strcmp(regexpr_str, TargSyls))
                 [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
                     regexpr_str, motif_predur, motif_postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
-                    0, 1, collectWNhit, 1, LearnKeepOnlyBase);
+                    0, 1, collectWNhit, 1, LearnKeepOnlyBase, preAndPostDurRelSameTimept, ...
+                    RemoveIfTooLongGapDur, clustnum);
             else
                 SegmentsExtract=struct;
                 Params=struct;
@@ -158,7 +215,8 @@ for i=1:NumNeurons
         else
             [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
                 regexpr_str, motif_predur, motif_postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
-                0, 1, collectWNhit, 1, LearnKeepOnlyBase);
+                0, 1, collectWNhit, 1, LearnKeepOnlyBase, preAndPostDurRelSameTimept, ...
+                RemoveIfTooLongGapDur, clustnum);
             
         end
         
@@ -208,6 +266,7 @@ end
 %% === MAKE SURE ALL TRIALS ARE IN TEMPORAL ORDER
 
 for i=1:NumNeurons
+    NumSyls = length(MOTIFSTATS.neurons(i).motif_regexpr_str);
     for m=1:NumSyls
         
         segextract = MOTIFSTATS.neurons(i).motif(m).SegmentsExtract;
@@ -234,14 +293,14 @@ end
 %% other things to output
 MOTIFSTATS.params.motif_predur = motif_predur;
 MOTIFSTATS.params.motif_postdur = motif_postdur;
+if anyMotifDiff==0
 MOTIFSTATS.params.motif_regexpr_str = motif_regexpr_str;
 MOTIFSTATS.params.singlesyls_unique = singlesyls;
+MOTIFSTATS.params.MotifsActual = MotifsActual;
+end
 % MOTIFSTATS.params.BirdsToKeep = BirdsToKeep;
 % MOTIFSTATS.params.BrainArea = BrainArea;
 % MOTIFSTATS.params.ExptToKeep = ExptToKeep;
-MOTIFSTATS.params.MotifsActual = MotifsActual;
 % MOTIFSTATS.params.TargSyls = TargSyls;
-
-
 
 

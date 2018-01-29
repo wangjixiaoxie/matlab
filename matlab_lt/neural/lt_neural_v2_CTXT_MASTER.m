@@ -180,9 +180,10 @@ close all;
 BrainRegions = {'LMAN', 'RA'};
 % BrainRegions = {'LMAN','X'};
 BirdToPlot = {};
+ExptToPlot = {};
 useDprime=0;
 lt_neural_v2_CTXT_BRANCH_PlotByBranchID(ALLBRANCH, BrainRegions, ...
-    BirdToPlot, useDprime)
+    BirdToPlot, useDprime, ExptToPlot)
 
 
 % ###################### PLOT EXAMPLES FOR EACH BIRD/BRANCH POINT

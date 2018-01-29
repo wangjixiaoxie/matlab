@@ -15,7 +15,7 @@ if ~exist('analyfname', 'var')
     analyfname = '';
 end
 
-if ~exist('tbin', 'var');
+if ~exist('tbin', 'var')
     tbin = [];
 end
    

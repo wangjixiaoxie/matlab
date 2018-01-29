@@ -1,4 +1,17 @@
-function SummaryStruct = lt_neural_v2_PostInfo(SummaryStruct, IgnoreWhetherLearn)
+function SummaryStruct = lt_neural_v2_PostInfo(SummaryStruct, IgnoreWhetherLearn, ...
+    MotifsToCollect)
+%% lt 1/17/18 - added ability to manually enter which motifs want to extract
+% note: will only use this if bird is entered. if not, then will still do
+% automatic motif extraction
+
+if ~exist('MotifsToCollect', 'var')
+    MotifsToCollect = [];
+end
+
+% e.g. MotifsToCollect = {'pu69wh78', {'(j)jbhhg', 'aabh'}};
+% bird cell pair. cell contains strings. if a given string has parantheses then is a specific regexp. if no
+% parantheses then will automaticalyl extract all strings for that "motif"
+
 %% lt 11/29/17 - added IgnoreWhetherLearn
 % IgnoreWhetherLearn = 1; % then uses same motifs for all experiments for
 % a given bird, regardless of whether is learning. default is 0, i.e. takes
@@ -167,13 +180,15 @@ for j=1:NumBirds
                     MotifsActual = {...
                         'aab', ...
                         'jjbhh', 'jjbhh(g)'};
+                elseif strcmp(exptname, 'RALMANOvernightLearn1')
+                    MotifsActual = {...
+                        'aabh', ...
+                        'jjbhh', 'jjbhh(g)'};
                 elseif strcmp(exptname, 'RAlearn1')
-                    
                     MotifsActual = {...
                         'aab', ...
                         'jjb', ...
                         'h(g)'};
-                    
                 end
                 
             else
@@ -248,7 +263,7 @@ for j=1:NumBirds
             end
         end
         
-        assert(~isempty(MotifsActual), 'no motifs given...');
+        
         
         
         %% === WHAT MOTIFS FOR THIS BIRD/EXPT
@@ -270,6 +285,22 @@ for j=1:NumBirds
         %                 failures = failures+1;
         %             end
         %         end
+        
+
+        
+        %% ALTERNATIVE - MANUALLY ENTER MOTIFS
+        if ~isempty(MotifsToCollect)
+            % then overwrite stuff from above, use hand entered stuff
+            indtmp = find(strcmp(MotifsToCollect, birdname));
+            if ~isempty(indtmp)
+               MotifsActual = MotifsToCollect{indtmp+1};
+                
+            end
+        end
+        
+%%
+        assert(~isempty(MotifsActual), 'no motifs given...');
+        
         %%
         % ==== BASED ON THOSE MOTIFS FIGURE OUT ALL REG EXP STRINGS
         motif_regexpr_str = {}; % will put motifs for extraction here
@@ -311,6 +342,8 @@ for j=1:NumBirds
         %             keyboard
         %         end
         
+
+        %%
         % display output
         if (0)
             disp(['--------------------------------' birdname '-' exptname])

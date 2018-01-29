@@ -1,5 +1,5 @@
 function lt_neural_v2_CTXT_BRANCH_PlotByBranchID(ALLBRANCH, BrainRegions, ...
-    BirdToPlot, useDprime)
+    BirdToPlot, useDprime, ExptToPlot)
 %% lt 11/29/17 - plots, sepaated by unique branch points (i.e. regexpstr)
 
 %% ======= Filter data (e.g. remove noise, poor labels, etc)
@@ -14,6 +14,7 @@ Params.durThreshOmega.gappost= [];
 Params.GapDurPreMax = 0.5; % then will throw out if median pregap dur (for any
 % class within branch) is longer than this (sec)
 Params.RemoveHandCoded =1 ; % see below
+Params.expttokeep = ExptToPlot;
 
 ALLBRANCH = lt_neural_v2_CTXT_BranchFilter(ALLBRANCH, Params);
 
@@ -39,7 +40,7 @@ DATSTRUCT_BYBRANCH = lt_neural_v2_CTXT_BRANCH_OrgByBranchID(ALLBRANCH, '', '', .
 %% ===== FOR EACH BIRD PLOT EACH BRANCH, SEPARATING BY BRAIN REGION
 numbirds = length(DATSTRUCT_BYBRANCH.bird);
 locationstoplot = BrainRegions;
-
+apos = 1;
 
 for i=1:numbirds
     birdname = ALLBRANCH.SummaryStruct.birds(i).birdname;
@@ -104,6 +105,18 @@ for i=1:numbirds
                 ymax = max(ydecode(:));
                 plot(sylcontours_x, 0.25*sylcontours_mean+1, '-m');
             end
+            
+            % ---- note down neuron/channel number
+            neuronOrig = DATSTRUCT_BYBRANCH.bird(i).branchID(bb).DAT.IndsOriginal_neuron(inds);
+            for j=1:length(neuronOrig)
+                
+                nn = neuronOrig(j);
+            
+                chan = ALLBRANCH.SummaryStruct.birds(i).neurons(nn).channel;
+                lt_plot_text(xdecode(end), ydecode(j,end), ['ch' num2str(chan)], 'b', 7);
+                
+            end
+            
         end
         
     end
@@ -799,7 +812,9 @@ if suppressplots==0
             
             % ----------- find and plot peaks
             [~, loctmp] = findpeaks(mean(CCall(inds,:), 1), 'NPEAKS', 1, 'SORTSTR', 'descend');
+            if ~isempty(loctmp)
             line([lags(loctmp)*binsize lags(loctmp)*binsize], ylim, 'Color', 'b');
+            end
             
         end
     end

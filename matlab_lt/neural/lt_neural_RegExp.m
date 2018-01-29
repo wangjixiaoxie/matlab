@@ -4,7 +4,7 @@ function [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ..
     regexpr_str, predur, postdur, alignByOnset, WHOLEBOUTS_edgedur, FFparams, ...
     keepRawSongDat, suppressout, collectWNhit, collectWholeBoutPosition, LearnKeepOnlyBase, ...
     preAndPostDurRelSameTimept, RemoveIfTooLongGapDur, clustnum)
-%% lt 1/14/18 - throwing out all spikes with clustnum=0 (is noise)
+%% lt 1/14/18 - throwing out all spikes with clustnum=0 (is noise) [AUTO]
 % ALSO - if specify clustnum then will only keep spikes that are that
 % number
 
@@ -74,6 +74,10 @@ if ~exist('preAndPostDurRelSameTimept', 'var')
     % offset of token (depending on "alignByOnset"). if 0, then predur is
     % rel to token, and postdur is relative to end of matched motif
     % (default)
+end
+
+if ~exist('FFparams' ,'var')
+    FFparams = [];
 end
 
 if isempty(FFparams)

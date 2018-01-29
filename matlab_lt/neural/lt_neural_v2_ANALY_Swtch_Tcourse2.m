@@ -1,6 +1,6 @@
 function lt_neural_v2_ANALY_Swtch_Tcourse2(MOTIFSTATS_Compiled, SwitchStruct, ...
     birdname_get, exptname_get, switchnum_get, plotneurzscore, FFzscore, ...
-    onlyPlotTargNontarg)
+    onlyPlotTargNontarg, saveFigs)
 
 %%
 % plotneurzscore = 1; then zscore; otherwise plots difference from base
@@ -14,7 +14,7 @@ WindowToPlot = [-0.15 0.1]; % relative to syl onset, what to plot
 
 FFsmthbinsize = 10;
 
-minrends = 5; % for both train and base
+minrends = 4; % for both train and base
 
 premotorWind = SwitchStruct.params.premotorWind;
 
@@ -24,7 +24,8 @@ minbinsize = 15; % will take this or numbase rends (divbided by 2), whichever is
 maxbinsize = 25;
 %%
 
-% onlyPlotTargNontarg = 1; % if 1, then only targ syl, if 0, then all syls
+% onlyPlotTargNontarg = 1; % if 1, then only targ syl, if 0, then all syls;
+% if 2 then only targ
 
 
 %%
@@ -60,6 +61,10 @@ for i=1:Numbirds
         MotifStats = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS;
         SummaryStruct = MOTIFSTATS_Compiled.birds(i).exptnum(ii).SummaryStruct;
         
+        % ====== sanity check
+        assert(length(SummaryStruct.birds(1).neurons) == length(MotifStats.neurons), 'asdfd');
+        
+        
         motiflist = MotifStats.params.motif_regexpr_str;
         targsyls = MotifStats.params.TargSyls;
         nummotifs = length(motiflist);
@@ -91,6 +96,8 @@ for i=1:Numbirds
             if onlyPlotTargNontarg==1
                 motifstoplot = [find(ismember(motiflist, MotifStats.params.TargSyls)) ...
                     find(ismember(motiflist, MotifStats.params.SameTypeSyls))];
+            elseif onlyPlotTargNontarg==2
+                motifstoplot = [find(ismember(motiflist, MotifStats.params.TargSyls))];
             else
                 motifstoplot = 1:nummotifs;
             end
@@ -99,6 +106,14 @@ for i=1:Numbirds
             
             % ==== 1) for each motif, PLOT RASTER, SMTHED, AND NEURAL/FF
             for j=motifstoplot
+                
+                % -- direction of training;;;
+                indtmp = find(strcmp(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).learningContingencies, motiflist{j}));
+                if ~isempty(indtmp)
+                learnconting = SwitchStruct.bird(i).exptnum(ii).switchlist(iii).learningContingencies{indtmp+1};
+                else
+                learnconting = [];    
+                end
                 
                 for nn=goodneurons
                     
@@ -116,13 +131,13 @@ for i=1:Numbirds
                     
                     % =========================== FIGURE SOME THINGS OUT
                     % ABOUT BINSIZES
-                    numrows = 3;
+                    numrows = 2;
                     baseInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).baseInds);
                     trainInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds);
                     %                     trainInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds_WithinDayOfSw);
                     trialstoplot = [baseInds trainInds];
                     
-                    binsize = max([minbinsize length(baseInds)/2]);
+                    binsize = max([minbinsize floor(length(baseInds)/2)]);
                     binsize = min([binsize maxbinsize]);
                     
                     binOnsets = 1:binsize:length(trialstoplot);
@@ -136,7 +151,8 @@ for i=1:Numbirds
                     
                     
                     % ######################################## A) plot FF
-                    lt_subplot(1,numrows,1); hold on;
+                    lt_subplot(6,numrows,(6-1)*2+1:6*2); hold on;
+                    title(['conting: ' num2str(learnconting)])
                     tvals = [segextract.song_datenum];
                     ffvals = [segextract.FF_val];
                     %
@@ -161,15 +177,17 @@ for i=1:Numbirds
                     end
                     
                     if plotFFbyRend==1
-                        plot(ffvals, 1:length(ffvals), 'ok');
+%                         plot(ffvals, 1:length(ffvals), 'ok');
+                        plot(1:length(ffvals),ffvals, 'ok');
                     else
-                        plot(ffvals, tvals, 'ok');
+                        plot(tvals, ffvals, 'ok');
                     end
                     
                     
                     % --- plot means for each bin
                     tall = [];
                     ffall = [];
+                    ffsemall = [];
                     for kk =1:length(binTrialInds)
                         tmedian = median(tvals(binTrialInds{kk}));
                         tmean = mean(tvals(binTrialInds{kk}));
@@ -178,40 +196,58 @@ for i=1:Numbirds
                         
                         tall = [tall tmean];
                         ffall = [ffall ffmean];
+                        ffsemall = [ffsemall ffsem];
                         
-                        line([ffmean-ffsem ffmean+ffsem], [tmean tmean], 'Color','r', ...
-                            'LineWidth', 2);
+%                         line([ffmean-ffsem ffmean+ffsem], [tmean tmean], 'Color','r', ...
+%                             'LineWidth', 2);
+                        
+                        % -- plot temporal boundaries
+                        tmin = min(tvals(binTrialInds{kk}));
+                        tmax = max(tvals(binTrialInds{kk}));
+                        if kk==1
+%                         line(xlim, [tmin tmin], 'Color', 'r');    
+                        line([tmin tmin], ylim, 'Color', 'r');    
+                        end
+                        line([tmax tmax], ylim, 'Color', 'r');
+                        lt_plot_text(mean([tmin tmax]), ...
+                            1.2*max(ffvals(binTrialInds{kk})), num2str(kk), 'r');
                     end
-                    lt_plot(ffall, tall, {'Color','r', 'LineStyle', '-'});
+%                     lt_plot(ffall, tall, {'Color','r', 'LineStyle', '-'});
+                    lt_plot(tall, ffall, {'Color','r', 'LineStyle', '-'});
                     
                     % ------------ line for mean baseline pitch
                     ffmean = mean(ffvals(tvals<swtimetmp));
                     ffstd = std(ffvals(tvals<swtimetmp));
-                    line([ffmean ffmean], ylim, 'Color','k');
-                    line([ffmean-ffstd ffmean-ffstd], ylim, 'Color', 'k', 'LineStyle', '--');
-                    line([ffmean+ffstd ffmean+ffstd], ylim, 'Color', 'k', 'LineStyle', '--');
+%                     line([ffmean ffmean], ylim, 'Color','k');
+%                     line([ffmean-ffstd ffmean-ffstd], ylim, 'Color', 'k', 'LineStyle', '--');
+%                     line([ffmean+ffstd ffmean+ffstd], ylim, 'Color', 'k', 'LineStyle', '--');
+                    line(xlim, [ffmean ffmean], 'Color','k');
+                    line(xlim, [ffmean-ffstd ffmean-ffstd], 'Color', 'k', 'LineStyle', '--');
+                    line(xlim, [ffmean+ffstd ffmean+ffstd], 'Color', 'k', 'LineStyle', '--');
                     
                     % ----- line for baseline offset
-                    line(xlim, [swtimetmp swtimetmp], 'Color','r');
+%                     line(xlim, [swtimetmp swtimetmp], 'Color','m', 'LineWidth', 2);
+                    line([swtimetmp swtimetmp], ylim, 'Color','m', 'LineWidth', 2);
                     
-                    ylim([min(tvals)-0.02 max(tvals)+0.02])
-                    ylabel('days');
-                    
-                    
+%                     ylim([min(tvals)-0.02 max(tvals)+0.02])
+                    xlim([min(tvals)-0.02 max(tvals)+0.02])
+                    ylabel('ff');
+                    xlabel('days');
                     
                     
                     
                     % ######################################## PLOT RASTER
                     % ---- extract spktimes
                     clustnum = MotifStats.neurons(nn).clustnum;
-                    lt_subplot(1,numrows,2); hold on;
+                    lt_subplot(6,numrows,1:numrows:(6*numrows-3)); hold on;
                     for tt = trialstoplot
                         indstmp = segextract(tt).spk_Clust==clustnum;
                         spktimes = segextract(tt).spk_Times(indstmp);
                         spktimes = spktimes(spktimes > WindowToPlot2(1) & ...
                             spktimes < WindowToPlot2(2));
-                        lt_neural_PLOT_rasterline(spktimes, tt, 'k');
+                        lt_neural_PLOT_rasterline(spktimes, tt, 'k', 1);
                     end
+                    ylabel('trials -->');
                     axis tight
                     set(gca, 'Ytick', []);
                     
@@ -238,7 +274,7 @@ for i=1:Numbirds
                         line(xlim, -[-triallast-0.5 -triallast-0.5], 'Color','r');
                     end
                     
-                    loct = SummaryStruct.birds(i).neurons(nn).NOTE_Location;
+                    loct = SummaryStruct.birds(1).neurons(nn).NOTE_Location;
                     title([birdname '-' exptname '-sw' num2str(iii) '-' motiflist{j} '-n' num2str(nn) '[' loct ']']);
                     
                     
@@ -247,6 +283,9 @@ for i=1:Numbirds
                     basefrtrials = [];
                     % ------------------ FOR EACH TIME BIN, PLOT
                     hsplots = [];
+                    subplotpositions = 2:2:2*(length(binTrialInds));
+                    subplotpositions = fliplr(subplotpositions);
+                    
                     for kk = 1:length(binTrialInds)
                         inds = binTrialInds{kk};
                         
@@ -263,10 +302,16 @@ for i=1:Numbirds
                         end
                         
                         % --- plot
-                        plotpos = 3*length(binTrialInds)-3*(kk-1);
-                        hsplot = lt_subplot(length(binTrialInds), 3, plotpos); hold on;
+%                         plotpos = 2*length(binTrialInds)-2*(kk-1);
+                        plotpos = subplotpositions(kk);
+%                         hsplot = lt_subplot(length(binTrialInds), 3, plotpos); hold on;
+                        tmpind = ceil((6/5)*((length(binTrialInds))+1));
+                        hsplot = lt_subplot(tmpind, numrows, plotpos); hold on;
+
                         hsplots = [hsplots hsplot];
+                        if length(frsem)>1
                         shadedErrorBar(x, frmean, frsem, {'Color','k'},1);
+                        end
                         
                         % ------------ Separate by high and low FF
                         ffvals = [segextract(inds).FF_val];
@@ -279,20 +324,29 @@ for i=1:Numbirds
                             frmean = mean(frmat,2);
                             frsem = lt_sem(frmat');
                             
+                            if length(frsem) >1
                             shadedErrorBar(x, frmean, frsem, {'Color', 'r'},1);
+                            end
                             
                             % --- low FF
                             frmat = FRmat(:, ffvals<ffmedian);
                             frmean = mean(frmat,2);
                             frsem = lt_sem(frmat');
                             
+                            if length(frsem)>1
+                                
                             shadedErrorBar(x, frmean, frsem, {'Color', 'b'},1);
+                            end
                         end
                         
                         % ---- overlay baseline, if this is not baseline
                         if max(inds)>max(baseInds)
                             % then at least part of this is after baseline
+                            try
                             plot(x, mean(basefrtrials,2), '-w');
+                            catch err
+                            end
+                                
                         end
                         
                         
@@ -311,8 +365,9 @@ for i=1:Numbirds
                         
                     end
                     linkaxes(hsplots, 'xy');
-                    YLIM = get(gca,'YLim');
-                    ylim([0 YLIM(2)]);
+%                     YLIM = get(gca,'YLim');
+%                     ylim([0 YLIM(2)]);
+                    axis tight;
                     xlim([0 MotifStats.params.motif_predur+MotifStats.params.motif_postdur]);
                     
                     
@@ -324,4 +379,19 @@ for i=1:Numbirds
     end
 end
 
+%% save Figs?
+if saveFigs==1
+    saveDir = '/bluejay5/lucas/analyses/neural/FIGS/ANALY_Swtch_Tcourse2';
+    
+    saveDir = [saveDir '/' birdname_get '_' exptname_get '_sw' num2str(switchnum_get)];
+    
+    try cd(saveDir)
+    catch err
+        mkdir(saveDir)
+    end
+    
+    
+    lt_save_figs_to_folder(saveDir,0);
+    
+end
 

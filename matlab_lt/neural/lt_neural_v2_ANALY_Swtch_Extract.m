@@ -77,6 +77,11 @@ for i=1:Numbirds
                   continue
                   end
                   
+                  if isempty(segextract)
+                      continue
+                  end
+                      
+                  
                   %% === remove trials (permanently) with zero FR
                   % within window you care about
                   if RemoveTrialsZeroFR==1

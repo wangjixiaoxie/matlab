@@ -17,6 +17,7 @@ function ALLBRANCH = lt_neural_v2_CTXT_BranchFilter(ALLBRANCH, Params)
 % Params.GapDurPreMax = 0.5; % then will throw out if median pregap dur (for any
 %     % class within branch) is longer than this (sec)
 % Params.RemoveHandCoded =0 ; % see below
+% Params.expttokeep = {'RAlearn1'};
 
 
 %%
@@ -31,6 +32,10 @@ if ~isfield(Params, 'birdstokeep')
     birdstokeep = {};
 else
     birdstokeep = Params.birdstokeep;
+end
+
+if ~isfield(Params, 'expttokeep')
+    Params.expttokeep = {}; % then assumes get all expts
 end
 
 %%
@@ -90,6 +95,19 @@ for ii=1:numbirds
             datneur = ALLBRANCH.alignpos(apos).bird(ii).branch(j).neuron(nn);
             if isempty(datneur.yvals)
                 continue
+            end
+            
+            % ################## EXPT
+            if ~isempty(Params.expttokeep)
+            expt_this = ALLBRANCH.SummaryStruct.birds(ii).neurons(nn).exptID;
+            
+            if ~any(strcmp(Params.expttokeep, expt_this))
+                disp(['[EXPT removed] - ' expt_this]);
+                Neuronstoremove = [Neuronstoremove nn];
+                
+                continue
+            end
+            
             end
             
             % #################################### LOCATION

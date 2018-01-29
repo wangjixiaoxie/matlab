@@ -1161,7 +1161,7 @@ for i = 1:length(BrainregionsList)
         propsig_pos = [];
         propsig_neg = [];
         threshlist = [0.05 0.01 0.001];
-        for thresh =threshlist;
+        for thresh =threshlist
             % -- positive
             propsig_pos = [propsig_pos sum(p<thresh & rho>0)/length(p)];
             % -- neg
