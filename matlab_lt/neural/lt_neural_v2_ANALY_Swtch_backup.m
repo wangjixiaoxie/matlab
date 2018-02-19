@@ -6,10 +6,13 @@ function lt_neural_v2_ANALY_Swtch_Binned(MOTIFSTATS_Compiled, SwitchStruct, ...
 binbysong = 1; % this first makes datapoints by song, not by rendition. this allows comparing targ and nontarg
 removeOutlier =1; % if 1 then removes >3std for slow change in FF and Nspks (slopes)
 useLagZeroCorr = 0; % if 0, then takes 5 trial bin centered at 0 of xcorr.
+removeTrainStart = 0; % ad hoc, remove N trials from start, i.e. exclude startle
+
+scaleSlopesByCI = 1;
 
 %%
 
-winsize = 29; % for regression (to get slope of learning)
+winsize = 19; % for regression (to get slope of learning)
 
 assert(onlyPlotTargNontarg~=0, 'have not coded for nontarg syls yet');
 assert(onlySingleDir==1, 'have not coded for when targ multiple directions yet...');
@@ -24,8 +27,10 @@ else
 end
 
 %%
+
 % plotneurzscore = 1; then zscore; otherwise plots difference from base
 plotFFbyRend=0;
+
 %% PLOT FOR ALL SWITCHES
 
 
@@ -66,6 +71,7 @@ AllTrial_Spk_vs_FF = [];
 
 % -- corr
 AllTrial_Spk_vs_FF_RHO = [];
+AllTrial_Spk_vs_FF_RHO_Residuals = [];
 
 AllIsTarg = [];
 AllBirdnum = [];
@@ -80,14 +86,26 @@ AllLearnSlopeSig = [];
 All_SpkMean_STDtrials = [];
 All_SpkMean_slopeScaled = [];
 %                     All_SpkMean_Change = [];
-                    All_SpkMean_STDtrials_notCV = [];
-                    
-                    All_SpkMean_STDtrials_base = [];
+All_SpkMean_STDtrials_notCV = [];
+
+All_SpkMean_STDtrials_base = [];
 
 All_FR_Modulation = [];
 All_StartFromWNOff = [];
 
 All_SingleUnit = [];
+
+% ======== save raw vectors
+AllTrial_raw_ffvals = {};
+AllTrial_raw_tvals = {};
+AllTrial_raw_lastBaseInd = {};
+AllTrial_raw_Nspks = {};
+
+% =========== diff (end minus start)
+AllDiff_ff = [];
+AllDiff_ffsig = [];
+AllDiff_nspk = [];
+AllDiff_nspksig = [];
 
 for i=1:Numbirds
     
@@ -185,6 +203,7 @@ for i=1:Numbirds
                         learnconting = [];
                     end
                     
+                    
                     %%
                     %                     lt_figure; hold on;
                     segextract = MotifStats.neurons(nn).motif(j).SegmentsExtract;
@@ -196,13 +215,22 @@ for i=1:Numbirds
                     % =========================== FIGURE SOME THINGS OUT
                     % ABOUT BINSIZES
                     % ---- make bins relative to onset of training
-                    binsize = 7; % 10 trials;
+                    binsize = 8; % 10 trials;
                     baseInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).baseInds);
                     trainInds = find(SwitchStruct.bird(i).exptnum(ii).switchlist(iii).neuron(nn).DATA.motif(j).trainInds);
                     
+                    if removeTrainStart==1
+                        try
+                            trainInds(1:19) = [];
+                        catch err
+                            continue
+                        end
+                        
+                    end
                     if length(trainInds) <winsize
                         continue
                     end
+                    
                     
                     %                     binsize = max([minbinsize floor(length(baseInds)/2)]);
                     %                     binsize = min([binsize maxbinsize]);
@@ -396,10 +424,6 @@ for i=1:Numbirds
                     FFSlopesAll = [];
                     FFSlopesScaledAll = [];
                     for tt = 1:npoints
-                        if any(isnan(ffvals))
-                            b = [nan nan];
-                            bscale = nan;    
-                        else
                         if tt>floor(winsize/2) & (tt+floor(winsize/2))<=npoints
                             y = ffvals(tt-floor(winsize/2):tt+floor(winsize/2));
                             x = 1:length(y);
@@ -413,7 +437,6 @@ for i=1:Numbirds
                         else
                             b = [nan nan];
                             bscale = nan;
-                        end
                         end
                         
                         FFSlopesAll = [FFSlopesAll b(2)];
@@ -513,7 +536,7 @@ for i=1:Numbirds
                     end
                     
                     
-                    % ================================= OUTPUT (FOR THIS
+                    %% ================================= OUTPUT (FOR THIS
                     % NEURON/MOTIF)
                     % ------------ BINNED
                     % 1) spkmean vs. ffchange
@@ -527,6 +550,23 @@ for i=1:Numbirds
                         FF_change(binIndsRelOnset>=0), ccmaxlagbin, 'Coeff');
                     AllBinned_FRsmChange_vs_FFchange = [AllBinned_FRsmChange_vs_FFchange;
                         cc];
+                    
+                    
+                    % ------------------- MEDIAN (END MINUS START)
+                    trainIndsE = trainInds(1:floor(end/2));
+                    trainIndsL = trainInds(floor(end/2)+1:end);
+                    
+                    ffdiff = median(ffvals(trainIndsL)) - median(ffvals(trainIndsE));
+                    spkdiff = median(Nspks(trainIndsL)) - median(Nspks(trainIndsE));
+                    % significance
+                    ffdiff_sig = ranksum(ffvals(trainIndsL), ffvals(trainIndsE));
+                    spkdiff_sig = ranksum(Nspks(trainIndsL), Nspks(trainIndsE));
+                    
+                    AllDiff_ff = [AllDiff_ff; ffdiff];
+                    AllDiff_ffsig = [AllDiff_ffsig; ffdiff_sig];
+                    AllDiff_nspk = [AllDiff_nspk; spkdiff];
+                    AllDiff_nspksig = [AllDiff_nspksig; spkdiff_sig];
+
                     
                     % ------------ TRIAL BY TRIAL
                     % 1) spk vs. ff slope
@@ -555,6 +595,29 @@ for i=1:Numbirds
                     %                     plot(0, tmp, 'sr');
                     
                     
+                    % 3) spk vs. ff (residuals)
+                    % to check whether this is affected by slow-timescale
+                    % correlations.
+                    [~, ~, r_ff]=lt_regress(ffvals(trainInds), tvals(trainInds), 0);
+                    [~, ~, r_spk]=lt_regress(Nspks(trainInds), tvals(trainInds), 0);
+                    
+                    rho = corr(r_ff, r_spk);
+                    AllTrial_Spk_vs_FF_RHO_Residuals = ...
+                        [AllTrial_Spk_vs_FF_RHO_Residuals; rho];
+
+                    
+                    
+                    % ------------------- SAVE RAW DATA 
+                    AllTrial_raw_ffvals = [AllTrial_raw_ffvals; ...
+                        ffvals([baseInds trainInds])];
+                    AllTrial_raw_tvals = [AllTrial_raw_tvals; ...
+                        tvals([baseInds trainInds])];
+                    AllTrial_raw_lastBaseInd = [AllTrial_raw_lastBaseInd; ...
+                        length(baseInds)];
+                    AllTrial_raw_Nspks = [AllTrial_raw_Nspks; ...
+                        Nspks([baseInds trainInds])];
+                    
+                    
                     
                     % -------------- DATA
                     istarg = any(strcmp(motiflist{j}, MotifStats.params.TargSyls));
@@ -574,7 +637,7 @@ for i=1:Numbirds
                     Nspkstmp = Nspks(trainInds);
                     
                     if removeOutlier==1
-                    indtmp = ffvalstmp>3.5*std(ffvals);
+                        indtmp = ffvalstmp>3.5*std(ffvals);
                     else
                         indtmp = [];
                     end
@@ -585,7 +648,11 @@ for i=1:Numbirds
                     [b,bint]=lt_regress(ffvalstmp, tvalstmp, 0);
                     learnSlopeCI = bint(2,:);
                     learnSig = (learnSlopeCI(1)*learnSlopeCI(2))>0;
+                    if scaleSlopesByCI==1
                     learnSlopeScaled = b(2)/(bint(2,2) - bint(2,1));
+                    else
+                        learnSlopeScaled = b(2);
+                    end
                     
                     AllLearnSlopeScaled = [AllLearnSlopeScaled; learnSlopeScaled];
                     AllLearnSlopeSig = [AllLearnSlopeSig; learnSig];
@@ -593,9 +660,14 @@ for i=1:Numbirds
                     
                     % -- spikes
                     [b,bint]=lt_regress(Nspkstmp, tvalstmp, 0);
+                    if learnSlopeScaled ==1
                     spkslopeScaled = b(2)/(bint(2,2) - bint(2,1));
+                    else
+                        spkslopeScaled = b(2);
+                    end
+                    All_SpkMean_slopeScaled = [All_SpkMean_slopeScaled; spkslopeScaled];
                     
-                   
+                    
                     
                     
                     
@@ -606,7 +678,6 @@ for i=1:Numbirds
                     
                     cvspks_base = std(Nspks_orig(baseInds))/mean(Nspks_orig(baseInds));
                     All_SpkMean_STDtrials_base = [All_SpkMean_STDtrials_base; cvspks_base];
-                    All_SpkMean_slopeScaled = [All_SpkMean_slopeScaled; spkslopeScaled];
                     
                     All_FR_Modulation = [All_FR_Modulation; mean(FRsm_modulationCV(trainInds))];
                     
@@ -624,7 +695,6 @@ for i=1:Numbirds
                     end
                     
                     su = SummaryStruct.birds(1).neurons(nn).NOTE_is_single_unit;
-                    disp(su);
                     All_SingleUnit = [All_SingleUnit strcmp('su', 'yes')];
                     
                 end
@@ -632,7 +702,7 @@ for i=1:Numbirds
             
             % ==================== PLOT FOR THIS SWITCH
             if plotraw==1
-                close all;
+                %                 close all;
                 lt_figure; hold on;
                 
                 % ---- TARG
@@ -696,6 +766,176 @@ for i=1:Numbirds
         end
     end
 end
+
+
+%% [IMPORTANT] ========================= SUMMARY - FOR EACH EXPT PLOT TIMECOURSES
+maxbirds = max(AllBirdnum);
+maxexpts = max(AllExptnum);
+maxswitch = max(AllSwnum);
+
+
+for i=1:maxbirds
+    for ii=1:maxexpts
+        for iii=1:maxswitch
+            
+            %----------------- decide whether this has data
+            inds = AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
+                & AllIsTarg==1;
+            plotcol = 'k';
+            if ~any(inds)
+                continue
+            end
+            
+            % -------- initiate figure
+           figcount=1;
+            subplotrows=6;
+            subplotcols=2;
+            fignums_alreadyused=[];
+            hfigs=[];
+                    exptname = MOTIFSTATS_Compiled.birds(i).exptnum(ii).exptname;
+    birdname = MOTIFSTATS_Compiled.birds(i).birdname;
+
+    
+    % --------- collect things across targs/nontargs
+    RhoAll = [];
+    SpksdAll = [];
+    SylType = []; % 1 = targ ... 2 = samesyl ... 3 = diffsyl
+    
+    
+            % ########################## targ
+             inds = AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
+                & AllIsTarg==1;
+            
+            tvals = AllTrial_raw_tvals(inds);
+            ffvals = AllTrial_raw_ffvals(inds);
+            lastBase = AllTrial_raw_lastBaseInd(inds);
+            nspks = AllTrial_raw_Nspks(inds);
+            neurnum = AllNeurnum(inds);
+            learnrate = AllLearnSlopeScaled(inds);
+            learnsig = AllLearnSlopeSig(inds);
+            
+            for j=1:length(tvals)
+                
+                % ==================== FF
+                [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+                title([birdname '-' exptname '-sw' num2str(iii) '-n' num2str(neurnum(j))]);
+                ylabel('FF');
+                
+                plot(tvals{j}, ffvals{j}, 'x', 'Color', plotcol);
+                line([tvals{j}(lastBase{j}) tvals{j}(lastBase{j})], ylim);
+                axis tight;
+                lt_plot_zeroline;
+                if learnsig(j)==1
+                    lt_plot_text(tvals{j}(1), ffvals{j}(end), ...
+                        ['learnrate:' num2str(learnrate(j))], 'r');
+                else
+                    lt_plot_text(tvals{j}(1), ffvals{j}(end), ...
+                        ['learnrate:' num2str(learnrate(j))], 'k');
+                end
+                   
+                
+                % ==================== SPIKES
+                [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+                title([birdname '-' exptname '-sw' num2str(iii)  '-n' num2str(neurnum(j))]);
+                ylabel('spikes');
+                
+                plot(tvals{j}, nspks{j}, 'x', 'Color', plotcol);
+                line([tvals{j}(lastBase{j}) tvals{j}(lastBase{j})], ylim);
+                axis tight;
+                lt_plot_zeroline;
+                
+            end
+            
+            % ======================= STATS
+            rho = AllTrial_Spk_vs_FF_RHO(inds);
+            spkSD = All_SpkMean_STDtrials(inds);
+            
+            RhoAll = [RhoAll; rho];
+            SpksdAll = [SpksdAll; spkSD];
+            SylType = [SylType; 1*ones(size(spkSD))]; % 1 = targ ... 2 = samesyl ... 3 = diffsyl
+            
+            
+            
+            
+            % ######################### same syl
+            inds = AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
+                & AllIsTarg==0;
+            plotcol = 'b';
+            
+            tvals = AllTrial_raw_tvals(inds);
+            ffvals = AllTrial_raw_ffvals(inds);
+            lastBase = AllTrial_raw_lastBaseInd(inds);
+            nspks = AllTrial_raw_Nspks(inds);
+            neurnum = AllNeurnum(inds);
+            learnrate = AllLearnSlopeScaled(inds);
+            learnsig = AllLearnSlopeSig(inds);
+
+            for j=1:length(tvals)
+                
+                % ==================== FF
+                [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+                title([birdname '-' exptname '-sw' num2str(iii) '-n' num2str(neurnum(j))]);
+                ylabel('FF');
+                
+                plot(tvals{j}, ffvals{j}, 'x', 'Color', plotcol);
+                line([tvals{j}(lastBase{j}) tvals{j}(lastBase{j})], ylim);
+                axis tight;
+                lt_plot_zeroline;
+                
+                                if learnsig(j)==1
+                    lt_plot_text(tvals{j}(1), ffvals{j}(end), ...
+                        ['learnrate:' num2str(learnrate(j))], 'r');
+                else
+                    lt_plot_text(tvals{j}(1), ffvals{j}(end), ...
+                        ['learnrate:' num2str(learnrate(j))], 'k');
+                                end
+
+                
+                % ==================== SPIKES
+                [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+                title([birdname '-' exptname '-sw' num2str(iii) '-n' num2str(neurnum(j))]);
+                ylabel('spikes');
+                
+                plot(tvals{j}, nspks{j}, 'x', 'Color', plotcol);
+                line([tvals{j}(lastBase{j}) tvals{j}(lastBase{j})], ylim);
+                axis tight;
+                lt_plot_zeroline;
+            end
+
+            % ======================= STATS
+            rho = AllTrial_Spk_vs_FF_RHO(inds);
+            spkSD = All_SpkMean_STDtrials(inds);
+            
+            RhoAll = [RhoAll; rho];
+            SpksdAll = [SpksdAll; spkSD];
+            SylType = [SylType; 2*ones(size(spkSD))]; % 1 = targ ... 2 = samesyl ... 3 = diffsyl
+
+            
+            
+            % #################################### SUMMARY
+            % --- spk sd
+            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+                title([birdname '-' exptname '-sw' num2str(iii)]);
+            ylabel('sd of mean spike');
+            plot(1:length(SpksdAll), SpksdAll, 'ok');
+                
+            % --- rho
+            [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
+            title([birdname '-' exptname '-sw' num2str(iii)]);
+            ylabel('rho of mean spike');
+            plot(1:length(RhoAll), RhoAll, 'ok');
+            
+                
+        end
+    end
+end
+
+
+% ===================== 1) FF
+
+% ===================== 2) spikes
+
+% ==================== 3) summary
 
 
 %% ========================== ONE PAIR OF PLOTS FOR EACH EXPT [COMBINING MOTIFS AND NEURONS]
@@ -941,10 +1181,10 @@ linkaxes(hsplots)
 % takes average --> i.e. each neuron contributes exactly 2 points (targ,
 % nontarg)
 onlyKeepIfGreaterLearnNontarg=0;
-onlySigLearning =1;
-plottype = 1;
+onlySigLearning =0;
+plottype = 9;
 onlyIfStartWNoff =0;
-overlayIfSU=1;
+overlayIfSU=0;
 
 % =================== first collect data so is matched - i.e. each neuron
 % must contribute to both target and nontarget
@@ -973,9 +1213,9 @@ for i=1:maxbirds
                     & AllNeurnum==j;
                 
                 if onlyIfStartWNoff==1
-                   if unique(All_StartFromWNOff(inds))==0
-                       continue
-                   end
+                    if unique(All_StartFromWNOff(inds))==0
+                        continue
+                    end
                 end
                 
                 
@@ -1022,7 +1262,7 @@ for i=1:maxbirds
                 switch plottype
                     case 0
                         % trial - spk vs, ff, corr
-                        SpkFFcorr = abs(AllTrial_Spk_vs_FF_RHO(inds));
+                        SpkFFcorr = AllTrial_Spk_vs_FF_RHO(inds);
                         ylabel('spk vs. ff corr (abs value)');
                     case 1
                         % std of mean spks over trials
@@ -1049,6 +1289,13 @@ for i=1:maxbirds
                     case 7
                         ylabel('change in CV of mean spikes (train - base)');
                         SpkFFcorr = All_SpkMean_STDtrials(inds) - All_SpkMean_STDtrials_base(inds);
+                    case 8
+                        % trial - spk vs, ff, corr (Residuals)
+                        SpkFFcorr = abs(AllTrial_Spk_vs_FF_RHO_Residuals(inds));
+                        ylabel('spk vs. ff corr, using residuals (abs value)');
+                    case 9
+                        SpkFFcorr = AllDiff_nspk(inds);
+                        ylabel('spk diff (late minus early)');
                 end
                 
                 
@@ -1095,6 +1342,13 @@ for i=1:maxbirds
                     case 7
                         ylabel('change in CV of mean spikes (train - base)');
                         SpkFFcorr = All_SpkMean_STDtrials(inds) - All_SpkMean_STDtrials_base(inds);
+                    case 8
+                        % trial - spk vs, ff, corr (Residuals)
+                        SpkFFcorr = abs(AllTrial_Spk_vs_FF_RHO_Residuals(inds));
+                        ylabel('spk vs. ff corr, using residuals (abs value)');
+                    case 9
+                        SpkFFcorr = AllDiff_nspk(inds);
+                        ylabel('spk diff (late minus early)');
                 end
                 
                 learnrate = mean(learnrate);
@@ -1189,24 +1443,29 @@ y = Y(TargStat==1) - Y(TargStat==0);
 lt_regress(y, x, 1, 0, 1, 1);
 lt_plot_zeroline;
 lt_plot_zeroline_vert;
+
+
+
 %% [IMPORTANT] [SAME AS ABOVE, BUT EACH EXPT ONE PAIR OF DATAPOINTS]
 % ######################################### V2 - if multiple motifs, then
 % takes average --> i.e. each neuron contributes exactly 2 points (targ,
 % nontarg)
+
 onlyKeepIfGreaterLearnNontarg=0;
 onlySigLearning =1;
+plottype = 4;
+onlyIfStartWNoff =0;
+overlayIfSU=0;
 
 % =================== first collect data so is matched - i.e. each neuron
 % must contribute to both target and nontarget
 maxbirds = max(AllBirdnum);
 maxexpts = max(AllExptnum);
 maxswitch = max(AllSwnum);
-maxneuron = max(AllNeurnum);
 lt_figure; hold on;
-lt_subplot(3,1, 1:2); hold on;
+lt_subplot(3, 1, 1:2); hold on;
 title('TARG (r), nontarg(k) [each neuron paired]');
 xlabel('learn rate');
-ylabel('spk vs. ff corr (abs value)');
 
 X = [];
 Y = [];
@@ -1214,102 +1473,184 @@ Birdnum = [];
 TargStat = [];
 SwitchCount = [];
 swcounter = 1;
-% for i=1:maxbirds
-for i=1:6
+for i=1:maxbirds
     for ii=1:maxexpts
         for iii=1:maxswitch
             
-            
-            inds = AllBirdnum == i & AllExptnum==ii & AllSwnum==iii;
-            
-            % skip if no dat
-            if ~any(inds)
-                continue
-            end
-            
-            % skip if neuron does not contribute both targ and nontarg
-            if length(unique(AllIsTarg(inds)))==1
-                continue
-            end
-            
-            % skip if no target has significant learning
-            if onlySigLearning==1
-                learnsig = AllLearnSlopeSig(AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
-                    & AllIsTarg==1);
-                learntarg = AllLearnSlopeScaled(AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
-                    & AllIsTarg==1);
                 
-                if any(learnsig ==0) | any(learntarg<0)
+                inds = AllBirdnum == i & AllExptnum==ii & AllSwnum==iii;
+                
+                if onlyIfStartWNoff==1
+                    if unique(All_StartFromWNOff(inds))==0
+                        continue
+                    end
+                end
+                
+                
+                % skip if no dat
+                if ~any(inds)
                     continue
                 end
-                disp(learntarg);
-            end
-            
-            if onlyKeepIfGreaterLearnNontarg==1
-                targlearn = mean(AllLearnSlopeScaled(AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
-                    & AllIsTarg==1));
-                nontarglearn =  mean(AllLearnSlopeScaled(AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
-                    & AllIsTarg==0));
                 
-                if targlearn>nontarglearn
+                % skip if neuron does not contribute both targ and nontarg
+                if length(unique(AllIsTarg(inds)))==1
                     continue
                 end
+                
+                % skip if no target has significant learning
+                if onlySigLearning==1
+                    learnsig = AllLearnSlopeSig(AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
+                        & AllIsTarg==1);
+                    learntarg = AllLearnSlopeScaled(AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
+                        & AllIsTarg==1);
+                    
+                    if any(learnsig ==0) | any(learntarg<0)
+                        continue
+                    end
+                    disp(learntarg);
+                end
+                
+                if onlyKeepIfGreaterLearnNontarg==1
+                    targlearn = mean(AllLearnSlopeScaled(AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
+                        & AllIsTarg==1));
+                    nontarglearn =  mean(AllLearnSlopeScaled(AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
+                        & AllIsTarg==0));
+                    
+                    if targlearn>nontarglearn
+                        continue
+                    end
+                end
+                % ======================================= TARGET
+                inds = AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
+                    & AllIsTarg==1;
+                
+                istarg = AllIsTarg(inds);
+                learnrate = AllLearnSlopeScaled(inds);
+                SpkFFcorr = nan;
+                switch plottype
+                    case 0
+                        % trial - spk vs, ff, corr
+                        SpkFFcorr = AllTrial_Spk_vs_FF_RHO(inds);
+                        ylabel('spk vs. ff corr (abs value)');
+                    case 1
+                        % std of mean spks over trials
+                        SpkFFcorr = All_SpkMean_STDtrials(inds);
+                        ylabel('std of mean spks over trials (CV)');
+                    case 2
+                        % mean FR modulation (in units of cv) over trials
+                        SpkFFcorr = All_FR_Modulation(inds);
+                        ylabel('mean FR modulation (in units of cv) over trials');
+                    case 3
+                        ylabel('corr of spk vs ff slope (trials)');
+                        midind = ceil(size(AllTrial_Spk_vs_FFslope,2)/2);
+                        SpkFFcorr = abs(mean(AllTrial_Spk_vs_FFslope(inds, midind-2:midind+2),2));
+                    case 4
+                        ylabel('corr of spk vs ff change (binned)');
+                        midind = ceil(size(AllBinned_SpkMean_vs_FFchange,2)/2);
+                        SpkFFcorr = abs(mean(AllBinned_SpkMean_vs_FFchange(inds, midind-2:midind+2),2));
+                    case 5
+                        ylabel('slope of nspk over trials (scaled)');
+                        SpkFFcorr = All_SpkMean_slopeScaled(inds);
+                    case 6
+                        ylabel('std of mean spks base (CV)');
+                        SpkFFcorr = All_SpkMean_STDtrials_base(inds);
+                    case 7
+                        ylabel('change in CV of mean spikes (train - base)');
+                        SpkFFcorr = All_SpkMean_STDtrials(inds) - All_SpkMean_STDtrials_base(inds);
+                    case 8
+                        % trial - spk vs, ff, corr (Residuals)
+                        SpkFFcorr = abs(AllTrial_Spk_vs_FF_RHO_Residuals(inds));
+                        ylabel('spk vs. ff corr, using residuals (abs value)');
+                end
+                
+                
+                learnrate = mean(learnrate);
+                SpkFFcorr = mean(SpkFFcorr);
+                istarg = unique(istarg);
+                
+                X = [X; learnrate];
+                Y = [Y; SpkFFcorr];
+                TargStat = [TargStat; istarg];
+                
+                
+                % ======================================= NONTARG
+                inds = AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
+                    & AllIsTarg==0;
+                
+                istarg = AllIsTarg(inds);
+                learnrate = AllLearnSlopeScaled(inds);
+                SpkFFcorr = nan;
+                switch plottype
+                    case 0
+                        % trial - spk vs, ff, corr
+                        SpkFFcorr = abs(AllTrial_Spk_vs_FF_RHO(inds));
+                    case 1
+                        % std of mean spks over trials
+                        SpkFFcorr = All_SpkMean_STDtrials(inds);
+                    case 2
+                        % mean FR modulation (in units of cv) over trials
+                        SpkFFcorr = All_FR_Modulation(inds);
+                    case 3
+                        ylabel('corr of spk vs ff slope (trials)');
+                        midind = ceil(size(AllTrial_Spk_vs_FFslope,2)/2);
+                        SpkFFcorr = abs(mean(AllTrial_Spk_vs_FFslope(inds, midind-2:midind+2),2));
+                    case 4
+                        ylabel('corr of spk vs ff change (binned)');
+                        midind = ceil(size(AllBinned_SpkMean_vs_FFchange,2)/2);
+                        SpkFFcorr = abs(mean(AllBinned_SpkMean_vs_FFchange(inds, midind-2:midind+2),2));
+                    case 5
+                        ylabel('slope of nspk over trials (scaled)');
+                        SpkFFcorr = All_SpkMean_slopeScaled(inds);
+                    case 6
+                        ylabel('std of mean spks base (CV)');
+                        SpkFFcorr = All_SpkMean_STDtrials_base(inds);
+                    case 7
+                        ylabel('change in CV of mean spikes (train - base)');
+                        SpkFFcorr = All_SpkMean_STDtrials(inds) - All_SpkMean_STDtrials_base(inds);
+                    case 8
+                        % trial - spk vs, ff, corr (Residuals)
+                        SpkFFcorr = abs(AllTrial_Spk_vs_FF_RHO_Residuals(inds));
+                        ylabel('spk vs. ff corr, using residuals (abs value)');
+                end
+                
+                learnrate = mean(learnrate);
+                SpkFFcorr = mean(SpkFFcorr);
+                istarg = unique(istarg);
+                
+                X = [X; learnrate];
+                Y = [Y; SpkFFcorr];
+                TargStat = [TargStat; istarg];
+                
+                % ===== count switch
+                SwitchCount = [SwitchCount swcounter];
+                swcounter = swcounter+1;
+                
+                Birdnum = [Birdnum i];
+                
+                % --------------- plot line connecting these two \
+                if X(end)>X(end-1)
+                    plotcol = 'b';
+                else
+                    plotcol = [0.7 0.7 0.7];
+                end
+                if Y(end)<Y(end-1)
+                    lstyle = '-';
+                else
+                    lstyle = ':';
+                end
+                plot(X(end-1:end), Y(end-1:end), '-', 'Color', plotcol, ...
+                    'LineStyle', lstyle);
+                
+                % ---- if plot SU
+                if overlayIfSU==1
+                    if unique(All_SingleUnit(inds))==1
+                        plot(X(end-1), Y(end-1), 'sm', 'MarkerSize', 15);
+                        plot(X(end), Y(end), 'sm');
+                    end
+                end
             end
-            % ======================================= TARGET
-            inds = AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
-                & AllIsTarg==1;
-            
-            istarg = AllIsTarg(inds);
-            learnrate = AllLearnSlopeScaled(inds);
-            SpkFFcorr = abs(AllTrial_Spk_vs_FF_RHO(inds));
-            
-            learnrate = mean(learnrate);
-            SpkFFcorr = mean(SpkFFcorr);
-            istarg = unique(istarg);
-            
-            X = [X; learnrate];
-            Y = [Y; SpkFFcorr];
-            TargStat = [TargStat; istarg];
-            
-            
-            % ======================================= NONTARG
-            inds = AllBirdnum == i & AllExptnum==ii & AllSwnum==iii ...
-                & AllIsTarg==0;
-            
-            istarg = AllIsTarg(inds);
-            learnrate = AllLearnSlopeScaled(inds);
-            SpkFFcorr = abs(AllTrial_Spk_vs_FF_RHO(inds));
-            
-            learnrate = mean(learnrate);
-            SpkFFcorr = mean(SpkFFcorr);
-            istarg = unique(istarg);
-            
-            X = [X; learnrate];
-            Y = [Y; SpkFFcorr];
-            TargStat = [TargStat; istarg];
-            
-            % ===== count switch
-            SwitchCount = [SwitchCount swcounter];
-            swcounter = swcounter+1;
-            
-            Birdnum = [Birdnum i];
-            
-            % --------------- plot line connecting these two \
-            if X(end)>X(end-1)
-                plotcol = 'b';
-            else
-                plotcol = [0.7 0.7 0.7];
-            end
-            if Y(end)<Y(end-1)
-                lstyle = '-';
-            else
-                lstyle = ':';
-            end
-            plot(X(end-1:end), Y(end-1:end), '-', 'Color', plotcol, ...
-                'LineStyle', lstyle);
         end
     end
-end
 
 
 % =================== TARGS
@@ -1325,11 +1666,11 @@ x = X(inds);
 y = Y(inds);
 lt_plot(x, y, {'Color', 'k'})
 
-
+YLIM = ylim;
 % =============================================== PAIRED COMPARISON
-lt_subplot(3,1,3); hold on;
+lt_subplot(3,2,5); hold on;
 xlabel('TARG -- NONTARG');
-ylabel('spk vs. ff corr (abs value)');
+% ylabel('spk vs. ff corr (abs value)');
 x = [1 2];
 yy = [];
 
@@ -1345,7 +1686,24 @@ yy = [yy y];
 
 plot(x, yy, 'o-k');
 xlim([0 3]);
-ylim([-0.1 0.8]);
+ylim(YLIM);
+
+% --- sign rank
+p = signrank(yy(:,1), yy(:,2));
+lt_plot_pvalue(p, 'srank', 1);
+
+
+% =============================================== PAIRED COMPARISON
+lt_subplot(3,2,6); hold on;
+xlabel('learn diff (targ - nontarg)');
+ylabel('diff in metric (targ - nontarg)');
+
+x = X(TargStat==1) - X(TargStat==0);
+y = Y(TargStat==1) - Y(TargStat==0);
+
+lt_regress(y, x, 1, 0, 1, 1);
+lt_plot_zeroline;
+lt_plot_zeroline_vert;
 
 
 

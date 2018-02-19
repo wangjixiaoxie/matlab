@@ -9,7 +9,7 @@ end
 % yval: position to plot (will go from -1 to ...)
 
 
-
+if ~isempty(spktimes)
 if plotdot==1
    plot(spktimes, yval, '.', 'Color', plotcol); 
 else
@@ -18,4 +18,5 @@ else
         line([spktimes(ttt) spktimes(ttt)], [yval-0.4 yval+0.4], ...
             'Color', plotcol, 'LineWidth', 1);
     end
+end
 end

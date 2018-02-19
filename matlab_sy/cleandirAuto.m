@@ -71,7 +71,8 @@ while (1)
         [dat,fs]=ReadCbinFile(fn, '0');
         sm=mquicksmooth(dat,fs);
     elseif(strcmp(ext,'.wav'))
-        [dat,fs]=wavread(fn);
+%         [dat,fs]=wavread(fn);
+        [dat,fs]=audioread(fn);
         sm=mquicksmooth(dat,fs);
     end
     %[ons,offs]=evsegment(sm,fs,5.0,30.0,TH);

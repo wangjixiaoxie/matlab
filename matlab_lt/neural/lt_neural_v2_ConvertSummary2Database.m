@@ -265,8 +265,14 @@ if any(strcmp(BrainArea, 'RA'))
     % ==== append
     birdcount = length(SummaryStruct_filtered.birds)+1;
     for i=1:length(SummaryStruct_SamMel.birds)
-       SummaryStruct_filtered.birds(birdcount) = SummaryStruct_SamMel.birds(i);
-       birdcount= birdcount+1;
+        
+        if ~any(strcmp(SummaryStruct_SamMel.birds(i).birdname, BirdsToKeep))
+            disp(['skipped ' SummaryStruct_SamMel.birds(i).birdname]);
+            continue
+        end
+        
+        SummaryStruct_filtered.birds(birdcount) = SummaryStruct_SamMel.birds(i);
+        birdcount= birdcount+1;
     end
     
 end

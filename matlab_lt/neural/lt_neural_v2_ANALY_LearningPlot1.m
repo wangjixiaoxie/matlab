@@ -1,4 +1,10 @@
-function FirstDay = lt_neural_v2_ANALY_LearningPlot1(SummaryStruct_onebird, MOTIFSTATS)
+function FirstDay = lt_neural_v2_ANALY_LearningPlot1(SummaryStruct_onebird, ...
+    MOTIFSTATS, newfig)
+%%
+
+if ~exist('newfig', 'var')
+   newfig=1; 
+end
 %% NOTE:
 % Summarystruct must match MOTIFSTATS perfectly, i.e. must be one bird only
 % ALSO, MUST BE ONE EXPT ONLY
@@ -26,13 +32,16 @@ DatenumsAll = sort(unique(DatenumsAll));
 FirstDay = datestr(DatenumsAll(1), 'ddmmmyyyy');
 
 % --- now plot
+if newfig==1
 lt_figure; hold on;
+end
+
 plotcols = lt_make_plot_colors(NumNeurons, 0, 0);
 hsplots = [];
 for i=1:NumNeurons
     
-    hsplot = lt_subplot(3, 1,1:2); hold on;
-    hsplots = [hsplots hsplot];
+    hsplot1 = lt_subplot(3, 1,1:2); hold on;
+    hsplots = [hsplots hsplot1];
     plotcols_targs = lt_make_plot_colors(length(TargSyls), 0, 0);
     for ii=1:length(TargSyls)
         targind = find(strcmp(motif_regexpr_str, TargSyls{ii}));
@@ -53,8 +62,8 @@ for i=1:NumNeurons
     %     axis tight
     
     % plot line for dur that have data for this neuron
-    hsplot = lt_subplot(3,1,3); hold on;
-    hsplots = [hsplots hsplot];
+    hsplot2 = lt_subplot(3,1,3); hold on;
+    hsplots = [hsplots hsplot2];
     %     title('duration of data');
     ylabel('neuron #');
     xlabel('time (days)');
@@ -69,7 +78,8 @@ end
 linkaxes(hsplots, 'x');
 
 % -- put lines for expt
-lt_subplot(3,1,1:2); hold on;
+% lt_subplot(3,1,1:2); hold on;
+subplot(hsplot1); hold on;
 tmp = lt_neural_v2_LoadLearnMetadat;
 indbird = strcmp({tmp.bird.birdname}, SummaryStruct_onebird.birds(1).birdname);
 indexpt = strcmp(tmp.bird(indbird).info(1,:), SummaryStruct_onebird.birds(1).neurons(1).exptID);
@@ -131,7 +141,7 @@ exptname = SummaryStruct_onebird.birds(1).neurons(ii).exptID;
             transtime = lt_convert_EventTimes_to_RelTimes(FirstDay, switchtime);
         transtime  = transtime.FinalValue;
         
-        subplot(3,1,3);
+        subplot(hsplot2);
         plot(transtime, ii, 'o', 'Color', plotcols{ii});
         
 end

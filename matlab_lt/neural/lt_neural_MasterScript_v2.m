@@ -4,11 +4,11 @@
 %% EXTRACT
 clear all; close all; fclose all;
 BirdsToKeep = {'pu69wh78'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
-BrainArea = {};
+BrainArea = {'LMAN', 'X', 'RA'};
 % ExptToKeep = {'RAlearn1', 'RALMANlearn1', 'LMANsearch'};
-ExptToKeep = {'RALMANlearn2'};
+ExptToKeep = {'RALMANlearn1'};
 RecordingDepth = [];
-LearningOnly = 1;
+LearningOnly = 0;
 BatchesDesired = {};
 ChannelsDesired = [];
 % BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
@@ -190,18 +190,23 @@ BirdToPlot = 'pu69wh78';
 % % ---- give it either
 % A) one neuron and a bunch of motifs or
 % B) bunch of neurons and one motif
-NeurToPlot = [1:3]; % 4 % vector (e.g. [5 7]) - if [] then plots all;
+NeurToPlot = []; % 4 % vector (e.g. [5 7]) - if [] then plots all;
 % motiflist = {'a(b)', 'jbh(h)g'};
-motiflist = {'aa(b)hhg'};
+motiflist = {'ab(h)h'};
 plotbytime = 0; % links rasters for all motifs by time of song.
 
 % motifpredur = 0.15;
 % motifpostdur = 0.15;
 motifpredur = 0.15;
-motifpostdur = 0.15;
+motifpostdur = 0.3;
+
+plotIndivRaster = 1; % one raster for each neuron/motif
+plotCombRast = 0; % one figure, all rasters
+plotSmFR = 0; % all smoothed FR.
 
 lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
-    motiflist, plotbytime, motifpredur, motifpostdur)
+    motiflist, plotbytime, motifpredur, motifpostdur, plotIndivRaster, ...
+    plotCombRast, plotSmFR)
 
 
 %% ====================================
@@ -380,7 +385,7 @@ close all; clear MOTIFSTATS_Compiled;
 collectWNhit=0;
 onlyCollectTargSyl=0;
 LearnKeepOnlyBase = 0;
-saveOn = 0;
+saveOn = 1;
 OrganizeByExpt =0;
 collectFF=1;
 MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
@@ -471,6 +476,7 @@ collectWNhit=0; % NOTE!!! temporary - need to change so don't need to extract au
 MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
     collectWNhit, 0, 1, 0, 1, 1, [], Params_regexp);
 
+
 % =========== PICK OUT SAME TYPE/DIFF [LEANRING SPECIFIC]
 numbirds = length(MOTIFSTATS_Compiled.birds);
 for i=1:numbirds
@@ -522,22 +528,27 @@ for i=1:NumBirds
         if ~isfield(MOTIFSTATS.params, 'TargSyls')
             disp('asdasdf');
         end
-        if isempty(MOTIFSTATS.params.TargSyls);
+        if isempty(MOTIFSTATS.params.TargSyls)
             sdafasdf
         end
         
         
         % === PLOT
-        lt_neural_v2_ANALY_LearningPlot1(SummaryStruct_tmp, MOTIFSTATS);
+        lt_figure; hold on;
+        newfig=0;
+        lt_neural_v2_ANALY_LearningPlot1(SummaryStruct_tmp, MOTIFSTATS, newfig);
         title([birdname '-' exptname]);
+%         keyboard
     end
 end
 
 
 %% ================================== PLOT LEARNING (ALL SYLS)
-close all
+% close all
 MeanSubtract =1; % subtract baseline mean?
-lt_neural_v2_ANALY_LearnAllSylPlot(SummaryStruct, MOTIFSTATS_Compiled, MeanSubtract);
+BirdsToPlot = {'pu69wh78'};
+lt_neural_v2_ANALY_LearnAllSylPlot(MOTIFSTATS_Compiled, ...
+    MeanSubtract, BirdsToPlot);
 
 %% ============ save learning expt struct
 
@@ -667,11 +678,11 @@ lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct, ...
 % FR and rasters
 close all;
 birdname_get = 'br92br54'; % keep empty if want all.
-exptname_get = 'LMANlearn3';
+exptname_get = 'LMANlearn5';
 switchnum_get = [1];
 plotneurzscore=0;
 FFzscore =1;
-onlyPlotTargNontarg=2;
+onlyPlotTargNontarg=1;
 saveFigs =0;
 lt_neural_v2_ANALY_Swtch_Tcourse2(MOTIFSTATS_Compiled, SwitchStruct, ...
     birdname_get, exptname_get, switchnum_get, plotneurzscore, FFzscore, ...
@@ -681,13 +692,13 @@ lt_neural_v2_ANALY_Swtch_Tcourse2(MOTIFSTATS_Compiled, SwitchStruct, ...
 %% ==== BINNED LEARNING
  
 close all;
-birdname_get = 'bu77wh13'; % keep empty if want all.
-exptname_get = 'LMANlearn1';
+birdname_get = 'bk7'; % keep empty if want all.
+exptname_get = 'LearnLMAN1';
 switchnum_get = [1];
 Bregion = {'LMAN', 'X'};
 plotneurzscore=0;
 FFzscore =1;
-onlyPlotTargNontarg=1;
+onlyPlotTargNontarg=3; % 1 is targ/same; 3 is all [DEFAULT: 3]
 saveFigs =0;
 onlySingleDir =1; % if 1, then only does cases where all targs same dir
 lt_neural_v2_ANALY_Swtch_Binned(MOTIFSTATS_Compiled, SwitchStruct, ...
@@ -697,10 +708,10 @@ lt_neural_v2_ANALY_Swtch_Binned(MOTIFSTATS_Compiled, SwitchStruct, ...
 
 %% ======= BINNED LEARNING V2 (SONG BY SONG)
 close all;
-birdname_get = 'bu77wh13'; % JUST FOR PLOTTING
-exptname_get = 'LMANlearn1'; 
-switchnum_get = [1];
-Bregion = {'LMAN', 'X'};
+birdname_get = ''; % JUST FOR PLOTTING
+exptname_get = ''; 
+switchnum_get = [];
+Bregion = {'LMAN'};
 plotneurzscore=0;
 FFzscore =1;
 onlyPlotTargNontarg=1;
@@ -784,7 +795,7 @@ neuralmetricname = 'NEURvsbase_FRcorr';
 % ---- filtering data by learning at target
 % note: if multiple targets then will filter on just first target...
 plotLearnStatsOn = 0; %
-OnlyKeepSigLearn = 0; % either regression or end training has be significant.
+OnlyKeepSigLearn = 1; % either regression or end training has be significant.
 learnsigalpha = 0.01; % for deciding that an experiment showed "no learning"
 
 % ---- ONLY KEEP SWITCHES STARTING FROM WN OFF
@@ -820,7 +831,7 @@ lt_neural_v2_ANALY_Swtch_LME(DATSylMot)
 %% ################################################################
 %% ########################################### WN RESPONSE
 
-
+lt_neural_v2_PseudoPop_Master
 % ========= for eac bird/expt, plot all trials separated by WN/noWN
 close all; clear MOTIFSTATS_Compiled;
 collectWNhit=1; % NOTE!!! temporary - need to change so don't need to extract audio each time (i.e. do and save)
@@ -960,4 +971,115 @@ close all;
 OUTSTRUCT = lt_neural_POP_PlotSummary(MOTIFSTATS_pop, SummaryStruct);
 
 lt_neural_POP_PlotSummary2(MOTIFSTATS_pop, SummaryStruct, OUTSTRUCT);
+
+
+%% #################################################################
+%% PSEUDO POPULATION
+
+close all; clear MOTIFSTATS_Compiled;
+collectWNhit=0; % NOTE!!! temporary - need to change so don't need to extract audio each time (i.e. do and save)
+onlyCollectTargSyl=0;
+LearnKeepOnlyBase = 1;
+saveOn = 1;
+OrganizeByExpt =0;
+collectFF=1;
+
+% --- to make sure extracts motifs
+% MotifsToCollect = {'pu69wh78', {'(j)jjbhhg', '(a)abhhg'}};
+%     Params_regexp.motif_predur = 0.05;
+%     Params_regexp.motif_postdur = 0.05;
+%     Params_regexp.preAndPostDurRelSameTimept = 0;
+%     Params_regexp.RemoveIfTooLongGapDur = 1;
+
+MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
+    collectWNhit, LearnKeepOnlyBase, saveOn, onlyCollectTargSyl, OrganizeByExpt,...
+    collectFF);
+
+
+%% ========== FOR EACH SYLLABLE, GET POPULATION VECTOR (VECTOR OF MEANS)
+NormToNeurMean = 1;
+% premotorWind = [-0.06 -0.02];
+% premotorWind = [-0.03 0.01];
+premotorWind = [-0.03 0.02];
+
+[FRmatMotifByNeur, AllMotifRegexp, AllNeurLocation] = ...
+    lt_neural_v2_PseudoPop_Master(MOTIFSTATS_Compiled, NormToNeurMean, premotorWind);
+
+%% ================ SAME-TYPE VS. DIFF SUMMARY
+
+plotOn=1;
+thisloc = 'LMAN';
+distmetric = 'euclidean';
+
+[dp, FRmatDist] = lt_neural_v2_PseudoPop_SameDiff(FRmatMotifByNeur, AllMotifRegexp, ...
+    AllNeurLocation, thisloc, plotOn, distmetric);
+
+
+%% ############################# SYL ENCODING AS FUNCTION OF WINDOW
+if (1)
+    WindList = [-0.1:0.01:0.08; -0.06:0.01:0.12]';
+    DprimeAll = [];
+    thisloc = 'LMAN';
+    distmetric = 'euclidean';
+
+    for j=1:size(WindList,1)
+        windthis = WindList(j,:);
+        
+        % ==================== get pop vector
+        [FRmatMotifByNeur, AllMotifRegexp, AllNeurLocation] = ...
+            lt_neural_v2_PseudoPop_Master(MOTIFSTATS_Compiled, 1, windthis);
+        
+        % ====================== get dprime (diff minus same)
+        plotOn=0;
+        
+        dp = lt_neural_v2_PseudoPop_SameDiff(FRmatMotifByNeur, AllMotifRegexp, ...
+            AllNeurLocation, thisloc, plotOn, distmetric);
+        
+        DprimeAll = [DprimeAll; dp];
+    end
+    
+% ============== PLOT
+lt_figure; hold on;
+title(thisloc);
+xlabel('wind center');
+ylabel('dprime(diff - same');
+
+plot(mean(WindList,2), DprimeAll, '-ok');
+
+end
+%% ================ VARIOUS RAW PLOTS
+
+lt_neural_v2_PseudoPop_PLOT;
+
+
+%% ================ HEIRARCHICAL CLUSTERING
+close all;
+distmetric = 'euclidean';
+locthis = 'LMAN';
+inds = find(strcmp(AllNeurLocation, locthis));
+
+Z = linkage(FRmatMotifByNeur(:,inds), 'single', distmetric);
+lt_figure; hold on;
+dendrogram(Z, 'Labels', AllMotifRegexp);
+% dendrogram(Z);
+rotateXLabels(gca, 90);
+
+tmp = get(gca,'XTickLabel');
+
+% ---- calcualte cophenetic correlation (i..e how well does clustering
+% represent original distances?)
+
+Y = pdist(FRmatMotifByNeur, distmetric);
+c = cophenet(Z, Y);
+
+
+%% ===== CORRELATION BETWEEN DISTANCE AND GENERALIZATION LEARNING
+% ======================== 1) SAVE DISTANCE MATRIX FOR EACH BIRD
+
+
+% ======================== 2) 
+
+
+
+
 

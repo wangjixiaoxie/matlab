@@ -98,6 +98,8 @@ for i=1:Numbirds
                     find(ismember(motiflist, MotifStats.params.SameTypeSyls))];
             elseif onlyPlotTargNontarg==2
                 motifstoplot = [find(ismember(motiflist, MotifStats.params.TargSyls))];
+            elseif onlyPlotTargNontarg==3
+                motifstoplot = [find(ismember(motiflist, MotifStats.params.SameTypeSyls))];
             else
                 motifstoplot = 1:nummotifs;
             end

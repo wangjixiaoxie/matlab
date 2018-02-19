@@ -8,12 +8,20 @@ function Nspks = lt_neural_QUICK_SpkCnts(segextract, motif_predur, spwindow, clu
 %% 
 
                     ntrials = length(segextract);
+                    
+                    if ntrials==0
+                       Nspks = [];
+                       return
+                    end
+                    
                     Nspks = nan(ntrials, 1);
                    
+                    
                     if ~exist('clustnum', 'var')
                     assert(sum(unique([segextract.spk_Clust])>0)==1, 'asdfsd'); % i.e. only one cluister...
                     clustnum = [];
                     end
+                    
                     windons = motif_predur+spwindow(1);
                     windoff = motif_predur+spwindow(2);
                     for tt = 1:ntrials

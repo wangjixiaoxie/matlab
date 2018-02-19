@@ -1,6 +1,14 @@
 function MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
     collectWNhit, LearnKeepOnlyBase, saveOn, onlyCollectTargSyl, OrganizeByExpt, ...
     collectFF, MotifsToCollect, Params_regexp)
+%% NOTE (regarding motiflist)
+% the motiflist in MOTIFSTATS_Compiled.birds(1).MOTIFSTATS.params.motif. 
+% if it exists then means all neurons have to have identical motif lists.
+% --this is true when not organize by expt (I can't remember for case when
+% organize by expt)
+
+
+
 %% 1/17/18 - added ability to manually enter motifs you'd liek to collect
 % ALSO ADDED ENTRY FOR REGEXP PARAMS (if no exist then uses defaults)
 

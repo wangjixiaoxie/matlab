@@ -5,8 +5,8 @@
 
 %% ===== plot song
 
-songname='bk7_160809_110736.rhd';
-songnotmat='bk7_160809_110736.rhd.not.mat';
+songname='br92br54_170416_111151.rhd';
+% songnotmat='bk7_160809_110736.rhd.not.mat';
 
 lt_neural_extractaudio(songname);
 
@@ -24,13 +24,15 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='bk7_160809_101259.rhd';
+filename='wh44wh39_DIR_180219_103701.rhd';
 ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
 ChansToPlot.AmpChans_zero=[9 11 12 14 1 18];
 % ChansToPlot.AmpChans_zero=[8 9 11 16 17 20 21];
-% ChansToPlot.AmpChans_zero=[8 9 16 17 20 21];
+ChansToPlot.AmpChans_zero=[9 14 17 18 21];
+ChansToPlot.AmpChans_zero=[9 14 21];
+ChansToPlot.AmpChans_zero=0:15;
 
 % neuralFiltLow=500;
 neuralFiltLow=300;
@@ -42,9 +44,13 @@ PlotWhat.raster=0;
 PlotWhat.digital=0;
 
 Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
-Raster.ThrXNoise=6; % threshold for units, used for all channels, uses absolute data for peak detection
+Raster.ThrXNoise=4; % threshold for units, used for all channels, uses absolute data for peak detection
 Raster.PosOrNeg=-1; % -1 or +1, for crossings.
-lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster)
+
+        numsubplots = 5;
+
+lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster, ...
+            numsubplots)
 
 %% ======= clean song files
 
@@ -94,61 +100,73 @@ lt_neural_commonNoise(batchf, ChansToUse, plotOn, save_raw_dat, ...
 
 
 
-
 %% +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %% ==================================================== PREPROCESSING
 clear all; close all;
+% channel_board = [8 11 14 18 20]; % wh6
 % channel_board = [9 11 12 14 15 18]; % bu77
-channel_board = [8 11 14 18 20]; % wh6
-channel_board = [14];
-batchf = 'Batch1438to1909v2';
+% channel_board = [14];
+channel_board = [9 14 17 18 21];
+channel_board = 0:31;
+channel_board = [16:31];
+batchf = 'batchall';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
 
 % -----  v1, plots just raw neural, filtered
 % batchtoplot=batchf;
-lt_neural_concatExplore(batchf, channel_board);
+if (0)
+    lt_neural_concatExplore(batchf, channel_board);
+end
 
 % ----- v2, plots filtered neural, smoothed, and spike waveforms
 PlotRectDat=0; % 1, plots, 0 skips.
 PlotFiltDat=1; % usually 1, filt neural.
+PosAndNeg =0; % then gets both. if 0, then just downwards
 
-lt_neural_concatExplore_v2(batchf, channel_board, PlotRectDat, PlotFiltDat); % WAVEFORMS ONLY PLOTTED FOR ONE CHANNEL!!
+
+lt_neural_concatExplore_v2(batchf, channel_board, PlotRectDat, PlotFiltDat, PosAndNeg); % WAVEFORMS ONLY PLOTTED FOR ONE CHANNEL!!
 
 % ------- v3 -plots song by song
-close all;
-fid = fopen(batchf);
-filename = fgetl(fid);
-while ischar(filename)
-
-    
-    ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
-ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
-% ChansToPlot.AmpChans_zero=[9 14 19];
-ChansToPlot.AmpChans_zero=channel_board;
-% ChansToPlot.AmpChans_zero=[8 9 11 16 17 20 21];
-% ChansToPlot.AmpChans_zero=[8 9 16 17 20 21];
-
-% neuralFiltLow=500;
-neuralFiltLow=300;
-
-PlotWhat.raw=0;
-PlotWhat.filt=1;
-PlotWhat.rect_sm=0;
-PlotWhat.raster=0;
-PlotWhat.digital=0;
-
-Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
-Raster.ThrXNoise=3; % threshold for units, used for all channels, uses absolute data for peak detection
-Raster.PosOrNeg=-1; % -1 or +1, for crossings.
-lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster)
-
-disp([' ======== ' filename]);
-
-pause;
-filename = fgetl(fid);
+if (0)
+    fid = fopen(batchf);
+    filename = fgetl(fid);
+    while ischar(filename)
+        
+        
+        ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
+        ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
+        % ChansToPlot.AmpChans_zero=[9 14 19];
+        ChansToPlot.AmpChans_zero=channel_board;
+        % ChansToPlot.AmpChans_zero=[8 9 11 16 17 20 21];
+        % ChansToPlot.AmpChans_zero=[8 9 16 17 20 21];
+        
+        % neuralFiltLow=500;
+        neuralFiltLow=300;
+        
+        PlotWhat.raw=0;
+        PlotWhat.filt=1;
+        PlotWhat.rect_sm=0;
+        PlotWhat.raster=0;
+        PlotWhat.digital=0;
+        
+        Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
+        Raster.ThrXNoise=3; % threshold for units, used for all channels, uses absolute data for peak detection
+        Raster.PosOrNeg=-1; % -1 or +1, for crossings.
+        
+        numsubplots = 5;
+        
+        lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster, numsubplots)
+        
+        disp([' ======== ' filename]);
+        
+        pause;
+        filename = fgetl(fid);
+    end
+    fclose all;
 end
+
 
 %% ==== concatenate multiple files for given channel, [and saves]
 % based on expectation of duration for single unit.
@@ -171,12 +189,13 @@ lt_neural_AutoMakeNotmat(batchf);
 % -- makes multiple plots if too much dat.
 close all;
 PlotSecondChan = 1;
-SecondChan = 11;
+SecondChan = 21;
 plotcols={'m', 'r','c', 'b', 'g'};
 
 % want to plot 2nd channel to compare noise?
-lt_neural_AlgnWavclus(batchf, channel_board, plotcols, PlotSecondChan, SecondChan);
-
+if (0)
+    lt_neural_AlgnWavclus(batchf, channel_board, plotcols, PlotSecondChan, SecondChan);
+end
         
 % === VERSION 2 - PLOTS EACH SONG FILE ONE AT A TIME - CAN CLOSE THEM ONE
 % AT A TIME
@@ -185,6 +204,39 @@ figsstepsize = 5; % num figs to jump thru, useful if many song. 1 is default. DO
 lt_neural_AlgnWavclus_v2(batchf, channel_board, plotcols, PlotSecondChan, SecondChan, maxfiguuresopen, figsstepsize);
 
 
+%% ===== HAND REMOVE NOISY SPIKES
+% IMPORTANT!!: only run this once you are satisfied with wave-clus cluster
+% assignments. If reassign clusters in wave_clus, then will delete all
+% hand-removed clusters (cluster -1)
+% NOTE: can check which spikes removed using lt_neural_AlgnWavclus_v2
+
+close all;
+
+SecondChan = 18;
+lt_neural_CheckClust(channel_board, batchf, SecondChan);
+
+
+% ========== TROUBLESHOOTING
+% i.e. made mistake of hand checking before finalized (consolidated)
+% clusters. THen run below (MODIFIED!) to manually change cluster numbers,
+% whithout wiping out hand checked (cluster -1)
+
+if (0) 
+tmp = load('times_data_TMPBACKUP.mat');
+
+% to convert cluster 2 to 0
+inds = tmp.cluster_class(:,1)==2;
+tmp.cluster_class(inds,1) = 0;
+
+% to convert clusters 3 and 4 to 1
+inds = tmp.cluster_class(:,1) == 3 | tmp.cluster_class(:,1) == 4;
+tmp.cluster_class(inds,1) = 1;
+
+% to save
+ver = '-v6';
+save('times_data.mat', '-struct', 'tmp' , ver);
+disp('SAVED');
+end
 %% +++++++++++++++++++++++++++++++++++++== NOTES THINGS TO UPDATE WITH ANALYSIS PIPELINE
 
 % save all things to a common folder. Levels:
@@ -204,10 +256,11 @@ lt_neural_AlgnWavclus_v2(batchf, channel_board, plotcols, PlotSecondChan, Second
 %% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
 %% ++++++++++ ANALYSIS (NEURONS ONE BY ONE) 
 %% ==== EXTRACT SONG, LABEL,SongDat ONSETS, SPIKE DATA
-close all;
-batchf='BatchChan14good_v4';
+close all; clear all;
+batchf='Batch0922to1251';
 channel_board=14;
-[SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board);
+extractsound = 1;
+[SongDat, NeurDat, Params] = lt_neural_ExtractDat(batchf, channel_board, extractsound);
 
 
 %% ===== Extract song segments that match the desired regexp 
@@ -219,24 +272,26 @@ close all;
 % regexpr_str='(g)h'; % token determines where align. predur is relative to token.
 % regexpr_str='n(h)h'; % token determines where align. predur is relative to token.
 % regexpr_str='[^h](h)h'; % token determines where align. predur is relative to token.
-regexpr_str='h(h)'; % token determines where align. predur is relative to token.
-predur=0.1;
+regexpr_str='nk(h)'; % token determines where align. predur is relative to token.
+predur=0.25;
 postdur=0.1;
 alignByOnset=1;
 
 % - entire motifs
-regexpr_str='(S)[\w-]*?E'; % gets any S ---- E
-predur=6; % sec
-postdur=8; % sec
-alignByOnset=1;
+% regexpr_str='(S)[\w-]*?E'; % gets any S ---- E
+% predur=6; % sec
+% postdur=8; % sec
+% alignByOnset=1;
 
 % - Extract song motifs (onset and offset) automatically)
-regexpr_str='WHOLEBOUTS';
-predur=8; % sec
-postdur=3; % sec
-alignByOnset=0;
+% regexpr_str='WHOLEBOUTS';
+% predur=8; % sec
+% postdur=3; % sec
+% alignByOnset=0;
 
-[SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, regexpr_str, predur, postdur, alignByOnset);
+keepRawSongDat = 1;
+[SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
+    regexpr_str, predur, postdur, alignByOnset, [], [], keepRawSongDat);
 
 
 

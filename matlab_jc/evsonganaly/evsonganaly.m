@@ -1107,6 +1107,14 @@ if (tmpstruct.DOIT)
 
     %chanspec=handles.ChanSpec;
     %[dat,Fs]=ReadDataFile(fname,chanspec);
+    
+    % ======== LT ADDED 2/18/18 - REcalcualtes sm song, so segemnting
+    % refelcts changes in smoothing window size.
+    % also replots data to reflect new segmenting.
+    PlotDataFileStimJC(hObject,handles);
+    handles=guidata(hObject);
+% ================
+
     sm=handles.SMOOTHDATA;
     sm(1)=0.0;sm(end)=0.0;
 

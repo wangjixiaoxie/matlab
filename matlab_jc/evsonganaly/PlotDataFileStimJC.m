@@ -16,7 +16,9 @@ chanspec=handles.ChanSpec;
 if ((get(handles.UseSpectBox,'Value')==get(handles.UseSpectBox,'Max'))&(exist([FNAME,'.spect'],'file')))    
     eval(['load -mat ',FNAME,'.spect']);
 else
-    [sm,sp,t,f]=SmoothData(dat,Fs,DOFILT,handles.filter_type);
+%     [sm,sp,t,f]=SmoothData(dat,Fs,DOFILT,handles.filter_type);
+    [sm,sp,t,f]=SmoothData(dat,Fs,DOFILT,handles.filter_type, 512, 0.8, ...
+        handles.SM_WIN);
 end
 %TAKE OUT THE TOP FREQ HALF OF SPECTROGRAM (IT HAS LITTLE POWER DUE TO
 %FILTERING)
@@ -129,7 +131,7 @@ title(RemoveUnderScore(spectitle));
 %plot the smooth power
 dsamp=handles.SMUNDERSAMPLE;
 axes(handles.SmoothAxes);hold off;
-semilogy([1:length(sm(1:dsamp:end))]*dsamp/Fs,sm(1:dsamp:end),'b-');hold on;
+semilogy([1:length(sm(1:dsamp:end))]*dsamp/Fs, sm(1:dsamp:end),'b-');hold on;
 segs=zeros([length(onsets),3]);
 for ii = 1:length(onsets)
     segs(ii,1)=plot(onsets(ii),threshold,'k+');
