@@ -29,7 +29,10 @@ for i=1:numbirds
     end
     grid on;
     set(gca, 'XTickLabel', exptnames);
+    try
     rotateXLabels(gca, 90);
+    catch err
+    end
     
 end
 

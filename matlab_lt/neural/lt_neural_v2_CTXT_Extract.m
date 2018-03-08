@@ -80,20 +80,25 @@ for i=1:numbirds
         
         bb = 0;
         
-        % ===================== 1 syl needed
+        %% ===================== 1 syl needed
         if numsylsneeded==1
             for j=1:length(singlesyls)
                 syl1 = singlesyls(j);
                     
                     % === which string type?
-                    if strtype == 'xax';
+                    if strcmp(strtype, 'xax')
                         wildcardpositions = [1 3];
                         regexprstr = ['[a-z]' syl1 '[a-z]'];
+                    elseif strcmp(strtype, 'xa')
+                        regexprstr = ['[a-z](' syl1 ')'];
                     end
                     
-                    %%
-                    
+                    if strcmp(strtype, 'xa')
+                    [start, ~, ~, match] = ...
+                    lt_neural_QUICK_regexp(SongDat.AllLabels, regexprstr);
+                    else
                     [start, match] = regexp(SongDat.AllLabels, regexprstr, 'start', 'match');
+                    end
                     
                     [match, inds] = sort(match);
                     start = start(inds); % sort, for grp stats to be in order
@@ -151,6 +156,13 @@ for i=1:numbirds
                     disp(matchclasses)
                     disp(N')
                     
+                    % ----- only keep if more than one class for this
+                    % branch
+                    if length(N)<2
+                        disp('SKIP, since <2 classes');
+                        continue
+                    end
+                        
                     bb = bb+1;
                     CLASSES.birds(i).neurons(ii).branchnum(bb).regexprstr = regexprstr;
                     CLASSES.birds(i).neurons(ii).branchnum(bb).matchclasses = matchclasses;
@@ -158,7 +170,7 @@ for i=1:numbirds
             end
         end
         
-        % ==================== 2 syls needed
+        %% ==================== 2 syls needed
         if numsylsneeded==2
             for j=1:length(singlesyls)
                 syl1 = singlesyls(j);
@@ -209,7 +221,7 @@ for i=1:numbirds
         end
         % ------------------------------------
         
-        % ==================== 3 syls needed
+        %% ==================== 3 syls needed
         if numsylsneeded==3
             for j=1:length(singlesyls)
                 syl1 = singlesyls(j);
@@ -221,7 +233,7 @@ for i=1:numbirds
                         syl3 = singlesyls(jjj);
                         
                         % === which string type?
-                        if strtype == 'aaxa';
+                        if strtype == 'aaxa'
                             regexprstr = [syl1 syl2 '[a-z]' syl3];
                         elseif strtype == 'xaaa'
                             regexprstr = ['[a-z]' syl1 syl2 syl3];

@@ -199,6 +199,8 @@ if loadedold==0
         Params.LearnKeepOnlyBase = LearnKeepOnlyBase;
        Params.OrganizeByExpt = OrganizeByExpt;
         
+       MOTIFSTATS_Compiled.SummaryStruct = SummaryStruct;
+       
         % ==== save
         cd(savedir)
         

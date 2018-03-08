@@ -85,7 +85,7 @@ for i=1:NumBirds
                 subplotcols=3;
                 fignums_alreadyused=[];
                 hfigs=[];
-                disp(['motif' num2str(mm)]);
+                
                 
                 
                 %% =================== CORRELATION BETWEEN NEURONS
@@ -105,21 +105,76 @@ for i=1:NumBirds
                             plotThisCC =0;
                         end
                         
-                        % ############################## CROSS CORRELATIONS
-                        % ============================ EXTRACT DATA
+
+                        
+                        % ################### CALCULATE XCOV
+                        % =========================== 1) UNDIR
                         dattmp1 = MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).SegExtr_neurfakeID(nn);
                         dattmp2 = MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).SegExtr_neurfakeID(nnn);
                         
-                        clustnum1 = SummaryStruct.birds(i).neurons(neurons_thisset(nn)).clustnum;
-                        clustnum2 = SummaryStruct.birds(i).neurons(neurons_thisset(nnn)).clustnum;
+%                         clustnum1 = SummaryStruct.birds(i).neurons(neurons_thisset(nn)).clustnum;
+%                         clustnum2 = SummaryStruct.birds(i).neurons(neurons_thisset(nnn)).clustnum;
+%                         
+
+                        % -------- LIMIT TO UNDIR (NOT DIR SONG)
+                        indsdir = [segextract_for_trialdur.DirSong]==0;
+                        dattmp1.SegmentsExtract = dattmp1.SegmentsExtract(indsdir);
+                        dattmp2.SegmentsExtract = dattmp2.SegmentsExtract(indsdir);
                         
+                        [ccRealAll, ccPSTH, ccShiftAll, ccAuto1, ccAuto1Shift, ccAuto2, ...
+                            ccAuto2Shift, lags_sec, warnedflag] = fn_getxcov(dattmp1, dattmp2, xcov_dattotake, ...
+                            motifpredur, xcovwindmax, binsize_spk, plotSummary, plotThisCC, ...
+                            segextract_for_trialdur(indsdir), warnedflag);
+                        
+                        % OUTPUT
+                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccAuto2 = ccAuto2;
+                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccAuto2Shift = ccAuto2Shift;
+                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccAuto1 = ccAuto1;
+                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccAuto1Shift = ccAuto1Shift;
+                        
+                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccRealAll = ccRealAll;
+                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccShiftAll = ccShiftAll;
+                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccPSTH = ccPSTH;
+                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).x = lags_sec;
+                            
+                        % ============================ 2) DIRECTED SONG (if
+                        % exist)
+                        
+
+                    end
+                    
+                    
+                end
+            end
+        end
+    end
+end
+
+end
+
+% ================== FUNCTIONS
+function [ccRealAll, ccPSTH, ccShiftAll, ccAuto1, ccAuto1Shift, ccAuto2, ...
+    ccAuto2Shift, lags_sec, warnedflag] = fn_getxcov(dattmp1, dattmp2, xcov_dattotake, ...
+    motifpredur, xcovwindmax, binsize_spk, plotSummary, plotThisCC, segextract_for_trialdur, ...
+    warnedflag)
+                        %% ================== CROSS-CORRELATION MATRIX BETWEEN NEURONS PAIRS
+                        %                         if strcmp(exptname, 'RALMANlearn1') & nn==1 ...
+                        %                                 & nnn==3
+                        %                             keyboard
+                        %                         end
+                        %
+                        
+                        
+                        % ================================== EXTRACT DATA
+                                                % ############################## CROSS CORRELATIONS
+                        % ============================ EXTRACT DATA
                         
                         % =========================== EXTRACT FR AND SPIKES
                         % ----------- 1) SMOOTHED FR
                         dattmp1.SegmentsExtract = lt_neural_SmoothFR(dattmp1.SegmentsExtract, ...
-                            clustnum1, '', '', '', segextract_for_trialdur);
+                            [], '', '', '', segextract_for_trialdur);
                         dattmp2.SegmentsExtract = lt_neural_SmoothFR(dattmp2.SegmentsExtract, ...
-                            clustnum2, '', '', '', segextract_for_trialdur);
+                            [], '', '', '', segextract_for_trialdur);
                         
                         % --------------- 2) BIN SPIKES
                         % what is maximum common trial dur?
@@ -145,73 +200,7 @@ for i=1:NumBirds
                         
                         
                         
-                        
-                        % ################### CALCULATE XCOV
-                        % =========================== 1) UNDIR
-                        % -------- LIMIT TO UNDIR (NOT DIR SONG)
-                        indsdir = [segextract_for_trialdur.DirSong]==0;
-                        dattmptmp1.SegmentsExtract = dattmp1.SegmentsExtract(indsdir);
-                        dattmptmp2.SegmentsExtract = dattmp2.SegmentsExtract(indsdir);
-                        
-                        [ccRealAll, ccPSTH, ccShiftAll, ccAuto1, ccAuto1Shift, ccAuto2, ...
-                            ccAuto2Shift, lags_sec] = fn_getxcov(dattmptmp1, dattmptmp2, xcov_dattotake, ...
-                            motifpredur, xcovwindmax, binsize_spk, plotSummary, plotThisCC);
-                        
-                        % OUTPUT
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccAuto2 = ccAuto2;
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccAuto2Shift = ccAuto2Shift;
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccAuto1 = ccAuto1;
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccAuto1Shift = ccAuto1Shift;
-                        
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccRealAll = ccRealAll;
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccShiftAll = ccShiftAll;
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).ccPSTH = ccPSTH;
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).x = lags_sec;
-                            
-                        % ============================ 2) DIRECTED SONG (if
-                        % exist)
-                        indsdir = [segextract_for_trialdur.DirSong]==1;
-                        if sum(indsdir)>1
-                        dattmptmp1.SegmentsExtract = dattmp1.SegmentsExtract(indsdir);
-                        dattmptmp2.SegmentsExtract = dattmp2.SegmentsExtract(indsdir);
-                        
-                        [ccRealAll, ccPSTH, ccShiftAll, ccAuto1, ccAuto1Shift, ccAuto2, ...
-                            ccAuto2Shift, lags_sec] = fn_getxcov(dattmptmp1, dattmptmp2, xcov_dattotake, ...
-                            motifpredur, xcovwindmax, binsize_spk, plotSummary, plotThisCC);
-                        
-                        % OUTPUT
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).DIR_ccAuto2 = ccAuto2;
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).DIR_ccAuto2Shift = ccAuto2Shift;
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).DIR_ccAuto1 = ccAuto1;
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).DIR_ccAuto1Shift = ccAuto1Shift;
-                        
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).DIR_ccRealAll = ccRealAll;
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).DIR_ccShiftAll = ccShiftAll;
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).DIR_ccPSTH = ccPSTH;
-                        MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(iii).motif(mm).XCov_neurpair(nn, nnn).DIR_x = lags_sec;
-                        end
-                    end
-                    
-                    
-                end
-            end
-        end
-    end
-end
-
-end
-
-% ================== FUNCTIONS
-function [ccRealAll, ccPSTH, ccShiftAll, ccAuto1, ccAuto1Shift, ccAuto2, ...
-    ccAuto2Shift, lags_sec] = fn_getxcov(dattmp1, dattmp2, xcov_dattotake, ...
-    motifpredur, xcovwindmax, binsize_spk, plotSummary, plotThisCC)
-                        %% ================== CROSS-CORRELATION MATRIX BETWEEN NEURONS PAIRS
-                        %                         if strcmp(exptname, 'RALMANlearn1') & nn==1 ...
-                        %                                 & nnn==3
-                        %                             keyboard
-                        %                         end
-                        %
-                        
+                        % ==============================================
                         spkbin1 = [dattmp1.SegmentsExtract.spk_Binned];
                         spkbin2 = [dattmp2.SegmentsExtract.spk_Binned];
                         spkbin1 = spkbin1';
@@ -313,9 +302,6 @@ function [ccRealAll, ccPSTH, ccShiftAll, ccAuto1, ccAuto1Shift, ccAuto2, ...
                         ccAuto2 = [];
                         ccAuto2Shift = [];
                         
-                        if ntrials<2
-                            return
-                        end
                         if plotThisCC==1
                             lt_figure; hold on;
                             ypos = 1;
@@ -461,7 +447,7 @@ function [ccRealAll, ccPSTH, ccShiftAll, ccAuto1, ccAuto1Shift, ccAuto2, ...
                                 ccShiftAll = [ccShiftAll; cc'];
                             end
                             
-                            % ############################### pSTH control
+                                                        % ############################### pSTH control
                             spkall1 = [dattmp1.SegmentsExtract.spk_Binned];
                             spkall2 = [dattmp2.SegmentsExtract.spk_Binned];
                             

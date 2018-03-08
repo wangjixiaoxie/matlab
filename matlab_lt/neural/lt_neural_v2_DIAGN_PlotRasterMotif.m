@@ -1,6 +1,6 @@
 function lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
     motiflist, plotbytime, motifpredur, motifpostdur, plotIndivRaster, ...
-    plotCombRast, plotSmFR)
+    plotCombRast, plotSmFR, PlotDirSong)
 
 % plotIndivRaster; % one raster for each neuron/motif
 % plotCombRast; % one figure, all rasters
@@ -60,6 +60,9 @@ for i=1:numbirds
             % ================
             [SongDat, NeurDat, Params] = lt_neural_ExtractDat2(SummaryStruct, i, ii);
             
+            if isempty(SongDat.AllLabels)
+                continue
+            end
             
             collectWNhit = 0;
             preAndPostDurRelSameTimept = 1;
@@ -69,11 +72,24 @@ for i=1:numbirds
             [SegmentsExtract, Params]=lt_neural_RegExp(SongDat, NeurDat, Params, ...
                 motiftoplot, motifpredur, motifpostdur, 1, '', FFparams, ...
                 0, 1, collectWNhit, 0, 0, preAndPostDurRelSameTimept, RemoveIfTooLongGapDur, ...
-                clustnum);
+                clustnum, PlotDirSong);
             
             if isempty(SegmentsExtract)
                 continue
             end
+            
+            % =============================== DIR OR UNDIR?
+            if PlotDirSong==0
+                % then remove any dir
+                SegmentsExtract([SegmentsExtract.DirSong]==1) = [];
+            elseif PlotDirSong==1
+                % then remove any undir
+                SegmentsExtract([SegmentsExtract.DirSong]==0) = [];
+            end
+            
+                
+            
+            % ================================
             
             
             % ------------- 1) PLOT RASTER
@@ -135,8 +151,8 @@ for i=1:numbirds
             
             % 2) mean
             if length(SegmentsExtract)>2
-                    FRmean = mean(FRmat,2);
-                    FRsem = lt_sem(FRmat');
+                FRmean = mean(FRmat,2);
+                FRsem = lt_sem(FRmat');
                 
                 if plotIndivRaster==1
                     hsplot = lt_subplot(6,1,6); hold on;
@@ -182,44 +198,44 @@ assert(length(AllSmoothFR) == length(AllNeurNum), 'asdfas');
 
 %% ================= COMBINATION PLOT (RASTERS)
 if plotCombRast ==1
-lt_figure; hold on;
-numplots = length(AllRasters);
-plotcols = lt_make_plot_colors(numplots, 0, 0);
-yval = 1;
-for i=1:numplots
-    
-    % ======= plot raster
-    rasters = AllRasters{i};
-    for j=1:length(rasters)
-        spktimes = rasters{j};
-        lt_neural_PLOT_rasterline(spktimes, yval, plotcols{i});
-        yval = yval+1;
+    lt_figure; hold on;
+    numplots = length(AllRasters);
+    plotcols = lt_make_plot_colors(numplots, 0, 0);
+    yval = 1;
+    for i=1:numplots
+        
+        % ======= plot raster
+        rasters = AllRasters{i};
+        for j=1:length(rasters)
+            spktimes = rasters{j};
+            lt_neural_PLOT_rasterline(spktimes, yval, plotcols{i});
+            yval = yval+1;
+        end
+        lt_plot_text(max(spktimes), yval, ['n' num2str(AllNeurNum(i)) '-' AllMotif{i}], plotcols{i});
     end
-    lt_plot_text(max(spktimes), yval, ['n' num2str(AllNeurNum(i)) '-' AllMotif{i}], plotcols{i});
-end
-axis tight
-ylabel('trial');
-xlabel('time (sec)');
-line([motifpredur motifpredur], ylim);
+    axis tight
+    ylabel('trial');
+    xlabel('time (sec)');
+    line([motifpredur motifpredur], ylim);
 end
 
 %% ================== COMBINATION PLOT (SMOOTHED FR)
 if plotSmFR==1
-lt_figure; hold on;
-numplots = length(AllRasters);
-plotcols = lt_make_plot_colors(numplots, 0, 0);
-for i=1:numplots
-    
-    % ======= plot raster
-    y = AllSmoothFR{i};
-    ysem = AllSmoothFR_sem{i};
-    x = AllSmoothFR_x{i};
-    shadedErrorBar(x, y, ysem, {'Color', plotcols{i}},1);
-    lt_plot_text(x(1), y(1), ['n' num2str(AllNeurNum(i)) '-' AllMotif{i}], plotcols{i});
-end
-axis tight
-xlabel('time (sec)');
-line([motifpredur motifpredur], ylim);
+    lt_figure; hold on;
+    numplots = length(AllRasters);
+    plotcols = lt_make_plot_colors(numplots, 0, 0);
+    for i=1:numplots
+        
+        % ======= plot raster
+        y = AllSmoothFR{i};
+        ysem = AllSmoothFR_sem{i};
+        x = AllSmoothFR_x{i};
+        shadedErrorBar(x, y, ysem, {'Color', plotcols{i}},1);
+        lt_plot_text(x(1), y(1), ['n' num2str(AllNeurNum(i)) '-' AllMotif{i}], plotcols{i});
+    end
+    axis tight
+    xlabel('time (sec)');
+    line([motifpredur motifpredur], ylim);
 end
 
 

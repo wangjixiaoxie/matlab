@@ -1,5 +1,6 @@
 function [FRmatMotifByNeur, AllMotifRegexp, AllNeurLocation] = ...
-    lt_neural_v2_PseudoPop_Master(MOTIFSTATS_Compiled, NormToNeurMean, premotorWind)
+    lt_neural_v2_PseudoPop_Master(MOTIFSTATS_Compiled, NormToNeurMean, ...
+    premotorWind, plotnans)
 
 %% ============= PARAMS
 
@@ -11,7 +12,7 @@ function [FRmatMotifByNeur, AllMotifRegexp, AllNeurLocation] = ...
 
 %% =================== EXTRACT DATA
 
-i=5;
+i=1;
 numneurons = length(MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons);
 
 motiflist = MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.params.motif_regexpr_str;
@@ -56,6 +57,7 @@ end
 
 %% ====================== pare down matrix is any missing values.
 if any(isnan(FRmatMotifByNeur(:)))
+    if plotnans==1
     lt_figure; hold on;
     
     % ------------ THEN WILL HAVE TO PARE DOWN MATRIX
@@ -65,6 +67,7 @@ if any(isnan(FRmatMotifByNeur(:)))
     ylabel('motif');
     title('before paring down matrix (dot = empty)');
     spy(~isnan(FRmatMotifByNeur));
+    end
     
     % ----- 2) remove neurons that are bad
     nummotifs = size(FRmatMotifByNeur,1);
@@ -73,18 +76,22 @@ if any(isnan(FRmatMotifByNeur(:)))
     FRmatMotifByNeur(:,colsToRemove) = [];
     AllNeurLocation(colsToRemove) = [];
     
+    if plotnans==1
     lt_subplot(2,2,2); hold on;
     title('step1: after removing neurons missing 1/4 motifs');
     spy(~isnan(FRmatMotifByNeur));
+    end
     
     % ---------3 now remove motifs that are missing neurons
     rowsToRemove = any(isnan(FRmatMotifByNeur)');
     FRmatMotifByNeur(rowsToRemove, :) = [];
     AllMotifRegexp(rowsToRemove) = [];
     
+    if plotnans==1
     lt_subplot(2,2,3); hold on;
     title('step2: after removing motifs that miss any neurons');
     spy(~isnan(FRmatMotifByNeur));
+    end
 end
 
 

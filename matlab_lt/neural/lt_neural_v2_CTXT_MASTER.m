@@ -3,7 +3,7 @@
 % &&&&&&&&&&&&& 1) ARBITRARY CONTEXTS
 clear CLASSES
 
-strtype = 'xaaa'; % a is fixed, x variable, across contexts
+strtype = 'xa'; % a is fixed, x variable, across contexts
 [CLASSES, prms] = lt_neural_v2_CTXT_Extract(SummaryStruct, strtype);
 
 % &&&&&&&&&&&&& 2) EXTRACT REGEXP STRUCT 
@@ -104,7 +104,7 @@ ALLBRANCH = lt_neural_v2_CTXT_PlotAll(strtype, plotstat, suffix);
 TimeWindowDur = 0.025;
 TimeWindowSlide = 0.005;
 FRbinsize = 0.005;
-savenotes = 'pu69wh78RALMAN';
+savenotes = 'wh44wh39RALMAN';
 
 prms.ClassSlide.GetNegControl = 1; % 1 = yes. (i.e. shuffle dat-context link).
 prms.ClassSlide.GetPosControl =1;
@@ -114,7 +114,7 @@ plotstat = 'F1';
 
 saveON =1;
 LinTimeWarp = 1;
-regionstowarp = [3 4];
+regionstowarp = [3];
 
 ALLBRANCH = lt_neural_v2_CTXT_ClassSliding(CLASSES, SummaryStruct, prms, ...
     TimeWindowDur, TimeWindowSlide, FRbinsize, savenotes, CVmethod, plotstat, ...
@@ -142,10 +142,10 @@ ALLBRANCH = lt_neural_v2_CTXT_BranchRemvOlap(ALLBRANCH);
 
 % ==== 2)  PLOT EACH BRANCH/BIRD/NEURON
 close all;
-birdtoplot = 'pu69wh78'; % leave blank to plot all;
+birdtoplot = 'wh44wh39'; % leave blank to plot all;
 plotspec_num = 0; % how many spectrograms to plot for each class in each branch point? if 0 then none.
-locationtoplot = {};
-BranchToPlot = {'[a-z]bh'}; % type regexp strings
+locationtoplot = {'RA'};
+BranchToPlot = {'[a-z](n)'}; % type regexp strings
 plotrasters = 0;
 lt_neural_v2_CTXT_BranchEachPlot(ALLBRANCH, birdtoplot, plotspec_num, ...
     locationtoplot, BranchToPlot, plotrasters)

@@ -3,14 +3,15 @@
 
 %% EXTRACT
 clear all; close all; fclose all;
-BirdsToKeep = {'pu69wh78'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
-BrainArea = {'LMAN', 'X', 'RA'};
+BirdsToKeep = {'wh44wh39'}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
+BrainArea = {};
 % ExptToKeep = {'RAlearn1', 'RALMANlearn1', 'LMANsearch'};
-ExptToKeep = {'RALMANlearn1'};
+ExptToKeep = {};
 RecordingDepth = [];
-LearningOnly = 0;
+LearningOnly = 1;
 BatchesDesired = {};
 ChannelsDesired = [];
+extractpreDatenums = 1;
 % BirdsToKeep = {}; % {birdname , neuronstokeep} if neuronstokeep = [], then gets all;
 % BrainArea = {'X'};
 % ExptToKeep = {};
@@ -19,7 +20,8 @@ ChannelsDesired = [];
 % BatchesDesired = {};
 % ChannelsDesired = [];
 [NeuronDatabase, SummaryStruct] = lt_neural_v2_ConvertSummary2Database(BirdsToKeep, ...
-    BrainArea, ExptToKeep, RecordingDepth, LearningOnly, BatchesDesired, ChannelsDesired);
+    BrainArea, ExptToKeep, RecordingDepth, LearningOnly, BatchesDesired, ChannelsDesired, ...
+    extractpreDatenums);
 
 % --- load all neurons
 if (0)
@@ -145,7 +147,7 @@ lt_neural_v2_DIAGN_Rawdat(SummaryStruct, displaymode, skipnum)
 %% ============ Check pitch contours
 
 close all;
-useDiffColors = 0; % 1, plots each pc diff color; if 0, shades all gray
+useDiffColors = 1; % 1, plots each pc diff color; if 0, shades all gray
 plotbysyl = 0; % if 1, then each plot one syl. if 0, then go by neuron. [IN PROGRESS]
 dolinkaxes = 0;
 lt_neural_v2_DIAGN_pcontours(SummaryStruct, useDiffColors, plotbysyl, dolinkaxes);
@@ -186,31 +188,40 @@ FRmat = FRmat(t1:t2, trials);
 
 %% ================================== PLOT RASTER AND SMOOTHED FR FOR ANY MOTIF
 close all
-BirdToPlot = 'pu69wh78';
+BirdToPlot = 'wh44wh39';
 % % ---- give it either
 % A) one neuron and a bunch of motifs or
 % B) bunch of neurons and one motif
-NeurToPlot = []; % 4 % vector (e.g. [5 7]) - if [] then plots all;
+NeurToPlot = [8]; % 4 % vector (e.g. [5 7]) - if [] then plots all;
 % motiflist = {'a(b)', 'jbh(h)g'};
-motiflist = {'ab(h)h'};
+motiflist = {'(d)k'};
 plotbytime = 0; % links rasters for all motifs by time of song.
 
 % motifpredur = 0.15;
 % motifpostdur = 0.15;
 motifpredur = 0.15;
-motifpostdur = 0.3;
+motifpostdur = 0.15;
 
 plotIndivRaster = 1; % one raster for each neuron/motif
 plotCombRast = 0; % one figure, all rasters
-plotSmFR = 0; % all smoothed FR.
+plotSmFR = 1; % all smoothed FR.
+
+% --- 1) directed song
+PlotDirSong = 0; % 0 is only UNDIR, 1 is only DIR; 2 is both
 
 lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
     motiflist, plotbytime, motifpredur, motifpostdur, plotIndivRaster, ...
-    plotCombRast, plotSmFR)
+    plotCombRast, plotSmFR, PlotDirSong )
 
 
-%% ====================================
+if (0)
+% --- 2) directed song
+PlotDirSong = 1; % 0 is only UNDIR, 1 is only DIR; 2 is both
 
+lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
+    motiflist, plotbytime, motifpredur, motifpostdur, plotIndivRaster, ...
+    plotCombRast, plotSmFR, PlotDirSong )
+end
 
 
 %% ===== COMPARE RAW NEURAL (FILTERED) FOR ALL RENDS FOR SEGMENT
@@ -218,6 +229,17 @@ lt_neural_v2_DIAGN_PlotRasterMotif(SummaryStruct, BirdToPlot, NeurToPlot, ...
 % --- IN PROGRESS
 lt_neural_v2_ANALY_PlotRawNeural(SegmentsExtract);
 
+
+
+%% ################# DIR vs UNDIR ###
+%% ##################################################################
+
+lt_neural_v2_DirUndir_Master;
+
+%% ################# LEARNING (SINGLE CHANNEL)  ###
+%% ##################################################################
+
+lt_neural_v2_LEARN_Master;
 
 
 %% ################# ENCODING OF SONG PARAMS (OTHER THAN CONTEXT) ###
@@ -245,6 +267,7 @@ lt_neural_v2_ANALY_BoutPositionJC(SummaryStruct,PlotRaw);
 %% &&&&&&&&&&&&&&&&&&&&&& CONTEXT &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 lt_neural_v2_CTXT_MASTER;
+
 
 %% ============ 1) CLASSIFY CONTEXT USING NEURAL
 close all;
@@ -402,8 +425,8 @@ MOTIFSTATS_pop = lt_neural_v2_POP_ExtractMotifs(MOTIFSTATS_Compiled, SummaryStru
 
 %% ================ PLOT [CORRELATION WITH FF]
 close all;
-xcov_dattotake = [-0.1 0.05];
 % xcov_dattotake = [-0.01 0.05];
+xcov_dattotake = [-0.08 0.04];
 xcovwindmax = 0.05;
 binsize_spk = 0.005;
 
@@ -417,421 +440,142 @@ SwitchStruct = lt_neural_LEARN_getswitch(SummaryStruct);
 %% ================ PLOT CROSS CORR WRT TO LEARNING
 close all; 
 % BirdExptPairsToPlot = {'pu69wh78', 'RALMANlearn1'};
-BirdExptPairsToPlot = {};
-SwitchToPlot = 1;
+BirdExptPairsToPlot = {'wh44wh39', 'RALMANlearn1'};
+SwitchToPlot = [];
+BregionWantedList = {{'LMAN', 'RA'}};
+onlyPlotIfBothPrePostTrials = 0;
 lt_neural_POPLEARN_Plot(MOTIFSTATS_pop, SwitchStruct, BirdExptPairsToPlot, ...
-    SwitchToPlot);
+    SwitchToPlot, BregionWantedList, onlyPlotIfBothPrePostTrials);
 
 
-
-%% &&&&&&&&&&&&&&&&&&&&& [LEARNING] SINGLE EXPERIMENTS &&&&&&&&&&&&&&&&&&&&&&&&&
-%% ============== FOR EACH LEARNING EXPERIMENT, PLOT ALL NEURONS AND ALL MOTIFS
-% ONE BIRD/LEARNING EXPT AT A TIME [BUT CAN COMBINE NEURONS]
-
-% ==== 1) EXTRACT DATA FOR EACH NEURON, EACH MOTIF
-[MOTIFSTATS, SummaryStruct_filt] = lt_neural_v2_ANALY_LearningExtractMotif(SummaryStruct);
-exptname = SummaryStruct_filt.birds(1).neurons(1).exptID;
-birdname = SummaryStruct_filt.birds(1).birdname;
-
-% ---- EXTRACT TARG SYL
-tmp = lt_neural_v2_LoadLearnMetadat;
-indbird = strcmp({tmp.bird.birdname}, birdname);
-indexpt = strcmp(tmp.bird(indbird).info(1,:), exptname);
-TargSyls = tmp.bird(indbird).info(2,indexpt);
-MOTIFSTATS.params.TargSyls = TargSyls;
-
-close all;
-% motifs for this bird
-% learning expt id
-plottype = 'bysyl'; %
-% 'byneuron' - each neuron one fig will all motifs [DEFAULT]
-% 'dotprod' - for each bin of trials get dot prod from IN PROGRESS
-% 'bysyl' - each plot one syl, all neurons.
-DivisorBaseSongs = 1;
-lt_neural_v2_ANALY_Learning(SummaryStruct_filt, MOTIFSTATS, plottype, DivisorBaseSongs);
-
-
-
-
-%% &&&&&&&&&&&&&&&&&& SUMMARY STATISTICS ACROSS ALL EXPERIMENTS &&&&&&&&&&&&&&&&
-%% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-%% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-%% ================ META SUMMARY OF LEARNING
-% NOTE: MODIFY TO HAVE GROSS SMOOTHED FR PLOTTED AS WELL
-% TO DO - indicate for each neuron its "quality" (e.g. song mod)
-
-close all;
-lt_neural_v2_LEARNING_MetaSummary
-
-%% =================== LEARNING
-% CAN DO MULTIPLE BIRDS
-collectWNhit=0; % NOTE!!! temporary - need to change so don't need to extract audio each time (i.e. do and save)
-% MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
-%     collectWNhit);
-    Params_regexp.motif_predur = [];
-    Params_regexp.motif_postdur = [];
-    Params_regexp.preAndPostDurRelSameTimept = 1;
-    Params_regexp.RemoveIfTooLongGapDur = [];
-
-MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
-    collectWNhit, 0, 1, 0, 1, 1, [], Params_regexp);
-
-
-% =========== PICK OUT SAME TYPE/DIFF [LEANRING SPECIFIC]
-numbirds = length(MOTIFSTATS_Compiled.birds);
-for i=1:numbirds
-    birdname = MOTIFSTATS_Compiled.birds(i).birdname;
-    numexpts = length(MOTIFSTATS_Compiled.birds(i).exptnum);
-    
-    for ii=1:numexpts
-        exptname = MOTIFSTATS_Compiled.birds(i).exptnum(ii).exptname;
-        % ---- EXTRACT TARG SYL
-        tmp = lt_neural_v2_LoadLearnMetadat;
-        indbird = strcmp({tmp.bird.birdname}, birdname);
-        indexpt = strcmp(tmp.bird(indbird).info(1,:), exptname);
-        TargSyls = tmp.bird(indbird).info(2,indexpt);
-        
-        MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.TargSyls = TargSyls;
-        
-        % ----
-        %         TargSyls = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.TargSyls;
-        %         MotifsActual = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.MotifsActual;
-        motif_regexpr_str = MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.motif_regexpr_str;
-        
-        [SameTypeSyls, DiffTypeSyls, motif_regexpr_str, SingleSyls] = ...
-            lt_neural_v2_extractSameType(motif_regexpr_str, TargSyls);
-        
-        % --- OUTPUT
-        MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.SameTypeSyls = SameTypeSyls;
-        MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.DiffTypeSyls = DiffTypeSyls;
-        MOTIFSTATS_Compiled.birds(i).exptnum(ii).MOTIFSTATS.params.SingleSyls_inorder = SingleSyls;
-        
-    end
-end
-
-
-
-% ==== FOR EACH LEARNING EXPERIMENT, PLOT TIMELINE OF NEURONS AND LEARNING
-close all;
-NumBirds = length(SummaryStruct.birds);
-for i=1:NumBirds
-    ListOfExpts = unique({SummaryStruct.birds(i).neurons.exptID});
-    
-    for ll = 1:length(ListOfExpts)
-        
-        MOTIFSTATS = MOTIFSTATS_Compiled.birds(i).exptnum(ll).MOTIFSTATS;
-        SummaryStruct_tmp = MOTIFSTATS_Compiled.birds(i).exptnum(ll).SummaryStruct;
-        
-        birdname = SummaryStruct.birds(i).birdname;
-        exptname = ListOfExpts{ll};
-        
-        if ~isfield(MOTIFSTATS.params, 'TargSyls')
-            disp('asdasdf');
-        end
-        if isempty(MOTIFSTATS.params.TargSyls)
-            sdafasdf
-        end
-        
-        
-        % === PLOT
-        lt_figure; hold on;
-        newfig=0;
-        lt_neural_v2_ANALY_LearningPlot1(SummaryStruct_tmp, MOTIFSTATS, newfig);
-        title([birdname '-' exptname]);
-%         keyboard
-    end
-end
-
-
-%% ================================== PLOT LEARNING (ALL SYLS)
-% close all
-MeanSubtract =1; % subtract baseline mean?
-BirdsToPlot = {'pu69wh78'};
-lt_neural_v2_ANALY_LearnAllSylPlot(MOTIFSTATS_Compiled, ...
-    MeanSubtract, BirdsToPlot);
-
-%% ============ save learning expt struct
-
-cd /bluejay5/lucas/analyses/neural/LEARNING/
-
-tstamp;
-
-%% ==== FOR EACH LEARNING EXPERIMENT, PLOT SUMMARY STATISTICS
-close all;
-
-if (0)
-    % ***************************************************** VERSEION 1 (SORT
-    % BY NERUON)
-    % ===================== EXTRACTS LEARNING STATS
-    % IMPORTANT - USE INTERNAL SUMMARYSTRUCT (INTERNAL TO MOTIFSTATS_Compiled)
-    % and not actual full SummaryStruct (neuron inds don't match)
-    [MOTIFSTATS_Compiled] = lt_neural_v2_ANALY_LearningStats(MOTIFSTATS_Compiled);
-    
-    
-    % =========== PLOT TIMECOURSES
-    birdtoplot = 'wh6pk36'; % leave as '' to get all
-    expttoplot = 'LMANlearn2';
-    neuralmetric_toplot = 'NEURrelbase_smthFrCorr';
-    %         NEURrelbase_smthFrCorr
-    %         NEURrelbase_EuclDistance
-    %         NEURrelbase_Norm1Distance
-    %         NEURrelbase_MeanFRDiff
-    %           NEURrelbase_EuclDistFRcentered
-    %           NEUR_CVsmthFR
-    %           NEUR_SDsmthFR
-    %           NEUR_MeansmthFR
-    plotOnlyTargSyl = 1; %
-    
-    lt_neural_v2_ANALY_LearningPLOTtcour(MOTIFSTATS_Compiled, birdtoplot, ...
-        expttoplot, neuralmetric_toplot, plotOnlyTargSyl)
-    
-    
-    % =========== PLOT SUMMARY OF STATS ACROSS EXPERIMENTS [ITERATING OVER
-    % NEURONS
-    close all;
-    neuralmetric_toplot = 'NEURrelbase_smthFrCorr';
-    convertToZscore = 0;
-    PlotNeuralFFDeviationCorrs = 1; % zscore of neural similarity and FF, correalted fore aach syl
-    plotOnlyTargSyl = 1; % only matters if PlotNeuralFFDeviationCorrs=1
-    birdtoplot = 'bk7'; % leave as '' to get all
-    expttoplot = 'LearnLMAN1';
-    lt_neural_v2_ANALY_LearningStatsPLOT(MOTIFSTATS_Compiled, convertToZscore, ...
-        neuralmetric_toplot, PlotNeuralFFDeviationCorrs, plotOnlyTargSyl, ...
-        birdtoplot, expttoplot)
-end
-
-
-
-% ######################################################################
-% ####################################### VERSION 2 - SWITCH AS DATAPOINT
-% NOTE: neuron inds in switchstruct match those in motifs_compiled
-
-% === PULL OUT RAW FR FOR ALL NEURONS/TRIALS
-RemoveTrialsZeroFR = 1;
-premotorWind = [-0.06 0.02]; % [-a b] means "a" sec before onset and "b" sec after offset
-% premotorWind = [-0.03 0.025]; % [-a b] means "a" sec before onset and "b" sec after offset
-% premotorWind = [-0.05 0]; % [-a b] means "a" sec before onset and "b" sec after offset
-[MOTIFSTATS_Compiled] = lt_neural_v2_ANALY_GetAllFR(MOTIFSTATS_Compiled, ...
-    RemoveTrialsZeroFR, premotorWind);
-
-
-% PULL OUT "SWITCHES" IN CONTINGENCY ACROSS ALLEXPERIMENTS [alsop extracts
-% FF values at switch]
-[MOTIFSTATS_Compiled, SwitchStruct] = lt_neural_v2_ANALY_GetSwitches(MOTIFSTATS_Compiled);
-
-
-% ============ EXTRACT NEURAL FOR SWITCHES
-interpolateCorrNan = 0;
-RemoveTrialsZeroFR = 0; % this takes precedence over interpolateCorrNan
-[MOTIFSTATS_Compiled, SwitchStruct] = ...
-    lt_neural_v2_ANALY_Swtch_Extract(MOTIFSTATS_Compiled, SwitchStruct, ...
-    interpolateCorrNan, RemoveTrialsZeroFR, premotorWind);
-
-% ============ DISPLAY LABELS INFORMATION FOR ALL SWITCHES AND NEURONS
-% [LEARNING SPECIFIC]
-onlyWNonset = 0; % if 0, then all switches, if 1, then only WN on
-lt_neural_v2_ANALY_Swtch_DispLabs(MOTIFSTATS_Compiled, SwitchStruct, onlyWNonset);
-
-
-% #############################################################################
-% ==== SEPARATION - compare separation between contexts pre and end of
-% learning
-% --------- 1) extract dat
-onlyUseDatOnSwitchDays=1; % if 1, then restricts analyses to just dat on day of swtich
-[DatstructSep, getdprime] = lt_neural_v2_ANALY_Swtch_Separation(MOTIFSTATS_Compiled, ...
-    SwitchStruct, onlyUseDatOnSwitchDays);
-
-% --------- 2) plot
-close all;
-% expttypewanted = 'one targ context';
-% expttypewanted = 'mult targ context - samedir';
-% expttypewanted = 'mult targ context - diff dir';
-expttypewanted=''; % COLLECT ALL
-lt_neural_v2_ANALY_Swtch_SepPlot(DatstructSep, MOTIFSTATS_Compiled, ...
-    SwitchStruct, getdprime, expttypewanted);
-
-
-
-% #############################################################################
-
-% ===========================================
-lt_figure; hold on;
-lt_plot_text(0, 0.5, 'bird, expt, and neuron all match between SummaryStruct, Motifstats, and Switchstruct', 'r')
-
-% =========== PLOT SUMMARY OF LEARNING [ITERATING SWITCHES]
-close all;
-lt_neural_v2_ANALY_LrnSwtchPLOT(MOTIFSTATS_Compiled, SwitchStruct);
-
-
-% ============ TIMECOURSES FOR NEURAL FOR SWITCHES
-close all;
-birdname_get = 'pu69wh78'; % keep empty if want all.
-exptname_get = 'RALMANlearn2';
-switchnum_get = [1];
-plotneurzscore=0;
-onlyPlotTargNontarg=1;
-lt_neural_v2_ANALY_Swtch_Tcourse(MOTIFSTATS_Compiled, SwitchStruct, ...
-    birdname_get, exptname_get, switchnum_get, plotneurzscore, ...
-    onlyPlotTargNontarg)
-
-% ========================= TIMECOURSES, BINNING BY TIME, showing smoothed
-% FR and rasters
-close all;
-birdname_get = 'br92br54'; % keep empty if want all.
-exptname_get = 'LMANlearn5';
-switchnum_get = [1];
-plotneurzscore=0;
-FFzscore =1;
-onlyPlotTargNontarg=1;
-saveFigs =0;
-lt_neural_v2_ANALY_Swtch_Tcourse2(MOTIFSTATS_Compiled, SwitchStruct, ...
-    birdname_get, exptname_get, switchnum_get, plotneurzscore, FFzscore, ...
-    onlyPlotTargNontarg, saveFigs)
-
-
-%% ==== BINNED LEARNING
- 
-close all;
-birdname_get = 'bk7'; % keep empty if want all.
-exptname_get = 'LearnLMAN1';
-switchnum_get = [1];
-Bregion = {'LMAN', 'X'};
-plotneurzscore=0;
-FFzscore =1;
-onlyPlotTargNontarg=3; % 1 is targ/same; 3 is all [DEFAULT: 3]
-saveFigs =0;
-onlySingleDir =1; % if 1, then only does cases where all targs same dir
-lt_neural_v2_ANALY_Swtch_Binned(MOTIFSTATS_Compiled, SwitchStruct, ...
-    birdname_get, exptname_get, switchnum_get, plotneurzscore, FFzscore, ...
-    onlyPlotTargNontarg, saveFigs, onlySingleDir, Bregion);
-
-
-%% ======= BINNED LEARNING V2 (SONG BY SONG)
-close all;
-birdname_get = ''; % JUST FOR PLOTTING
-exptname_get = ''; 
-switchnum_get = [];
-Bregion = {'LMAN'};
-plotneurzscore=0;
-FFzscore =1;
-onlyPlotTargNontarg=1;
-saveFigs =0;
-onlySingleDir =1; % if 1, then only does cases where all targs same dir
-lt_neural_v2_ANALY_Swtch_Binned2(MOTIFSTATS_Compiled, SwitchStruct, ...
-    birdname_get, exptname_get, switchnum_get, plotneurzscore, FFzscore, ...
-    onlyPlotTargNontarg, saveFigs, onlySingleDir, Bregion);
-
-
-%%
+%% ================ PLOT PAIRED RASTERS WRT TO LEARNING
+BirdExptPairsToPlot = {};
+SwitchToPlot = [];
+TypeOfPairToPlot = {'LMAN-RA'}; % e.g. 'LMAN-RA' (in alphabetical order)
 
 numbirds = length(SwitchStruct.bird);
 for i=1:numbirds
-   birdname = SwitchStruct.bird(i).birdname;
+    
     numexpts = length(SwitchStruct.bird(i).exptnum);
+    birdname = SwitchStruct.bird(i).birdname;
     
     for ii=1:numexpts
-       numswitch = length(SwitchStruct.bird(i).exptnum(ii).switchlist);
-       exptname = SwitchStruct.bird(i).exptnum(ii).exptname;
-       
-       for iii=1:numswitch
-          
-           close all;
-        birdname_get = birdname; % keep empty if want all.
-        exptname_get = exptname;
-        switchnum_get = [iii];
-        plotneurzscore=0;
-        FFzscore =1;
-        onlyPlotTargNontarg=1;
-        saveFigs =1;
-        lt_neural_v2_ANALY_Swtch_Tcourse2(MOTIFSTATS_Compiled, SwitchStruct, ...
-            birdname_get, exptname_get, switchnum_get, plotneurzscore, FFzscore, ...
-            onlyPlotTargNontarg, saveFigs)
-
+        
+        numswitches = length(SwitchStruct.bird(i).exptnum(ii).switchlist);
+        exptname = SwitchStruct.bird(i).exptnum(ii).exptname;
+        
+        % ----------------- ONLY PLOT SPECIFIC BIRD?
+        if ~isempty(BirdExptPairsToPlot)
            
-       end
-       
-       
+            ind1 = find(strcmp(BirdExptPairsToPlot, birdname));
+            ind2 = find(strcmp(BirdExptPairsToPlot, exptname));
+            
+            if ~any(ind1+1 == ind2)
+                disp(['SKIPPED ' birdname '-' exptname]);
+                continue
+            end
+            
+        end
+        
+        % ----------------- GO THRU ALL SWITCHES
+        for iii=1:numswitches
+            
+            if ~isempty(SwitchToPlot)
+               if ~any(SwitchToPlot == iii)
+                   continue
+               end
+            end
+            
+            % ---- for this switch, figure out which populations have data
+            % overlapping the onset (i.e. has data both pre and post swictch)
+            swthis = SwitchStruct.bird(i).exptnum(ii).switchlist(iii);
+            numsets = length(MOTIFSTATS_pop.birds(i).exptnum(ii).Sets_neurons);
+            
+            for ss = 1:numsets
+                songfiles = MOTIFSTATS_pop.birds(i).exptnum(ii).Sets_songfiles{ss};
+                songtimes = datenum(songfiles, 'yymmdd_HHMMSS');
+                
+                inds_pre = find(songtimes>swthis.switchdnum_previous & songtimes<swthis.switchdnum);
+                inds_post = find(songtimes>swthis.switchdnum & songtimes<swthis.switchdnum_next);
+                
+                if isempty(inds_pre) | isempty(inds_post)
+                    continue
+                else
+                    disp(['analyzing: ' birdname '-' exptname '-sw' num2str(iii) '-neurset' num2str(ss)]);
+                end
+                
+                
+                
+                % ############################################### ANALYSIS/PLOTS
+                DAT = MOTIFSTATS_pop.birds(i).exptnum(ii).DAT.setnum(ss);
+                motiflist = {DAT.motif.regexpstr};
+                neurlist = MOTIFSTATS_pop.birds(i).exptnum(ii).Sets_neurons{ss};
+                
+                % ============ for each pair of neurons, plot paired
+                % rasters
+                % -- go thru all pairs of neurons, only plot if is desired
+                % type of pair
+                for j=1:length(neurlist)
+                    for jj=j+1:length(neurlist)
+                   
+                        n1 = neurlist(j);
+                        n2 = neurlist(jj);
+                        
+                        % ----- check what pair of brain region
+                        
+                        
+                    end
+                end
+                
+                
+            end
+        end
     end
 end
 
 
+%% ###################################### DIR VS. UNDIR (LEARNING)
 
-%%
-% ========================== SPIKE COUNT CORRELATIONS, CHANGE DURING
-% LEARNIG? Looks at a single switch.
-% NOTE: all neurons must have same batch file for this to work.
-lt_neural_v2_ANALY_Swtch_LearnNeurCorr(MOTIFSTATS_Compiled, SwitchStruct, ...
-    birdname_get, exptname_get, switchnum_get, plotneurzscore)
+%% ==== 1) EXTRACT MOTIFSTATS POP
+
+% ======================== EXTRACT SEGMENTS FOR POPULATIONS
+
+close all; clear MOTIFSTATS_Compiled;
+collectWNhit=0;
+onlyCollectTargSyl=0;
+LearnKeepOnlyBase = 0;
+saveOn = 1;
+OrganizeByExpt =0;
+collectFF=1;
+MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
+    collectWNhit, LearnKeepOnlyBase, saveOn, onlyCollectTargSyl, OrganizeByExpt,...
+    collectFF);
 
 
-% ============== SUMMARIZE FOR EACH EXPT (I.E. NEURAL AND FF CHANGE FOR
-% TARG AND OTHER SYLS)
+
+%% ==== 2) EXTRACT LEARNING SWITCH STRUCT
+
+SwitchStruct = lt_neural_LEARN_getswitch(SummaryStruct);
+
+
+%% ==== 3) PLOT
 close all;
-RemoveLowNumtrials = 1; % min number for both base and train(double)
-MinTrials = 5; % for removing
-skipMultiDir = 1;
-usePeakLearn = 0; % assumes that care about learning for targ 1. (median time of max learning)
-useTrialsRightAfterWNOn = 0; % note, if 1, then overrides usePeakLearn; if n is numtrials, takes the trials from n+1:2n from WN onset.
+BirdExptPairsToPlot = {};
+SwitchToPlot = [4];
+plotIndTrial = 0;
 
+lt_neural_v2_DirUndir_LearnPlot(MOTIFSTATS_Compiled, SwitchStruct, BirdExptPairsToPlot, ...
+    SwitchToPlot, plotIndTrial, SummaryStruct);
 
-% ---- what metric to plot for main figs
-% 1) split into half, corr those, repeat
-fieldname_baseneur = 'AllNeurSplitCorrBase';
-fieldname_trainneur = 'AllNeurSplitCorrTrain';
-% fieldname_trainneur = 'AllNeurSplitCorrTrainvsTrain';
-% 2) permute train and base, get corr, repeat - use that as base...
-% fieldname_baseneur = 'AllNeurCorrShuffMean';
-% fieldname_trainneur = 'AllNeurCorrDat';
-% 3) old version, no permuting, each trial corr to base "template"
-% fieldname_baseneur = 'AllNeurSimBase';
-% fieldname_trainneur = 'AllNeurSimTrain';
+%% ###############################################################
+%% ############################################  POPULATION
 
-% -- following only matter if use fieldname_baseneur = 'AllNeurSimBase' & fieldname_trainneur = 'AllNeurSimTrain';
-UseZscoreNeural = 0;
-neuralmetricname = 'NEURvsbase_FRcorr';
-% neuralmetricname = 'NEUR_meanFR';
-% neuralmetricname = 'NEUR_cvFR';
-
-% ---- filtering data by learning at target
-% note: if multiple targets then will filter on just first target...
-plotLearnStatsOn = 0; %
-OnlyKeepSigLearn = 1; % either regression or end training has be significant.
-learnsigalpha = 0.01; % for deciding that an experiment showed "no learning"
-
-% ---- ONLY KEEP SWITCHES STARTING FROM WN OFF
-OnlyKeepWNonset =0; % if 1, then yes, if 2, then only keeps those with WN transition (not onset); if 0, then takes all
-
-% --- only use data on day of switch - i.e. don't go to next day for
-% training end
-OnlyUseDatOnSwitchDay=1; % NOTE: if use with "UsePeakLearn" then will constrain to be within switch day
-% i.e. if peak learn is after switch day then will take end of first day...
-
-[DATSylMot, ~] = lt_neural_v2_ANALY_Swtch_Summary(MOTIFSTATS_Compiled, SwitchStruct, RemoveLowNumtrials, ...
-    MinTrials, UseZscoreNeural, neuralmetricname, fieldname_baseneur, fieldname_trainneur, ...
-    skipMultiDir, usePeakLearn, plotLearnStatsOn, learnsigalpha, OnlyKeepSigLearn, ...
-    OnlyKeepWNonset, OnlyUseDatOnSwitchDay, useTrialsRightAfterWNOn);
-
-
-
-
-% ============================================ PAIRWISE CORRELATIONS DUR
-% LEARNING
-lt_neural_v2_LEARNING_NeurPairCorr(MOTIFSTATS_Compiled, SwitchStruct);
-
-
-
-
-% ================ IN LINEAR MODEL IS THERE EFFECT OF SYLLABLE TYPE AFTER
-% CONTROLLING FOR VARIOUS THINGS?
-lt_neural_v2_ANALY_Swtch_LME(DATSylMot)
-
-
+lt_neural_v2_POP_Master;
 
 
 %% ################################################################
 %% ########################################### WN RESPONSE
 
-lt_neural_v2_PseudoPop_Master
 % ========= for eac bird/expt, plot all trials separated by WN/noWN
 close all; clear MOTIFSTATS_Compiled;
 collectWNhit=1; % NOTE!!! temporary - need to change so don't need to extract audio each time (i.e. do and save)
@@ -842,137 +586,12 @@ MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
     collectWNhit, LearnKeepOnlyBase, saveOn, onlyCollectTargSyl);
 
 
-%% ###############################################################
-%% ##################################################### POPULATION
-%% ======================== EXTRACT SEGMENTS FOR POPULATIONS
-% ========== KEY DIFFERENCES,
-% 1) MIGHT HAVE TO SKIP SONGS TO MAKE SURE ALL
-% NEURONS ARE REPRESENTED IN ALL SONGS
-% 2)
-
-
-close all; clear MOTIFSTATS_Compiled;
-collectWNhit=0; % NOTE!!! temporary - need to change so don't need to extract audio each time (i.e. do and save)
-onlyCollectTargSyl=0;
-LearnKeepOnlyBase = 1;
-saveOn = 1;
-OrganizeByExpt =0;
-collectFF=1;
-MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
-    collectWNhit, LearnKeepOnlyBase, saveOn, onlyCollectTargSyl, OrganizeByExpt,...
-    collectFF);
+% 
+% lt_neural_v2_PseudoPop_Master
 
 
 
-%% ================ extraction continued
-close all;
-MOTIFSTATS_pop = lt_neural_v2_POP_ExtractMotifs(MOTIFSTATS_Compiled, SummaryStruct);
-clear MOTIFSTATS_Compiled;
-
-
-%% ================ PLOT [CORRELATION WITH FF]
-close all;
-MOTIFSTATS_pop = lt_neural_POP_FFcorr(MOTIFSTATS_pop, SummaryStruct);
-
-close all;
-lt_neural_POP_FFcorrPlot
-
-%% ================ 
-
-lt_neural_POP_PlotRast
-
-%% #############################################################
-%% ######################## POPULATION - TAKE ENTIRE MOTIF
-
-
-close all; clear MOTIFSTATS_Compiled;
-collectWNhit=0; % NOTE!!! temporary - need to change so don't need to extract audio each time (i.e. do and save)
-onlyCollectTargSyl=0;
-LearnKeepOnlyBase = 1;
-saveOn = 1;
-OrganizeByExpt =0;
-collectFF=1;
-
-% --- to make sure extracts motifs
-MotifsToCollect = {'pu69wh78', {'(j)jjbhhg', '(a)abhhg'}};
-    Params_regexp.motif_predur = 0.05;
-    Params_regexp.motif_postdur = 0.05;
-    Params_regexp.preAndPostDurRelSameTimept = 0;
-    Params_regexp.RemoveIfTooLongGapDur = 1;
-
-MOTIFSTATS_Compiled = lt_neural_v2_ANALY_MultExtractMotif(SummaryStruct, ...
-    collectWNhit, LearnKeepOnlyBase, saveOn, onlyCollectTargSyl, OrganizeByExpt,...
-    collectFF, MotifsToCollect, Params_regexp);
-
-
-%% ======================= LINEAR TIME WARP
-TimeWarpParams = {'pu69wh78', '(j)jjbhhg', [1:13], ...
-    'pu69wh78', '(a)abhhg', [1:11]};
-NumBirds = length(MOTIFSTATS_Compiled.birds);
-
-MOTIFSTATS_Compiled.TimeWarpParams = TimeWarpParams;
-for i=1:NumBirds
-  
-    motiflist = MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.params.motif_regexpr_str;
-    
-    nneur = length(MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons);
-    for ii=1:nneur
-        nummotifs = length(MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons(ii).motif);
-        for iii=1:nummotifs
-           
-            motifthis = motiflist{iii};
-            birdthis = MOTIFSTATS_Compiled.birds(i).birdname;
-            
-            ind1 = find(strcmp(TimeWarpParams, birdthis));
-            ind2 = find(strcmp(TimeWarpParams, motifthis));
-            
-            ind3 = ind1(ind1 == ind2-1)+2; % actual ind of params
-            
-            if isempty(ind3)
-                % then this bird or motif is not specificed in params
-                disp(['PROBLEM - b ' birdname '- motif ' num2str(motifthis) ' NOT SPECIFIED (WILL NOT TIME WARP)']);
-                continue
-            end
-            
-            disp([birdthis '-n' num2str(ii) '-' motifthis]);
-            
-            % ================= DO TIME WARP
-            regionstowarp = TimeWarpParams{ind3};
-            segextract = MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons(ii).motif(iii).SegmentsExtract;
-            
-            expectedsegs = 2*length(segextract(1).matchlabel) - 1;
-            segextract = lt_neural_LinTimeWarpSegmented(segextract, ...
-                regionstowarp, expectedsegs);
-            
-            MOTIFSTATS_Compiled.birds(i).MOTIFSTATS.neurons(ii).motif(iii).SegmentsExtract = ...
-                segextract;
-        end
-    end
-    
-end
-
-%% ======================== EXTRACT POPULATION
-close all;
-MOTIFSTATS_pop = lt_neural_v2_POP_ExtractMotifs(MOTIFSTATS_Compiled, SummaryStruct);
-clear MOTIFSTATS_Compiled;
-
-
-%% ================ PLOT [CORRELATION WITH FF]
-close all;
-xcov_dattotake = [];
-xcovwindmax = 0.2;
-binsize_spk = 0.005;
-MOTIFSTATS_pop = lt_neural_POP_ExtractXCov(MOTIFSTATS_pop, SummaryStruct, ...
-    xcov_dattotake, xcovwindmax, binsize_spk);
-
-
-%% =============== SUMMARY PLOT OF ALL CROSS-CORRELATIONS
-close all;
-OUTSTRUCT = lt_neural_POP_PlotSummary(MOTIFSTATS_pop, SummaryStruct);
-
-lt_neural_POP_PlotSummary2(MOTIFSTATS_pop, SummaryStruct, OUTSTRUCT);
-
-
+%% #################################################################
 %% #################################################################
 %% PSEUDO POPULATION
 
@@ -1001,33 +620,38 @@ NormToNeurMean = 1;
 % premotorWind = [-0.06 -0.02];
 % premotorWind = [-0.03 0.01];
 premotorWind = [-0.03 0.02];
+plotnans = 1;
 
 [FRmatMotifByNeur, AllMotifRegexp, AllNeurLocation] = ...
-    lt_neural_v2_PseudoPop_Master(MOTIFSTATS_Compiled, NormToNeurMean, premotorWind);
+    lt_neural_v2_PseudoPop_Master(MOTIFSTATS_Compiled, NormToNeurMean, ...
+    premotorWind, plotnans);
 
 %% ================ SAME-TYPE VS. DIFF SUMMARY
 
 plotOn=1;
 thisloc = 'LMAN';
 distmetric = 'euclidean';
+distmetric = 'correlation';
 
 [dp, FRmatDist] = lt_neural_v2_PseudoPop_SameDiff(FRmatMotifByNeur, AllMotifRegexp, ...
     AllNeurLocation, thisloc, plotOn, distmetric);
+
 
 
 %% ############################# SYL ENCODING AS FUNCTION OF WINDOW
 if (1)
     WindList = [-0.1:0.01:0.08; -0.06:0.01:0.12]';
     DprimeAll = [];
-    thisloc = 'LMAN';
+    thisloc = 'RA';
     distmetric = 'euclidean';
+    distmetric = 'correlation';
 
     for j=1:size(WindList,1)
         windthis = WindList(j,:);
         
         % ==================== get pop vector
         [FRmatMotifByNeur, AllMotifRegexp, AllNeurLocation] = ...
-            lt_neural_v2_PseudoPop_Master(MOTIFSTATS_Compiled, 1, windthis);
+            lt_neural_v2_PseudoPop_Master(MOTIFSTATS_Compiled, 1, windthis, 0);
         
         % ====================== get dprime (diff minus same)
         plotOn=0;
@@ -1055,6 +679,7 @@ lt_neural_v2_PseudoPop_PLOT;
 %% ================ HEIRARCHICAL CLUSTERING
 close all;
 distmetric = 'euclidean';
+distmetric = 'correlation';
 locthis = 'LMAN';
 inds = find(strcmp(AllNeurLocation, locthis));
 
@@ -1080,6 +705,9 @@ c = cophenet(Z, Y);
 % ======================== 2) 
 
 
+%% #############################################################
+%% ############################ RA vs LMAN (mean firing)
 
 
+lt_neural_v2_FullMotifActivity;
 

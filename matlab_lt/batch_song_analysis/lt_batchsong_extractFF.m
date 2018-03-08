@@ -20,12 +20,22 @@ for mm = 1:length(MotifsToExtract)
         batchf = ListOfBatch{i};
         
         % ==== is this DIR or UNDIR song?
-        if any(ismember(ListOfDirs_UNDIR, dirname))
-            isDIR = 0;
-        elseif any(ismember(ListOfDirs_DIR, dirname))
-            isDIR = 1;
+        if (1)
+            % new version, first dirs and undir, second directoreis and DIR
+            % song.
+            if i <= length(ListOfDirs_UNDIR)
+                isDIR = 0;
+            else
+                isDIR=1;
+            end
         else
-            disp('PROBLEM!!! - dir or undir?');
+            if any(ismember(ListOfDirs_UNDIR, dirname))
+                isDIR = 0;
+            elseif any(ismember(ListOfDirs_DIR, dirname))
+                isDIR = 1;
+            else
+                disp('PROBLEM!!! - dir or undir?');
+            end
         end
         
         cd(dirname);

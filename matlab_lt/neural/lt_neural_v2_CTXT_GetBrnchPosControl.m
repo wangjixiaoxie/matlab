@@ -14,6 +14,8 @@ function CLASSES = lt_neural_v2_CTXT_GetBrnchPosControl(CLASSES, SummaryStruct, 
 regexpcontrol = [];
 
 switch length(strtype)
+    case 2
+        regexpcontrol = '[a-z](?=[a-z])';
     case 3
         regexpcontrol = '[a-z](?=[a-z][a-z])';
     case 4

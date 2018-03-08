@@ -13,6 +13,14 @@ LearnStruct = lt_neural_v2_LoadLearnMetadat;
 
 % is this learning expt?
 birdindtmp = strcmp({LearnStruct.bird.birdname}, birdname);
+if ~any(birdindtmp)
+   islearning = [];
+   LearnSummary = [];
+   switchtime = [];
+    return
+    
+end
+    
 islearning = any(strcmp([LearnStruct.bird(birdindtmp).info(1,:)], exptname));
 
 % --- optional: output info about this learn expt

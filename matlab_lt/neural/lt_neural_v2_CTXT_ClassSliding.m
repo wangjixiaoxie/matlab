@@ -95,6 +95,10 @@ for i=1:numbirds
                 continue
             end
             
+            if isempty(CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT)
+                continue
+            end
+            
             NN = [];
             for j=1:length(CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum)
                 n = length(CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum(j).SegmentsExtract);

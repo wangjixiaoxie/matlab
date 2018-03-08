@@ -191,6 +191,13 @@ for j=1:NumBirds
                         'h(g)'};
                 end
                 
+            elseif strcmp(birdname, 'wh44wh39')
+                if strcmp(exptname, 'RALMANlearn1')
+                    MotifsActual = {'nhh', 'dkccb', ...
+                        'dkccb(b)', ...
+                        '(j)n', '(m)d'};
+                end
+                
             else
                 disp('NO MOTIFS INPUTED!!');
                 failures = failures+1;
@@ -257,6 +264,9 @@ for j=1:NumBirds
                 MotifsActual = {...
                     'aabh', 'aabh(h)', 'aabhh(g)', ...
                     'jjbhh', 'jjbhh(g)'};
+            elseif strcmp(birdname, 'wh44wh39')
+                MotifsActual = {'nhh', 'dkccbb', ...
+                    '(j)n', '(m)d'};
             else
                 disp('NO MOTIFS INPUTED!!');
                 failures = failures+1;
@@ -299,7 +309,12 @@ for j=1:NumBirds
         end
         
 %%
-        assert(~isempty(MotifsActual), 'no motifs given...');
+%         assert(~isempty(MotifsActual), 'no motifs given...');
+        
+        if isempty(MotifsActual)
+            
+            return
+        end
         
         %%
         % ==== BASED ON THOSE MOTIFS FIGURE OUT ALL REG EXP STRINGS

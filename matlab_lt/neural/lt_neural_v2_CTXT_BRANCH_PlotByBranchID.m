@@ -2,6 +2,11 @@ function lt_neural_v2_CTXT_BRANCH_PlotByBranchID(ALLBRANCH, BrainRegions, ...
     BirdToPlot, useDprime, ExptToPlot)
 %% lt 11/29/17 - plots, sepaated by unique branch points (i.e. regexpstr)
 
+%%
+
+datwindow_xcov = [-0.08 0.04]; % data to use, rel onset
+
+
 %% ======= Filter data (e.g. remove noise, poor labels, etc)
 
 Params.LocationsToKeep = BrainRegions;
@@ -364,10 +369,10 @@ end
 
 linkaxes(hsplots, 'xy');
 
-
+%%
 if length(BrainRegions)==2
     %% ==== cross correlation between each pair of brain regions
-    if (1) % OLD VERSION !!!!!!!!!!!!!!!!!
+    if (0) % OLD VERSION !!!!!!!!!!!!!!!!!
 %         datwindow = [-0.1 0.05]; % data to use, rel onset
 %         windowmax = 0.05; % in sec
         datwindow = []; % data to use, rel onset
@@ -469,6 +474,14 @@ if length(BrainRegions)==2
                 ydecode = DATSTRUCT_BYBRANCH.bird(i).branchID(bb).DAT.ydecode(inds,:);
                 ydecode_neg = DATSTRUCT_BYBRANCH.bird(i).branchID(bb).DAT.ydecode_neg(inds,:);
                 
+                % --------- withold to premotor window here
+                if ~isempty(datwindow_xcov)
+                        indstmp = xdecode(1,:)>=datwindow_xcov(1) & ...
+                            xdecode(1,:)<=datwindow_xcov(2);
+                        xdecode = xdecode(:,indstmp);
+                        ydecode = ydecode(:,indstmp);
+                        ydecode_neg = ydecode_neg(:, indstmp);
+                end
                 
                 % ---- collect all binsizes - will make sure all are equal
                 binsize = xdecode(1,2)-xdecode(1,1);

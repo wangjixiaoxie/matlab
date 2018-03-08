@@ -1,6 +1,10 @@
 function SegmentsExtract = lt_neural_SmoothFR(SegmentsExtract, clustnum, ...
     kernelSD, binsize_spks, extractSingleTrials, segextract_for_trialdur)
+%% clustnum is optional - will make sure only one clsuter if don't enter
 
+if ~exist('clustnum', 'var')
+    clustnum = [];
+end
 %%
 % in case the seg extract for dat doesnt have timing variables, enter
 % another one that does ...
@@ -59,6 +63,7 @@ if isfield(SegmentsExtract, 'spk_Times') % only try to smooth if there is any da
             % then is my data -, match to clust
             if isempty(clustnum)
                 inds = SegmentsExtract(i).spk_Clust>0;
+                assert(length(unique(SegmentsExtract(i).spk_Clust(inds)))==1, 'safd');
             else
                 inds = SegmentsExtract(i).spk_Clust == clustnum;
             end

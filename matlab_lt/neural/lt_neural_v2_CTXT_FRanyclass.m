@@ -37,6 +37,8 @@ for i=1:numbirds
             end
         end
         
+        bregion = SummaryStruct.birds(i).neurons(ii).NOTE_Location;
+        
         for iii=1:numbranches
             
             % ========================== plot dat
@@ -51,7 +53,7 @@ for i=1:numbirds
             end
             
             [fignums_alreadyused, hfigs, figcount, hsplot]=lt_plot_MultSubplotsFigs('', subplotrows, subplotcols, fignums_alreadyused, hfigs, figcount);
-            title([birdname '-n' num2str(ii) '-' CLASSES.birds(i).neurons(ii).branchnum(iii).regexprstr])
+            title([birdname '-n' num2str(ii) '-' CLASSES.birds(i).neurons(ii).branchnum(iii).regexprstr '[' bregion ']']);
             
             numclasses = length(CLASSES.birds(i).neurons(ii).branchnum(iii).SEGEXTRACT.classnum);
             plotcols = lt_make_plot_colors(numclasses, 0,0);

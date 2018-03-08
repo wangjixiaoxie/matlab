@@ -100,9 +100,14 @@ for i=1:NumBirds
                 
                 % -- sanity check, if designated to this swich, then
                 % shoudl ghave file pre and post.
+                if (0)
+                    % not necessarily the case, since could be recording
+                    % made late into leanring that doesn't overlap with an
+                    % y switch                    
                 if swtime_this == ...
                         datenum(SummaryStruct.birds(i).neurons(neurID).LEARN_WNonDatestr, 'ddmmmyyyy-HHMM')
                     assert(haspresongs==1 & haspostsongs==1, 'asfasdfasfasfsdaf');
+                end
                 end
                 
                 if (0)   % SANITY check, plot song tdates for this neuron + this switcht ime's borders
@@ -192,10 +197,15 @@ for i=1:NumBirds
                         count = count+1; % sanity check,
                     end
                 end
-                assert(count ==1, 'should be exactly one for this target')
+                % --- if count = 0, then contingency doesn't change for
+                % this target at this switch. in that case ignore this
+                % target
+                if count~=0
+                    assert(count ==1, 'should be exactly one for this target')
                 assert(~isempty(preCont) & ~isempty(postCont), 'why???');
                 
                 SwtchConts = [SwtchConts targsyl [preCont postCont]];
+                end
             end
             
             % =========== output

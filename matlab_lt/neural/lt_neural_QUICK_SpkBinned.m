@@ -1,5 +1,5 @@
 function [segextract, xtimes] = lt_neural_QUICK_SpkBinned(segextract, ...
-    maxdur, binsize)
+    maxdur, binsize, convertosingle)
 %% lt 1/17/18 - takes spktime and outputs binned (1ms res)
 
 if ~exist('binsize', 'var')
@@ -38,7 +38,11 @@ for t =1:ntrials
     y = histc(segextract(t).spk_Times, xedges);
     y = y(1:end-1);
     
+    if convertosingle==1
+        y = single(y);
+    else
     y = int8(y);
+    end
     
     SpkCounts(t,:) = y;
     segextract(t).spk_Binned = y';

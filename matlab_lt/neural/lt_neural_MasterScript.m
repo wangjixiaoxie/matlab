@@ -24,7 +24,7 @@ end
 
 %% ====== plot single file dat [align neural and song]
 close all;
-filename='wh44wh39_180215_193829.rhd';
+filename='wh44wh39_DIR_180222_192202.rhd';
 ChansToPlot.DigChans_zero=[0]; % make string "all" to plot all that exist. empty array to ignore
 ChansToPlot.AnalogChans_zero=[0]; % assumes that this is audio
 % ChansToPlot.AmpChans_zero=[9 14 19];
@@ -32,7 +32,7 @@ ChansToPlot.AmpChans_zero=[9 11 12 14 1 18];
 % ChansToPlot.AmpChans_zero=[8 9 11 16 17 20 21];
 ChansToPlot.AmpChans_zero=[9 14 17 18 21];
 ChansToPlot.AmpChans_zero=[9 14 21];
-ChansToPlot.AmpChans_zero=0:15;
+ChansToPlot.AmpChans_zero=[15 16:31];
 
 % neuralFiltLow=500;
 neuralFiltLow=300;
@@ -47,7 +47,7 @@ Rect_sm.windowsize=0.03; % in sec, size of window, equals -2 to +2 sd.
 Raster.ThrXNoise=4; % threshold for units, used for all channels, uses absolute data for peak detection
 Raster.PosOrNeg=-1; % -1 or +1, for crossings.
 
-        numsubplots = 5;
+        numsubplots = 6;
 
 lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster, ...
             numsubplots)
@@ -108,8 +108,8 @@ clear all; close all;
 % channel_board = [14];
 channel_board = [9 14 17 18 21];
 channel_board = 0:31;
-channel_board = [16:31];
-batchf = 'batchall';
+channel_board = 17;
+batchf = 'Batch1345to2242DirUndir';
 
 %% ==== exploratory - concat all audio and neural and plot for each neural channel
 close all;
@@ -155,7 +155,7 @@ if (0)
         Raster.ThrXNoise=3; % threshold for units, used for all channels, uses absolute data for peak detection
         Raster.PosOrNeg=-1; % -1 or +1, for crossings.
         
-        numsubplots = 5;
+        numsubplots = 6;
         
         lt_neural_alignRawDat(filename, ChansToPlot, neuralFiltLow, PlotWhat, Rect_sm, Raster, numsubplots)
         
@@ -189,7 +189,7 @@ lt_neural_AutoMakeNotmat(batchf);
 % -- makes multiple plots if too much dat.
 close all;
 PlotSecondChan = 1;
-SecondChan = 21;
+SecondChan = 20;
 plotcols={'m', 'r','c', 'b', 'g'};
 
 % want to plot 2nd channel to compare noise?
